@@ -4,7 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // サービスを登録
 builder.Services
-    .AddApplicationServices()
+    .AddApplicationServices(builder.Configuration)
     .AddDatabaseServices(builder.Configuration)
     .AddAuthenticationServices(builder.Configuration)  // 認証サービス
     .AddSwaggerDocumentation()

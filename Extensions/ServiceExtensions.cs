@@ -1,3 +1,5 @@
+using Azure.Identity;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -21,13 +23,16 @@ namespace VK_Common_BE.Extensions
         /// <summary>
         /// アプリケーションサービスを追加
         /// </summary>
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+        public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddControllers();
             services.AddEndpointsApiExplorer();
 
             // リポジトリ層を登録
             services.AddScoped<IProductRepository, ProductRepository>();
+
+            // Azure Blob Storage サービスを登録
+            services.AddAzureBlobStorageServices(configuration);
 
             // サービス層を登録
             services.AddScoped<IProductService, ProductService>();
@@ -37,6 +42,29 @@ namespace VK_Common_BE.Extensions
 
             // HttpContextAccessorを登録（Authorization Handlerで使用）
             services.AddHttpContextAccessor();
+
+            return services;
+        }
+
+        /// <summary>
+        /// Azure Blob Storage サービスを追加
+        /// </summary>
+        public static IServiceCollection AddAzureBlobStorageServices(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            // BlobServiceClientをシングルトンとして登録（DefaultAzureCredential使用）
+            services.AddSingleton(sp =>
+            {
+                var storageAccountName = configuration["AzureStorage:AccountName"]
+                    ?? throw new InvalidOperationException("AzureStorage:AccountName configuration is required");
+
+                var blobServiceUri = new Uri($"https://{storageAccountName}.blob.core.windows.net");
+                return new BlobServiceClient(blobServiceUri, new DefaultAzureCredential());
+            });
+
+            // Azure Blob Storage リポジトリを登録
+            services.AddScoped<IAzureBlobStorageRepository, AzureBlobStorageRepository>();
 
             return services;
         }
