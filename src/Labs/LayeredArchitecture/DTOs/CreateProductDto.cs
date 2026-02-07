@@ -1,0 +1,23 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace VK.Lab.LayeredArchitecture.DTOs
+{
+    /// <summary>
+    /// 创建产品数据传输对象
+    /// </summary>
+    public class CreateProductDto
+    {
+        /// <summary>
+        /// 产品名称
+        /// </summary>
+        [Required(ErrorMessage = "Product name is required")]
+        [StringLength(100, ErrorMessage = "Product name cannot exceed 100 characters")]
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 产品价格
+        /// </summary>
+        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than zero")]
+        public decimal Price { get; set; }
+    }
+}
