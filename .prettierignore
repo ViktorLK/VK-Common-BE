@@ -1,0 +1,20 @@
+# Ignore build outputs
+bin/
+obj/
+dist/
+build/
+
+# Ignore dependencies
+node_modules/
+
+# Ignore generated files
+*.min.js
+*.min.css
+
+# Ignore specific directories
+.vs/
+.vscode/
+.idea/
+
+# Ignore migration files (usually auto-generated)
+**/Migrations/**/*.cs
