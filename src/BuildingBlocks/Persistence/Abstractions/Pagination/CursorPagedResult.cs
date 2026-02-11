@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 
 namespace VK.Blocks.Persistence.Abstractions.Pagination;
 
