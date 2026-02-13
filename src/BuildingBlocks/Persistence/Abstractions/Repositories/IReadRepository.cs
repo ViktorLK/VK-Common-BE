@@ -1,13 +1,13 @@
 using System.Linq.Expressions;
 using VK.Blocks.Persistence.Abstractions.Pagination;
 
-namespace VK.Blocks.Persistence.Abstractions;
+namespace VK.Blocks.Persistence.Abstractions.Repositories;
 
 /// <summary>
-/// Generic repository interface for data persistence.
+/// Generic repository interface for read-only data operations.
 /// </summary>
 /// <typeparam name="TEntity">The entity type. Must be a class.</typeparam>
-public interface IBaseRepository<TEntity> where TEntity : class
+public interface IReadRepository<TEntity> where TEntity : class
 {
     #region Read (Single)
 
@@ -151,11 +151,11 @@ public interface IBaseRepository<TEntity> where TEntity : class
     /// <param name="ascending">Sort direction (true for ascending).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A tuple containing the items and the total count.</returns>
-    Task<(IReadOnlyList<TEntity> Items, int TotalCount)> GetPagedAsync<TKey>(
+    Task<PagedResult<TEntity>> GetPagedAsync<TKey>(
         Expression<Func<TEntity, bool>>? predicate,
         Expression<Func<TEntity, TKey>> orderBy,
-        int pageNumber,
-        int pageSize,
+        int pageNumber = 1,
+        int pageSize = 20,
         bool ascending = true,
         CancellationToken cancellationToken = default);
 
@@ -163,82 +163,23 @@ public interface IBaseRepository<TEntity> where TEntity : class
     /// Asynchronously retrieves a paged list of entities using cursor pagination.
     /// The cursor property must be indexed and unique.
     /// </summary>
-    /// <typeparam name="TKey">The type of the cursor property.</typeparam>
+    /// <typeparam name="TCursor">The type of the cursor property.</typeparam>
     /// <param name="predicate">Optional filter predicate.</param>
-    /// <param name="cursorProperty">The property to use as the cursor.</param>
-    /// <param name="lastValue">The cursor value from the last item of the previous page.</param>
+    /// <param name="cursorSelector">The property to use as the cursor.</param>
+    /// <param name="cursor ">The cursor value from the last item of the previous page.</param>
     /// <param name="pageSize">Page size.</param>
     /// <param name="ascending">Sort direction (true for ascending).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result containing the items and the next cursor.</returns>
-    Task<CursorPagedResult<TEntity>> GetCursorPagedAsync<TKey>(
+    Task<CursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(
         Expression<Func<TEntity, bool>>? predicate,
-        Expression<Func<TEntity, TKey>> cursorProperty,
-        TKey? lastValue,
-        int pageSize,
+        Expression<Func<TEntity, TCursor>> cursorSelector,
+        TCursor? cursor = default,
+        int pageSize = 20,
         bool ascending = true,
-        CancellationToken cancellationToken = default);
-
-    #endregion
-
-    #region Write
-
-    /// <summary>
-    /// Asynchronously adds a new entity.
-    /// </summary>
-    /// <param name="entity">The entity to add.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The added entity.</returns>
-    Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously adds a range of entities.
-    /// </summary>
-    /// <param name="entities">The entities to add.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    Task AddRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates an entity.
-    /// </summary>
-    /// <param name="entity">The entity to update.</param>
-    void Update(TEntity entity);
-
-    /// <summary>
-    /// Updates a range of entities.
-    /// </summary>
-    /// <param name="entities">The entities to update.</param>
-    void UpdateRange(IReadOnlyList<TEntity> entities);
-
-    /// <summary>
-    /// Deletes an entity.
-    /// </summary>
-    /// <param name="entity">The entity to delete.</param>
-    void Delete(TEntity entity);
-
-    /// <summary>
-    /// Asynchronously deletes entities matching the predicate.
-    /// Supports soft delete if the entity implements ISoftDelete.
-    /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The number of affected rows.</returns>
-    Task<int> ExecuteDeleteRangeAsync(
-        Expression<Func<TEntity, bool>> predicate,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Asynchronously updates entities matching the predicate using the provided property setters.
-    /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="propertySetter">The property setters.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The number of affected rows.</returns>
-    Task<int> ExecuteUpdateRangeAsync(
-        Expression<Func<TEntity, bool>> predicate,
-        Func<IPropertySetter<TEntity>, IPropertySetter<TEntity>> propertySetter,
-        CancellationToken cancellationToken = default);
+        CursorDirection direction = CursorDirection.Forward,
+        CancellationToken cancellationToken = default)
+        where TCursor : IComparable<TCursor>;
 
     #endregion
 

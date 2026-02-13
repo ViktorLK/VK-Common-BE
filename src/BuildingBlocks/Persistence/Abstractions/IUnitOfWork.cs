@@ -1,4 +1,7 @@
 
+using VK.Blocks.Persistence.Abstractions.Repositories;
+using VK.Blocks.Persistence.Abstractions.Transactions;
+
 namespace VK.Blocks.Persistence.Abstractions;
 
 /// <summary>
@@ -41,6 +44,9 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     /// </summary>
     IBaseRepository<TEntity> Repository<TEntity>() where TEntity : class;
 
-    //Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default);
-    //Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> action, CancellationToken cancellationToken = default);
+    // Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default);
+    // Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> action, CancellationToken cancellationToken = default);
+}
+public interface IUnitOfWork<TDbContext> : IUnitOfWork
+{
 }

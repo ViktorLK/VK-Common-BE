@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 
-namespace VK.Blocks.Persistence.Abstractions;
+namespace VK.Blocks.Persistence.Abstractions.Repositories;
+
 /// <summary>
 /// Fluent interface for setting entity properties in bulk update operations.
 /// </summary>

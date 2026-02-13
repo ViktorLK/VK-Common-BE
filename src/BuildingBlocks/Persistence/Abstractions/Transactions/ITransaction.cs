@@ -1,5 +1,4 @@
-
-namespace VK.Blocks.Persistence.Abstractions;
+namespace VK.Blocks.Persistence.Abstractions.Transactions;
 
 /// <summary>
 /// Transaction interface for managing database transactions.
