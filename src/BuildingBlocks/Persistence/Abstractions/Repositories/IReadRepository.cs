@@ -12,26 +12,24 @@ public interface IReadRepository<TEntity> where TEntity : class
     #region Read (Single)
 
     /// <summary>
-    /// Asynchronously retrieves the first entity matching the specified predicate.
-    /// Returns null if no match is found.
+    /// Asynchronously retrieves the first entity matching the specified predicate, or <c>null</c> if no match is found.
     /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="include">Optional navigation properties to include.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The first matching entity, or null.</returns>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="include">A function to include navigation properties.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The first element that matches the conditions, or <c>null</c> if no matching element is found.</returns>
     Task<TEntity?> GetFirstOrDefaultAsync(
         Expression<Func<TEntity, bool>> predicate,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously retrieves the first entity matching the specified predicate with tracking disabled.
-    /// Returns null if no match is found.
+    /// Asynchronously retrieves the first entity matching the specified predicate with tracking disabled, or <c>null</c> if no match is found.
     /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="include">Optional navigation properties to include.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The first matching entity, or null.</returns>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="include">A function to include navigation properties.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The first element that matches the conditions, or <c>null</c> if no matching element is found.</returns>
     Task<TEntity?> GetFirstOrDefaultAsNoTrackingAsync(
         Expression<Func<TEntity, bool>> predicate,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
@@ -39,12 +37,12 @@ public interface IReadRepository<TEntity> where TEntity : class
 
     /// <summary>
     /// Asynchronously retrieves the single entity matching the specified predicate.
-    /// Throws an exception if more than one match is found. Returns null if no match is found.
+    /// Throws an exception if more than one match is found. Returns <c>null</c> if no match is found.
     /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="include">Optional navigation properties to include.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The single matching entity, or null.</returns>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="include">A function to include navigation properties.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The single element that matches the conditions, or <c>null</c> if no matching element is found.</returns>
     Task<TEntity?> GetSingleOrDefaultAsync(
         Expression<Func<TEntity, bool>> predicate,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
@@ -52,12 +50,12 @@ public interface IReadRepository<TEntity> where TEntity : class
 
     /// <summary>
     /// Asynchronously retrieves the single entity matching the specified predicate with tracking disabled.
-    /// Throws an exception if more than one match is found. Returns null if no match is found.
+    /// Throws an exception if more than one match is found. Returns <c>null</c> if no match is found.
     /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="include">Optional navigation properties to include.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The single matching entity, or null.</returns>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="include">A function to include navigation properties.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The single element that matches the conditions, or <c>null</c> if no matching element is found.</returns>
     Task<TEntity?> GetSingleOrDefaultAsNoTrackingAsync(
         Expression<Func<TEntity, bool>> predicate,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
@@ -70,10 +68,10 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// <summary>
     /// Asynchronously retrieves a list of entities matching the specified predicate.
     /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="include">Optional navigation properties to include.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of matching entities.</returns>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="include">A function to include navigation properties.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A list of elements that match the conditions.</returns>
     Task<IReadOnlyList<TEntity>> GetListAsync(
         Expression<Func<TEntity, bool>> predicate,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
@@ -82,10 +80,10 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// <summary>
     /// Asynchronously retrieves a list of entities matching the specified predicate with tracking disabled.
     /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="include">Optional navigation properties to include.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of matching entities.</returns>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="include">A function to include navigation properties.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A list of elements that match the conditions.</returns>
     Task<IReadOnlyList<TEntity>> GetListAsNoTrackingAsync(
         Expression<Func<TEntity, bool>> predicate,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
@@ -94,9 +92,9 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// <summary>
     /// Asynchronously executes a query built by the provided function.
     /// </summary>
-    /// <typeparam name="TResult">The result type.</typeparam>
-    /// <param name="builder">The query builder function.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <param name="builder">A function to build the query.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A list of query results.</returns>
     Task<IReadOnlyList<TResult>> ExecuteAsync<TResult>(
         Func<IQueryable<TEntity>, IQueryable<TResult>> builder,
@@ -105,10 +103,10 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// <summary>
     /// Asynchronously executes a query built by the provided function and returns a single result.
     /// </summary>
-    /// <typeparam name="TResult">The result type.</typeparam>
-    /// <param name="builder">The query builder function.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The single query result, or null.</returns>
+    /// <typeparam name="TResult">The type of the result.</typeparam>
+    /// <param name="builder">A function to build the query.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The single query result, or <c>null</c>.</returns>
     Task<TResult?> ExecuteSingleAsync<TResult>(
         Func<IQueryable<TEntity>, IQueryable<TResult>> builder,
         CancellationToken cancellationToken = default);
@@ -117,8 +115,8 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// Asynchronously streams entities matching the predicate.
     /// Optimized for large datasets.
     /// </summary>
-    /// <param name="predicate">Optional filter predicate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>An asynchronous stream of entities.</returns>
     IAsyncEnumerable<TEntity> StreamAsync(
         Expression<Func<TEntity, bool>>? predicate = null,
@@ -128,8 +126,8 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// Asynchronously executes a raw SQL query and maps the results to entities.
     /// </summary>
     /// <param name="sql">The raw SQL query string.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <param name="parameters">SQL parameters.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <param name="parameters">The SQL parameters.</param>
     /// <returns>A list of entities returned by the query.</returns>
     Task<IReadOnlyList<TEntity>> FromSqlRawAsync(
         string sql,
@@ -144,12 +142,12 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// Asynchronously retrieves a paged list of entities using offset pagination.
     /// </summary>
     /// <typeparam name="TKey">The type of the sorting key.</typeparam>
-    /// <param name="predicate">Optional filter predicate.</param>
-    /// <param name="orderBy">Sorting expression.</param>
-    /// <param name="pageNumber">Page number (1-based).</param>
-    /// <param name="pageSize">Page size.</param>
-    /// <param name="ascending">Sort direction (true for ascending).</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="orderBy">A function to order elements.</param>
+    /// <param name="pageNumber">The page number (1-based).</param>
+    /// <param name="pageSize">The size of the page.</param>
+    /// <param name="ascending">Sort direction (<c>true</c> for ascending).</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A tuple containing the items and the total count.</returns>
     Task<PagedResult<TEntity>> GetPagedAsync<TKey>(
         Expression<Func<TEntity, bool>>? predicate,
@@ -164,12 +162,13 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// The cursor property must be indexed and unique.
     /// </summary>
     /// <typeparam name="TCursor">The type of the cursor property.</typeparam>
-    /// <param name="predicate">Optional filter predicate.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
     /// <param name="cursorSelector">The property to use as the cursor.</param>
-    /// <param name="cursor ">The cursor value from the last item of the previous page.</param>
-    /// <param name="pageSize">Page size.</param>
-    /// <param name="ascending">Sort direction (true for ascending).</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cursor">The cursor value from the last item of the previous page.</param>
+    /// <param name="pageSize">The size of the page.</param>
+    /// <param name="ascending">Sort direction (<c>true</c> for ascending).</param>
+    /// <param name="direction">The direction of the cursor pagination.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A result containing the items and the next cursor.</returns>
     Task<CursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(
         Expression<Func<TEntity, bool>>? predicate,
@@ -188,16 +187,16 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// <summary>
     /// Asynchronously determines whether any element of a sequence satisfies a condition.
     /// </summary>
-    /// <param name="predicate">The filter predicate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True if the source sequence contains any elements in the source sequence; otherwise, false.</returns>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns><c>true</c> if any elements in the source sequence pass the test in the specified predicate; otherwise, <c>false</c>.</returns>
     Task<bool> AnyAsync(Expression<Func<TEntity, bool>>? predicate = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously returns the number of elements in a sequence.
     /// </summary>
-    /// <param name="predicate">Optional filter predicate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>The number of elements in the input sequence.</returns>
     Task<int> CountAsync(Expression<Func<TEntity, bool>>? predicate = null, CancellationToken cancellationToken = default);
 
@@ -211,8 +210,8 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// Otherwise, a query is made to the database for an entity with the given primary key values and this entity, if found, is attached to the context and returned.
     /// </summary>
     /// <param name="id">The value of the primary key for the entity to be found.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The entity found, or null.</returns>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The entity found, or <c>null</c>.</returns>
     ValueTask<TEntity?> GetByIdAsync(object id, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -221,8 +220,8 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// Otherwise, a query is made to the database for an entity with the given primary key values and this entity, if found, is attached to the context and returned.
     /// </summary>
     /// <param name="keyValues">The values of the primary key for the entity to be found.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The entity found, or null.</returns>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The entity found, or <c>null</c>.</returns>
     ValueTask<TEntity?> GetByIdAsync(object?[]? keyValues, CancellationToken cancellationToken = default);
 
     #endregion

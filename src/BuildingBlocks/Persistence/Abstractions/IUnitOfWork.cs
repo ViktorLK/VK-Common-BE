@@ -10,43 +10,71 @@ namespace VK.Blocks.Persistence.Abstractions;
 public interface IUnitOfWork : IDisposable, IAsyncDisposable
 {
     /// <summary>
-    /// Gets the current transaction.
+    /// Gets the current active transaction, if any.
+    /// </summary>
+    #region Properties
+
+    /// <summary>
+    /// Gets the current active transaction, if any.
     /// </summary>
     ITransaction? CurrentTransaction { get; }
 
+    #endregion
+
+    #region Methods
+
     /// <summary>
-    /// Checks if there are any pending changes.
+    /// Determines whether the unit of work has any pending changes.
     /// </summary>
+    /// <returns><c>true</c> if there are pending changes; otherwise, <c>false</c>.</returns>
     bool HasChanges();
 
     /// <summary>
-    /// Saves all changes to the underlying data store.
+    /// Asynchronously saves all changes made in this unit of work to the database.
     /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The number of state entries written to the database.</returns>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Begins a new transaction.
+    /// Asynchronously begins a new transaction.
     /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the started transaction.</returns>
     Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Commits the current transaction.
+    /// Asynchronously commits the current transaction.
     /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Rolls back the current transaction.
+    /// Asynchronously rolls back the current transaction.
     /// </summary>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets a repository for the specified entity type.
+    /// Gets the repository for the specified entity type.
     /// </summary>
+    /// <typeparam name="TEntity">The type of the entity.</typeparam>
+    /// <returns>The repository instance for the specified entity type.</returns>
     IBaseRepository<TEntity> Repository<TEntity>() where TEntity : class;
 
+    // TODO: Evaluate if these methods should be implemented or removed.
     // Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default);
     // Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> action, CancellationToken cancellationToken = default);
+
+    #endregion
 }
+
+/// <summary>
+/// Defines a typed Unit of Work for a specific database context.
+/// </summary>
+/// <typeparam name="TDbContext">The type of the database context.</typeparam>
 public interface IUnitOfWork<TDbContext> : IUnitOfWork
 {
 }
