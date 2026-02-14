@@ -1,76 +1,66 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.Persistence.Abstractions;
+using VK.Blocks.Persistence.Abstractions.Repositories;
+using VK.Blocks.Persistence.Abstractions.Transactions;
+using VK.Blocks.Persistence.EFCore.Adapters;
 using VK.Blocks.Persistence.EFCore.Constants;
+using VK.Blocks.Persistence.EFCore.Repositories;
 
 namespace VK.Blocks.Persistence.EFCore;
 
 /// <summary>
-/// Unit of Work インターフェース
-/// 特徴：トランザクション管理、SOLID 原則における単一責任
+/// Unit of Work implementation for EF Core.
 /// </summary>
-public interface IUnitOfWork : IDisposable, IAsyncDisposable
+public class UnitOfWork<TDbContext>(
+    TDbContext context,
+    IServiceProvider serviceProvider)
+    : IUnitOfWork<TDbContext>
+    where TDbContext : DbContext
 {
-    /// <summary>
-    /// すべての変更を保存
-    /// </summary>
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    #region Fields
 
-    /// <summary>
-    /// トランザクションを開始
-    /// </summary>
-    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// トランザクションをコミット
-    /// </summary>
-    Task CommitTransactionAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// トランザクションをロールバック
-    /// </summary>
-    Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 指定されたエンティティのリポジトリを取得
-    /// </summary>
-    IBaseRepository<TEntity> Repository<TEntity>() where TEntity : class;
-}
-
-/// <summary>
-/// Unit of Work 実装
-/// 特徴：
-/// 1. プライマリコンストラクタ (C# 12)
-/// 2. IDisposable と IAsyncDisposable パターン
-/// 3. トランザクション管理
-/// 4. リポジトリファクトリパターン
-/// </summary>
-public class UnitOfWork(DbContext context) : IUnitOfWork
-{
-    private readonly DbContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    private readonly TDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
     private IDbContextTransaction? _currentTransaction;
-    private readonly Dictionary<Type, object> _repositories = new();
     private bool _disposed;
 
-    // ========== 保存操作 ==========
+    #endregion
 
+    #region Properties
+
+    /// <inheritdoc />
+    public ITransaction? CurrentTransaction =>
+        _currentTransaction is null
+            ? null
+            : new EfCoreTransactionAdapter(_currentTransaction);
+
+    #endregion
+
+    #region Public Methods
+
+    /// <inheritdoc />
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         return await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    // ========== トランザクション管理 ==========
-
-    public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    /// <inheritdoc />
+    public async Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
+        // TODO: isolationLevel
         if (_currentTransaction is not null)
         {
             throw new InvalidOperationException(RepositoryConstants.ErrorMessages.TransactionAlreadyActive);
         }
 
         _currentTransaction = await _context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-        return _currentTransaction;
+        return new EfCoreTransactionAdapter(_currentTransaction);
     }
 
+    /// <inheritdoc />
     public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_currentTransaction is null)
@@ -80,21 +70,19 @@ public class UnitOfWork(DbContext context) : IUnitOfWork
 
         try
         {
-            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             await _currentTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch
         {
-            await RollbackTransactionAsync(cancellationToken);
             throw;
         }
         finally
         {
-            await _currentTransaction.DisposeAsync().ConfigureAwait(false);
-            _currentTransaction = null;
+            await DisposeTransactionAsync().ConfigureAwait(false);
         }
     }
 
+    /// <inheritdoc />
     public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_currentTransaction is null)
@@ -108,39 +96,39 @@ public class UnitOfWork(DbContext context) : IUnitOfWork
         }
         finally
         {
-            await _currentTransaction.DisposeAsync().ConfigureAwait(false);
-            _currentTransaction = null;
+            await DisposeTransactionAsync().ConfigureAwait(false);
         }
     }
 
-    // ========== リポジトリファクトリ ==========
-
-    /// <summary>
-    /// リポジトリインスタンスを取得（シングルトンパターン、各エンティティ型につき一度だけ作成）
-    /// </summary>
+    /// <inheritdoc />
     public IBaseRepository<TEntity> Repository<TEntity>() where TEntity : class
     {
-        var type = typeof(TEntity);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (_repositories.TryGetValue(type, out var existingRepo))
+        var customRepo = _serviceProvider.GetService<IBaseRepository<TEntity>>();
+        if (customRepo is not null)
         {
-            return (IBaseRepository<TEntity>)existingRepo;
+            return customRepo;
         }
 
-        var repository = new BaseRepository<TEntity>(_context);
-        _repositories[type] = repository;
-
-        return repository;
+        return ActivatorUtilities.CreateInstance<EfCoreRepository<TEntity>>(_serviceProvider, _context);
     }
 
-    // ========== Dispose パターン ==========
+    /// <inheritdoc />
+    public bool HasChanges()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return _context.ChangeTracker.HasChanges();
+    }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
 
+    /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
         await DisposeAsyncCore();
@@ -151,12 +139,13 @@ public class UnitOfWork(DbContext context) : IUnitOfWork
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)
+        {
             return;
+        }
 
         if (disposing)
         {
             _currentTransaction?.Dispose();
-            _repositories.Clear();
         }
 
         _disposed = true;
@@ -168,7 +157,20 @@ public class UnitOfWork(DbContext context) : IUnitOfWork
         {
             await _currentTransaction.DisposeAsync().ConfigureAwait(false);
         }
-
-        _repositories.Clear();
     }
+
+    #endregion
+
+    #region Private Methods
+
+    private async Task DisposeTransactionAsync()
+    {
+        if (_currentTransaction != null)
+        {
+            await _currentTransaction.DisposeAsync().ConfigureAwait(false);
+            _currentTransaction = null;
+        }
+    }
+
+    #endregion
 }

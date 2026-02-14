@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using VK.Blocks.Persistence.Abstractions.Entities;
 using VK.Blocks.Persistence.EFCore.Services;
 
 namespace VK.Blocks.Persistence.EFCore.Interceptors;
 
 /// <summary>
-/// Interceptor to handle Soft Delete operations.
+/// Interceptor to automatically update <see cref="IAuditable"/> entities.
 /// </summary>
-public class SoftDeleteInterceptor(IEntityLifecycleProcessor processor) : SaveChangesInterceptor
+public class AuditingInterceptor(IEntityLifecycleProcessor processor) : SaveChangesInterceptor
 {
     #region Fields
 
@@ -19,14 +20,14 @@ public class SoftDeleteInterceptor(IEntityLifecycleProcessor processor) : SaveCh
     /// <inheritdoc />
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
-        _processor.ProcessSoftDelete(eventData.Context!);
+        _processor.ProcessAuditing(eventData.Context!);
         return base.SavingChanges(eventData, result);
     }
 
     /// <inheritdoc />
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
-        _processor.ProcessSoftDelete(eventData.Context!);
+        _processor.ProcessAuditing(eventData.Context!);
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 

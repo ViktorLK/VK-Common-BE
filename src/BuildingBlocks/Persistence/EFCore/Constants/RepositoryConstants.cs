@@ -1,118 +1,53 @@
 namespace VK.Blocks.Persistence.EFCore.Constants;
 
 /// <summary>
-/// リポジトリ層の定数
-/// 特徴：可読性・保守性向上のための文字列リテラルの一元管理
+/// Constants for the repository layer.
+/// Features: Centralized management of string literals for improved readability and maintainability.
 /// </summary>
 public static class RepositoryConstants
 {
     /// <summary>
-    /// パフォーマンスガード
-    /// </summary>
-    public static class PerformanceGuard
-    {
-        /// <summary>
-        /// オフセットページネーションの最大制限
-        /// </summary>
-        public const int MaxOffsetLimit = 10000;
-
-        /// <summary>
-        /// カーソルページネーションの最大制限
-        /// </summary>
-        public const int MaxCursorLimit = 10000;
-
-        /// <summary>
-        /// ページサイズ
-        /// </summary>
-        public const int MaxPageSize = 1000;
-    }
-
-    /// <summary>
-    /// エラーメッセージ
+    /// Error messages.
     /// </summary>
     public static class ErrorMessages
     {
-        /// <summary>
-        /// ページ番号は 0 より大きい必要があります
-        /// </summary>
-        public const string PageNumberMustBePositive = "ページ番号は 0 より大きい必要があります";
+        #region Constants
 
         /// <summary>
-        /// ページあたりの件数は 0 より大きい必要があります
+        /// Page number must be greater than 0.
         /// </summary>
-        public const string PageSizeMustBePositive = "ページあたりの件数は 0 より大きい必要があります";
+        public const string PageNumberMustBePositive = "Page number must be greater than 0.";
 
         /// <summary>
-        /// オフセットページネーションの最大制限
+        /// Page size must be greater than 0.
         /// </summary>
-        public const string OverOffsetLimit = "オフセットページネーションの最大制限を超えています";
+        public const string PageSizeMustBePositive = "Page size must be greater than 0.";
 
         /// <summary>
-        /// カーソルページネーションの最大制限
+        /// Offset pagination limit exceeded.
         /// </summary>
-        public const string OverPageSize = "ページあたりの件数が最大制限を超えています";
+        public const string OverOffsetLimit = "Offset pagination limit exceeded.";
 
         /// <summary>
-        /// 既にアクティブなトランザクションが存在します
+        /// Page size limit exceeded.
         /// </summary>
-        public const string TransactionAlreadyActive = "既にアクティブなトランザクションが存在します";
+        public const string OverPageSize = "Page size limit exceeded.";
 
         /// <summary>
-        /// コミット可能なアクティブなトランザクションがありません
+        /// Transaction is already active.
         /// </summary>
-        public const string NoActiveTransaction = "コミット可能なアクティブなトランザクションがありません";
+        public const string TransactionAlreadyActive = "Transaction is already active.";
 
         /// <summary>
-        /// 主キーが見つかりませんでした（エンティティ名を挿入して使用）
+        /// No active transaction to commit.
         /// </summary>
-        public const string PrimaryKeyNotFoundFormat = "エンティティ '{0}' に主キーが見つかりません。FindWithIncludesAsync を使用してください。";
-    }
-
-    /// <summary>
-    /// Expression パラメータ名
-    /// </summary>
-    public static class ExpressionParameterNames
-    {
-        /// <summary>
-        /// エンティティパラメータ名
-        /// </summary>
-        public const string Entity = "e";
+        public const string NoActiveTransaction = "No active transaction to commit.";
 
         /// <summary>
-        /// 汎用アイテムパラメータ名
+        /// Primary key not found (format with entity name).
         /// </summary>
-        public const string Item = "x";
-    }
+        public const string PrimaryKeyNotFoundFormat = "Primary key not found for entity '{0}'. Use FindWithIncludesAsync.";
 
-    /// <summary>
-    /// プロパティ名
-    /// </summary>
-    public static class PropertyNames
-    {
-        /// <summary>
-        /// ID プロパティ名
-        /// </summary>
-        public const string Id = "Id";
-
-        /// <summary>
-        /// 論理削除フラグプロパティ名
-        /// </summary>
-        public const string IsDeleted = "IsDeleted";
-    }
-
-    /// <summary>
-    /// LINQ メソッド名
-    /// </summary>
-    public static class LinqMethodNames
-    {
-        /// <summary>
-        /// 昇順ソートメソッド名
-        /// </summary>
-        public const string OrderBy = "OrderBy";
-
-        /// <summary>
-        /// 降順ソートメソッド名
-        /// </summary>
-        public const string OrderByDescending = "OrderByDescending";
+        #endregion
     }
 }

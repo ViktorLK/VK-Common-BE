@@ -11,7 +11,7 @@ public interface IWriteRepository<TEntity> where TEntity : class
     #region Write
 
     /// <summary>
-    /// Asynchronously adds a new entity.
+    /// Asynchronously adds a new entity to the repository.
     /// </summary>
     /// <param name="entity">The entity to add.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -19,7 +19,7 @@ public interface IWriteRepository<TEntity> where TEntity : class
     Task<TEntity> AddAsync(TEntity entity, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously adds a range of entities.
+    /// Asynchronously adds a range of entities to the repository.
     /// </summary>
     /// <param name="entities">The entities to add.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -27,25 +27,25 @@ public interface IWriteRepository<TEntity> where TEntity : class
     Task AddRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates an entity.
+    /// Updates an existing entity in the repository.
     /// </summary>
     /// <param name="entity">The entity to update.</param>
     ValueTask UpdateAsync(TEntity entity);
 
     /// <summary>
-    /// Updates a range of entities.
+    /// Updates a range of existing entities in the repository.
     /// </summary>
     /// <param name="entities">The entities to update.</param>
     ValueTask UpdateRangeAsync(IReadOnlyList<TEntity> entities);
 
     /// <summary>
-    /// Deletes an entity.
+    /// Deletes an entity from the repository.
     /// </summary>
     /// <param name="entity">The entity to delete.</param>
     ValueTask DeleteAsync(TEntity entity);
 
     /// <summary>
-    /// Deletes a range of entities.
+    /// Deletes a range of entities from the repository.
     /// </summary>
     /// <param name="entities">The entities to delete.</param>
     ValueTask DeleteRangeAsync(IReadOnlyList<TEntity> entities);
