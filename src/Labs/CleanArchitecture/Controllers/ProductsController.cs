@@ -47,7 +47,7 @@ namespace VK.Lab.CleanArchitecture.Controllers
             var query = new GetProductByIdQuery(id);
             var product = await _mediator.Send(query);
 
-            if (product == null)
+            if (product is null)
             {
                 return NotFound(new { message = string.Format(MessageConstants.Errors.ProductNotFound, id) });
             }

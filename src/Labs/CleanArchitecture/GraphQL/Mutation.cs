@@ -46,7 +46,7 @@ namespace VK.Lab.CleanArchitecture.GraphQL
             [Service] IProductService productService)
         {
             var existingProduct = await productService.GetProductByIdAsync(id);
-            if (existingProduct == null)
+            if (existingProduct is null)
             {
                 throw new GraphQLException($"Product with ID {id} not found.");
             }

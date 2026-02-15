@@ -48,7 +48,7 @@ namespace VK.Lab.LayeredArchitecture.Controllers
         {
             var product = await _productService.GetProductByIdAsync(id);
 
-            if (product == null)
+            if (product is null)
             {
                 return NotFound(new { message = string.Format(MessageConstants.Errors.ProductNotFound, id) });
             }

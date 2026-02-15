@@ -64,7 +64,7 @@ namespace VK.Lab.CleanArchitecture.Services
         public async Task<bool> DeleteProductAsync(int id)
         {
             var product = await _repository.GetByIdAsync(id);
-            if (product == null)
+            if (product is null)
             {
                 return false;
             }

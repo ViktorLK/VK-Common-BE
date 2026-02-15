@@ -4,7 +4,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Persistence.Abstractions;
 using VK.Blocks.Persistence.Abstractions.Auditing;
 using VK.Blocks.Persistence.Abstractions.Options;
+using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Interceptors;
+using VK.Blocks.Persistence.EFCore.Repositories;
 using VK.Blocks.Persistence.EFCore.Services;
 
 namespace VK.Blocks.Persistence.EFCore.DependencyInjection;
@@ -69,6 +71,9 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<DbContext>(sp => sp.GetRequiredService<TContext>());
         services.AddScoped<IUnitOfWork, UnitOfWork<TContext>>();
+        services.TryAddScoped(typeof(IReadRepository<>), typeof(EfCoreReadRepository<>));
+        services.TryAddScoped(typeof(IWriteRepository<>), typeof(EfCoreRepository<>));
+        services.TryAddScoped(typeof(IBaseRepository<>), typeof(EfCoreRepository<>));
 
         return services;
     }

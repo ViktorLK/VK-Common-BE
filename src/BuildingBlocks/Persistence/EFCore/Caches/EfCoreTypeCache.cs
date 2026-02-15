@@ -2,11 +2,21 @@ using VK.Blocks.Persistence.Abstractions.Entities;
 
 namespace VK.Blocks.Persistence.EFCore.Caches;
 
+/// <summary>
+/// Cache for entity type capabilities (e.g. IsAuditable, IsSoftDelete).
+/// </summary>
 internal static class EfCoreTypeCache<TEntity>
 {
     #region Fields
 
+    /// <summary>
+    /// Gets a value indicating whether the entity implements IAuditable.
+    /// </summary>
     public static readonly bool IsAuditable = typeof(IAuditable).IsAssignableFrom(typeof(TEntity));
+
+    /// <summary>
+    /// Gets a value indicating whether the entity implements ISoftDelete.
+    /// </summary>
     public static readonly bool IsSoftDelete = typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity));
 
     #endregion
