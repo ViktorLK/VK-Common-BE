@@ -4,11 +4,21 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace VK.Blocks.Persistence.EFCore.Caches;
 
+/// <summary>
+/// Cache for MethodInfo of property setter methods.
+/// </summary>
 internal static class EfCoreMethodInfoCache<TEntity>
 {
     #region Fields
 
+    /// <summary>
+    /// The MethodInfo for SetProperty(Expression, Value).
+    /// </summary>
     public static readonly MethodInfo SetPropertyValueMethod = GetSetPropertyValueMethod();
+
+    /// <summary>
+    /// The MethodInfo for SetProperty(Expression, Expression).
+    /// </summary>
     public static readonly MethodInfo SetPropertyExpressionMethod = GetSetPropertyExpressionMethod();
 
     #endregion

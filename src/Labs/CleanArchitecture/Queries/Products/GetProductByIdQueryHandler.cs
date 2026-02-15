@@ -22,7 +22,7 @@ namespace VK.Lab.CleanArchitecture.Queries.Products
         public async Task<ProductDto?> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
         {
             var product = await _productService.GetProductByIdAsync(request.Id);
-            return product == null ? null : _mapper.Map<ProductDto>(product);
+            return product is null ? null : _mapper.Map<ProductDto>(product);
         }
     }
 }

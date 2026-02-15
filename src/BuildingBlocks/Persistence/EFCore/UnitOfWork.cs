@@ -50,7 +50,7 @@ public class UnitOfWork<TDbContext>(
     /// <inheritdoc />
     public async Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        // TODO: isolationLevel
+        // TODO: Implement isolation level support
         if (_currentTransaction is not null)
         {
             throw new InvalidOperationException(RepositoryConstants.ErrorMessages.TransactionAlreadyActive);
@@ -105,13 +105,7 @@ public class UnitOfWork<TDbContext>(
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var customRepo = _serviceProvider.GetService<IBaseRepository<TEntity>>();
-        if (customRepo is not null)
-        {
-            return customRepo;
-        }
-
-        return ActivatorUtilities.CreateInstance<EfCoreRepository<TEntity>>(_serviceProvider, _context);
+        return _serviceProvider.GetRequiredService<IBaseRepository<TEntity>>();
     }
 
     /// <inheritdoc />
@@ -165,7 +159,7 @@ public class UnitOfWork<TDbContext>(
 
     private async Task DisposeTransactionAsync()
     {
-        if (_currentTransaction != null)
+        if (_currentTransaction is not null)
         {
             await _currentTransaction.DisposeAsync().ConfigureAwait(false);
             _currentTransaction = null;

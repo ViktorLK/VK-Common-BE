@@ -42,14 +42,14 @@ namespace VK.Lab.CleanArchitecture.Authentication
             // APIキーを検証
             var validApiKeys = _configuration.GetSection(ConfigurationKeys.Authentication.ApiKeys).Get<List<ApiKeyConfig>>();
 
-            if (validApiKeys == null || !validApiKeys.Any())
+            if (validApiKeys is null || !validApiKeys.Any())
             {
                 return Task.FromResult(AuthenticateResult.Fail(MessageConstants.Errors.NoValidApiKeys));
             }
 
             var apiKeyConfig = validApiKeys.FirstOrDefault(k => k.Key == providedApiKey);
 
-            if (apiKeyConfig == null)
+            if (apiKeyConfig is null)
             {
                 return Task.FromResult(AuthenticateResult.Fail(MessageConstants.Errors.InvalidApiKey));
             }

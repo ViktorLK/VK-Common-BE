@@ -112,7 +112,7 @@ namespace VK.Lab.CleanArchitecture.Repositories
         public async Task<bool> ExistsAsync(string id, string partitionKey)
         {
             var document = await GetByIdAsync(id, partitionKey);
-            return document != null;
+            return document is not null;
         }
     }
 }

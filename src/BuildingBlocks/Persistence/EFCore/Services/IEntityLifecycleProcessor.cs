@@ -8,7 +8,7 @@ namespace VK.Blocks.Persistence.EFCore.Services;
 /// </summary>
 public interface IEntityLifecycleProcessor
 {
-    #region Methods
+    #region Public Methods
 
     /// <summary>
     /// Processes auditing fields (CreatedAt, CreatedBy, UpdatedAt, UpdatedBy) for entities in the ChangeTracker.

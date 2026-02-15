@@ -25,7 +25,7 @@ namespace VK.Lab.LayeredArchitecture.Authorization
             ApiKeyReadOnlyRequirement requirement)
         {
             var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext == null)
+            if (httpContext is null)
             {
                 context.Fail();
                 return Task.CompletedTask;
