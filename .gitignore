@@ -61,3 +61,9 @@ appsettings.Development.json
 *.db
 *.db-shm
 *.db-wal
+
+# Agent generated logs
+build_log*.txt
+*_log.txt
+*.log
+test_output.txt
