@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,18 +14,32 @@ namespace VK.Blocks.Persistence.EFCore;
 /// <summary>
 /// Unit of Work implementation for EF Core.
 /// </summary>
-public class UnitOfWork<TDbContext>(
-    TDbContext context,
-    IServiceProvider serviceProvider)
-    : IUnitOfWork<TDbContext>
+public class UnitOfWork<TDbContext> : IUnitOfWork<TDbContext>
     where TDbContext : DbContext
 {
     #region Fields
 
-    private readonly TDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-    private readonly IServiceProvider _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+    private readonly TDbContext _context;
+    private readonly IServiceProvider _serviceProvider;
     private IDbContextTransaction? _currentTransaction;
     private bool _disposed;
+
+    #endregion
+
+    #region Constructors
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EfCoreReadRepository{TEntity}"/> class.
+    /// </summary>
+    /// <param name="context">The database context.</param>
+    /// <param name="serviceProvider">The service provider.</param>
+    public UnitOfWork(TDbContext context, IServiceProvider serviceProvider)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+        _context = context;
+        _serviceProvider = serviceProvider;
+    }
 
     #endregion
 
@@ -47,8 +62,9 @@ public class UnitOfWork<TDbContext>(
         return await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
+
     /// <inheritdoc />
-    public async Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    public async Task<ITransaction> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default)
     {
         // TODO: Implement isolation level support
         if (_currentTransaction is not null)
@@ -56,8 +72,34 @@ public class UnitOfWork<TDbContext>(
             throw new InvalidOperationException(RepositoryConstants.ErrorMessages.TransactionAlreadyActive);
         }
 
-        _currentTransaction = await _context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        _currentTransaction = await _context.Database.BeginTransactionAsync(isolationLevel, cancellationToken).ConfigureAwait(false);
         return new EfCoreTransactionAdapter(_currentTransaction);
+    }
+
+    /// <inheritdoc />
+    public async Task ExecuteInTransactionAsync(
+        Func<IUnitOfWork<TDbContext>, CancellationToken, Task> operation,
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+        CancellationToken cancellationToken = default)
+    {
+        // Use the configured execution strategy (e.g. SQL Server retry policy)
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        await strategy.ExecuteAsync(async (ct) =>
+        {
+            await using var transaction = await BeginTransactionAsync(isolationLevel, ct);
+
+            try
+            {
+                await operation(this, ct);
+                await CommitTransactionAsync(ct);
+            }
+            catch
+            {
+                await RollbackTransactionAsync(ct);
+                throw;
+            }
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -71,10 +113,6 @@ public class UnitOfWork<TDbContext>(
         try
         {
             await _currentTransaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            throw;
         }
         finally
         {

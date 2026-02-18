@@ -63,7 +63,7 @@ appsettings.Development.json
 *.db-wal
 
 # Agent generated logs
-build_log*.txt
+build_*.txt
 *_log.txt
 *.log
 test_output.txt

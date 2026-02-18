@@ -36,6 +36,7 @@
 
 - **Offset-based Pagination**: 標準的なページ番号とサイズによるページネーション。
 - **Cursor-based Pagination**: 大規模データセットに対しても高速で安定したページ送り（前方/後方スクロール対応）を実現するカーソルページネーション。
+- **Cursor Serializer Abstraction**: `ICursorSerializer` インターフェースにより、シリアライズ戦略を DI で差し替え可能。開発・テスト用の `SimpleCursorSerializer` と、HMAC-SHA256 署名・スキーマバージョン管理・有効期限を備えた本番用 `SecureCursorSerializer` を提供。
 
 ### 3. 横断的関心事の自動化 (Interceptors)
 
@@ -54,6 +55,7 @@
 - **Advanced Bulk Operations (Hybrid Auditing)**: 通常の CRUD 操作は `Interceptors` で、ChangeTracker をバイパスするバルク操作は `IEntityLifecycleProcessor` で明示的に処理する「ハイブリッド戦略」を採用。これにより、パフォーマンスを犠牲にすることなく、すべての操作で監査ログと論理削除の整合性を保証しています。
 - **High-Performance Metadata Caching**: `EfCoreTypeCache` などの静的ジェネリックキャッシュを活用し、リフレクションのオーバーヘッドを最小化。スレッドセーフかつロックフリーな実装により、高並列環境下でも安定したパフォーマンスを発揮します。
 - **Dynamic Global Query Filters**: リフレクションを活用し、`ISoftDelete` などのインターフェースを実装したエンティティに対してグローバルクエリフィルタを自動適用。手動設定の手間を省き、設定漏れによるデータ漏洩リスクを排除しています。
+- **Secure Cursor Serialization**: `ICursorSerializer` の Strategy パターンにより、開発環境と本番環境でシリアライズ実装を DI で切り替え。`SecureCursorSerializer` は HMAC-SHA256 署名と `CryptographicOperations.FixedTimeEquals` によるタイミング攻撃対策を実装しています。
 - **Async Best Practices**: `ValueTask` や `ConfigureAwait(false)` の徹底、および `CancellationToken` の完全な伝播により、高負荷時でもスレッドプールを効率的に利用する設計となっています。
 
 ## 採用技術
@@ -99,7 +101,22 @@ services.AddVKDbContext<MyDbContext>(
     });
 ```
 
-### 3. リポジトリの使用
+### 3. カーソルシリアライザーの設定（本番環境）
+
+デフォルトでは `SimpleCursorSerializer`（署名なし）が登録されます。**本番環境では必ず `AddSecureCursorSerializer` を呼び出してください。**
+
+```csharp
+// 本番環境: HMAC-SHA256 署名 + 有効期限付きカーソルトークン
+services.AddSecureCursorSerializer(opts =>
+{
+    opts.SigningKey = configuration["CursorSerializer:SigningKey"]; // Azure Key Vault 推奨
+    opts.DefaultExpiry = TimeSpan.FromHours(1);
+});
+```
+
+> ⚠️ `AddSecureCursorSerializer` を呼び忘れると、本番環境でカーソルが改ざん可能な状態になります。
+
+### 4. リポジトリの使用
 
 コンストラクタインジェクションにより `IBaseRepository<TEntity>` を注入して使用します。
 
@@ -113,7 +130,7 @@ public class ProductService(IBaseRepository<Product> repository)
 }
 ```
 
-### 4. 実践的な使用例
+### 5. 実践的な使用例
 
 #### Cursor-based Pagination
 
@@ -150,13 +167,18 @@ await repository.ExecuteDeleteAsync(
 
 ## 今後の展望
 
-アーキテクチャ監査で指摘された課題に基づき、以下の改善を計画しています。
+アーキテクチャ監査で指摘された課題に基づき、以下の改善を計画・実施しています。
+
+**✅ 実装済み**
+
+- ~~**Robust Cursor Implementation**~~: `ICursorSerializer` インターフェースの導入により、カーソルのバージョン管理・HMAC-SHA256 署名・有効期限管理を実装済み。([ADR-009](../../../docs/02-ArchitectureDecisionRecords/EFCore/adr-009-cursor-serializer-abstraction.md))
+
+**📋 計画中**
 
 - **Strengthen Abstractions**: Specification パターンを導入することで `IQueryable` への直接的な依存を排除し、インフラの詳細がドメイン層に漏れ出さない「防腐層」としての機能を強化する。
-- **Robust Cursor Implementation**: カーソルのバージョン管理とシリアライズ形式の抽象化（ICursorSerializer）を導入。データの変更やスキーマ進化に対する堅牢性を確保する。
 - **Complex Bulk Logic Simplification**: バルク更新ロジックの内部実装をカプセル化し、外部ライブラリの破壊的変更に対する耐性を高める。
 - **Multi-Tenancy Support**: テナントごとのデータ分離機能の拡充。
 - **Second Level Cache**: Redis 等を使用したクエリキャッシュの統合。
 - **Event Sourcing**: ドメインイベントの永続化とイベントソーシングパターンの探索。
-- **Resilient Execution Strategy**: レジリエンス（回復性）の強化: クラウド環境における一時的な接続障害（Transient Faults）を考慮し、EF Core の IExecutionStrategy を活用した自動再試行メカニズムを統合。複雑なトランザクション下でも高い可用性を保証する。
-- **Unsafe Mode (Admin Access)**: Unsafe Mode (管理者向け特殊操作): 論理削除（Soft Delete）フィルタや監査ログ（Auditing）の自動挿入を一時的にバイパスする API を提供。データ復旧、管理者によるメンテナンス、または特殊なバッチ処理に対応する。
+- **Resilient Execution Strategy**: クラウド環境における一時的な接続障害（Transient Faults）を考慮し、EF Core の `IExecutionStrategy` を活用した自動再試行メカニズムを統合。
+- **Unsafe Mode (Admin Access)**: 論理削除フィルタや監査ログの自動挿入を一時的にバイパスする API を提供。データ復旧・管理者メンテナンス・特殊バッチ処理に対応する。

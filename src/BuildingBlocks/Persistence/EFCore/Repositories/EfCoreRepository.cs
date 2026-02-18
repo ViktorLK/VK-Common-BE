@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using VK.Blocks.Persistence.Abstractions.Pagination;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Services;
 
@@ -15,10 +16,14 @@ namespace VK.Blocks.Persistence.EFCore.Repositories;
 /// <param name="context">The database context.</param>
 /// <param name="logger">The logger.</param>
 /// <param name="processor">The entity lifecycle processor.</param>
+/// <param name="cursorSerializer">
+/// The cursor serializer. Defaults to <c>SimpleCursorSerializer</c> if not provided.
+/// </param>
 public partial class EfCoreRepository<TEntity>(
     DbContext context,
     ILogger<EfCoreRepository<TEntity>> logger,
-    IEntityLifecycleProcessor? processor = null) : EfCoreReadRepository<TEntity>(context, logger), IBaseRepository<TEntity>
+    IEntityLifecycleProcessor? processor = null,
+    ICursorSerializer? cursorSerializer = null) : EfCoreReadRepository<TEntity>(context, logger, cursorSerializer), IBaseRepository<TEntity>
     where TEntity : class
 {
     #region Fields

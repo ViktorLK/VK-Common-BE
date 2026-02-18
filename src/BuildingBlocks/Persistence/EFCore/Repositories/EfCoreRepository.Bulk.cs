@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Caches;
-using VK.Blocks.Persistence.EFCore.Extensions;
 
 namespace VK.Blocks.Persistence.EFCore.Repositories;
 
@@ -33,7 +32,7 @@ public partial class EfCoreRepository<TEntity>
         var setPropertyExpression = propertySetter.BuildSetPropertyExpression();
         var updatedRows = await DbSet.Where(predicate).ExecuteUpdateAsync(setPropertyExpression, cancellationToken);
 
-        _logger.LogInformation("Bulk update affected {Count} rows for {EntityType}", updatedRows, typeof(TEntity).Name);
+        logger.LogInformation("Bulk update affected {Count} rows for {EntityType}", updatedRows, typeof(TEntity).Name);
 
         return updatedRows;
     }
@@ -59,14 +58,14 @@ public partial class EfCoreRepository<TEntity>
             var setPropertyExpression = propertySetter.BuildSetPropertyExpression();
             var softDeletedRows = await query.ExecuteUpdateAsync(setPropertyExpression, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation("Bulk softdelete affected {Count} rows for {EntityType}", softDeletedRows, typeof(TEntity).Name);
+            logger.LogInformation("Bulk softdelete affected {Count} rows for {EntityType}", softDeletedRows, typeof(TEntity).Name);
 
             return softDeletedRows;
         }
 
         var deletedRows = await query.ExecuteDeleteAsync(cancellationToken).ConfigureAwait(false);
 
-        _logger.LogInformation("Bulk delete affected {Count} rows for {EntityType}", deletedRows, typeof(TEntity).Name);
+        logger.LogInformation("Bulk delete affected {Count} rows for {EntityType}", deletedRows, typeof(TEntity).Name);
 
         return deletedRows;
     }

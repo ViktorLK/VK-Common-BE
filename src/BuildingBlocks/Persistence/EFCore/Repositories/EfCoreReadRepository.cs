@@ -2,8 +2,10 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Common;
+using VK.Blocks.Persistence.Abstractions.Pagination;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Extensions;
+using VK.Blocks.Persistence.EFCore.Infrastructure;
 
 namespace VK.Blocks.Persistence.EFCore.Repositories;
 
@@ -27,9 +29,14 @@ public partial class EfCoreReadRepository<TEntity> : IReadRepository<TEntity>
     protected readonly DbSet<TEntity> DbSet;
 
     /// <summary>
+    /// The cursor serializer used to encode and decode cursor tokens.
+    /// </summary>
+    protected readonly ICursorSerializer CursorSerializer;
+
+    /// <summary>
     /// The logger instance.
     /// </summary>
-    protected readonly ILogger _logger;
+    private readonly ILogger _logger;
 
     #endregion
 
@@ -40,11 +47,19 @@ public partial class EfCoreReadRepository<TEntity> : IReadRepository<TEntity>
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="logger">The logger.</param>
-    public EfCoreReadRepository(DbContext context, ILogger logger)
+    /// <param name="cursorSerializer">
+    /// The cursor serializer. Defaults to <see cref="SimpleCursorSerializer"/> if not provided.
+    /// </param>
+    public EfCoreReadRepository(DbContext context, ILogger logger, ICursorSerializer cursorSerializer)
     {
-        Context = context ?? throw new ArgumentNullException(nameof(context));
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(cursorSerializer);
+
+        Context = context;
         DbSet = context.Set<TEntity>();
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _logger = logger;
+        CursorSerializer = cursorSerializer;
     }
 
     #endregion
@@ -98,6 +113,7 @@ public partial class EfCoreReadRepository<TEntity> : IReadRepository<TEntity>
         Func<IQueryable<TEntity>, IQueryable<TResult>> builder,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         return await builder(GetQueryable(true)).ToListAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -106,6 +122,7 @@ public partial class EfCoreReadRepository<TEntity> : IReadRepository<TEntity>
         Func<IQueryable<TEntity>, IQueryable<TResult>> builder,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(builder);
         return await builder(GetQueryable(true)).FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
     }
 
