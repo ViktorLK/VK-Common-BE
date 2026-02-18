@@ -7,6 +7,7 @@ using VK.Blocks.Common;
 using VK.Blocks.Persistence.Abstractions.Pagination;
 using VK.Blocks.Persistence.EFCore.Caches;
 using VK.Blocks.Persistence.EFCore.Extensions;
+using VK.Blocks.Persistence.EFCore.Infrastructure;
 
 namespace VK.Blocks.Persistence.EFCore.Repositories;
 
@@ -31,7 +32,7 @@ public partial class EfCoreReadRepository<TEntity>
         {
             return new PagedResult<TEntity>
             {
-                Items = Array.Empty<TEntity>(),
+                Items = [],
                 PageNumber = pageNumber,
                 PageSize = pageSize,
                 TotalCount = 0
@@ -102,11 +103,11 @@ public partial class EfCoreReadRepository<TEntity>
         var previousCursor = hasMore && direction == CursorDirection.Backward && items.Count != 0 ? compiledSelector(items[0]) : default;
 
         var nextCursorString = nextCursor is not null && !EqualityComparer<TCursor>.Default.Equals(nextCursor, default)
-            ? EncodeCursor(nextCursor)
+            ? CursorSerializer.Serialize(nextCursor)
             : null;
 
         var previousCursorString = previousCursor is not null && !EqualityComparer<TCursor>.Default.Equals(previousCursor, default)
-            ? EncodeCursor(previousCursor)
+            ? CursorSerializer.Serialize(previousCursor)
             : null;
 
         return new CursorPagedResult<TEntity>
@@ -114,8 +115,8 @@ public partial class EfCoreReadRepository<TEntity>
             Items = items.AsReadOnly(),
             NextCursor = nextCursorString,
             PreviousCursor = previousCursorString,
-            HasNextPage = direction == CursorDirection.Forward && hasMore,
-            HasPreviousPage = direction == CursorDirection.Backward && hasMore,
+            HasNextPage = direction == CursorDirection.Forward ? hasMore : cursor is not null && hasCursor,
+            HasPreviousPage = direction == CursorDirection.Backward ? hasMore : cursor is not null && hasCursor,
             PageSize = pageSize
         };
     }
@@ -130,29 +131,6 @@ public partial class EfCoreReadRepository<TEntity>
         await foreach (var entity in query.AsAsyncEnumerable().WithCancellation(cancellationToken))
         {
             yield return entity;
-        }
-    }
-
-    /// <summary>
-    /// Decodes a base64 string back into a cursor.
-    /// </summary>
-    /// <typeparam name="TCursor">The type of the cursor.</typeparam>
-    /// <param name="cursorString">The encoded cursor string.</param>
-    /// <returns>The decoded cursor value, or default if invalid.</returns>
-    public static TCursor? DecodeCursor<TCursor>(string? cursorString)
-    {
-        if (string.IsNullOrEmpty(cursorString))
-            return default;
-
-        try
-        {
-            var bytes = Convert.FromBase64String(cursorString);
-            var json = Encoding.UTF8.GetString(bytes);
-            return JsonSerializer.Deserialize<TCursor>(json);
-        }
-        catch
-        {
-            return default;
         }
     }
 
@@ -196,17 +174,6 @@ public partial class EfCoreReadRepository<TEntity>
         }
 
         return Expression.Lambda<Func<TEntity, bool>>(comparison, parameter);
-    }
-
-    #endregion
-
-    #region Private Methods
-
-    private static string EncodeCursor<TCursor>(TCursor cursor)
-    {
-        var json = JsonSerializer.Serialize(cursor);
-        var bytes = Encoding.UTF8.GetBytes(json);
-        return Convert.ToBase64String(bytes);
     }
 
     #endregion

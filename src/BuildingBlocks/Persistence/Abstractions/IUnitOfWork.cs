@@ -1,4 +1,5 @@
 
+using System.Data;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.Abstractions.Transactions;
 
@@ -41,7 +42,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     /// </summary>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the started transaction.</returns>
-    Task<ITransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+    Task<ITransaction> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously commits the current transaction.
@@ -77,4 +78,15 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
 /// <typeparam name="TDbContext">The type of the database context.</typeparam>
 public interface IUnitOfWork<TDbContext> : IUnitOfWork
 {
+    /// <summary>
+    /// Executes the specified operation within a transaction, handling transient failures via an Execution Strategy.
+    /// </summary>
+    /// <param name="operation">The operation to execute.</param>
+    /// <param name="isolationLevel">The isolation level of the transaction.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task ExecuteInTransactionAsync(
+        Func<IUnitOfWork<TDbContext>, CancellationToken, Task> operation,
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+        CancellationToken cancellationToken = default);
 }

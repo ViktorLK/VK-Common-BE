@@ -90,23 +90,40 @@ public interface IReadRepository<TEntity> where TEntity : class
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously executes a query built by the provided function.
+    /// Executes a custom query delegate against the entity set and returns a list of results.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
-    /// <param name="builder">A function to build the query.</param>
+    /// <param name="builder">A function that composes an <see cref="IQueryable{TResult}"/> from the entity set.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A list of query results.</returns>
+    /// <returns>A read-only list of query results.</returns>
+    /// <remarks>
+    /// <b>⚠️ Intentional Escape Hatch — Advanced Use Only.</b><br/>
+    /// This method is designed for scenarios that cannot be expressed through the standard
+    /// repository methods, such as AutoMapper <c>ProjectTo&lt;TDto&gt;()</c> projections
+    /// in extension packages (e.g., <c>VK.Blocks.Persistence.EFCore.AutoMapper</c>).<br/><br/>
+    /// Unlike exposing <c>IQueryable</c> directly, this method retains:<br/>
+    /// • <b>Execution control</b> — async execution (<c>ToListAsync</c>) is governed by the repository.<br/>
+    /// • <b>Lifecycle safety</b> — <c>IQueryable</c> is scoped to the delegate; it cannot outlive the <c>DbContext</c>.<br/>
+    /// • <b>Observability</b> — telemetry, logging, or timing can be added at the repository level.<br/><br/>
+    /// For simple filtering or pagination, prefer <see cref="GetListAsync"/> or <see cref="GetPagedAsync{TKey}"/>.
+    /// </remarks>
     Task<IReadOnlyList<TResult>> ExecuteAsync<TResult>(
         Func<IQueryable<TEntity>, IQueryable<TResult>> builder,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Asynchronously executes a query built by the provided function and returns a single result.
+    /// Executes a custom query delegate against the entity set and returns a single result or <c>null</c>.
     /// </summary>
     /// <typeparam name="TResult">The type of the result.</typeparam>
-    /// <param name="builder">A function to build the query.</param>
+    /// <param name="builder">A function that composes an <see cref="IQueryable{TResult}"/> from the entity set.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>The single query result, or <c>null</c>.</returns>
+    /// <returns>The first element of the query result, or <c>null</c> if the sequence is empty.</returns>
+    /// <remarks>
+    /// <b>⚠️ Intentional Escape Hatch — Advanced Use Only.</b><br/>
+    /// Single-result variant of <see cref="ExecuteAsync{TResult}"/>. Applies the same design guarantees:
+    /// execution control, lifecycle safety, and observability are all retained by the repository.
+    /// Use this for AutoMapper <c>ProjectTo</c> single-entity lookups or complex single-result projections.
+    /// </remarks>
     Task<TResult?> ExecuteSingleAsync<TResult>(
         Func<IQueryable<TEntity>, IQueryable<TResult>> builder,
         CancellationToken cancellationToken = default);

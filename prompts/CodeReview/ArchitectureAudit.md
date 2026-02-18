@@ -69,3 +69,10 @@ _(如果没有则留空，主要关注分层依赖倒置、循环依赖、严重
 3.  **学习建议 (Learning)**: [针对这段代码，推荐学习哪个相关的设计模式或 .NET 特性]
 
 # 待审计代码 (Input Code)
+
+src\BuildingBlocks\Persistence\EFCore
+
+# 输出评审结果 (Output Result)
+
+- **输出语言**: ビジネスIT日本語
+- **输出路径**: docs\AuditReports\<filename>\_<data>.md

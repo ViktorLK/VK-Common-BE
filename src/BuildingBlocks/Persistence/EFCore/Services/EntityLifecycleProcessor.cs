@@ -22,10 +22,7 @@ public class EntityLifecycleProcessor(IAuditProvider auditProvider) : IEntityLif
     /// <inheritdoc />
     public void ProcessAuditing(DbContext context)
     {
-        if (context is null)
-        {
-            return;
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         foreach (var entry in context.ChangeTracker.Entries<IAuditable>())
         {
@@ -48,10 +45,7 @@ public class EntityLifecycleProcessor(IAuditProvider auditProvider) : IEntityLif
     /// <inheritdoc />
     public void ProcessSoftDelete(DbContext context)
     {
-        if (context is null)
-        {
-            return;
-        }
+        ArgumentNullException.ThrowIfNull(context);
 
         foreach (var entry in context.ChangeTracker.Entries<ISoftDelete>())
         {
