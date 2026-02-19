@@ -1,4 +1,4 @@
-using VK.Blocks.Persistence.Abstractions.Entities;
+using VK.Blocks.Core.Primitives;
 
 namespace VK.Blocks.Persistence.EFCore.Caches;
 

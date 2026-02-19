@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.Persistence.Abstractions.Pagination;
+using VK.Blocks.Persistence.Core.Pagination;
+using VK.Blocks.Core.Results;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Services;
 
@@ -22,8 +23,9 @@ namespace VK.Blocks.Persistence.EFCore.Repositories;
 public partial class EfCoreRepository<TEntity>(
     DbContext context,
     ILogger<EfCoreRepository<TEntity>> logger,
-    IEntityLifecycleProcessor? processor = null,
-    ICursorSerializer? cursorSerializer = null) : EfCoreReadRepository<TEntity>(context, logger, cursorSerializer), IBaseRepository<TEntity>
+    ICursorSerializer cursorSerializer,
+    IEntityLifecycleProcessor? processor = null
+) : EfCoreReadRepository<TEntity>(context, logger, cursorSerializer), IBaseRepository<TEntity>
     where TEntity : class
 {
     #region Fields

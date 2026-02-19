@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
-using VK.Blocks.Persistence.Abstractions.Pagination;
+using VK.Blocks.Persistence.Core.Pagination;
+using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Persistence.EFCore.Extensions;
 

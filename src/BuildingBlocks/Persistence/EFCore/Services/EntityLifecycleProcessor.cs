@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Persistence.Abstractions.Auditing;
-using VK.Blocks.Persistence.Abstractions.Entities;
+using VK.Blocks.Core.Primitives;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Caches;
 

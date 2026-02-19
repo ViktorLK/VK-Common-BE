@@ -17,7 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\VK.Blocks.Persistence.Abstractions.csproj" />
-    <ProjectReference Include="..\..\Common\VK.Blocks.Common.csproj" />
+    <ProjectReference Include="..\..\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\..\Validation\VK.Blocks.Validation.csproj" />
   </ItemGroup>
 
 </Project>

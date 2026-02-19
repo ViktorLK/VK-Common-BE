@@ -4,13 +4,14 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Persistence.Abstractions;
 using VK.Blocks.Persistence.Abstractions.Auditing;
 using VK.Blocks.Persistence.Abstractions.Options;
-using VK.Blocks.Persistence.Abstractions.Pagination;
+using VK.Blocks.Persistence.Core.Pagination;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Infrastructure;
 using VK.Blocks.Persistence.EFCore.Interceptors;
 using VK.Blocks.Persistence.EFCore.Options;
 using VK.Blocks.Persistence.EFCore.Repositories;
 using VK.Blocks.Persistence.EFCore.Services;
+using VK.Blocks.Persistence.EFCore.Auditing;
 
 namespace VK.Blocks.Persistence.EFCore.DependencyInjection;
 

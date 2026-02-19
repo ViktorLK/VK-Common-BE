@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using VK.Blocks.Persistence.Abstractions.Entities;
+using VK.Blocks.Core.Primitives;
 
 namespace VK.Blocks.Persistence.EFCore.Extensions;
 

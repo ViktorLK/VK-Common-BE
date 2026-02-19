@@ -29,7 +29,7 @@ public class UnitOfWork<TDbContext> : IUnitOfWork<TDbContext>
     #region Constructors
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EfCoreReadRepository{TEntity}"/> class.
+    /// Initializes a new instance of the <see cref="UnitOfWork{TDbContext}"/> class.
     /// </summary>
     /// <param name="context">The database context.</param>
     /// <param name="serviceProvider">The service provider.</param>
