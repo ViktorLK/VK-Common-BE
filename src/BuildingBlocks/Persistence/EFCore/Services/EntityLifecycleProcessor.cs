@@ -24,20 +24,23 @@ public class EntityLifecycleProcessor(IAuditProvider auditProvider) : IEntityLif
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        foreach (var entry in context.ChangeTracker.Entries<IAuditable>())
+        foreach (var entry in context.ChangeTracker.Entries())
         {
-            if (entry.State == EntityState.Added)
+            if (entry.Entity is IAuditable auditable)
             {
-                entry.Entity.CreatedAt = _auditProvider.UtcNow;
-                entry.Entity.CreatedBy = _auditProvider.CurrentUserId;
-            }
+                if (entry.State == EntityState.Added)
+                {
+                    auditable.CreatedAt = _auditProvider.UtcNow;
+                    auditable.CreatedBy = _auditProvider.CurrentUserId;
+                }
 
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.UpdatedAt = _auditProvider.UtcNow;
-                entry.Entity.UpdatedBy = _auditProvider.CurrentUserId;
-                entry.Property(x => x.CreatedAt).IsModified = false;
-                entry.Property(x => x.CreatedBy).IsModified = false;
+                if (entry.State == EntityState.Modified)
+                {
+                    auditable.UpdatedAt = _auditProvider.UtcNow;
+                    auditable.UpdatedBy = _auditProvider.CurrentUserId;
+                    entry.Property(nameof(IAuditable.CreatedAt)).IsModified = false;
+                    entry.Property(nameof(IAuditable.CreatedBy)).IsModified = false;
+                }
             }
         }
     }

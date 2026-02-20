@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Persistence.Core.Pagination;
-using VK.Blocks.Core.Results;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Services;
 
@@ -24,7 +23,7 @@ public partial class EfCoreRepository<TEntity>(
     DbContext context,
     ILogger<EfCoreRepository<TEntity>> logger,
     ICursorSerializer cursorSerializer,
-    IEntityLifecycleProcessor? processor = null
+    IEntityLifecycleProcessor processor
 ) : EfCoreReadRepository<TEntity>(context, logger, cursorSerializer), IBaseRepository<TEntity>
     where TEntity : class
 {
@@ -38,7 +37,7 @@ public partial class EfCoreRepository<TEntity>(
     /// which bypass the EF Core ChangeTracker and thus do not trigger Interceptors.
     /// Standard CRUD operations (Add, Update, Delete) are handled automatically by <see cref="VK.Blocks.Persistence.EFCore.Interceptors.AuditingInterceptor"/>.
     /// </remarks>
-    protected readonly IEntityLifecycleProcessor? _processor = processor;
+    protected readonly IEntityLifecycleProcessor _processor = processor;
 
     #endregion
 

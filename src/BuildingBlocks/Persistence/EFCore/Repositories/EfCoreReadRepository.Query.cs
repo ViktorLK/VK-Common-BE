@@ -68,11 +68,7 @@ public partial class EfCoreReadRepository<TEntity>
         where TCursor : IComparable<TCursor>
     {
         ArgumentNullException.ThrowIfNull(cursorSelector);
-
-        if (pageSize <= 0)
-        {
-            throw new ArgumentException("pageSize must greater than 0", nameof(pageSize));
-        }
+        PaginationValidator.ValidateCursorPagination(pageSize);
 
         var hasCursor = !EqualityComparer<TCursor>.Default.Equals(cursor, default);
 

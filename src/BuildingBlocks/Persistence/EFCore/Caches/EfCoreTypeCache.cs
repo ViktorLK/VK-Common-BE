@@ -19,5 +19,10 @@ internal static class EfCoreTypeCache<TEntity>
     /// </summary>
     public static readonly bool IsSoftDelete = typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity));
 
+    /// <summary>
+    /// Gets a value indicating whether the entity implements IMultiTenant.
+    /// </summary>
+    public static readonly bool IsMultiTenant = typeof(IMultiTenant).IsAssignableFrom(typeof(TEntity));
+
     #endregion
 }

@@ -19,6 +19,7 @@
     <ProjectReference Include="..\Abstractions\VK.Blocks.Persistence.Abstractions.csproj" />
     <ProjectReference Include="..\..\Core\VK.Blocks.Core.csproj" />
     <ProjectReference Include="..\..\Validation\VK.Blocks.Validation.csproj" />
+    <ProjectReference Include="..\..\MultiTenancy\VK.Blocks.MultiTenancy.csproj" />
   </ItemGroup>
 
 </Project>

@@ -21,5 +21,10 @@ public class PersistenceOptions
     /// </summary>
     public bool EnableSoftDelete { get; set; } = true;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether multi-tenancy is enabled.
+    /// </summary>
+    public bool EnableMultiTenancy { get; set; } = false;
+
     #endregion
 }
