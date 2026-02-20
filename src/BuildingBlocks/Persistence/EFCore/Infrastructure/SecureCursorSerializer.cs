@@ -2,8 +2,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using VK.Blocks.Persistence.Abstractions.Pagination;
+using VK.Blocks.Core.Results;
 using VK.Blocks.Persistence.EFCore.Options;
+using VK.Blocks.Persistence.Core.Pagination;
 
 namespace VK.Blocks.Persistence.EFCore.Infrastructure;
 
@@ -16,9 +17,9 @@ namespace VK.Blocks.Persistence.EFCore.Infrastructure;
 /// <br/>
 /// The JSON payload contains:
 /// <list type="bullet">
-///   <item><description><c>v</c> — schema version (for forward compatibility)</description></item>
-///   <item><description><c>d</c> — the cursor data</description></item>
-///   <item><description><c>exp</c> — optional expiry timestamp (Unix seconds)</description></item>
+///   <item><description><c>v</c>  Eschema version (for forward compatibility)</description></item>
+///   <item><description><c>d</c>  Ethe cursor data</description></item>
+///   <item><description><c>exp</c>  Eoptional expiry timestamp (Unix seconds)</description></item>
 /// </list>
 /// </remarks>
 public sealed class SecureCursorSerializer : ICursorSerializer
@@ -27,6 +28,7 @@ public sealed class SecureCursorSerializer : ICursorSerializer
 
     private readonly byte[] _signingKey;
     private readonly TimeSpan? _defaultExpiry;
+    private readonly TimeProvider _timeProvider;
     private const int _currentVersion = 1;
 
     #endregion
@@ -37,10 +39,11 @@ public sealed class SecureCursorSerializer : ICursorSerializer
     /// Initializes a new instance of <see cref="SecureCursorSerializer"/>.
     /// </summary>
     /// <param name="options">The serializer configuration options.</param>
+    /// <param name="timeProvider">The time provider for expiry checks. Defaults to <see cref="TimeProvider.System"/>.</param>
     /// <exception cref="InvalidOperationException">
     /// Thrown when <see cref="CursorSerializerOptions.SigningKey"/> is null or empty.
     /// </exception>
-    public SecureCursorSerializer(IOptions<CursorSerializerOptions> options)
+    public SecureCursorSerializer(IOptions<CursorSerializerOptions> options, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(options);
 
@@ -53,6 +56,7 @@ public sealed class SecureCursorSerializer : ICursorSerializer
 
         _signingKey = Encoding.UTF8.GetBytes(signingKey);
         _defaultExpiry = options.Value.DefaultExpiry;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     #endregion
@@ -63,7 +67,7 @@ public sealed class SecureCursorSerializer : ICursorSerializer
     public string Serialize<T>(T value)
     {
         long? expiresAt = _defaultExpiry.HasValue
-            ? DateTimeOffset.UtcNow.Add(_defaultExpiry.Value).ToUnixTimeSeconds()
+            ? _timeProvider.GetUtcNow().Add(_defaultExpiry.Value).ToUnixTimeSeconds()
             : null;
 
         var payload = new CursorPayload<T>
@@ -120,7 +124,7 @@ public sealed class SecureCursorSerializer : ICursorSerializer
 
             // Reject expired tokens.
             if (payload.ExpiresAt.HasValue &&
-                payload.ExpiresAt.Value < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+                payload.ExpiresAt.Value < _timeProvider.GetUtcNow().ToUnixTimeSeconds())
             {
                 return default;
             }

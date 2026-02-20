@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using VK.Blocks.Persistence.Abstractions.Entities;
+using VK.Blocks.Core.Primitives;
 using VK.Blocks.Persistence.EFCore.Services;
 
 namespace VK.Blocks.Persistence.EFCore.Interceptors;
@@ -24,7 +24,7 @@ public class AuditingInterceptor(IEntityLifecycleProcessor processor) : SaveChan
         {
             throw new InvalidOperationException(
                 $"{nameof(AuditingInterceptor)}: {nameof(eventData.Context)} is null. " +
-                "SaveChanges cannot proceed without a valid DbContext — auditing fields would be missing.");
+                "SaveChanges cannot proceed without a valid DbContext  Eauditing fields would be missing.");
         }
 
         _processor.ProcessAuditing(eventData.Context);
@@ -38,7 +38,7 @@ public class AuditingInterceptor(IEntityLifecycleProcessor processor) : SaveChan
         {
             throw new InvalidOperationException(
                 $"{nameof(AuditingInterceptor)}: {nameof(eventData.Context)} is null. " +
-                "SaveChangesAsync cannot proceed without a valid DbContext — auditing fields would be missing.");
+                "SaveChangesAsync cannot proceed without a valid DbContext  Eauditing fields would be missing.");
         }
 
         _processor.ProcessAuditing(eventData.Context);

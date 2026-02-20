@@ -1,4 +1,4 @@
-using VK.Blocks.Persistence.Abstractions.Entities;
+using VK.Blocks.Core.Primitives;
 
 namespace VK.Blocks.Persistence.EFCore.Caches;
 
@@ -18,6 +18,11 @@ internal static class EfCoreTypeCache<TEntity>
     /// Gets a value indicating whether the entity implements ISoftDelete.
     /// </summary>
     public static readonly bool IsSoftDelete = typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity));
+
+    /// <summary>
+    /// Gets a value indicating whether the entity implements IMultiTenant.
+    /// </summary>
+    public static readonly bool IsMultiTenant = typeof(IMultiTenant).IsAssignableFrom(typeof(TEntity));
 
     #endregion
 }

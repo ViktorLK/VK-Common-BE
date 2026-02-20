@@ -81,32 +81,46 @@
 **Supersedes**: ADR-003 Future Considerations §1  
 **キーワード**: Strategy Pattern, ICursorSerializer, HMAC-SHA256, DIP, OCP
 
----
+#### [ADR-010: Decoupling Multi-Tenancy from Auditing Infrastructure](./adr-010-decoupling-multitenancy.md)
 
-## 🎯 ADR の読み方
+**Status**: ✅ Accepted  
+**概要**: `IAuditProvider` に混在していた `TenantId` の責務を専用の `ITenantProvider` に分離し、Multi-Tenancy と Auditing のアーキテクチャ上の疎結合性を向上させる  
+**キーワード**: Separation of Concerns, Interface Segregation, Multi-Tenancy
 
-### 面接準備用
+#### [ADR-011: Null Object Pattern for IEntityLifecycleProcessor](./adr-011-entity-lifecycle-processor-null-object.md)
 
-1. **ADR-002**: C# の高度な機能（静的ジェネリック、CLR）を理解していることを示す
-2. **ADR-003**: アルゴリズム思考と Expression Tree の実践的な応用
-3. **ADR-004**: Expression Tree の深い理解（ExpressionEqualityComparer）
-4. **ADR-005**: 最新の C# 機能（IAsyncEnumerable）の活用
-
-### アーキテクチャ理解用
-
-1. **ADR-001**: ハイブリッド戦略の設計思想
-2. **ADR-006**: CQS 原則の実践
-3. **ADR-007**: Convention over Configuration の適用
-
-### 性能最適化用
-
-1. **ADR-002**: マイクロ最適化（型メタデータキャッシュ）
-2. **ADR-003**: マクロ最適化（ページネーション戦略）
-3. **ADR-005**: メモリ最適化（ストリーミング処理）
+**Status**: ✅ Accepted  
+**概要**: Auditing や SoftDelete 機能がOFFの場合のDIコンポーネント依存解決エラーを防ぐため、Null Object Pattern (`NoOpEntityLifecycleProcessor`) を採用し、アーキテクチャの Fail-Fast 原則（コンストラクタの Nullable 排除）を維持する  
+**キーワード**: Null Object Pattern, Dependency Injection, Fail-Fast
 
 ---
 
-## 📊 性能向上サマリー
+## 🎯 ADR の読み方ガイド
+
+### 高度な技術要素の理解用
+
+1. **ADR-002**: C# の高度な機能（静的ジェネリック、CLRの仕組み）の活用例
+2. **ADR-003**: アルゴリズム設計と Expression Tree の実践的な応用
+3. **ADR-004**: Expression Tree の深い制御（`ExpressionEqualityComparer`の実装）
+4. **ADR-005**: 最新の C# 非同期ストリーム処理（`IAsyncEnumerable`）の活用
+
+### アーキテクチャ構成の理解用
+
+1. **ADR-001**: Audit機能のハイブリッド戦略と設計思想
+2. **ADR-006**: Repository Patternへの CQS（Command-Query Separation）原則の適用
+3. **ADR-007**: Convention over Configuration（設定より規約）の自動適用
+4. **ADR-010**: マルチテナント機能と監査インフラストラクチャの責務分離（SRP）
+5. **ADR-011**: 非活性（Opt-In OFF）時のNull Object PatternによるDIクラッシュの回避
+
+### 性能最適化のアプローチ理解用
+
+1. **ADR-002**: マイクロ最適化（リフレクションコストの完全排除）
+2. **ADR-003**: マクロ最適化（DBクエリのページネーション戦略の根本的改善）
+3. **ADR-005**: メモリ使用量最適化（リスト全体バッファリングからストリーミングへの移行）
+
+---
+
+## 📊 システム性能最適化のサマリー
 
 | ADR     | 最適化対象           | 性能向上         | 影響範囲          |
 | ------- | -------------------- | ---------------- | ----------------- |
@@ -116,8 +130,11 @@
 | ADR-004 | Expression Compile   | 91x              | Cursor Pagination |
 | ADR-005 | Memory Usage         | 95% reduction    | 大規模データ処理  |
 | ADR-006 | Read Operations      | 33%              | 読み取り専用操作  |
+| ADR-007 | Query Filtering      | コード量 90%削減 | 規約ベースの適用  |
 | ADR-008 | MethodInfo Lookup    | 100x             | Bulk Operations   |
 | ADR-009 | Cursor Serialization | セキュリティ強化 | Cursor Pagination |
+| ADR-010 | Tenancy & Auditing   | 関心事の分離     | システム疎結合化  |
+| ADR-011 | Dependency Injection | Fail-Fast の維持 | コンストラクタ    |
 
 ---
 
@@ -129,5 +146,5 @@
 
 ---
 
-**Last Updated**: 2026-02-18  
-**Total ADRs**: 9
+**Last Updated**: 2026-02-20  
+**Total ADRs**: 11

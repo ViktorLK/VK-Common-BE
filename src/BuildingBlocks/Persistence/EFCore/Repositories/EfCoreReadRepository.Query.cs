@@ -3,8 +3,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VK.Blocks.Common;
-using VK.Blocks.Persistence.Abstractions.Pagination;
+using VK.Blocks.Validation;
+using VK.Blocks.Persistence.Core.Pagination;
+using VK.Blocks.Core.Results;
 using VK.Blocks.Persistence.EFCore.Caches;
 using VK.Blocks.Persistence.EFCore.Extensions;
 using VK.Blocks.Persistence.EFCore.Infrastructure;
@@ -67,11 +68,7 @@ public partial class EfCoreReadRepository<TEntity>
         where TCursor : IComparable<TCursor>
     {
         ArgumentNullException.ThrowIfNull(cursorSelector);
-
-        if (pageSize <= 0)
-        {
-            throw new ArgumentException("pageSize must greater than 0", nameof(pageSize));
-        }
+        PaginationValidator.ValidateCursorPagination(pageSize);
 
         var hasCursor = !EqualityComparer<TCursor>.Default.Equals(cursor, default);
 

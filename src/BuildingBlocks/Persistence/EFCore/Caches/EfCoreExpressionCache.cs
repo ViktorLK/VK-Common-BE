@@ -14,7 +14,7 @@ internal static class EfCoreExpressionCache<TEntity, TResult>
     /// <summary>
     /// The cache dictionary for compiled expressions.
     /// </summary>
-    public static readonly ConcurrentDictionary<Expression<Func<TEntity, TResult>>, Func<TEntity, TResult>> _compiledExpressions
+    private static readonly ConcurrentDictionary<Expression<Func<TEntity, TResult>>, Func<TEntity, TResult>> _compiledExpressions
         = new(ExpressionEqualityComparer.Instance);
 
     #endregion

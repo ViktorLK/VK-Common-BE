@@ -1,8 +1,9 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.Common;
-using VK.Blocks.Persistence.Abstractions.Pagination;
+using VK.Blocks.Validation;
+using VK.Blocks.Persistence.Core.Pagination;
+using VK.Blocks.Core.Results;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Extensions;
 using VK.Blocks.Persistence.EFCore.Infrastructure;

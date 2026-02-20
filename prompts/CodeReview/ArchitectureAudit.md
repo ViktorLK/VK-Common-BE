@@ -1,4 +1,4 @@
-# Task: 深度架构审计 (Architecture Audit)
+# Task: アーキテクチャ監査レポート (Architecture Audit)
 
 # Role
 
@@ -40,33 +40,45 @@
 
 - 评估代码是否符合其宣称的企业级模式（如 幂等性，分布式事务，消息队列，缓存，限流，熔断，降级，监控，日志，警告，审计，安全，性能优化，可扩展性，可维护性，可测试性，可观测性）。
 
-# 输出格式 (Output Schema)
+# 出力フォーマット (Output Schema)
 
-## 📊 审计概览 (Audit Summary)
+## 📊 監査サマリー (Audit Summary)
 
-- **评分**: 0-100
-- **当前层级判断**: [例如: Application Layer / Command Handler]
-- **一句话评价**: [简短犀利的总结]
+- **総合スコア**: 0-100点
+- **対象レイヤー判定**: [例: Application Layer / Command Handler]
+- **総評 (Executive Summary)**: [アーキテクチャの現状に対する、簡潔かつ的確なフィードバック]
 
-## 🚨 致命架构坏味 (Critical Architectural Smells)
+## 🚨 重大なアーキテクチャの懸念事項 (Critical Architectural Smells)
 
-_(如果没有则留空，主要关注分层依赖倒置、循环依赖、严重的性能陷阱)_
+_（※該当なしの場合は空欄。主にレイヤー間の依存関係逆転違反、循環依存、深刻なパフォーマンスのボトルネックなど、致命的な設計上の問題に注力すること）_
 
-- ❌ **[错误类型]**: [具体代码行] - [解释为什么这破坏了架构]
+- ❌ **[問題の分類]**: [該当コード行] - [アーキテクチャの原則に違反している理由と、システム全体に及ぼす影響の論理的説明]
 
-## ⚠️ 代码质量与规范风险 (Code Quality Risks)
+## 🛡️ 非機能要件とセキュリティ (Non-Functional Requirements & Security)
 
-- ⚠️ **[风险点]**: [解释]
+- 🔒 **[セキュリティ/パフォーマンス]**: [N+1問題、メモリリークの危険性、非同期処理 (async/await) の誤用、または機密データのログ出力など、運用時のリスクについて指摘]
 
-## ✅ 亮点 (Highlights)
+## 🧪 テスト容易性と疎結合性 (Testability & Decoupling)
 
-- [描述代码中做得好的地方，特别是符合 DDD 或 Clean Arch 的部分]
+- ⚙️ **[テスト容易性]**: [単体テスト (Unit Test) が容易な設計になっているか。具象クラスへの直接依存 (new キーワードの乱用) や、I/O (DB/HTTP) との密結合がないかの確認]
 
-## 💡 演进路线图 (Evolutionary Roadmap)
+## 🔭 可観測性の準拠度 (Observability Readiness)
 
-1.  **立即修复 (Immediate)**: [必须马上改的问题]
-2.  **建议优化 (Refactor)**: [提升可读性或性能的建议]
-3.  **学习建议 (Learning)**: [针对这段代码，推荐学习哪个相关的设计模式或 .NET 特性]
+- 📡 **[運用監視]**: [標準化されたエラーハンドリング (Result<T> や RFC 7807) が使われているか。Serilog や OpenTelemetry によるログコンテキストや TraceId が適切に伝播されているか]
+
+## ⚠️ コード品質とコーディング規約のリスク (Code Quality & Standard Risks)
+
+- ⚠️ **[リスク要因]**: [バグの温床になり得る箇所、またはプロジェクトの標準規約から逸脱している理由の詳細な説明]
+
+## ✅ 評価ポイント (Highlights / Good Practices)
+
+- [DDD や Clean Architecture の原則に正しく準拠している点、優れた防御的プログラミングの実装など、評価すべきベストプラクティスを記述]
+
+## 💡 改善ロードマップ (Evolutionary Roadmap)
+
+1. **最優先対応 (Immediate Action)**: [システムの安定性やアーキテクチャの完全性を保つために、直ちに修正すべき致命的な課題]
+2. **リファクタリング提案 (Refactoring)**: [可読性 (Readability)、保守性 (Maintainability)、またはパフォーマンス向上のための具体的なコード改修案]
+3. **推奨される学習トピック (Learning Suggestions)**: [対象コードの品質をさらに高めるために推奨される、特定のアキテクチャパターンや .NET の機能に関する学習アドバイス]
 
 # 待审计代码 (Input Code)
 

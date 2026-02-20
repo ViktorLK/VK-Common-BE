@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
-using VK.Blocks.Persistence.Abstractions.Pagination;
+using VK.Blocks.Persistence.Core.Pagination;
+using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Persistence.EFCore.Infrastructure;
 
@@ -9,7 +10,7 @@ namespace VK.Blocks.Persistence.EFCore.Infrastructure;
 /// Encodes cursor values as Base64-encoded JSON without any signature or expiry.
 /// </summary>
 /// <remarks>
-/// ⚠️ <b>Do not use in production.</b> This implementation provides no tamper protection.
+/// ⚠�E�E<b>Do not use in production.</b> This implementation provides no tamper protection.
 /// Use <see cref="SecureCursorSerializer"/> for production deployments.
 /// </remarks>
 public sealed class SimpleCursorSerializer : ICursorSerializer

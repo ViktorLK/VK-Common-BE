@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using VK.Blocks.Persistence.Abstractions.Entities;
+using VK.Blocks.Core.Primitives;
 
 namespace VK.Blocks.Persistence.EFCore.Extensions;
 
@@ -15,17 +15,22 @@ internal static class BaseDbContextExtensions
     private static readonly MethodInfo _setSoftDeleteFilterMethod = typeof(BaseDbContextExtensions)
         .GetMethod(nameof(SetSoftDeleteFilter), BindingFlags.NonPublic | BindingFlags.Static) ?? throw new InvalidOperationException($"NotFound {nameof(SetSoftDeleteFilter)}");
 
-    private static readonly ConcurrentDictionary<Type, Action<ModelBuilder>> _filterSetters = new();
+    private static readonly MethodInfo _setMultiTenantFilterMethod = typeof(BaseDbContextExtensions)
+        .GetMethod(nameof(SetMultiTenantFilter), BindingFlags.NonPublic | BindingFlags.Static) ?? throw new InvalidOperationException($"NotFound {nameof(SetMultiTenantFilter)}");
+
+    private static readonly ConcurrentDictionary<Type, Action<ModelBuilder>> _softDeleteFilterSetters = new();
+    private static readonly ConcurrentDictionary<Type, Action<ModelBuilder, BaseDbContext>> _multiTenantFilterSetters = new();
 
     #endregion
 
     #region Public Methods
 
     /// <summary>
-    /// Applies global query filters to entities, such as soft delete filters.
+    /// Applies global query filters to entities, such as soft delete filters and multi-tenant filters.
     /// </summary>
     /// <param name="modelBuilder">The model builder.</param>
-    public static void ApplyGlobalFilters(this ModelBuilder modelBuilder)
+    /// <param name="context">The database context used to evaluate tenant information.</param>
+    public static void ApplyGlobalFilters(this ModelBuilder modelBuilder, BaseDbContext context)
     {
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
@@ -41,13 +46,24 @@ internal static class BaseDbContextExtensions
 
             if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
             {
-                var setFilter = _filterSetters.GetOrAdd(entityType.ClrType, type =>
+                var setSoftDeleteFilter = _softDeleteFilterSetters.GetOrAdd(entityType.ClrType, type =>
                 {
                     var concreteMethod = _setSoftDeleteFilterMethod.MakeGenericMethod(type);
                     return (Action<ModelBuilder>)Delegate.CreateDelegate(typeof(Action<ModelBuilder>), concreteMethod);
                 });
 
-                setFilter(modelBuilder);
+                setSoftDeleteFilter(modelBuilder);
+            }
+
+            if (context.IsMultiTenancyEnabled && typeof(IMultiTenant).IsAssignableFrom(entityType.ClrType))
+            {
+                var setMultiTenantFilter = _multiTenantFilterSetters.GetOrAdd(entityType.ClrType, type =>
+                {
+                    var concreteMethod = _setMultiTenantFilterMethod.MakeGenericMethod(type);
+                    return (Action<ModelBuilder, BaseDbContext>)Delegate.CreateDelegate(typeof(Action<ModelBuilder, BaseDbContext>), concreteMethod);
+                });
+
+                setMultiTenantFilter(modelBuilder, context);
             }
         }
     }
@@ -77,6 +93,12 @@ internal static class BaseDbContextExtensions
         where TEntity : class, ISoftDelete
     {
         modelBuilder.Entity<TEntity>().HasQueryFilter(e => !e.IsDeleted);
+    }
+
+    private static void SetMultiTenantFilter<TEntity>(ModelBuilder modelBuilder, BaseDbContext context)
+        where TEntity : class, IMultiTenant
+    {
+        modelBuilder.Entity<TEntity>().HasQueryFilter(e => e.TenantId == context.CurrentTenantId);
     }
 
     #endregion

@@ -22,12 +22,9 @@ public partial class EfCoreRepository<TEntity>
         var propertySetter = new EfCorePropertySetter<TEntity>();
         setPropertyAction(propertySetter);
 
-        if (_processor is not null)
-        {
-            // Bulk updates bypass the ChangeTracker, so Interceptors are NOT triggered.
-            // We must manually invoke the processor to handle auditing fields (Validation is skipped).
-            _processor.ProcessBulkUpdate(propertySetter);
-        }
+        // Bulk updates bypass the ChangeTracker, so Interceptors are NOT triggered.
+        // We must manually invoke the processor to handle auditing fields (Validation is skipped).
+        _processor.ProcessBulkUpdate(propertySetter);
 
         var setPropertyExpression = propertySetter.BuildSetPropertyExpression();
         var updatedRows = await DbSet.Where(predicate).ExecuteUpdateAsync(setPropertyExpression, cancellationToken);
@@ -47,7 +44,7 @@ public partial class EfCoreRepository<TEntity>
 
         var query = GetQueryable(false).Where(predicate);
 
-        if (!forceDelete && _processor is not null && EfCoreTypeCache<TEntity>.IsSoftDelete)
+        if (!forceDelete && EfCoreTypeCache<TEntity>.IsSoftDelete)
         {
             var propertySetter = new EfCorePropertySetter<TEntity>();
 

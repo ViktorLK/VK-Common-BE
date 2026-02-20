@@ -1,4 +1,3 @@
-
 using System.Data;
 using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.Abstractions.Transactions;
@@ -10,9 +9,6 @@ namespace VK.Blocks.Persistence.Abstractions;
 /// </summary>
 public interface IUnitOfWork : IDisposable, IAsyncDisposable
 {
-    /// <summary>
-    /// Gets the current active transaction, if any.
-    /// </summary>
     #region Properties
 
     /// <summary>
@@ -40,22 +36,16 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     /// <summary>
     /// Asynchronously begins a new transaction.
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the started transaction.</returns>
     Task<ITransaction> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously commits the current transaction.
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously rolls back the current transaction.
     /// </summary>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -64,10 +54,6 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
     /// <returns>The repository instance for the specified entity type.</returns>
     IBaseRepository<TEntity> Repository<TEntity>() where TEntity : class;
-
-    // TODO: Evaluate if these methods should be implemented or removed.
-    // Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken = default);
-    // Task<TResult> ExecuteInTransactionAsync<TResult>(Func<Task<TResult>> action, CancellationToken cancellationToken = default);
 
     #endregion
 }
@@ -81,10 +67,6 @@ public interface IUnitOfWork<TDbContext> : IUnitOfWork
     /// <summary>
     /// Executes the specified operation within a transaction, handling transient failures via an Execution Strategy.
     /// </summary>
-    /// <param name="operation">The operation to execute.</param>
-    /// <param name="isolationLevel">The isolation level of the transaction.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     Task ExecuteInTransactionAsync(
         Func<IUnitOfWork<TDbContext>, CancellationToken, Task> operation,
         IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,

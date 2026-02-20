@@ -4,4 +4,8 @@
     <RootNamespace>VK.Blocks.Persistence.Abstractions</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\VK.Blocks.Core.csproj" />
+  </ItemGroup>
+
 </Project>
