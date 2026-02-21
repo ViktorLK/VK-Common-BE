@@ -10,6 +10,8 @@ namespace VK.Blocks.Persistence.EFCore.Services;
 /// </summary>
 public sealed class NoOpEntityLifecycleProcessor : IEntityLifecycleProcessor
 {
+    #region Public Methods
+
     /// <inheritdoc />
     public void ProcessAuditing(DbContext context)
     {
@@ -33,4 +35,6 @@ public sealed class NoOpEntityLifecycleProcessor : IEntityLifecycleProcessor
     {
         // No-op
     }
+
+    #endregion
 }

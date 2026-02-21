@@ -10,6 +10,8 @@ namespace VK.Blocks.Persistence.EFCore;
 /// </summary>
 public abstract class BaseDbContext : DbContext
 {
+    #region Properties
+
     /// <summary>
     /// The current tenant identifier retrieved from the provider.
     /// </summary>
@@ -19,6 +21,8 @@ public abstract class BaseDbContext : DbContext
     /// Indicates whether MultiTenancy is enabled for this DB Context.
     /// </summary>
     public bool IsMultiTenancyEnabled { get; }
+
+    #endregion
 
     #region Constructors
 

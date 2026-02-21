@@ -15,7 +15,3 @@ Entity Framework Core をベースとした、高機能かつ堅牢な永続化�
 バルク操作と監査ログの自動整合 (Hybrid Auditing) や、スレッドセーフなメタデータキャッシュなど、パフォーマンスと保守性を両立させる工夫を凝らしています。
 
 👉 **[詳細な設計思想とドキュメントはこちら](src/BuildingBlocks/Persistence/EFCore/README.md)**
-
----
-
-Copyright (c) 2026 Kenkon Ro
