@@ -124,17 +124,56 @@ public class UnitOfWorkIntegrationTests : IntegrationTestBase<TestDbContext>
     }
 
     [Fact]
-    public async Task BeginTransactionAsync_ActiveTransaction_ThrowsInvalidOperationException()
+    public async Task ExecuteInTransactionAsync_Success_Commits()
+    {
+        // Arrange
+        var sut = new UnitOfWork<TestDbContext>(Context, _serviceProviderMock.Object);
+
+        // Act
+        await sut.ExecuteInTransactionAsync(async (uow, ct) =>
+        {
+            Context.Products.Add(new TestProduct { Name = "InTransaction" });
+            await uow.SaveChangesAsync(ct);
+        });
+
+        // Assert
+        Context.ChangeTracker.Clear();
+        var saved = await Context.Products.FirstOrDefaultAsync(p => p.Name == "InTransaction");
+        saved.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task ExecuteInTransactionAsync_Failure_RollsBack()
+    {
+        // Arrange
+        var sut = new UnitOfWork<TestDbContext>(Context, _serviceProviderMock.Object);
+
+        // Act
+        Func<Task> act = async () => await sut.ExecuteInTransactionAsync(async (uow, ct) =>
+        {
+            Context.Products.Add(new TestProduct { Name = "ShouldRollback" });
+            await uow.SaveChangesAsync(ct);
+            throw new Exception("Failure");
+        });
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
+        Context.ChangeTracker.Clear();
+        var saved = await Context.Products.FirstOrDefaultAsync(p => p.Name == "ShouldRollback");
+        saved.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DisposeAsync_DisposesTransaction()
     {
         // Arrange
         var sut = new UnitOfWork<TestDbContext>(Context, _serviceProviderMock.Object);
         await sut.BeginTransactionAsync();
 
         // Act
-        Func<Task> act = async () => await sut.BeginTransactionAsync();
+        await sut.DisposeAsync();
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage(RepositoryConstants.ErrorMessages.TransactionAlreadyActive);
+        Context.Database.CurrentTransaction.Should().BeNull();
     }
 }
