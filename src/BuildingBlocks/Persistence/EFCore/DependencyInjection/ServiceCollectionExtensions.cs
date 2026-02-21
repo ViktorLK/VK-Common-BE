@@ -93,7 +93,7 @@ public static class ServiceCollectionExtensions
 
     #endregion
 
-    #region Private Helpers
+    #region Private Methods
 
     private static PersistenceOptions AddPersistenceOptions(this IServiceCollection services, Action<PersistenceOptions> configureOptions)
     {

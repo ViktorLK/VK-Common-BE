@@ -11,12 +11,16 @@ public sealed class DefaultAuditProvider(string systemIdentifier = "System") : I
 {
     #region Properties
 
+    /// <inheritdoc />
     public string CurrentUserId => systemIdentifier;
 
+    /// <inheritdoc />
     public string CurrentUserName => systemIdentifier;
 
+    /// <inheritdoc />
     public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
 
+    /// <inheritdoc />
     public bool IsAuthenticated => false;
 
     #endregion

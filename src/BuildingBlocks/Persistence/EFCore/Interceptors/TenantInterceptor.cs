@@ -11,20 +11,36 @@ namespace VK.Blocks.Persistence.EFCore.Interceptors;
 /// </summary>
 public sealed class TenantInterceptor(ITenantProvider tenantProvider) : SaveChangesInterceptor
 {
+    #region Fields
+
     private readonly ITenantProvider _tenantProvider = tenantProvider;
 
+    #endregion
+
+    #region Public Methods
+
+    /// <inheritdoc />
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
         InjectTenantId(eventData.Context);
         return base.SavingChanges(eventData, result);
     }
 
+    /// <inheritdoc />
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         InjectTenantId(eventData.Context);
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
+    /// Injects the current tenant ID into entities implementing IMultiTenant.
+    /// </summary>
+    /// <param name="context">The database context.</param>
     private void InjectTenantId(DbContext? context)
     {
         if (context is null)
@@ -46,4 +62,6 @@ public sealed class TenantInterceptor(ITenantProvider tenantProvider) : SaveChan
             }
         }
     }
+
+    #endregion
 }
