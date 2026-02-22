@@ -38,7 +38,12 @@ public class Result<TValue> : Result
 
     #region Properties
 
-    /// <summary>Gets the value associated with the result.</summary>
+    /// <summary>
+    /// Gets the value associated with the result.
+    /// It is guaranteed by design that if <see cref="Result.IsSuccess"/> is true, this value will not be null.
+    /// Accessing this property on a failure result throws an <see cref="InvalidOperationException"/>.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when accessed on a failure result, or if a success result unexpectedly contains a null value.</exception>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TValue? Value => IsSuccess ? _value ??
         throw new InvalidOperationException("Success result contains null value. This should not happen.")

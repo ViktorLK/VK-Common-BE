@@ -1,6 +1,4 @@
-using VK.Blocks.Core.Results;
-
-namespace VK.Blocks.Web.Extensions;
+namespace VK.Blocks.Core.Results;
 
 /// <summary>
 /// Extensions for <see cref="Result"/> and <see cref="Result{T}"/>.

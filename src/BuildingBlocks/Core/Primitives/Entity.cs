@@ -21,7 +21,7 @@ public abstract class Entity<TId> where TId : notnull
     #region Properties
 
     /// <summary>Gets the entity's unique identifier.</summary>
-    public TId Id { get; protected set; } = default!;
+    public TId Id { get; init; } = default!;
 
     #endregion
 

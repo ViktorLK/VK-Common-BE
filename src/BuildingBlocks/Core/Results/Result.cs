@@ -87,7 +87,15 @@ public class Result : IResult
     /// <summary>Creates a failed result with multiple errors.</summary>
     public static Result<TValue> Failure<TValue>(IEnumerable<Error> errors) => new(default, false, errors);
 
-    /// <summary>Creates a result based on a value — success if not null, failure with NullValue otherwise.</summary>
+    /// <summary>
+    /// Creates a result based on a value.
+    /// By design, this method enforces strict null-safety: if the value is not null, it returns a successful result;
+    /// if the value is null, it intentionally returns a failure result with <see cref="Error.NullValue"/>.
+    /// This guarantees that a successful <see cref="Result{TValue}"/> will never contain a null value.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <param name="value">The value to evaluate.</param>
+    /// <returns>A success result if the value is not null; otherwise, a failure result.</returns>
     public static Result<TValue> Create<TValue>(TValue? value) =>
         value is not null ? Success(value) : Failure<TValue>(Error.NullValue);
 
