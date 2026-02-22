@@ -28,11 +28,20 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidat
         var validationResults = await Task.WhenAll(
             validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
-        var failures = validationResults
-            .Where(r => r.Errors.Count > 0)
-            .SelectMany(r => r.Errors)
-            .Select(f => new Abstractions.ValidationError(f.PropertyName, f.ErrorMessage, f.ErrorCode))
-            .ToList();
+        var failures = new List<Abstractions.ValidationError>();
+        foreach (var result in validationResults)
+        {
+            if (result.IsValid)
+                continue;
+
+            foreach (var error in result.Errors)
+            {
+                failures.Add(new Abstractions.ValidationError(
+                    error.PropertyName,
+                    error.ErrorMessage,
+                    error.ErrorCode));
+            }
+        }
 
         if (failures.Count > 0)
         {

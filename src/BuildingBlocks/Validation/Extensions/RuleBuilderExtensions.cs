@@ -6,19 +6,16 @@ namespace VK.Blocks.Validation.Extensions;
 /// <summary>
 /// Extension methods for <see cref="IRuleBuilder{T, TProperty}"/> to provide common validation rules.
 /// </summary>
-public static class RuleBuilderExtensions
+public static partial class RuleBuilderExtensions
 {
-    private static readonly Regex PasswordRegex = new(
-        @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$",
-        RegexOptions.Compiled,
-        TimeSpan.FromMilliseconds(100));
+    private const string PasswordPattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$";
+    private const string PhonePattern = @"^\+?[\d\s-]{7,20}$";
 
-    // Simple regex for international phone numbers (e.g. +1234567890) or local (09012345678)
-    // Allows optional +, digits, spaces, hyphens. Min 7, Max 15 digits roughly.
-    private static readonly Regex PhoneRegex = new(
-        @"^\+?[\d\s-]{7,20}$",
-        RegexOptions.Compiled,
-        TimeSpan.FromMilliseconds(100));
+    [GeneratedRegex(PasswordPattern, RegexOptions.Compiled, 100)]
+    private static partial Regex PasswordRegex();
+
+    [GeneratedRegex(PhonePattern, RegexOptions.Compiled, 100)]
+    private static partial Regex PhoneRegex();
 
     /// <summary>
     /// Validates that the property is a valid password.
@@ -35,7 +32,7 @@ public static class RuleBuilderExtensions
     public static IRuleBuilderOptions<T, string> MustBeValidPassword<T>(this IRuleBuilder<T, string> ruleBuilder)
     {
         return ruleBuilder
-            .Must(password => !string.IsNullOrEmpty(password) && PasswordRegex.IsMatch(password))
+            .Must(password => !string.IsNullOrEmpty(password) && PasswordRegex().IsMatch(password))
             .WithMessage("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
     }
 
@@ -48,7 +45,7 @@ public static class RuleBuilderExtensions
     public static IRuleBuilderOptions<T, string> MustBeValidPhone<T>(this IRuleBuilder<T, string> ruleBuilder)
     {
         return ruleBuilder
-            .Must(phone => !string.IsNullOrEmpty(phone) && PhoneRegex.IsMatch(phone))
+            .Must(phone => !string.IsNullOrEmpty(phone) && PhoneRegex().IsMatch(phone))
             .WithMessage("Phone number format is invalid.");
     }
 }

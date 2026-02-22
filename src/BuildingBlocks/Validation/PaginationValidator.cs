@@ -1,3 +1,4 @@
+using VK.Blocks.Core.Results;
 using VK.Blocks.Validation.Constants;
 
 namespace VK.Blocks.Validation;
@@ -8,62 +9,72 @@ namespace VK.Blocks.Validation;
 public static class PaginationValidator
 {
     /// <summary>
+    /// ページネーションバリデーションに関連するエラー定義
+    /// </summary>
+    public static class Errors
+    {
+        /// <summary>ページ番号が無効な場合のエラー</summary>
+        public static readonly Error InvalidPageNumber = new("Pagination.InvalidPageNumber", PaginationConstants.ErrorMessages.PageNumberMustBePositive, ErrorType.Validation);
+
+        /// <summary>ページサイズが負またはゼロの場合のエラー</summary>
+        public static readonly Error InvalidPageSize = new("Pagination.InvalidPageSize", PaginationConstants.ErrorMessages.PageSizeMustBePositive, ErrorType.Validation);
+
+        /// <summary>ページサイズが最大制限を超えている場合のエラー</summary>
+        public static readonly Error OverPageSize = new("Pagination.OverPageSize", PaginationConstants.ErrorMessages.OverPageSize, ErrorType.Validation);
+
+        /// <summary>オフセット制限を超えている場合のエラー</summary>
+        public static readonly Error OverOffsetLimit = new("Pagination.OverOffsetLimit", PaginationConstants.ErrorMessages.OverOffsetLimit, ErrorType.Validation);
+    }
+
+    /// <summary>
     /// オフセットページネーションパラメータを検証
     /// </summary>
     /// <param name="pageNumber">ページ番号（1ベース）</param>
     /// <param name="pageSize">ページあたりの件数</param>
-    /// <exception cref="ArgumentOutOfRangeException">パラメータが無効な場合</exception>
-    public static void ValidateOffsetPagination(int pageNumber, int pageSize)
+    /// <returns>検証結果</returns>
+    public static Result ValidateOffsetPagination(int pageNumber, int pageSize)
     {
         if (pageNumber < 1)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(pageNumber),
-                PaginationConstants.ErrorMessages.PageNumberMustBePositive);
+            return Result.Failure(Errors.InvalidPageNumber);
         }
 
         if (pageSize < 1)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(pageSize),
-                PaginationConstants.ErrorMessages.PageSizeMustBePositive);
+            return Result.Failure(Errors.InvalidPageSize);
         }
 
         if (pageSize > PaginationConstants.PerformanceGuard.MaxPageSize)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(pageSize),
-                PaginationConstants.ErrorMessages.OverPageSize);
+            return Result.Failure(Errors.OverPageSize);
         }
 
-        var offset = (pageNumber - 1) * pageSize;
+        var offset = (long)(pageNumber - 1) * pageSize;
         if (offset > PaginationConstants.PerformanceGuard.MaxOffsetLimit)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(pageNumber),
-                PaginationConstants.ErrorMessages.OverOffsetLimit);
+            return Result.Failure(Errors.OverOffsetLimit);
         }
+
+        return Result.Success();
     }
 
     /// <summary>
     /// カーソルページネーションパラメータを検証
     /// </summary>
     /// <param name="pageSize">ページあたりの件数</param>
-    /// <exception cref="ArgumentOutOfRangeException">パラメータが無効な場合</exception>
-    public static void ValidateCursorPagination(int pageSize)
+    /// <returns>検証結果</returns>
+    public static Result ValidateCursorPagination(int pageSize)
     {
         if (pageSize < 1)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(pageSize),
-                PaginationConstants.ErrorMessages.PageSizeMustBePositive);
+            return Result.Failure(Errors.InvalidPageSize);
         }
 
         if (pageSize > PaginationConstants.PerformanceGuard.MaxCursorLimit)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(pageSize),
-                PaginationConstants.ErrorMessages.OverPageSize);
+            return Result.Failure(Errors.OverPageSize);
         }
+
+        return Result.Success();
     }
 }

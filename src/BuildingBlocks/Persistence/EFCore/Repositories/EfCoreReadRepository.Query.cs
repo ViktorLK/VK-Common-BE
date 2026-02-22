@@ -1,14 +1,13 @@
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Validation;
+using VK.Blocks.Validation.Exceptions;
+using VK.Blocks.Validation.Abstractions;
 using VK.Blocks.Persistence.Core.Pagination;
 using VK.Blocks.Core.Results;
 using VK.Blocks.Persistence.EFCore.Caches;
 using VK.Blocks.Persistence.EFCore.Extensions;
-using VK.Blocks.Persistence.EFCore.Infrastructure;
 
 namespace VK.Blocks.Persistence.EFCore.Repositories;
 
@@ -25,7 +24,11 @@ public partial class EfCoreReadRepository<TEntity>
         bool ascending = true,
         CancellationToken cancellationToken = default)
     {
-        PaginationValidator.ValidateOffsetPagination(pageNumber, pageSize);
+        var validationResult = PaginationValidator.ValidateOffsetPagination(pageNumber, pageSize);
+        if (validationResult.IsFailure)
+        {
+            throw new ValidationException(validationResult.Errors.Select(e => new ValidationError(string.Empty, e.Description, e.Code)));
+        }
 
         var query = GetQueryable(true).WhereIf(predicate is not null, predicate!);
         var totalCount = await query.CountAsync(cancellationToken).ConfigureAwait(false);
@@ -68,7 +71,11 @@ public partial class EfCoreReadRepository<TEntity>
         where TCursor : IComparable<TCursor>
     {
         ArgumentNullException.ThrowIfNull(cursorSelector);
-        PaginationValidator.ValidateCursorPagination(pageSize);
+        var validationResult = PaginationValidator.ValidateCursorPagination(pageSize);
+        if (validationResult.IsFailure)
+        {
+            throw new ValidationException(validationResult.Errors.Select(e => new ValidationError(string.Empty, e.Description, e.Code)));
+        }
 
         var hasCursor = !EqualityComparer<TCursor>.Default.Equals(cursor, default);
 
