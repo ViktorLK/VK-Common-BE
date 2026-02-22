@@ -24,7 +24,7 @@ public class Result : IResult
         }
 
         IsSuccess = isSuccess;
-        Errors = [error];
+        Errors = isSuccess ? [] : [error];
     }
 
     /// <summary>
@@ -46,7 +46,7 @@ public class Result : IResult
         }
 
         IsSuccess = isSuccess;
-        Errors = errorArray;
+        Errors = isSuccess ? [] : errorArray;
     }
 
     #endregion
@@ -63,7 +63,7 @@ public class Result : IResult
     public Error[] Errors { get; }
 
     /// <summary>Gets the primary error associated with the result.</summary>
-    public Error Error => Errors.Length > 0 ? Errors[0] : Error.None;
+    public Error FirstError => Errors.Length > 0 ? Errors[0] : Error.None;
 
     #endregion
 
