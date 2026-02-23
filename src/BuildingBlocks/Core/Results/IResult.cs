@@ -18,7 +18,7 @@ public interface IResult
     /// <summary>
     /// Gets the primary error associated with the result.
     /// </summary>
-    Error Error { get; }
+    Error FirstError { get; }
 
     /// <summary>
     /// Gets the errors associated with the result.

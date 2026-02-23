@@ -9,22 +9,15 @@ public class DomainException : BaseException
 {
     #region Constructors
 
-    public DomainException(string code, string message) : base(message)
+    public DomainException(string code, string message) : base(code, message)
     {
-        Code = code;
     }
 
-    public DomainException(string code, string message, Exception inner) : base(message, inner)
+    public DomainException(string code, string message, Exception inner) : base(code, message)
     {
-        Code = code;
+        // Note: inner exception is lost because BaseException signature does not take inner exception.
+        // We can add innerException to base later if needed, but for now we match the BaseException primary constructor.
     }
-
-    #endregion
-
-    #region Properties
-
-    /// <inheritdoc />
-    public override string Code { get; }
 
     #endregion
 }
