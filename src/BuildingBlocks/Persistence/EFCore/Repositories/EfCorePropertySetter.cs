@@ -1,3 +1,4 @@
+#if NET8_0
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
 using VK.Blocks.Persistence.Abstractions.Repositories;
@@ -80,3 +81,4 @@ public class EfCorePropertySetter<TEntity> : IPropertySetter<TEntity> where TEnt
 
     #endregion
 }
+#endif
