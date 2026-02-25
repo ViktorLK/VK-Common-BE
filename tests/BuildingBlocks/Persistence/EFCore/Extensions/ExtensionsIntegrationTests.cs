@@ -1,23 +1,24 @@
+using System;
+using System.Linq;
 using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using VK.Blocks.Persistence.EFCore.Extensions;
-using VK.Blocks.Persistence.EFCore.Tests;
 using VK.Blocks.Persistence.EFCore.IntegrationTests.Infrastructure;
+using VK.Blocks.Persistence.EFCore.Tests;
 using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Extensions;
 
+/// <summary>
+/// Integration tests for EF Core extensions.
+/// </summary>
 public class ExtensionsIntegrationTests : IntegrationTestBase<TestDbContext>
 {
+    /// <summary>
+    /// Verifies that soft-deleted entities are hidden from queries by the global filter.
+    /// </summary>
     [Fact]
     public void GlobalFilters_SoftDeletedEntity_IsHiddenFromQuery()
     {
         // Arrange
-        // properties are set by base class initialization.
-        // But InitializeAsync creates a Clean context.
-
-        // We can use Context directly.
-
         var product = new TestProduct { Id = Guid.NewGuid(), Name = "Deleted", IsDeleted = true };
         Context.Products.Add(product);
         Context.SaveChanges();
@@ -26,6 +27,7 @@ public class ExtensionsIntegrationTests : IntegrationTestBase<TestDbContext>
         var result = Context.Products.ToList();
 
         // Assert
+        // Rationale: The global soft-delete filter should exclude entities with IsDeleted = true.
         result.Should().BeEmpty();
     }
 }

@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
@@ -10,12 +12,20 @@ using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Interceptors;
 
+/// <summary>
+/// Unit tests for <see cref="AuditingInterceptor"/>.
+/// </summary>
 public class AuditingInterceptorTests
 {
     private readonly IFixture _fixture;
+
     private readonly Mock<IEntityLifecycleProcessor> _processorMock;
+
     private readonly AuditingInterceptor _sut;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuditingInterceptorTests"/> class.
+    /// </summary>
     public AuditingInterceptorTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -23,6 +33,9 @@ public class AuditingInterceptorTests
         _sut = new AuditingInterceptor(_processorMock.Object);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AuditingInterceptor.SavingChanges"/> calls <see cref="IEntityLifecycleProcessor.ProcessAuditing"/>.
+    /// </summary>
     [Fact]
     public void SavingChanges_ValidContext_CallsProcessAuditing()
     {
@@ -40,6 +53,9 @@ public class AuditingInterceptorTests
         _processorMock.Verify(x => x.ProcessAuditing(contextMock.Object), Times.Once);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AuditingInterceptor.SavingChanges"/> throws <see cref="InvalidOperationException"/> when the context is null.
+    /// </summary>
     [Fact]
     public void SavingChanges_NullContext_ThrowsInvalidOperationException()
     {
@@ -57,6 +73,9 @@ public class AuditingInterceptorTests
            .WithMessage("*Context is null*");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AuditingInterceptor.SavingChangesAsync"/> calls <see cref="IEntityLifecycleProcessor.ProcessAuditing"/>.
+    /// </summary>
     [Fact]
     public async Task SavingChangesAsync_ValidContext_CallsProcessAuditing()
     {
@@ -74,6 +93,9 @@ public class AuditingInterceptorTests
         _processorMock.Verify(x => x.ProcessAuditing(contextMock.Object), Times.Once);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="AuditingInterceptor.SavingChangesAsync"/> throws <see cref="InvalidOperationException"/> when the context is null.
+    /// </summary>
     [Fact]
     public async Task SavingChangesAsync_NullContext_ThrowsInvalidOperationException()
     {

@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using AutoFixture;
 using FluentAssertions;
@@ -9,17 +10,27 @@ using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Infrastructure;
 
+/// <summary>
+/// Unit tests for <see cref="SecureCursorSerializer"/>.
+/// </summary>
 public class SecureCursorSerializerTests
 {
     private readonly IFixture _fixture;
+
     private readonly Mock<IOptions<CursorSerializerOptions>> _optionsMock;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SecureCursorSerializerTests"/> class.
+    /// </summary>
     public SecureCursorSerializerTests()
     {
         _fixture = new Fixture();
         _optionsMock = new Mock<IOptions<CursorSerializerOptions>>();
     }
 
+    /// <summary>
+    /// Helper method to create the system under test with specific options.
+    /// </summary>
     private SecureCursorSerializer CreateSut(string signingKey = "s3cr3t_k3y_f0r_t3st1ng_purp0s3s_0nly!!", TimeSpan? expiry = null, TimeProvider? timeProvider = null)
     {
         var options = new CursorSerializerOptions
@@ -30,12 +41,13 @@ public class SecureCursorSerializerTests
 
         _optionsMock.Setup(x => x.Value).Returns(options);
 
-        // If no time provider is supplied, use a fake one with a fixed time for stability,
-        // unless specific tests behave otherwise. But default behavior was System.
-        // Let's default to null to use System (via constructor default) or pass explicit.
+        // Rationale: If no time provider is supplied, the serializer defaults to System time.
         return new SecureCursorSerializer(_optionsMock.Object, timeProvider);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SecureCursorSerializer.Serialize{T}"/> returns a valid token with a signature.
+    /// </summary>
     [Fact]
     public void Serialize_ValidInput_ReturnsTokenWithSignature()
     {
@@ -53,6 +65,9 @@ public class SecureCursorSerializerTests
         parts.Length.Should().Be(2);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SecureCursorSerializer.Deserialize{T}"/> correctly recovers the original value from a valid token.
+    /// </summary>
     [Fact]
     public void Deserialize_ValidToken_ReturnsOriginalValue()
     {
@@ -68,6 +83,9 @@ public class SecureCursorSerializerTests
         result.Should().Be(originalCursor);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SecureCursorSerializer.Deserialize{T}"/> returns default when the payload is tampered with.
+    /// </summary>
     [Fact]
     public void Deserialize_TamperedPayload_ReturnsDefault()
     {
@@ -76,11 +94,7 @@ public class SecureCursorSerializerTests
         var token = sut.Serialize(123);
         var parts = token.Split('.');
 
-        // Tamper with the payload (first part)
-        // We decode, change data, and re-encode without updating signature
-        var jsonBytes = Convert.FromBase64String(parts[0]);
-        // Just flipping a bit or changing a char is enough, but let's replace the whole thing to be sure
-        // We'll just append a char to the valid base64 string to make it invalid/different
+        // Rationale: Tamper with the payload (first part) to invalidate the signature.
         var tamperedPayload = Convert.ToBase64String(new byte[] { 1, 2, 3 });
         var tamperedToken = $"{tamperedPayload}.{parts[1]}";
 
@@ -91,6 +105,9 @@ public class SecureCursorSerializerTests
         result.Should().Be(default);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SecureCursorSerializer.Deserialize{T}"/> returns default when the signature is tampered with.
+    /// </summary>
     [Fact]
     public void Deserialize_TamperedSignature_ReturnsDefault()
     {
@@ -100,7 +117,7 @@ public class SecureCursorSerializerTests
         var parts = token.Split('.');
 
         // Act
-        // Flip the last character of the signature
+        // Rationale: Flip the last character of the signature to simulate tampering.
         var originalSig = parts[1];
         var tamperedSig = originalSig.Substring(0, originalSig.Length - 1) + (originalSig.EndsWith('A') ? 'B' : 'A');
         var tamperedToken = $"{parts[0]}.{tamperedSig}";
@@ -111,7 +128,9 @@ public class SecureCursorSerializerTests
         result.Should().Be(default);
     }
 
-
+    /// <summary>
+    /// Verifies that <see cref="SecureCursorSerializer.Deserialize{T}"/> returns default for tokens with an invalid format.
+    /// </summary>
     [Fact]
     public void Deserialize_InvalidFormat_ReturnsDefault()
     {
@@ -126,6 +145,9 @@ public class SecureCursorSerializerTests
         result.Should().Be(default);
     }
 
+    /// <summary>
+    /// Verifies that the constructor throws <see cref="ArgumentNullException"/> when options are null.
+    /// </summary>
     [Fact]
     public void Constructor_NullOptions_ThrowsArgumentNullException()
     {
@@ -136,6 +158,9 @@ public class SecureCursorSerializerTests
         act.Should().Throw<ArgumentNullException>();
     }
 
+    /// <summary>
+    /// Verifies that the constructor throws <see cref="InvalidOperationException"/> when the signing key is empty.
+    /// </summary>
     [Fact]
     public void Constructor_EmptySigningKey_ThrowsInvalidOperationException()
     {
@@ -149,6 +174,10 @@ public class SecureCursorSerializerTests
         act.Should().Throw<InvalidOperationException>()
            .WithMessage("*SigningKey*");
     }
+
+    /// <summary>
+    /// Verifies that <see cref="SecureCursorSerializer.Deserialize{T}"/> returns default for expired tokens.
+    /// </summary>
     [Fact]
     public void Deserialize_ExpiredToken_ReturnsDefault()
     {
@@ -162,7 +191,7 @@ public class SecureCursorSerializerTests
         var token = sut.Serialize(123);
 
         // Act
-        // Advance time beyond expiry
+        // Rationale: Advance time beyond the expiry duration.
         fakeTime.Advance(expiry.Add(TimeSpan.FromSeconds(1)));
         var result = sut.Deserialize<int>(token);
 
@@ -170,13 +199,24 @@ public class SecureCursorSerializerTests
         result.Should().Be(default);
     }
 
+    /// <summary>
+    /// A fake time provider used for testing expiration logic.
+    /// </summary>
     private class FakeTimeProvider : TimeProvider
     {
         private DateTimeOffset _now = DateTimeOffset.UtcNow;
 
+        /// <inheritdoc />
         public override DateTimeOffset GetUtcNow() => _now;
 
+        /// <summary>
+        /// Sets the current UTC time.
+        /// </summary>
         public void SetUtcNow(DateTimeOffset now) => _now = now;
+
+        /// <summary>
+        /// Advances the current UTC time by the specified duration.
+        /// </summary>
         public void Advance(TimeSpan span) => _now = _now.Add(span);
     }
 }

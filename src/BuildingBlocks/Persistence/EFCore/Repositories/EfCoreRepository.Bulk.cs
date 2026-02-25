@@ -47,7 +47,7 @@ public partial class EfCoreRepository<TEntity>
 
         var query = GetQueryable(false).Where(predicate);
 
-        if (!forceDelete)
+        if (!forceDelete && EfCoreTypeCache<TEntity>.IsSoftDelete)
         {
             var propertySetter = new EfCorePropertySetter<TEntity>();
 
@@ -108,7 +108,7 @@ public partial class EfCoreRepository<TEntity>
 
         var query = GetQueryable(false).Where(predicate);
 
-        if (!forceDelete)
+        if (!forceDelete && EfCoreTypeCache<TEntity>.IsSoftDelete)
         {
             var softDeletedRows = await query.ExecuteUpdateAsync(builder =>
             {

@@ -1,12 +1,21 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using VK.Blocks.Persistence.EFCore.Extensions;
-using VK.Blocks.Persistence.EFCore.Tests; // Reusing TestProdukt if possible
+using VK.Blocks.Persistence.EFCore.Tests;
 using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Extensions;
 
+/// <summary>
+/// Unit tests for queryable and collection extensions.
+/// </summary>
 public class ExtensionsTests
 {
+    /// <summary>
+    /// Verifies that <see cref="QueryableExtensions.WhereIf{T}"/> applies the predicate when the condition is true.
+    /// </summary>
     [Fact]
     public void WhereIf_ConditionTrue_AppliesPredicate()
     {
@@ -24,6 +33,9 @@ public class ExtensionsTests
         result.Should().ContainSingle(x => x.Name == "A");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="QueryableExtensions.WhereIf{T}"/> returns the original query when the condition is false.
+    /// </summary>
     [Fact]
     public void WhereIf_ConditionFalse_ReturnsOriginalQuery()
     {
@@ -41,6 +53,9 @@ public class ExtensionsTests
         result.Should().HaveCount(2);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="QueryableExtensions.OrderByIf{T, TKey}"/> applies the correct sorting direction when the condition is true.
+    /// </summary>
     [Fact]
     public void OrderByIf_ConditionTrue_AppliesIsAscending()
     {
@@ -60,6 +75,9 @@ public class ExtensionsTests
         resultDesc[0].Name.Should().Be("B");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="QueryableExtensions.OrderByIf{T, TKey}"/> returns the original query when the condition is false.
+    /// </summary>
     [Fact]
     public void OrderByIf_ConditionFalse_ReturnsOriginalQuery()
     {
@@ -74,8 +92,8 @@ public class ExtensionsTests
         var result = list.OrderByIf(false, x => x.Name, true).ToList();
 
         // Assert
-        result[0].Name.Should().Be("B"); // Original order from list
+        // Rationale: Since the condition is false, the original insertion order should be preserved.
+        result[0].Name.Should().Be("B");
     }
-
 }
 

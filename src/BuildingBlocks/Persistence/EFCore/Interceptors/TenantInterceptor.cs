@@ -44,7 +44,9 @@ public sealed class TenantInterceptor(ITenantProvider tenantProvider) : SaveChan
     private void InjectTenantId(DbContext? context)
     {
         if (context is null)
+        {
             return;
+        }
 
         foreach (var entry in context.ChangeTracker.Entries())
         {

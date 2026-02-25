@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
@@ -8,15 +11,24 @@ using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Adapters;
 
+/// <summary>
+/// Unit tests for <see cref="EfCoreTransactionAdapter"/>.
+/// </summary>
 public class EfCoreTransactionAdapterTests
 {
     private readonly IFixture _fixture;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EfCoreTransactionAdapterTests"/> class.
+    /// </summary>
     public EfCoreTransactionAdapterTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreTransactionAdapter"/> correctly delegates operations to the underlying <see cref="IDbContextTransaction"/>.
+    /// </summary>
     [Fact]
     public async Task EfCoreTransactionAdapter_DelegatesToUnderlyingTransaction()
     {

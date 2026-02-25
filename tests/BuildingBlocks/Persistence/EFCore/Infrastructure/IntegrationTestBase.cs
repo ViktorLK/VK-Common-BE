@@ -1,55 +1,69 @@
+using System;
+using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 using VK.Blocks.Persistence.EFCore.IntegrationTests.Infrastructure; // Access MsSqlTestContainerFactory
+using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Infrastructure;
 
+/// <summary>
+/// Base class for integration tests that require a database context.
+/// Supports both SQLite (in-memory) and SQL Server (via Testcontainers).
+/// </summary>
+/// <typeparam name="TContext">The type of the database context.</typeparam>
 public abstract class IntegrationTestBase<TContext> : IAsyncLifetime where TContext : DbContext
 {
+    /// <summary>
+    /// The fixture for generating test data.
+    /// </summary>
     protected readonly IFixture Fixture;
+
+    /// <summary>
+    /// The database context instance.
+    /// </summary>
     public TContext Context = null!; // Public or protected, used in tests. Initialized in InitializeAsync
+
     private SqliteConnection? _sqliteConnection;
 
-    // Toggle this to switch between SQLite and Testcontainers
-    // Use environment variable or override in derived class if needed.
-    // Default is false (SQLite) for speed.
+    /// <summary>
+    /// Gets a value indicating whether to use Testcontainers (SQL Server) instead of SQLite.
+    /// Default is false for performance reasons.
+    /// </summary>
     protected virtual bool UseTestContainers => false;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="IntegrationTestBase{TContext}"/> class.
+    /// </summary>
     protected IntegrationTestBase()
     {
         Fixture = new Fixture().Customize(new AutoMoqCustomization());
     }
 
+    /// <summary>
+    /// Creates database context options based on the configured provider.
+    /// </summary>
+    /// <param name="configure">An optional action to configure the options builder.</param>
+    /// <returns>The created <see cref="DbContextOptions{TContext}"/>.</returns>
     protected DbContextOptions<TContext> CreateOptions(Action<DbContextOptionsBuilder<TContext>>? configure = null)
     {
         var builder = new DbContextOptionsBuilder<TContext>();
 
         if (UseTestContainers)
         {
-            // Ensure container is started if we are going to use it manually
-            // MsSqlTestContainerFactory.InitializeAsync() is called in InitializeAsync usually,
-            // but if we call CreateOptions manually we might need it.
-            // Ideally the base class ensures init.
-            // But InitializeAsync is IAsyncLifetime.
-
-            // Assume InitializeAsync has run or will run?
-            // If CreateOptions is called from InitializeAsync, container init must happen before.
-
+            // Rationale: Using SQL Server via Testcontainers for more realistic integration tests.
+            // TODO: Ensure MsSqlTestContainerFactory is initialized before calling this if used outside InitializeAsync.
             builder.UseSqlServer(MsSqlTestContainerFactory.ConnectionString);
         }
         else
         {
-            // _sqliteConnection is initialized in InitializeAsync.
-            // If we use this method, we rely on _sqliteConnection being ready?
-            // Or we check if it's null?
+            // Rationale: Using SQLite in-memory for fast integration tests.
+            // The connection must be kept open for the duration of the test to keep the in-memory database alive.
             if (_sqliteConnection == null)
             {
-                // This path is tricky if used outside InitializeAsync structure.
-                // But for now let's assume usage *after* base.InitializeAsync or *inside* it.
-                // Actually, InitializeAsync initializes the connection.
+                // TODO: Consider throwing a more descriptive exception if accessed before initialization.
             }
             builder.UseSqlite(_sqliteConnection);
         }
@@ -60,6 +74,7 @@ public abstract class IntegrationTestBase<TContext> : IAsyncLifetime where TCont
         return builder.Options;
     }
 
+    /// <inheritdoc />
     public async Task InitializeAsync()
     {
         if (UseTestContainers)
@@ -77,6 +92,7 @@ public abstract class IntegrationTestBase<TContext> : IAsyncLifetime where TCont
         await Context.Database.EnsureCreatedAsync();
     }
 
+    /// <inheritdoc />
     public async Task DisposeAsync()
     {
         if (Context != null)
