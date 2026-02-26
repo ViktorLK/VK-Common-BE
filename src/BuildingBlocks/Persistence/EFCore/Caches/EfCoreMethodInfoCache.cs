@@ -1,3 +1,4 @@
+#if NET8_0
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Query;
@@ -54,3 +55,4 @@ internal static class EfCoreMethodInfoCache<TEntity>
 
     #endregion
 }
+#endif

@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
@@ -10,12 +12,20 @@ using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Interceptors;
 
+/// <summary>
+/// Unit tests for <see cref="SoftDeleteInterceptor"/>.
+/// </summary>
 public class SoftDeleteInterceptorTests
 {
     private readonly IFixture _fixture;
+
     private readonly Mock<IEntityLifecycleProcessor> _processorMock;
+
     private readonly SoftDeleteInterceptor _sut;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SoftDeleteInterceptorTests"/> class.
+    /// </summary>
     public SoftDeleteInterceptorTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -23,6 +33,9 @@ public class SoftDeleteInterceptorTests
         _sut = new SoftDeleteInterceptor(_processorMock.Object);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SoftDeleteInterceptor.SavingChanges"/> calls <see cref="IEntityLifecycleProcessor.ProcessSoftDelete"/>.
+    /// </summary>
     [Fact]
     public void SavingChanges_ValidContext_CallsProcessSoftDelete()
     {
@@ -40,6 +53,9 @@ public class SoftDeleteInterceptorTests
         _processorMock.Verify(x => x.ProcessSoftDelete(contextMock.Object), Times.Once);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SoftDeleteInterceptor.SavingChanges"/> throws <see cref="InvalidOperationException"/> when the context is null.
+    /// </summary>
     [Fact]
     public void SavingChanges_NullContext_ThrowsInvalidOperationException()
     {
@@ -57,6 +73,9 @@ public class SoftDeleteInterceptorTests
            .WithMessage("*Context is null*");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SoftDeleteInterceptor.SavingChangesAsync"/> calls <see cref="IEntityLifecycleProcessor.ProcessSoftDelete"/>.
+    /// </summary>
     [Fact]
     public async Task SavingChangesAsync_ValidContext_CallsProcessSoftDelete()
     {
@@ -74,6 +93,9 @@ public class SoftDeleteInterceptorTests
         _processorMock.Verify(x => x.ProcessSoftDelete(contextMock.Object), Times.Once);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="SoftDeleteInterceptor.SavingChangesAsync"/> throws <see cref="InvalidOperationException"/> when the context is null.
+    /// </summary>
     [Fact]
     public async Task SavingChangesAsync_NullContext_ThrowsInvalidOperationException()
     {

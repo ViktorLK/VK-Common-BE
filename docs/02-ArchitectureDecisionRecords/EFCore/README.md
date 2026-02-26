@@ -38,6 +38,13 @@
 **性能向上**: 100倍（50μs → <1μs）  
 **キーワード**: MethodInfo, Reflection, Micro-Optimization
 
+#### [ADR-012: EF Core Bulk Optimization and Adapter Pattern for .NET 10](./adr-012-efcore-bulk-update-refactoring.md)
+
+**Status**: ✅ Accepted  
+**概要**: Bulk操作の共通監査処理とEF Coreの動的プロパティ更新に対し、Adapter PatternとSource Generatorsを採用してゼロアロケーション化とOCPを維持  
+**性能向上**: 高速ロギングとリフレクション排除によるアロケーション削減  
+**キーワード**: Adapter Pattern, Source Generators, Bulk Operations, OCP
+
 ---
 
 ### Scalability (スケーラビリティ)
@@ -117,24 +124,26 @@
 1. **ADR-002**: マイクロ最適化（リフレクションコストの完全排除）
 2. **ADR-003**: マクロ最適化（DBクエリのページネーション戦略の根本的改善）
 3. **ADR-005**: メモリ使用量最適化（リスト全体バッファリングからストリーミングへの移行）
+4. **ADR-012**: ゼロアロケーションでのロギングと、EF CoreネイティブビルダーのAdapter Patternによる隠蔽
 
 ---
 
 ## 📊 システム性能最適化のサマリー
 
-| ADR     | 最適化対象           | 性能向上         | 影響範囲          |
-| ------- | -------------------- | ---------------- | ----------------- |
-| ADR-001 | Bulk Operations      | 90x              | 大規模データ更新  |
-| ADR-002 | Type Metadata        | 62x              | 全操作            |
-| ADR-003 | Pagination           | 1,250x           | 深いページ        |
-| ADR-004 | Expression Compile   | 91x              | Cursor Pagination |
-| ADR-005 | Memory Usage         | 95% reduction    | 大規模データ処理  |
-| ADR-006 | Read Operations      | 33%              | 読み取り専用操作  |
-| ADR-007 | Query Filtering      | コード量 90%削減 | 規約ベースの適用  |
-| ADR-008 | MethodInfo Lookup    | 100x             | Bulk Operations   |
-| ADR-009 | Cursor Serialization | セキュリティ強化 | Cursor Pagination |
-| ADR-010 | Tenancy & Auditing   | 関心事の分離     | システム疎結合化  |
-| ADR-011 | Dependency Injection | Fail-Fast の維持 | コンストラクタ    |
+| ADR     | 最適化対象           | 性能向上           | 影響範囲           |
+| ------- | -------------------- | ------------------ | ------------------ |
+| ADR-001 | Bulk Operations      | 90x                | 大規模データ更新   |
+| ADR-002 | Type Metadata        | 62x                | 全操作             |
+| ADR-003 | Pagination           | 1,250x             | 深いページ         |
+| ADR-004 | Expression Compile   | 91x                | Cursor Pagination  |
+| ADR-005 | Memory Usage         | 95% reduction      | 大規模データ処理   |
+| ADR-006 | Read Operations      | 33%                | 読み取り専用操作   |
+| ADR-007 | Query Filtering      | コード量 90%削減   | 規約ベースの適用   |
+| ADR-008 | MethodInfo Lookup    | 100x               | Bulk Operations    |
+| ADR-009 | Cursor Serialization | セキュリティ強化   | Cursor Pagination  |
+| ADR-010 | Tenancy & Auditing   | 関心事の分離       | システム疎結合化   |
+| ADR-011 | Dependency Injection | Fail-Fast の維持   | コンストラクタ     |
+| ADR-012 | Bulk Operations      | アロケーション削減 | Bulk 更新/削除操作 |
 
 ---
 
@@ -146,5 +155,5 @@
 
 ---
 
-**Last Updated**: 2026-02-20  
-**Total ADRs**: 11
+**Last Updated**: 2026-02-25  
+**Total ADRs**: 12

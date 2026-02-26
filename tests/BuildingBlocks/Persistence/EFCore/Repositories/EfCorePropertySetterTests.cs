@@ -1,20 +1,42 @@
+#if NET8_0
+using System;
+using System.Linq.Expressions;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore.Query;
-using System.Linq.Expressions;
 using VK.Blocks.Persistence.EFCore.Repositories;
 using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Repositories;
 
+/// <summary>
+/// Unit tests for <see cref="EfCorePropertySetter{T}"/>.
+/// </summary>
 public class EfCorePropertySetterTests
 {
+    /// <summary>
+    /// A test entity for expression building tests.
+    /// </summary>
     public class TestEntity
     {
+        /// <summary>
+        /// Gets or sets the entity identifier.
+        /// </summary>
         public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
         public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the value.
+        /// </summary>
         public int Value { get; set; }
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCorePropertySetter{T}.BuildSetPropertyExpression"/> correctly chains multiple <c>SetProperty</c> calls.
+    /// </summary>
     [Fact]
     public void BuildSetPropertyExpression_ShouldChainSetPropertyCalls()
     {
@@ -30,14 +52,11 @@ public class EfCorePropertySetterTests
         // Assert
         expression.Should().NotBeNull();
 
-        // Structure verification:
-        // Expected structure is roughly: calls => calls.SetProperty(e => e.Name, "New Name").SetProperty(e => e.Value, 100)
-
-        // We can inspect the Body of the expression
+        // Rationale: Structure verification. Expected structure is roughly: calls => calls.SetProperty(e => e.Name, "New Name").SetProperty(e => e.Value, 100)
         expression.Body.Should().BeAssignableTo<MethodCallExpression>();
         var outerCall = (MethodCallExpression)expression.Body;
 
-        // The outer call should be the SECOND SetProperty (Value)
+        // Rationale: The outer call should be the SECOND SetProperty (Value) since it was applied last.
         outerCall.Method.Name.Should().Be("SetProperty");
         outerCall.Arguments.Should().HaveCount(2); // propertyExpression, valueExpression
 
@@ -46,16 +65,8 @@ public class EfCorePropertySetterTests
         valueArg.Should().BeAssignableTo<ConstantExpression>();
         ((ConstantExpression)valueArg).Value.Should().Be(100);
 
-        // The 'instance' (first arg of static extension method or object of instance method)
-        // Wait, SetProperty is an extension method on SetPropertyCalls<T>.
-        // BUT EfCoreMethodInfoCache says it's likely using the method info found on SetPropertyCalls<T>.
-        // Let's assume standard EF Core usage: SetPropertyCalls<T>.SetProperty(...)
-
-        // Wait, EfCorePropertySetter uses:
-        // _currentExpressionChain = Expression.Call(_currentExpressionChain, method, ...)
-        // The calls are chained on the result of the previous call.
-
-        // So `outerCall` object (instance) is the result of the previous SetProperty.
+        // Rationale: In EF Core, SetProperty is an extension method. The 'instance' in our expression tree
+        // is the result of the previous call in the chain.
         outerCall.Object.Should().NotBeNull();
         outerCall.Object.Should().BeAssignableTo<MethodCallExpression>();
 
@@ -68,6 +79,9 @@ public class EfCorePropertySetterTests
         ((ConstantExpression)innerValueArg).Value.Should().Be("New Name");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCorePropertySetter{T}.BuildSetPropertyExpression"/> returns the parameter itself when no setters are added.
+    /// </summary>
     [Fact]
     public void BuildSetPropertyExpression_WithEmptySetters_ShouldReturnParameter()
     {
@@ -78,8 +92,13 @@ public class EfCorePropertySetterTests
         var expression = setter.BuildSetPropertyExpression();
 
         // Assert
+        // Rationale: If no properties are set, the identity expression (x => x) should be returned as the body.
         expression.Body.Should().BeAssignableTo<ParameterExpression>();
     }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCorePropertySetter{T}.BuildSetPropertyExpression"/> correctly chains calls using lambda expressions for values.
+    /// </summary>
     [Fact]
     public void BuildSetPropertyExpression_WithExpressionValues_ShouldChainSetPropertyCalls()
     {
@@ -87,7 +106,7 @@ public class EfCorePropertySetterTests
         var setter = new EfCorePropertySetter<TestEntity>();
 
         // Act
-        // Set Value = Value + 1
+        // Rationale: Set Value = Value + 1 (using an expression instead of a constant).
         setter.SetProperty(e => e.Value, e => e.Value + 1);
 
         var expression = setter.BuildSetPropertyExpression();
@@ -102,8 +121,7 @@ public class EfCorePropertySetterTests
 
         // Value expression
         var valueArg = outerCall.Arguments[1];
-        valueArg.Should().BeAssignableTo<LambdaExpression>(); // It's an Expression<Func<..>>
-
-        // We could verify the content of lambda "e => e.Value + 1" but determining structure is enough for coverage
+        valueArg.Should().BeAssignableTo<LambdaExpression>(); // Rationale: It should be a LambdaExpression<Func<T, TProperty>>.
     }
 }
+#endif

@@ -1,4 +1,7 @@
-using System.Linq.Expressions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
@@ -6,32 +9,63 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.Persistence.Core.Pagination;
-using VK.Blocks.Core.Results;
 using VK.Blocks.Persistence.EFCore.Infrastructure;
 using VK.Blocks.Persistence.EFCore.Repositories;
 using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Repositories;
 
+/// <summary>
+/// Unit tests for <see cref="EfCoreReadRepository{TEntity}"/>.
+/// </summary>
 public class EfCoreReadRepositoryTests : IDisposable
 {
     private readonly IFixture _fixture;
+
     private readonly Mock<ICursorSerializer> _cursorSerializerMock;
+
     private readonly Mock<ILogger<EfCoreReadRepository<TestEntity>>> _loggerMock;
+
     private readonly TestsDbContext _context;
 
+    /// <summary>
+    /// A test entity for repository tests.
+    /// </summary>
     public class TestEntity
     {
+        /// <summary>
+        /// Gets or sets the entity identifier.
+        /// </summary>
         public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
         public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the value.
+        /// </summary>
         public int Value { get; set; }
     }
 
+    /// <summary>
+    /// A test database context for repository tests.
+    /// </summary>
     private class TestsDbContext : DbContext
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TestsDbContext"/> class.
+        /// </summary>
+        /// <param name="options">The database context options.</param>
         public TestsDbContext(DbContextOptions<TestsDbContext> options) : base(options) { }
+
+        /// <summary>
+        /// Gets or sets the test entities.
+        /// </summary>
         public DbSet<TestEntity> TestEntities { get; set; } = null!;
 
+        /// <inheritdoc />
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TestEntity>(e =>
@@ -42,6 +76,9 @@ public class EfCoreReadRepositoryTests : IDisposable
         }
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="EfCoreReadRepositoryTests"/> class.
+    /// </summary>
     public EfCoreReadRepositoryTests()
     {
         _fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -55,14 +92,21 @@ public class EfCoreReadRepositoryTests : IDisposable
             .UseSqlite(connection)
             .Options;
         _context = new TestsDbContext(options);
+
+        // Rationale: Ensure the schema is created before running tests.
         _context.Database.EnsureCreated();
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         _context.Dispose();
+        GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    /// Helper method to create the system under test.
+    /// </summary>
     private EfCoreReadRepository<TestEntity> CreateSut()
     {
         return new EfCoreReadRepository<TestEntity>(
@@ -71,6 +115,9 @@ public class EfCoreReadRepositoryTests : IDisposable
             _cursorSerializerMock.Object);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetPagedAsync"/> returns the correct items for a given page.
+    /// </summary>
     [Fact]
     public async Task GetPagedAsync_ValidInput_ReturnsPagedResult()
     {
@@ -89,14 +136,14 @@ public class EfCoreReadRepositoryTests : IDisposable
         result.PageNumber.Should().Be(2);
         result.PageSize.Should().Be(3);
         result.Items.Should().HaveCount(3);
-        // Page 1: 0,1,2. Page 2: 3,4,5.
-        // But auto-generated IDs might be random. We sorted entities first.
-        // Wait, EF Core InMemory saves them.
 
-        // Let's verify content broadly
+        // Rationale: Verify that the items returned correspond to the second page (skipping the first 3).
         result.Items.Should().BeEquivalentTo(entities.Skip(3).Take(3));
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetCursorPagedAsync"/> returns the next page and a valid next cursor.
+    /// </summary>
     [Fact]
     public async Task GetCursorPagedAsync_Forward_ReturnsNextPage()
     {
@@ -107,7 +154,7 @@ public class EfCoreReadRepositoryTests : IDisposable
 
         var sut = CreateSut();
 
-        // Mock Serializer for int cursors
+        // Rationale: Mock the cursor serializer to handle simple integer cursors as strings.
         _cursorSerializerMock.Setup(x => x.Serialize(It.IsAny<int>())).Returns((int val) => val.ToString());
         _cursorSerializerMock.Setup(x => x.Deserialize<int>(It.IsAny<string>())).Returns((string val) => int.Parse(val));
 
@@ -130,6 +177,9 @@ public class EfCoreReadRepositoryTests : IDisposable
         result2.Items.First().Id.Should().Be(4);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetFirstOrDefaultAsync"/> returns the first matching entity.
+    /// </summary>
     [Fact]
     public async Task GetFirstOrDefaultAsync_ReturnsFirstMatching()
     {
@@ -149,6 +199,9 @@ public class EfCoreReadRepositoryTests : IDisposable
         result!.Id.Should().Be(1);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetSingleOrDefaultAsync"/> throws <see cref="InvalidOperationException"/> when multiple matches exist.
+    /// </summary>
     [Fact]
     public async Task GetSingleOrDefaultAsync_MultipleMatches_ThrowsInvalidOperationException()
     {
@@ -167,6 +220,9 @@ public class EfCoreReadRepositoryTests : IDisposable
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetListAsNoTrackingAsync"/> returns entities without tracking.
+    /// </summary>
     [Fact]
     public async Task GetListAsNoTrackingAsync_ReturnsEntities()
     {
@@ -182,6 +238,9 @@ public class EfCoreReadRepositoryTests : IDisposable
         result.Should().HaveCount(1);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetByIdAsync"/> returns an entity by its identifier.
+    /// </summary>
     [Fact]
     public async Task GetByIdAsync_CompositeKey_ReturnsEntity()
     {
@@ -198,6 +257,9 @@ public class EfCoreReadRepositoryTests : IDisposable
         result.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.ExecuteAsync"/> returns a projected list of results.
+    /// </summary>
     [Fact]
     public async Task ExecuteAsync_ReturnsProjectedList()
     {
@@ -213,6 +275,9 @@ public class EfCoreReadRepositoryTests : IDisposable
         result.Should().Contain(10);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.ExecuteSingleAsync"/> returns a projected single result.
+    /// </summary>
     [Fact]
     public async Task ExecuteSingleAsync_ReturnsProjectedValue()
     {
@@ -228,6 +293,9 @@ public class EfCoreReadRepositoryTests : IDisposable
         result.Should().Be(10);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.FromSqlRawAsync"/> correctly queries the database using raw SQL.
+    /// </summary>
     [Fact]
     public async Task FromSqlRawAsync_ReturnsEntities()
     {

@@ -1,30 +1,39 @@
+using System;
 using FluentAssertions;
 using VK.Blocks.Core.Primitives;
-using VK.Blocks.Core.Results;
 using VK.Blocks.Persistence.EFCore.Caches;
 using VK.Blocks.Persistence.EFCore.Tests;
 using Xunit;
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Caches;
 
+/// <summary>
+/// Unit tests for the EF Core caching mechanisms.
+/// </summary>
 public class EfCoreCacheTests
 {
+    /// <summary>
+    /// Verifies that <see cref="EfCoreTypeCache{T}"/> correctly detects interface implementation on types.
+    /// </summary>
     [Fact]
     public void EfCoreTypeCache_DetectsInterfacesCorrectly()
     {
-        // TestProduct implements IAuditable and ISoftDelete
+        // Rationale: TestProduct implements IAuditable and ISoftDelete.
         EfCoreTypeCache<TestProduct>.IsAuditable.Should().BeTrue();
         EfCoreTypeCache<TestProduct>.IsSoftDelete.Should().BeTrue();
 
-        // Object implements neither
+        // Rationale: Object implements neither of the target interfaces.
         EfCoreTypeCache<object>.IsAuditable.Should().BeFalse();
         EfCoreTypeCache<object>.IsSoftDelete.Should().BeFalse();
 
-        // Custom class implementing only one
+        // Rationale: Custom class implementing only one of the interfaces.
         EfCoreTypeCache<OnlyAuditable>.IsAuditable.Should().BeTrue();
         EfCoreTypeCache<OnlyAuditable>.IsSoftDelete.Should().BeFalse();
     }
-
+#if NET8_0
+    /// <summary>
+    /// Verifies that <see cref="EfCoreMethodInfoCache{T}"/> correctly resolves method information.
+    /// </summary>
     [Fact]
     public void EfCoreMethodInfoCache_ResolvesMethods()
     {
@@ -39,7 +48,10 @@ public class EfCoreCacheTests
         setExprMethod.Should().NotBeNull();
         setExprMethod.Name.Should().Be("SetProperty");
     }
-
+#endif
+    /// <summary>
+    /// Verifies that <see cref="EfCoreExpressionCache{TEntity, TProperty}"/> correctly caches compiled delegates.
+    /// </summary>
     [Fact]
     public void EfCoreExpressionCache_GetOrCompile_CachesDelegate()
     {
@@ -58,6 +70,9 @@ public class EfCoreCacheTests
         EfCoreExpressionCache<TestProduct, Guid>.CachedCount.Should().Be(1);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="EfCoreExpressionCache{TEntity, TProperty}.Clear"/> correctly resets the cache.
+    /// </summary>
     [Fact]
     public void EfCoreExpressionCache_Clear_ResetsCache()
     {
@@ -73,6 +88,9 @@ public class EfCoreCacheTests
         EfCoreExpressionCache<TestProduct, Guid>.CachedCount.Should().Be(0);
     }
 
+    /// <summary>
+    /// A test class that only implements <see cref="IAuditable"/>.
+    /// </summary>
     public class OnlyAuditable : IAuditable
     {
         public DateTimeOffset CreatedAt { get; set; }
