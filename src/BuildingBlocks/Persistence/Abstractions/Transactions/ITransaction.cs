@@ -14,7 +14,7 @@ public interface ITransaction : IDisposable, IAsyncDisposable
 
     #endregion
 
-    #region Methods
+    #region Public Methods
 
     /// <summary>
     /// Commits the transaction.

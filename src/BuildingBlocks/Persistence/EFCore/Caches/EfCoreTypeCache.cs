@@ -24,6 +24,9 @@ internal static class EfCoreTypeCache<TEntity>
     /// </summary>
     public static readonly bool IsMultiTenant = typeof(IMultiTenant).IsAssignableFrom(typeof(TEntity));
 
+    /// <summary>
+    /// Gets the name of the entity type.
+    /// </summary>
     public static readonly string EntityName = typeof(TEntity).Name;
 
     #endregion

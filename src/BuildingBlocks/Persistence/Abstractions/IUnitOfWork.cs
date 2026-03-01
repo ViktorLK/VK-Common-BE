@@ -18,7 +18,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
 
     #endregion
 
-    #region Methods
+    #region Public Methods
 
     /// <summary>
     /// Determines whether the unit of work has any pending changes.

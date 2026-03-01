@@ -11,7 +11,7 @@ public static class RepositoryConstants
     /// </summary>
     public static class ErrorMessages
     {
-        #region Constants
+        #region Fields
 
         /// <summary>
         /// Page number must be greater than 0.
