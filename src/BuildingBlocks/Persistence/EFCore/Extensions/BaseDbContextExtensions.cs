@@ -39,6 +39,7 @@ internal static class BaseDbContextExtensions
                 continue;
             }
 
+            // Rationale: Skip soft delete filter if it's already configured on a base type to avoid duplicate query filters.
             if (entityType.BaseType is not null && typeof(ISoftDelete).IsAssignableFrom(entityType.BaseType.ClrType))
             {
                 continue;

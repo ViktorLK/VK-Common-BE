@@ -8,7 +8,7 @@ namespace VK.Blocks.Persistence.Abstractions.Repositories;
 /// <typeparam name="TEntity">The type of the entity being updated.</typeparam>
 public interface IPropertySetter<TEntity> where TEntity : class
 {
-    #region Methods
+    #region Public Methods
 
     /// <summary>
     /// Sets a property to a constant value.
