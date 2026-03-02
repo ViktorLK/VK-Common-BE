@@ -3,17 +3,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using VK.Blocks.Core.DependencyInjection;
 using VK.Blocks.Persistence.Abstractions;
 using VK.Blocks.Persistence.Abstractions.Auditing;
 using VK.Blocks.Persistence.Abstractions.Options;
-using VK.Blocks.Persistence.Core.Pagination;
 using VK.Blocks.Persistence.Abstractions.Repositories;
+using VK.Blocks.Persistence.Core.Pagination;
+using VK.Blocks.Persistence.EFCore.Auditing;
 using VK.Blocks.Persistence.EFCore.Infrastructure;
 using VK.Blocks.Persistence.EFCore.Interceptors;
 using VK.Blocks.Persistence.EFCore.Options;
 using VK.Blocks.Persistence.EFCore.Repositories;
 using VK.Blocks.Persistence.EFCore.Services;
-using VK.Blocks.Persistence.EFCore.Auditing;
 
 namespace VK.Blocks.Persistence.EFCore.DependencyInjection;
 
@@ -38,7 +39,7 @@ public static class ServiceCollectionExtensions
         Action<DbContextOptionsBuilder> dbContextOptions)
         where TContext : DbContext
     {
-        var options = services.AddPersistenceOptions(configureOptions);
+        var options = services.AddVKBlockOptions(configureOptions);
 
         services.RegisterFeatureServices(options);
 
@@ -94,17 +95,6 @@ public static class ServiceCollectionExtensions
     #endregion
 
     #region Private Methods
-
-    private static PersistenceOptions AddPersistenceOptions(this IServiceCollection services, Action<PersistenceOptions> configureOptions)
-    {
-        var options = new PersistenceOptions();
-        configureOptions(options);
-
-        services.Configure(configureOptions);
-        services.AddSingleton(options);
-
-        return options;
-    }
 
     private static IServiceCollection RegisterFeatureServices(this IServiceCollection services, PersistenceOptions options)
     {

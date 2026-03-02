@@ -16,7 +16,7 @@ namespace VK.Blocks.Persistence.EFCore.Options;
 /// </example>
 public sealed class CursorSerializerOptions
 {
-    #region Constants
+    #region Fields
 
     /// <summary>
     /// The configuration section name used for binding.

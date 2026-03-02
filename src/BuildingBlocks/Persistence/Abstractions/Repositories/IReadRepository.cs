@@ -10,7 +10,7 @@ namespace VK.Blocks.Persistence.Abstractions.Repositories;
 /// <typeparam name="TEntity">The entity type. Must be a class.</typeparam>
 public interface IReadRepository<TEntity> where TEntity : class
 {
-    #region Read (Single)
+    #region Public Methods
 
     /// <summary>
     /// Asynchronously retrieves the first entity matching the specified predicate, or <c>null</c> if no match is found.
@@ -46,10 +46,6 @@ public interface IReadRepository<TEntity> where TEntity : class
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
         CancellationToken cancellationToken = default);
 
-    #endregion
-
-    #region Read (List)
-
     /// <summary>
     /// Asynchronously retrieves a list of entities matching the specified predicate.
     /// </summary>
@@ -70,12 +66,12 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// Executes a custom query delegate against the entity set and returns a list of results.
     /// </summary>
     /// <remarks>
-    /// <b>⚠�E�EIntentional Escape Hatch  EAdvanced Use Only.</b><br/>
+    /// <b>⚠Intentional Escape Hatch Advanced Use Only.</b><br/>
     /// This method is designed for scenarios that cannot be expressed through the standard
     /// repository methods, such as AutoMapper <c>ProjectTo&lt;TDto&gt;()</c> projections
     /// in extension packages (e.g., <c>VK.Blocks.Persistence.EFCore.AutoMapper</c>).<br/><br/>
     /// Unlike exposing <c>IQueryable</c> directly, this method retains:<br/>
-    /// • <b>Execution control</b>  Easync execution (<c>ToListAsync</c>) is governed by the repository.<br/>
+    /// • <b>Execution control</b>  Easync execution (<c>ToListAsync</c>) is governed by the repository.<br/>
     /// • <b>Lifecycle safety</b>  E<c>IQueryable</c> is scoped to the delegate; it cannot outlive the <c>DbContext</c>.<br/>
     /// • <b>Observability</b>  Etelemetry, logging, or timing can be added at the repository level.<br/><br/>
     /// For simple filtering or pagination, prefer <see cref="GetListAsync"/> or <see cref="GetPagedAsync{TKey}"/>.
@@ -88,7 +84,7 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// Executes a custom query delegate against the entity set and returns a single result or <c>null</c>.
     /// </summary>
     /// <remarks>
-    /// <b>⚠�E�EIntentional Escape Hatch  EAdvanced Use Only.</b><br/>
+    /// <b>⚠Intentional Escape Hatch Advanced Use Only.</b><br/>
     /// Single-result variant of <see cref="ExecuteAsync{TResult}"/>. Applies the same design guarantees:
     /// execution control, lifecycle safety, and observability are all retained by the repository.
     /// Use this for AutoMapper <c>ProjectTo</c> single-entity lookups or complex single-result projections.
@@ -112,10 +108,6 @@ public interface IReadRepository<TEntity> where TEntity : class
         string sql,
         CancellationToken cancellationToken = default,
         params object[] parameters);
-
-    #endregion
-
-    #region Read (Paged)
 
     /// <summary>
     /// Asynchronously retrieves a paged list of entities using offset pagination.
@@ -142,10 +134,6 @@ public interface IReadRepository<TEntity> where TEntity : class
         CancellationToken cancellationToken = default)
         where TCursor : IComparable<TCursor>;
 
-    #endregion
-
-    #region Aggregates
-
     /// <summary>
     /// Asynchronously determines whether any element of a sequence satisfies a condition.
     /// </summary>
@@ -155,10 +143,6 @@ public interface IReadRepository<TEntity> where TEntity : class
     /// Asynchronously returns the number of elements in a sequence.
     /// </summary>
     Task<int> CountAsync(Expression<Func<TEntity, bool>>? predicate = null, CancellationToken cancellationToken = default);
-
-    #endregion
-
-    #region Lookups
 
     /// <summary>
     /// Asynchronously finds an entity with the given primary key values.

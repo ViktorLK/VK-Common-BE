@@ -47,7 +47,7 @@ public abstract class BaseDbContext : DbContext
 
     #endregion
 
-    #region Public Methods
+    #region Protected Methods
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)

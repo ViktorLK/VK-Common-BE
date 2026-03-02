@@ -1,13 +1,13 @@
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
-using VK.Blocks.Validation;
-using VK.Blocks.Validation.Exceptions;
-using VK.Blocks.Validation.Abstractions;
-using VK.Blocks.Persistence.Core.Pagination;
 using VK.Blocks.Core.Results;
+using VK.Blocks.Persistence.Core.Pagination;
 using VK.Blocks.Persistence.EFCore.Caches;
 using VK.Blocks.Persistence.EFCore.Extensions;
+using VK.Blocks.Validation;
+using VK.Blocks.Validation.Abstractions;
+using VK.Blocks.Validation.Exceptions;
 
 namespace VK.Blocks.Persistence.EFCore.Repositories;
 
@@ -164,6 +164,7 @@ public partial class EfCoreReadRepository<TEntity>
 
         Expression comparison;
 
+        // Rationale: Determine comparison operator based on cursor direction and sort order.
         if (direction == CursorDirection.Forward)
         {
             comparison = ascending

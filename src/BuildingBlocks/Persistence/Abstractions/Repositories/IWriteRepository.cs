@@ -8,7 +8,7 @@ namespace VK.Blocks.Persistence.Abstractions.Repositories;
 /// <typeparam name="TEntity">The entity type. Must be a class.</typeparam>
 public interface IWriteRepository<TEntity> where TEntity : class
 {
-    #region Write
+    #region Public Methods
 
     /// <summary>
     /// Asynchronously adds a new entity to the repository.

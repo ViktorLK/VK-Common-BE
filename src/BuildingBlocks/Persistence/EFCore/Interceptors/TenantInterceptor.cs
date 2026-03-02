@@ -50,17 +50,26 @@ public sealed class TenantInterceptor(ITenantProvider tenantProvider) : SaveChan
 
         foreach (var entry in context.ChangeTracker.Entries())
         {
-            if (entry.State == EntityState.Added && entry.Entity is IMultiTenant multiTenant)
+            if (entry.State != EntityState.Added)
             {
-                if (string.IsNullOrWhiteSpace(multiTenant.TenantId))
+                continue;
+            }
+
+            if (entry.Entity is IMultiTenantEntity multiTenantEntity)
+            {
+                if (string.IsNullOrWhiteSpace(multiTenantEntity.TenantId))
                 {
                     var tenantId = _tenantProvider.GetCurrentTenantId();
                     if (string.IsNullOrWhiteSpace(tenantId))
                     {
                         throw new TenantNotProvidedException($"Cannot save IMultiTenant entity of type '{entry.Entity.GetType().Name}': TenantId is missing from context.");
                     }
-                    multiTenant.TenantId = tenantId;
+                    multiTenantEntity.TenantId = tenantId;
                 }
+            }
+            else if (entry.Entity is IMultiTenant multiTenant)
+            {
+                throw new InvalidTenantImplementationException($"Entity '{entry.Entity.GetType().Name}' implements IMultiTenant but not IMultiTenantEntity. TenantId will not be automatically injected. Consider implementing IMultiTenantEntity instead.");
             }
         }
     }

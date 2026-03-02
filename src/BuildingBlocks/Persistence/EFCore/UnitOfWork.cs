@@ -168,6 +168,10 @@ public class UnitOfWork<TDbContext> : IUnitOfWork<TDbContext>
         GC.SuppressFinalize(this);
     }
 
+    #endregion
+
+    #region Protected Methods
+
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed)

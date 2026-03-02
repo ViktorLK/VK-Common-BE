@@ -1,5 +1,3 @@
-
-
 using VK.Blocks.Persistence.Abstractions.Auditing;
 
 namespace VK.Blocks.Persistence.EFCore.Auditing;
