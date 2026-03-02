@@ -21,9 +21,15 @@ public abstract class ValueObject : IEquatable<ValueObject>
     public override bool Equals(object? obj)
     {
         if (obj is not ValueObject other)
+        {
             return false;
+        }
+
         if (GetType() != other.GetType())
+        {
             return false;
+        }
+
         return GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
     }
 
