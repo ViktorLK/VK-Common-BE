@@ -1,47 +1,56 @@
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace VK.Blocks.Authentication.Claims;
 
 /// <summary>
 /// Intercepts the ClaimsPrincipal after authentication to enrich it with permissions, tenant IDs, etc.
+/// It uses <see cref="IVKClaimsProvider"/> if registered in the DI container.
 /// </summary>
-public class VKClaimsTransformer : IClaimsTransformation
+public class VKClaimsTransformer(IServiceScopeFactory scopeFactory) : IClaimsTransformation
 {
-    // A service locator can be injected if we need DB access
-    // private readonly IServiceScopeFactory _scopeFactory;
-
-    // public VKClaimsTransformer(IServiceScopeFactory scopeFactory)
-    // {
-    //     _scopeFactory = scopeFactory;
-    // }
-
     #region Public Methods
 
     /// <inheritdoc />
-    public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+    public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
-        if (principal.Identity is not ClaimsIdentity identity)
+        if (principal.Identity is not ClaimsIdentity identity || !identity.IsAuthenticated)
         {
-            return Task.FromResult(principal);
+            return principal;
         }
 
-        // Example: Only transform if it hasn't mapped yet
-        if (!principal.HasClaim(c => c.Type == VKClaimTypes.Permissions))
+        // Only transform if it hasn't mapped yet, avoiding duplicate claims.
+        // We use VKClaimTypes.Permissions as an indicator, but this can be adjusted.
+        if (principal.HasClaim(c => c.Type == VKClaimTypes.Permissions))
         {
-            // Simulate reading from DB via scope
-            // using var scope = _scopeFactory.CreateScope();
-            // var permissionService = scope.ServiceProvider.GetRequiredService<IPermissionService>();
-            // var permissions = await permissionService.GetForUserAsync(userId);
-
-            // Add custom claims natively
-            identity.AddClaim(new Claim(VKClaimTypes.Permissions, "read:users"));
-            identity.AddClaim(new Claim(VKClaimTypes.Permissions, "write:users"));
-            identity.AddClaim(new Claim(VKClaimTypes.TenantId, "tenant-1"));
+            return principal;
         }
 
-        return Task.FromResult(principal);
+        var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? principal.FindFirst(VKClaimTypes.UserId)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            return principal;
+        }
+
+        using var scope = scopeFactory.CreateScope();
+        var claimsProvider = scope.ServiceProvider.GetService<IVKClaimsProvider>();
+
+        if (claimsProvider != null)
+        {
+            var dynamicClaims = await claimsProvider.GetUserClaimsAsync(userId, CancellationToken.None);
+
+            if (dynamicClaims != null)
+            {
+                identity.AddClaims(dynamicClaims);
+            }
+        }
+
+        return principal;
     }
 
     #endregion

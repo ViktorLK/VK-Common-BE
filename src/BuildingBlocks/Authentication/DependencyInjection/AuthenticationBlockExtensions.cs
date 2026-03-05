@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.ApiKeys;
 using VK.Blocks.Authentication.Claims;
@@ -29,7 +30,12 @@ public static class AuthenticationBlockExtensions
     {
         var authOptions = new VKAuthenticationOptions();
         configuration.GetSection(VKAuthenticationOptions.SectionName).Bind(authOptions);
-        services.Configure<VKAuthenticationOptions>(configuration.GetSection(VKAuthenticationOptions.SectionName));
+
+        // Register robust configuration validation
+        services.AddSingleton<IValidateOptions<VKAuthenticationOptions>, VKAuthenticationOptionsValidator>();
+        services.AddOptions<VKAuthenticationOptions>()
+            .Bind(configuration.GetSection(VKAuthenticationOptions.SectionName))
+            .ValidateOnStart();
 
         // Skip configuration if authentication block is disabled
         if (!authOptions.Enabled)
@@ -67,7 +73,16 @@ public static class AuthenticationBlockExtensions
         services.AddTransient<IClaimsTransformation, VKClaimsTransformer>();
 
         // 5. Providers and Services Registration
-        services.AddScoped<TokenRevocationService>();
+        services.AddScoped<ITokenBlacklist, DistributedCacheTokenBlacklist>();
+        services.AddScoped<IApiKeyBlacklist, DistributedCacheApiKeyBlacklist>();
+        services.AddScoped<VK.Blocks.Authentication.Abstractions.IAuthenticationService, VK.Blocks.Authentication.Services.JwtAuthenticationService>();
+        services.AddScoped<ITokenRevocationService, TokenRevocationService>();
+
+        services.AddScoped<IRefreshTokenValidator, DistributedRefreshTokenValidator>();
+        services.AddScoped<IApiKeyRateLimiter, DistributedCacheApiKeyRateLimiter>();
+
+        // 6. Authorization Policies Registration
+        services.AddSingleton<Microsoft.AspNetCore.Authorization.IAuthorizationHandler, VK.Blocks.Authentication.Authorization.ScopeAuthorizationHandler>();
 
         // Register OAuth claims mappers using keyed services
         services.AddKeyedScoped<IOAuthClaimsMapper, AzureB2CClaimsMapper>("AzureB2C");

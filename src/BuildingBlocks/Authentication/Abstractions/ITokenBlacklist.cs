@@ -30,4 +30,21 @@ public interface ITokenBlacklist
     /// <param name="ct">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A task that represents the asynchronous revocation operation.</returns>
     Task RevokeAsync(string jti, TimeSpan ttl, CancellationToken ct = default);
+
+    /// <summary>
+    /// Returns <c>true</c> if the entire user session has been revoked.
+    /// </summary>
+    /// <param name="userId">The user identifier to check.</param>
+    /// <param name="ct">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>A task that represents the asynchronous check operation.</returns>
+    Task<bool> IsUserRevokedAsync(string userId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Revokes all future token validations for the specified <paramref name="userId"/> for the given <paramref name="ttl"/>.
+    /// </summary>
+    /// <param name="userId">The user identifier whose tokens should be revoked.</param>
+    /// <param name="ttl">The time-to-live for the revocation entry.</param>
+    /// <param name="ct">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>A task that represents the asynchronous revocation operation.</returns>
+    Task RevokeUserAsync(string userId, TimeSpan ttl, CancellationToken ct = default);
 }

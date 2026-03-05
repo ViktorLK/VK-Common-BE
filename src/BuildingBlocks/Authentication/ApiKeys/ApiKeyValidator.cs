@@ -4,7 +4,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Abstractions;
+using VK.Blocks.Authentication.Diagnostics;
+using VK.Blocks.Authentication.Options;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authentication.ApiKeys;
@@ -14,7 +17,9 @@ namespace VK.Blocks.Authentication.ApiKeys;
 /// </summary>
 public sealed class ApiKeyValidator(
     IApiKeyStore store,
-    ITokenBlacklist blacklist,
+    IApiKeyBlacklist blacklist,
+    IApiKeyRateLimiter rateLimiter,
+    IOptionsMonitor<VKAuthenticationOptions> optionsMonitor,
     ILogger<ApiKeyValidator> logger)
 {
     #region Public Methods
@@ -29,10 +34,13 @@ public sealed class ApiKeyValidator(
         string rawApiKey,
         CancellationToken ct = default)
     {
+        using var activity = AuthenticationDiagnostics.Source.StartActivity("ApiKeyValidator.ValidateAsync");
+
         // Enforce input presence
         if (string.IsNullOrWhiteSpace(rawApiKey))
         {
-            return Result.Failure<ApiKeyContext>(new Error("ApiKey.Empty", "API key is empty", ErrorType.Validation));
+            AuthenticationDiagnostics.RecordAuthAttempt("apikey", false);
+            return Result.Failure<ApiKeyContext>(AuthenticationErrors.ApiKey.Empty);
         }
 
         var hashedKey = HashApiKey(rawApiKey);
@@ -41,28 +49,45 @@ public sealed class ApiKeyValidator(
         if (apiKey is null)
         {
             logger.LogWarning("API key not found. Hash: {Hash}", hashedKey[..8]);
-            return Result.Failure<ApiKeyContext>(new Error("ApiKey.Invalid", "Invalid API key", ErrorType.Unauthorized));
+            AuthenticationDiagnostics.RecordAuthAttempt("apikey", false);
+            return Result.Failure<ApiKeyContext>(AuthenticationErrors.ApiKey.Invalid);
         }
 
-        var blacklistKey = $"apikey:{apiKey.Id}";
-        if (await blacklist.IsRevokedAsync(blacklistKey, ct))
+        if (await blacklist.IsRevokedAsync(apiKey.Id.ToString(), ct))
         {
             logger.LogWarning("Revoked API key used. KeyId: {KeyId}", apiKey.Id);
-            return Result.Failure<ApiKeyContext>(new Error("ApiKey.Revoked", "API key has been revoked", ErrorType.Unauthorized));
+            AuthenticationDiagnostics.RecordAuthAttempt("apikey", false);
+            return Result.Failure<ApiKeyContext>(AuthenticationErrors.ApiKey.Revoked);
         }
 
         if (apiKey.ExpiresAt.HasValue && apiKey.ExpiresAt.Value < DateTimeOffset.UtcNow)
         {
             logger.LogWarning("Expired API key used. KeyId: {KeyId}", apiKey.Id);
-            return Result.Failure<ApiKeyContext>(new Error("ApiKey.Expired", "API key has expired", ErrorType.Unauthorized));
+            AuthenticationDiagnostics.RecordAuthAttempt("apikey", false);
+            return Result.Failure<ApiKeyContext>(AuthenticationErrors.ApiKey.Expired);
         }
 
         if (!apiKey.IsEnabled)
         {
-            return Result.Failure<ApiKeyContext>(new Error("ApiKey.Disabled", "API key is disabled", ErrorType.Unauthorized));
+            AuthenticationDiagnostics.RecordAuthAttempt("apikey", false);
+            return Result.Failure<ApiKeyContext>(AuthenticationErrors.ApiKey.Disabled);
+        }
+
+        // Apply Rate Limiting
+        var authOptions = optionsMonitor.CurrentValue;
+        if (!await rateLimiter.IsAllowedAsync(apiKey.Id, authOptions.ApiKeyRateLimitPerMinute, ct))
+        {
+            logger.LogWarning("API key rate limit exceeded. KeyId: {KeyId}", apiKey.Id);
+            AuthenticationDiagnostics.RecordRateLimitExceeded();
+            AuthenticationDiagnostics.RecordAuthAttempt("apikey", false);
+            return Result.Failure<ApiKeyContext>(AuthenticationErrors.ApiKey.RateLimitExceeded);
         }
 
         await UpdateLastUsedAsync(apiKey.Id, ct);
+
+        AuthenticationDiagnostics.RecordAuthAttempt("apikey", true);
+        activity?.SetTag("auth.key_id", apiKey.Id.ToString());
+        activity?.SetTag("auth.tenant_id", apiKey.TenantId);
 
         return Result.Success(new ApiKeyContext
         {

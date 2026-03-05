@@ -37,9 +37,20 @@ public class VKAuthenticationOptions
     public OAuthOptions OAuth { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the lifetime of a refresh token in days. Defaults to 30.
+    /// </summary>
+    public int RefreshTokenLifetimeDays { get; set; } = 30;
+
+    /// <summary>
     /// Gets or sets the API key scheme name.
     /// </summary>
     public string ApiKeySchemeName { get; set; } = "ApiKey";
+
+    /// <summary>
+    /// Gets or sets the maximum number of API key validations allowed per minute per key.
+    /// Defaults to 60. Set to 0 to disable the key entirely.
+    /// </summary>
+    public int ApiKeyRateLimitPerMinute { get; set; } = 60;
 
     #endregion
 }

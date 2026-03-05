@@ -47,5 +47,25 @@ public static class VKClaimTypes
     /// </summary>
     public const string KeyId = "vk.key.id";
 
+    /// <summary>
+    /// The claim type for the user's avatar URL.
+    /// </summary>
+    public const string AvatarUrl = "vk.user.avatar";
+
+    /// <summary>
+    /// The claim type for the user's locale.
+    /// </summary>
+    public const string Locale = "vk.user.locale";
+
+    /// <summary>
+    /// The claim type for the user's profile URL.
+    /// </summary>
+    public const string ProfileUrl = "vk.user.profile";
+
+    /// <summary>
+    /// The claim type for the B2C Trust Framework Policy (User Flow).
+    /// </summary>
+    public const string TrustFrameworkPolicy = "vk.b2c.tfp";
+
     #endregion
 }
