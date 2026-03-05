@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using VK.Blocks.Authentication.Abstractions;
+using VK.Blocks.Authentication.Claims;
 
 namespace VK.Blocks.Authentication.Validation;
 
@@ -30,6 +31,16 @@ internal static class JwtBearerEventsFactory
                 var blacklist = context.HttpContext.RequestServices.GetService<ITokenBlacklist>();
                 if (blacklist != null)
                 {
+                    // Extract userId (NameIdentifier or vk.user.id)
+                    var userId = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                                 ?? context.Principal?.FindFirst(VKClaimTypes.UserId)?.Value;
+
+                    if (!string.IsNullOrEmpty(userId) && await blacklist.IsUserRevokedAsync(userId, context.HttpContext.RequestAborted))
+                    {
+                        context.Fail("User session has been revoked.");
+                        return;
+                    }
+
                     // Attempt to extract the "jti" claim for explicit token blacklist checking
                     var jti = context.Principal?.Claims.FirstOrDefault(c => c.Type == System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value;
 

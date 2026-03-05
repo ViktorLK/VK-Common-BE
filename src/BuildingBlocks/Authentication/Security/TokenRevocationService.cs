@@ -8,7 +8,7 @@ namespace VK.Blocks.Authentication.Security;
 /// <summary>
 /// Manages the revocation of tokens, ensuring users are fully logged out.
 /// </summary>
-public class TokenRevocationService
+public sealed class TokenRevocationService : ITokenRevocationService
 {
     #region Fields
 
@@ -46,6 +46,22 @@ public class TokenRevocationService
         {
             var ttl = timeToLive ?? TimeSpan.FromDays(1);
             await _blacklist.RevokeAsync(jti, ttl, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Revokes all future token validations for the specified user.
+    /// </summary>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="timeToLive">The optional time-to-live for the revocation entry. Defaults to 7 days if not provided.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>A task that represents the asynchronous revocation operation.</returns>
+    public async Task RevokeAllUserTokensAsync(string userId, TimeSpan? timeToLive = null, CancellationToken cancellationToken = default)
+    {
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var ttl = timeToLive ?? TimeSpan.FromDays(7);
+            await _blacklist.RevokeUserAsync(userId, ttl, cancellationToken);
         }
     }
 

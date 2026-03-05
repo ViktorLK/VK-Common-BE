@@ -10,6 +10,8 @@ namespace VK.Blocks.Authentication.OAuth.Mappers;
 /// </summary>
 public class AzureB2CClaimsMapper : OAuthClaimsMapperBase
 {
+    #region Public Methods
+
     /// <inheritdoc />
     public override IEnumerable<Claim> MapToClaims(OAuthUserInfo userInfo)
     {
@@ -27,4 +29,6 @@ public class AzureB2CClaimsMapper : OAuthClaimsMapperBase
             yield return new Claim(VKClaimTypes.TrustFrameworkPolicy, tfp);
         }
     }
+
+    #endregion
 }
