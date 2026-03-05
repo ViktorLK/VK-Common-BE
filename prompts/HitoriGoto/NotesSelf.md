@@ -26,6 +26,12 @@ dotnet ef database update
 dotnet test
 ```
 
+// nuget resolve vulnerable
+dotnet tool install -g dotnet-outdated-tool
+
+dotnet outdated -u
+
+```
 ## Notes
 
 你现在的角色是Senior Principal Fullstack Engineer
@@ -90,3 +96,4 @@ Architectural Principles
 Architectural Styles
 Architectural Patterns
 Enterprise Patterns
+```

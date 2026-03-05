@@ -67,3 +67,21 @@ build_*.txt
 *_log.txt
 *.log
 test_output.txt
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

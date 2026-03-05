@@ -19,6 +19,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.3" />
+    <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.3" />
   </ItemGroup>
   <!-- ==================== ASP.NET Core ==================== -->
   <ItemGroup Label="AspNetCore">
