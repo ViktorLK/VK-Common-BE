@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace VK.Blocks.Authentication.Claims;
@@ -10,8 +10,10 @@ namespace VK.Blocks.Authentication.Claims;
 /// Intercepts the ClaimsPrincipal after authentication to enrich it with permissions, tenant IDs, etc.
 /// It uses <see cref="IVKClaimsProvider"/> if registered in the DI container.
 /// </summary>
-public class VKClaimsTransformer(IServiceScopeFactory scopeFactory) : IClaimsTransformation
+public class VKClaimsTransformer(IServiceScopeFactory scopeFactory, IHttpContextAccessor httpContextAccessor) : IClaimsTransformation
 {
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+
     #region Public Methods
 
     /// <inheritdoc />
@@ -23,7 +25,6 @@ public class VKClaimsTransformer(IServiceScopeFactory scopeFactory) : IClaimsTra
         }
 
         // Only transform if it hasn't mapped yet, avoiding duplicate claims.
-        // We use VKClaimTypes.Permissions as an indicator, but this can be adjusted.
         if (principal.HasClaim(c => c.Type == VKClaimTypes.Permissions))
         {
             return principal;
@@ -42,7 +43,8 @@ public class VKClaimsTransformer(IServiceScopeFactory scopeFactory) : IClaimsTra
 
         if (claimsProvider != null)
         {
-            var dynamicClaims = await claimsProvider.GetUserClaimsAsync(userId, CancellationToken.None);
+            var cancellationToken = _httpContextAccessor.HttpContext?.RequestAborted ?? default;
+            var dynamicClaims = await claimsProvider.GetUserClaimsAsync(userId, cancellationToken);
 
             if (dynamicClaims != null)
             {

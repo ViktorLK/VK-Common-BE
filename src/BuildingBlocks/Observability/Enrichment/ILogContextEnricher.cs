@@ -10,6 +10,8 @@ namespace VK.Blocks.Observability.Enrichment;
 /// </summary>
 public interface ILogContextEnricher
 {
+    #region Public Methods
+
     /// <summary>
     /// ログコンテキストを拡張したスコープを開始する。
     /// </summary>
@@ -20,4 +22,6 @@ public interface ILogContextEnricher
     /// ノーオペレーション実装を返す。
     /// </returns>
     IDisposable Enrich();
+
+    #endregion
 }

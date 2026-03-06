@@ -7,12 +7,11 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" />
+    <PackageReference Include="StackExchange.Redis" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
-    <ProjectReference Include="..\Observability\VK.Blocks.Observability.csproj" />
   </ItemGroup>
 </Project>

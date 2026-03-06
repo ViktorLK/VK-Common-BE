@@ -8,6 +8,8 @@ namespace VK.Blocks.Observability.Options;
 /// </summary>
 public class ObservabilityOptions
 {
+    #region Properties
+
     /// <summary>
     /// アプリケーション名。ログおよびトレースの <c>service.name</c> 属性として使用される。
     /// </summary>
@@ -41,4 +43,6 @@ public class ObservabilityOptions
     /// 有効にする場合は GDPR 等の規制要件を確認すること。
     /// </summary>
     public bool IncludeUserName { get; set; }
+
+    #endregion
 }

@@ -9,6 +9,8 @@ namespace VK.Blocks.Observability.Enrichment;
 /// </summary>
 public class TraceContextEnricher : ILogEnricher
 {
+    #region Public Methods
+
     /// <inheritdoc />
     public void Enrich(Action<string, object?> propertyAdder)
     {
@@ -19,4 +21,6 @@ public class TraceContextEnricher : ILogEnricher
             propertyAdder(FieldNames.SpanId, activity.SpanId.ToHexString());
         }
     }
+
+    #endregion
 }

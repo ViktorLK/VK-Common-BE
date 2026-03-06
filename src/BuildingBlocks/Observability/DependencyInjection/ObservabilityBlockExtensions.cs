@@ -11,6 +11,8 @@ namespace VK.Blocks.Observability.DependencyInjection;
 /// </summary>
 public static class ObservabilityBlockExtensions
 {
+    #region Public Methods
+
     /// <summary>
     /// Observability ブロックのサービスを DI コンテナに登録する。
     /// <para>
@@ -53,4 +55,6 @@ public static class ObservabilityBlockExtensions
 
         return services;
     }
+
+    #endregion
 }

@@ -7,9 +7,24 @@ namespace VK.Blocks.Observability.Enrichment;
 /// <summary>
 /// アプリケーション識別情報 (サービス名・バージョン・環境) をログコンテキストに追加するエンリッチャー。
 /// </summary>
-public class ApplicationEnricher(IOptions<ObservabilityOptions> options) : ILogEnricher
+public class ApplicationEnricher : ILogEnricher
 {
-    private readonly ObservabilityOptions _options = options.Value;
+    #region Fields
+
+    private readonly ObservabilityOptions _options;
+
+    #endregion
+
+    #region Constructors
+
+    public ApplicationEnricher(IOptions<ObservabilityOptions> options)
+    {
+        _options = options.Value;
+    }
+
+    #endregion
+
+    #region Public Methods
 
     /// <inheritdoc />
     public void Enrich(Action<string, object?> propertyAdder)
@@ -18,4 +33,6 @@ public class ApplicationEnricher(IOptions<ObservabilityOptions> options) : ILogE
         propertyAdder(FieldNames.ServiceVersion, _options.ServiceVersion);
         propertyAdder(FieldNames.DeploymentEnvironment, _options.Environment);
     }
+
+    #endregion
 }
