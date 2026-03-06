@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Claims;
+using VK.Blocks.Authentication.Validation;
 
 namespace VK.Blocks.Authentication.ApiKeys;
 
@@ -72,9 +73,7 @@ public sealed class ApiKeyAuthenticationHandler(
     /// <inheritdoc />
     protected override Task HandleChallengeAsync(AuthenticationProperties properties)
     {
-        Response.StatusCode = StatusCodes.Status401Unauthorized;
-        Response.ContentType = "application/json";
-        return Response.WriteAsync("""{"error":"API key is missing or invalid"}""");
+        return AuthenticationResponseHelper.WriteUnauthorizedResponseAsync(Context, "API key is missing or invalid");
     }
 
     #endregion

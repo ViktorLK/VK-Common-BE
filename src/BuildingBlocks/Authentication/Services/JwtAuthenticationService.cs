@@ -67,7 +67,17 @@ public sealed class JwtAuthenticationService(
                 return Result.Failure<AuthUser>(AuthenticationErrors.Jwt.InvalidFormat);
             }
 
-            // Explicitly check for revocation
+            // 1. User-level revocation check
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? principal.FindFirst(VKClaimTypes.UserId)?.Value;
+
+            if (!string.IsNullOrEmpty(userId) && await blacklist.IsUserRevokedAsync(userId, cancellationToken).ConfigureAwait(false))
+            {
+                AuthenticationDiagnostics.RecordAuthAttempt("jwt", false);
+                return Result.Failure<AuthUser>(AuthenticationErrors.Jwt.Revoked);
+            }
+
+            // 2. Token-level (jti) revocation check
             if (jwtToken.Id is { Length: > 0 } jti)
             {
                 if (await blacklist.IsRevokedAsync(jti, cancellationToken).ConfigureAwait(false))
