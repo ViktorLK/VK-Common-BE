@@ -11,19 +11,31 @@ namespace VK.Blocks.Observability.Enrichment;
 /// </summary>
 public class UserContextEnricher(IUserContext userContext, IOptions<ObservabilityOptions> options) : ILogEnricher
 {
+    #region Fields
+
+    private readonly IUserContext _userContext = userContext;
     private readonly ObservabilityOptions _options = options.Value;
+
+    #endregion
+    #region Constructors
+
+    #endregion
+
+    #region Public Methods
 
     /// <inheritdoc />
     public void Enrich(Action<string, object?> propertyAdder)
     {
-        if (userContext.IsAuthenticated)
+        if (_userContext.IsAuthenticated)
         {
-            propertyAdder(FieldNames.UserId, userContext.UserId);
+            propertyAdder(FieldNames.UserId, _userContext.UserId);
 
             if (_options.IncludeUserName)
             {
-                propertyAdder(FieldNames.UserName, userContext.UserName);
+                propertyAdder(FieldNames.UserName, _userContext.UserName);
             }
         }
     }
+
+    #endregion
 }

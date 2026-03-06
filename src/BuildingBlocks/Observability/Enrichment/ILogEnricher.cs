@@ -6,6 +6,8 @@ namespace VK.Blocks.Observability.Enrichment;
 /// </summary>
 public interface ILogEnricher
 {
+    #region Public Methods
+
     /// <summary>
     /// ログイベントにプロパティを追加する。
     /// </summary>
@@ -13,4 +15,6 @@ public interface ILogEnricher
     /// プロパティ追加用デリゲート。第1引数はフィールド名 (例: <c>"service.name"</c>)、第2引数はその値。
     /// </param>
     void Enrich(Action<string, object?> propertyAdder);
+
+    #endregion
 }

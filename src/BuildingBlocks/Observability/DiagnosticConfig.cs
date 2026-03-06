@@ -23,7 +23,8 @@ internal static partial class CachingDiagnostics
 /// </summary>
 public static class DiagnosticConfig
 {
-    #region Constants
+    #region Fields
+
     public const string ServiceName = "VK.Blocks";
     public const string ServiceVersion = "1.0.0";
     /// <summary>
@@ -31,10 +32,6 @@ public static class DiagnosticConfig
     /// すべての <see cref="ActivitySource"/> および <see cref="Meter"/> はこの名前で登録される。
     /// </summary>
     public const string RootName = "VK.Blocks.Observability";
-
-    #endregion
-
-    #region Fields
 
     /// <summary>
     /// アセンブリのバージョン文字列。<see cref="ActivitySource"/> および <see cref="Meter"/> の
@@ -45,10 +42,6 @@ public static class DiagnosticConfig
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
         ?? typeof(DiagnosticConfig).Assembly.GetName().Version?.ToString()
         ?? "0.0.0";
-
-    #endregion
-
-    #region Telemetry Sources
 
     /// <summary>
     /// VK.Blocks 共有 <see cref="System.Diagnostics.ActivitySource"/>。

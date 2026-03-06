@@ -13,7 +13,7 @@ namespace VK.Blocks.Observability.Extensions;
 /// </summary>
 public static class ActivityExtensions
 {
-    #region Result Recording
+    #region Public Methods
 
     /// <summary>
     /// <see cref="IResult"/> の内容を現在のスパンに記録する。
@@ -75,10 +75,6 @@ public static class ActivityExtensions
                 tags: eventTags));
         }
     }
-
-    #endregion
-
-    #region Context Tag Helpers
 
     /// <summary>
     /// テナントIDタグ (<c>vblocks.tenant.id</c>) を設定する。
