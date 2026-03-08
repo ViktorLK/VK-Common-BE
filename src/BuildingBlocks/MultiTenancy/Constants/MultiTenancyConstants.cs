@@ -30,5 +30,10 @@ public static class MultiTenancyConstants
         /// Error message for missing tenant.
         /// </summary>
         public const string MissingTenantMessage = "The required TenantId was not provided or could not be resolved.";
+
+        /// <summary>
+        /// Error code for invalid tenant implementation.
+        /// </summary>
+        public const string InvalidTenantImplementationCode = "MultiTenancy.InvalidTenantImplementation";
     }
 }
