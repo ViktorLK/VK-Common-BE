@@ -1,6 +1,6 @@
 # VK-Common-BE
 
-![.NET](https://img.shields.io/badge/.NET-8.0%20%7C%209.0-512BD4)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)
 

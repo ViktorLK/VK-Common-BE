@@ -38,7 +38,7 @@ public sealed class ActivityLogContextEnricher : ILogContextEnricher
 
     #endregion
 
-    #region ILogContextEnricher
+    #region Public Methods
 
     /// <inheritdoc />
     /// <remarks>

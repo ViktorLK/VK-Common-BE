@@ -58,18 +58,17 @@ public static class AuthenticationBlockExtensions
                 options.TokenValidationParameters = TokenValidationParametersFactory.Create(authOptions.Jwt);
                 options.Events = Validation.JwtBearerEventsFactory.CreateEvents();
             });
-
-            // services.AddSingleton<ITokenProvider, JwtTokenProvider>();
         }
 
         // 3. API Key Configuration
         authBuilder.AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(authOptions.ApiKeySchemeName, options =>
         {
         });
-        // services.AddScoped<ApiKeyProvider>();
+
         services.AddScoped<ApiKeyValidator>();
 
         // 4. Claims Transformation
+        services.AddHttpContextAccessor();
         services.AddTransient<IClaimsTransformation, VKClaimsTransformer>();
 
         // 5. Providers and Services Registration

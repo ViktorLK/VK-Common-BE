@@ -60,11 +60,9 @@ internal static class JwtBearerEventsFactory
             OnChallenge = context =>
             {
                 context.HandleResponse();
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                context.Response.ContentType = "application/json";
-
-                var result = JsonSerializer.Serialize(new { error = "You are not authorized." });
-                return context.Response.WriteAsync(result);
+                return AuthenticationResponseHelper.WriteUnauthorizedResponseAsync(
+                    context.HttpContext,
+                    "You are not authorized or the token is invalid.");
             },
             OnAuthenticationFailed = context =>
             {
