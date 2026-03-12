@@ -96,8 +96,15 @@ Current README content:
 ${existingReadme}
 \`\`\`
 
-Append a new row for this ADR to the table:
-| ${nextNumber} | ${title} | ${date} | 📝 Draft |
+Append a new entry for this ADR under the most appropriate category. Use this EXACT format:
+
+#### [ADR-${nextNumber}: ${title}](./${fileName})
+
+**Status**: 📝 Draft  
+**概要**: [Brief 1-2 sentence summary in Japanese]  
+**キーワード**: [2-3 relevant tags]
+
+---
 
 Then SAVE the updated README to:
   ${readmePath}

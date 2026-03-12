@@ -52,3 +52,34 @@
 
 - 描述具体的数据结构、异常处理方针。
 - **安全性重点**：说明如何防范常见的安全威胁（如改错、信息泄露、时间攻击等）。
+
+# ADR ReadMe (Must Follow)
+
+Generate or update `README.md` for ADR in the same directory.
+
+# Requirements for Output
+
+1. **Style**: Highly professional, bilingual (English Headings, Japanese Descriptions).
+2. **Structure**:
+    - Title: `# Architecture Decision Records (ADR) - Index`
+    - Brief intro: `このディレクトリには、VK.Blocks.{ModuleName} モジュールの主要な設計決定を記録した ADR が含まれています。`
+    - `## 📚 ADR 一覧`: Categorized ADR List (e.g., Core Architecture, Language Support).
+      **CRITICAL**: DO NOT use markdown tables. Use the following list format for EACH ADR under a category:
+      ```markdown
+      #### [ADR-00X: Title in English](./adr-00x-filename.md)
+
+      **Status**: ✅ Accepted  
+      **概要**: {1-2 sentences explaining the core decision in Japanese}  
+      **キーワード**: {Tags like Zero Dependency, Polyfills}
+      
+      ---
+      ```
+    - `## 🎯 ADR の読み方ガイド`: Explains the "Why" and "How" to navigate the decisions, grouping ADRs by learning objectives (e.g., `### アーキテクチャとセキュア設計の理解用` -> `1. **ADR-001**: {Why to read it}`).
+    - `## 🔗 関連ドキュメント`: Links to audit reports or other docs.
+3. **Status indicators**: ✅ Accepted, 🧪 Proposed, ❌ Superseded.
+4. **Footer**: Include `**Last Updated**: YYYY-MM-DD` and `**Total ADRs**: N` at the very bottom.
+
+# Language Rules
+
+- Tone: Professional, decisive, and consultant-grade (Avanade style).
+- Form: Business Japanese.
