@@ -1,12 +1,12 @@
 namespace VK.Blocks.MultiTenancy.Constants;
 
 /// <summary>
-/// Constants used in the MultiTenancy module.
+/// Constants used across the MultiTenancy module.
 /// </summary>
 public static class MultiTenancyConstants
 {
     /// <summary>
-    /// HTTP header concepts and item keys for multi-tenancy.
+    /// HTTP header constants for multi-tenancy.
     /// </summary>
     public static class Headers
     {
@@ -14,6 +14,39 @@ public static class MultiTenancyConstants
         /// The default HTTP header name used to pass the Tenant ID.
         /// </summary>
         public const string TenantId = "X-Tenant-Id";
+    }
+
+    /// <summary>
+    /// JWT claim type constants for multi-tenancy.
+    /// </summary>
+    public static class Claims
+    {
+        /// <summary>
+        /// The default JWT claim type for the Tenant ID.
+        /// </summary>
+        public const string TenantId = "tenant_id";
+    }
+
+    /// <summary>
+    /// Query string parameter constants for multi-tenancy.
+    /// </summary>
+    public static class QueryString
+    {
+        /// <summary>
+        /// The default query string parameter name for the Tenant ID.
+        /// </summary>
+        public const string TenantIdParameter = "tenantId";
+    }
+
+    /// <summary>
+    /// Default configuration values for multi-tenancy.
+    /// </summary>
+    public static class Defaults
+    {
+        /// <summary>
+        /// The default domain template for subdomain-based tenant resolution.
+        /// </summary>
+        public const string DomainTemplate = "{tenant}.yourdomain.com";
     }
 
     /// <summary>
