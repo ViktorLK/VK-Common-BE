@@ -1,18 +1,19 @@
 namespace VK.Blocks.Observability.Enrichment;
 
 /// <summary>
-/// ログイベントにカスタムプロパティを追加するエンリッチャーのインターフェース。
-/// Strategy パターンにより、複数のエンリッチャーを組み合わせてログコンテキストを拡張する。
+/// Defines an interface for enrichers that add custom properties to log events.
+/// Implements the Strategy pattern to extend log contexts with various metadata.
 /// </summary>
 public interface ILogEnricher
 {
     #region Public Methods
 
     /// <summary>
-    /// ログイベントにプロパティを追加する。
+    /// Enriches the log event with custom properties.
     /// </summary>
     /// <param name="propertyAdder">
-    /// プロパティ追加用デリゲート。第1引数はフィールド名 (例: <c>"service.name"</c>)、第2引数はその値。
+    /// A delegate to add properties. The first argument is the field name (e.g., <c>"service.name"</c>),
+    /// and the second is its value.
     /// </param>
     void Enrich(Action<string, object?> propertyAdder);
 

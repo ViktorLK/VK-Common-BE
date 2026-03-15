@@ -4,17 +4,15 @@ using VK.Blocks.Observability.Conventions;
 namespace VK.Blocks.Observability.Enrichment;
 
 /// <summary>
-/// <see cref="ILogContextEnricher"/> の既定実装。
+/// Default implementation of <see cref="ILogContextEnricher"/>.
 /// <para>
-/// <see cref="Activity.Current"/> が存在する場合に
-/// <see cref="FieldNames.TraceId"/> および <see cref="FieldNames.SpanId"/> を
-/// <see cref="ILogEnricher"/> 群を通じてログコンテキストへプッシュする。
+/// If <see cref="Activity.Current"/> exists, it pushes <see cref="FieldNames.TraceId"/>
+/// and <see cref="FieldNames.SpanId"/> to the log context via the provided <see cref="ILogEnricher"/>s.
 /// </para>
 /// <para>
-/// Serilog を使用する場合は、<c>LogContext.PushProperty</c> ベースの
-/// <c>SerilogLogContextEnricher</c> をホスト側で提供すること。
-/// 本クラスはプッシュされたプロパティを辞書で保持し、
-/// <see cref="Dispose"/> 時にクリーンアップする。
+/// For Serilog, a <c>SerilogLogContextEnricher</c> based on <c>LogContext.PushProperty</c>
+/// should be provided at the host level. This class holds pushed properties in a dictionary
+/// and handles cleanup during <see cref="Dispose"/>.
 /// </para>
 /// </summary>
 public sealed class ActivityLogContextEnricher : ILogContextEnricher
@@ -25,12 +23,12 @@ public sealed class ActivityLogContextEnricher : ILogContextEnricher
 
     #endregion
 
-    #region Constructor
+    #region Constructors
 
     /// <summary>
-    /// <see cref="ActivityLogContextEnricher"/> の新しいインスタンスを初期化する。
+    /// Initializes a new instance of the <see cref="ActivityLogContextEnricher"/> class.
     /// </summary>
-    /// <param name="logEnrichers">DI によって提供されるエンリッチャー群。</param>
+    /// <param name="logEnrichers">Enrichers provided via dependency injection.</param>
     public ActivityLogContextEnricher(IEnumerable<ILogEnricher> logEnrichers)
     {
         _logEnrichers = logEnrichers;
@@ -42,8 +40,8 @@ public sealed class ActivityLogContextEnricher : ILogContextEnricher
 
     /// <inheritdoc />
     /// <remarks>
-    /// <see cref="Activity.Current"/> が <c>null</c> の場合は <see cref="NullScope.Instance"/> を返し、
-    /// アロケーションを最小化する。
+    /// Returns <see cref="NullScope.Instance"/> if <see cref="Activity.Current"/> is <c>null</c>
+    /// to minimize allocations.
     /// </remarks>
     public IDisposable Enrich()
     {
@@ -68,20 +66,34 @@ public sealed class ActivityLogContextEnricher : ILogContextEnricher
     #region Nested Types
 
     /// <summary>
-    /// スコープ内に収集されたログプロパティを保持する内部スコープ実装。
+    /// Implementation of an internal scope that holds log properties collected within the scope.
     /// </summary>
     private sealed class LogScope : IDisposable
     {
+        #region Fields
+
         private readonly Dictionary<string, object?> _properties;
         private bool _disposed;
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>Gets the collected properties (for testing and debugging purposes).</summary>
+        public IReadOnlyDictionary<string, object?> Properties => _properties;
+
+        #endregion
+
+        #region Constructors
 
         internal LogScope(Dictionary<string, object?> properties)
         {
             _properties = properties;
         }
 
-        /// <summary>収集されたプロパティへの読み取りアクセスを提供する（テスト・デバッグ用）。</summary>
-        public IReadOnlyDictionary<string, object?> Properties => _properties;
+        #endregion
+
+        #region Public Methods
 
         /// <inheritdoc />
         public void Dispose()
@@ -94,20 +106,34 @@ public sealed class ActivityLogContextEnricher : ILogContextEnricher
             _properties.Clear();
             _disposed = true;
         }
+
+        #endregion
     }
 
     /// <summary>
-    /// アクティブな <see cref="Activity"/> が存在しない場合に返すノーオペレーション実装。
+    /// No-op implementation returned when no active <see cref="Activity"/> exists.
     /// </summary>
     private sealed class NullScope : IDisposable
     {
-        /// <summary>シングルトンインスタンス。アロケーションを防ぐ。</summary>
+        #region Fields
+
+        /// <summary>The singleton instance to prevent redundant allocations.</summary>
         internal static readonly NullScope Instance = new();
+
+        #endregion
+
+        #region Constructors
 
         private NullScope() { }
 
+        #endregion
+
+        #region Public Methods
+
         /// <inheritdoc />
         public void Dispose() { }
+
+        #endregion
     }
 
     #endregion
