@@ -4,10 +4,10 @@ using VK.Blocks.Observability.Conventions;
 namespace VK.Blocks.Observability.Enrichment;
 
 /// <summary>
-/// 現在のトレースコンテキスト (TraceId, SpanId) をログコンテキストに追加するエンリッチャー。
-/// アクティブな <see cref="Activity"/> が存在する場合のみプロパティを追加する。
+/// An enricher that adds the current trace context (TraceId, SpanId) to the log context.
+/// Only adds properties if an active <see cref="Activity"/> exists.
 /// </summary>
-public class TraceContextEnricher : ILogEnricher
+public sealed class TraceContextEnricher : ILogEnricher
 {
     #region Public Methods
 
@@ -15,7 +15,7 @@ public class TraceContextEnricher : ILogEnricher
     public void Enrich(Action<string, object?> propertyAdder)
     {
         var activity = Activity.Current;
-        if (activity != null)
+        if (activity is not null)
         {
             propertyAdder(FieldNames.TraceId, activity.TraceId.ToHexString());
             propertyAdder(FieldNames.SpanId, activity.SpanId.ToHexString());

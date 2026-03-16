@@ -6,18 +6,16 @@ using VK.Blocks.Observability.Options;
 namespace VK.Blocks.Observability.Enrichment;
 
 /// <summary>
-/// 認証済みユーザーの識別情報 (ユーザーID、オプションでユーザー名) をログコンテキストに追加するエンリッチャー。
-/// ユーザー名の出力は <see cref="ObservabilityOptions.IncludeUserName"/> で制御される (PII 保護)。
+/// An enricher that adds the authenticated user's identity (UserId, and optionally UserName)
+/// to the log context.
+/// UserName output is controlled by <see cref="ObservabilityOptions.IncludeUserName"/> for PII protection.
 /// </summary>
-public class UserContextEnricher(IUserContext userContext, IOptions<ObservabilityOptions> options) : ILogEnricher
+public sealed class UserContextEnricher(IUserContext userContext, IOptions<ObservabilityOptions> options) : ILogEnricher
 {
     #region Fields
 
     private readonly IUserContext _userContext = userContext;
     private readonly ObservabilityOptions _options = options.Value;
-
-    #endregion
-    #region Constructors
 
     #endregion
 

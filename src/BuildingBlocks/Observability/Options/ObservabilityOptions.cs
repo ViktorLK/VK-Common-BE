@@ -3,46 +3,47 @@ using System.ComponentModel.DataAnnotations;
 namespace VK.Blocks.Observability.Options;
 
 /// <summary>
-/// Observability ブロックの設定オプション。
-/// アプリケーション識別情報、トレーシング・メトリクスの有効化、PII制御を管理する。
+/// Configuration options for the Observability block.
+/// Manages application identification, telemetry enablement, and PII protection.
 /// </summary>
-public class ObservabilityOptions
+public sealed class ObservabilityOptions
 {
     #region Properties
 
     /// <summary>
-    /// アプリケーション名。ログおよびトレースの <c>service.name</c> 属性として使用される。
+    /// Gets or sets the application name.
+    /// Used as the <c>service.name</c> attribute in logs and traces.
     /// </summary>
     [Required, MinLength(1)]
-    public string ApplicationName { get; set; } = "Unknown";
+    public string ApplicationName { get; init; } = "Unknown";
 
     /// <summary>
-    /// サービスバージョン。ログおよびトレースの <c>service.version</c> 属性として使用される。
+    /// Gets or sets the service version.
+    /// Used as the <c>service.version</c> attribute in logs and traces.
     /// </summary>
     [Required, MinLength(1)]
-    public string ServiceVersion { get; set; } = "1.0.0";
+    public string ServiceVersion { get; init; } = "1.0.0";
 
     /// <summary>
-    /// デプロイ環境名 (例: Production, Staging, Development)。
+    /// Gets or sets the deployment environment (e.g., Production, Staging, Development).
     /// </summary>
-    public string Environment { get; set; } = "Production";
+    public string Environment { get; init; } = "Production";
 
     /// <summary>
-    /// 分散トレーシングを有効にするかどうか。
+    /// Gets or sets a value indicating whether distributed tracing is enabled.
     /// </summary>
-    public bool EnableTracing { get; set; } = true;
+    public bool EnableTracing { get; init; } = true;
 
     /// <summary>
-    /// メトリクス計測を有効にするかどうか。
+    /// Gets or sets a value indicating whether metrics collection is enabled.
     /// </summary>
-    public bool EnableMetrics { get; set; } = true;
+    public bool EnableMetrics { get; init; } = true;
 
     /// <summary>
-    /// ユーザー名 (<c>enduser.name</c>) をログに含めるかどうか。
-    /// PII (個人識別情報) 保護の観点から、デフォルトでは無効。
-    /// 有効にする場合は GDPR 等の規制要件を確認すること。
+    /// Gets or sets a value indicating whether to include the user name (<c>enduser.name</c>) in logs.
+    /// Disabled by default for PII protection.
     /// </summary>
-    public bool IncludeUserName { get; set; }
+    public bool IncludeUserName { get; init; }
 
     #endregion
 }

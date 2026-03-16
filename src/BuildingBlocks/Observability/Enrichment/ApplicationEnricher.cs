@@ -5,22 +5,13 @@ using VK.Blocks.Observability.Options;
 namespace VK.Blocks.Observability.Enrichment;
 
 /// <summary>
-/// アプリケーション識別情報 (サービス名・バージョン・環境) をログコンテキストに追加するエンリッチャー。
+/// An enricher that adds application metadata (service name, version, environment) to the log context.
 /// </summary>
-public class ApplicationEnricher : ILogEnricher
+public sealed class ApplicationEnricher(IOptions<ObservabilityOptions> options) : ILogEnricher
 {
     #region Fields
 
-    private readonly ObservabilityOptions _options;
-
-    #endregion
-
-    #region Constructors
-
-    public ApplicationEnricher(IOptions<ObservabilityOptions> options)
-    {
-        _options = options.Value;
-    }
+    private readonly ObservabilityOptions _options = options.Value;
 
     #endregion
 
