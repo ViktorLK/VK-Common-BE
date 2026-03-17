@@ -19,18 +19,29 @@ public static partial class AuthenticationDiagnostics
     /// Counter tracking the number of authentication attempts.
     /// Includes tags for "auth.type" (e.g., JWT, ApiKey) and "auth.result" (Success, Failure).
     /// </summary>
-    public static readonly Counter<long> AuthenticationRequests = Meter.CreateCounter<long>(
-        "authentication.requests",
-        description: "Number of authentication requests processed"
-    );
+    public static readonly Counter<long> AuthenticationRequests;
 
     /// <summary>
     /// Counter tracking the number of API key rate limit violations.
     /// </summary>
-    public static readonly Counter<long> RateLimitExceeded = Meter.CreateCounter<long>(
-        "authentication.rate_limit_exceeded",
-        description: "Number of times API key rate limits were exceeded"
-    );
+    public static readonly Counter<long> RateLimitExceeded;
+
+    #endregion
+
+    #region Constructor
+
+    static AuthenticationDiagnostics()
+    {
+        AuthenticationRequests = Meter.CreateCounter<long>(
+            "authentication.requests",
+            description: "Number of authentication requests processed"
+        );
+
+        RateLimitExceeded = Meter.CreateCounter<long>(
+            "authentication.rate_limit_exceeded",
+            description: "Number of times API key rate limits were exceeded"
+        );
+    }
 
     #endregion
 
