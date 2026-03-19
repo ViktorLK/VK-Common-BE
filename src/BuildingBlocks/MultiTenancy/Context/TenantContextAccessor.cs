@@ -8,30 +8,20 @@ namespace VK.Blocks.MultiTenancy.Context;
 /// <see cref="IHttpContextAccessor"/>, following the same pattern as
 /// <see cref="IHttpContextAccessor"/> itself.
 /// </summary>
-public sealed class TenantContextAccessor(IHttpContextAccessor httpContextAccessor)
+public sealed class TenantContextAccessor(ITenantContext tenantContext)
 {
     #region Fields
 
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly ITenantContext _tenantContext = tenantContext;
 
     #endregion
 
     #region Properties
 
     /// <summary>
-    /// Gets the current tenant information from the <see cref="ITenantContext"/>
-    /// stored in the request's service scope, or <c>null</c> if unavailable.
+    /// Gets the current tenant information from the <see cref="ITenantContext"/>.
     /// </summary>
-    public TenantInfo? CurrentTenant
-    {
-        get
-        {
-            var tenantContext = _httpContextAccessor.HttpContext?
-                .RequestServices.GetService(typeof(ITenantContext)) as ITenantContext;
-
-            return tenantContext?.CurrentTenant;
-        }
-    }
+    public TenantInfo? CurrentTenant => _tenantContext.CurrentTenant;
 
     #endregion
 }

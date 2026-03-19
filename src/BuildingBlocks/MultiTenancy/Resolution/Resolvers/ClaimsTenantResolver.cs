@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using VK.Blocks.MultiTenancy.Abstractions.Contracts;
+using Microsoft.Extensions.Options;
+using VK.Blocks.Core.Results;
+using VK.Blocks.MultiTenancy.Constants;
 using VK.Blocks.MultiTenancy.Options;
 
 namespace VK.Blocks.MultiTenancy.Resolution.Resolvers;
@@ -9,11 +11,11 @@ namespace VK.Blocks.MultiTenancy.Resolution.Resolvers;
 /// Resolves the tenant identifier from the authenticated user's JWT claims.
 /// The claim type is configurable via <see cref="TenantResolutionOptions.ClaimType"/>.
 /// </summary>
-public sealed class ClaimsTenantResolver(TenantResolutionOptions options) : ITenantResolver
+public sealed class ClaimsTenantResolver(IOptions<TenantResolutionOptions> options) : ITenantResolver
 {
     #region Fields
 
-    private readonly string _claimType = options.ClaimType;
+    private readonly string _claimType = options.Value.ClaimType;
 
     #endregion
 
@@ -27,7 +29,7 @@ public sealed class ClaimsTenantResolver(TenantResolutionOptions options) : ITen
     #region Public Methods
 
     /// <inheritdoc />
-    public Task<TenantResolutionResult> ResolveAsync(
+    public Task<Result<string>> ResolveAsync(
         HttpContext context,
         CancellationToken cancellationToken = default)
     {
@@ -35,19 +37,17 @@ public sealed class ClaimsTenantResolver(TenantResolutionOptions options) : ITen
 
         if (user.Identity is not { IsAuthenticated: true })
         {
-            return Task.FromResult(
-                TenantResolutionResult.Fail("User is not authenticated; cannot resolve tenant from claims."));
+            return Task.FromResult(Result.Failure<string>(MultiTenancyErrors.TenantNotFound));
         }
 
         var tenantClaim = user.FindFirstValue(_claimType);
 
         if (!string.IsNullOrWhiteSpace(tenantClaim))
         {
-            return Task.FromResult(TenantResolutionResult.Success(tenantClaim));
+            return Task.FromResult(Result.Success(tenantClaim));
         }
 
-        return Task.FromResult(
-            TenantResolutionResult.Fail($"Claim '{_claimType}' not found on authenticated user."));
+        return Task.FromResult(Result.Failure<string>(MultiTenancyErrors.TenantNotFound));
     }
 
     #endregion

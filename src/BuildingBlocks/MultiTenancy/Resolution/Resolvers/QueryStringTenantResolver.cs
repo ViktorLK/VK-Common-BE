@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Http;
-using VK.Blocks.MultiTenancy.Abstractions.Contracts;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using VK.Blocks.Core.Results;
+using VK.Blocks.MultiTenancy.Constants;
 using VK.Blocks.MultiTenancy.Options;
 
 namespace VK.Blocks.MultiTenancy.Resolution.Resolvers;
@@ -9,11 +12,14 @@ namespace VK.Blocks.MultiTenancy.Resolution.Resolvers;
 /// Intended for use in development environments only.
 /// The parameter name is configurable via <see cref="TenantResolutionOptions.QueryStringParameterName"/>.
 /// </summary>
-public sealed class QueryStringTenantResolver(TenantResolutionOptions options) : ITenantResolver
+public sealed class QueryStringTenantResolver(
+    IOptions<TenantResolutionOptions> options,
+    IHostEnvironment environment) : ITenantResolver
 {
     #region Fields
 
-    private readonly string _parameterName = options.QueryStringParameterName;
+    private readonly string _parameterName = options.Value.QueryStringParameterName;
+    private readonly IHostEnvironment _environment = environment;
 
     #endregion
 
@@ -27,21 +33,25 @@ public sealed class QueryStringTenantResolver(TenantResolutionOptions options) :
     #region Public Methods
 
     /// <inheritdoc />
-    public Task<TenantResolutionResult> ResolveAsync(
+    public Task<Result<string>> ResolveAsync(
         HttpContext context,
         CancellationToken cancellationToken = default)
     {
+        if (!_environment.IsDevelopment())
+        {
+            return Task.FromResult(Result.Failure<string>(MultiTenancyErrors.ResolverNotAllowed));
+        }
+
         if (context.Request.Query.TryGetValue(_parameterName, out var values))
         {
             var tenantId = values.FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(tenantId))
             {
-                return Task.FromResult(TenantResolutionResult.Success(tenantId));
+                return Task.FromResult(Result.Success(tenantId));
             }
         }
 
-        return Task.FromResult(
-            TenantResolutionResult.Fail($"Query string parameter '{_parameterName}' not found or empty."));
+        return Task.FromResult(Result.Failure<string>(MultiTenancyErrors.TenantNotFound));
     }
 
     #endregion

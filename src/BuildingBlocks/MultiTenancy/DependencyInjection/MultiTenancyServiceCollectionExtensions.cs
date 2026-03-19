@@ -28,29 +28,25 @@ public static class MultiTenancyServiceCollectionExtensions
         Action<TenantResolutionOptions>? configureResolution = null)
     {
         // Configure options
-        var multiTenancyOptions = new MultiTenancyOptions();
-        configureOptions?.Invoke(multiTenancyOptions);
-        services.Configure<MultiTenancyOptions>(options =>
-        {
-            options.EnforceTenancy = multiTenancyOptions.EnforceTenancy;
-            options.EnabledResolvers = multiTenancyOptions.EnabledResolvers;
-        });
+        services.Configure<MultiTenancyOptions>(configureOptions ?? (_ => { }));
+        services.Configure<TenantResolutionOptions>(configureResolution ?? (_ => { }));
 
-        var resolutionOptions = new TenantResolutionOptions();
-        configureResolution?.Invoke(resolutionOptions);
-        services.AddSingleton(resolutionOptions);
-
-        // Core services
-        services.AddHttpContextAccessor();
-        services.TryAddScoped<ITenantContext, TenantContext>();
+        // Core registration
         services.TryAddScoped<TenantContext>();
-        services.TryAddSingleton<TenantContextAccessor>();
-        services.TryAddScoped<TenantResolutionPipeline>();
+        services.TryAddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
+        services.TryAddScoped<ITenantProvider, TenantContextTenantProvider>();
+        services.TryAddScoped<TenantContextAccessor>();
+
+        // Pipeline
+        services.TryAddSingleton<ITenantResolutionPipeline, TenantResolutionPipeline>();
 
         // ITenantProvider backed by TenantContext
         services.TryAddScoped<ITenantProvider, TenantContextTenantProvider>();
 
         // Register resolvers based on configuration
+        // We need to get the configured options to register resolvers
+        var multiTenancyOptions = new MultiTenancyOptions();
+        configureOptions?.Invoke(multiTenancyOptions); // Re-invoke to get the configured options for resolver registration
         RegisterResolvers(services, multiTenancyOptions);
 
         return services;
