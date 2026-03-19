@@ -68,5 +68,26 @@ public static class MultiTenancyConstants
         /// Error code for invalid tenant implementation.
         /// </summary>
         public const string InvalidTenantImplementationCode = "MultiTenancy.InvalidTenantImplementation";
+
+        /// <summary>
+        /// Problem details type URL.
+        /// </summary>
+        public const string ProblemDetailsType = "https://tools.ietf.org/html/rfc7807";
+
+        /// <summary>
+        /// Problem details title for resolution failure.
+        /// </summary>
+        public const string ProblemDetailsTitle = "Tenant Resolution Failed";
+    }
+
+    /// <summary>
+    /// Configuration key constants.
+    /// </summary>
+    public static class Config
+    {
+        /// <summary>
+        /// The placeholder used in domain templates.
+        /// </summary>
+        public const string TenantPlaceholder = "{tenant}";
     }
 }

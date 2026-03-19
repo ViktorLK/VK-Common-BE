@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.MultiTenancy.Abstractions.Contracts;
+using VK.Blocks.Core.Results;
+using VK.Blocks.MultiTenancy.Constants;
 
 namespace VK.Blocks.MultiTenancy.Resolution;
 
@@ -10,7 +11,7 @@ namespace VK.Blocks.MultiTenancy.Resolution;
 /// </summary>
 public sealed class TenantResolutionPipeline(
     IEnumerable<ITenantResolver> resolvers,
-    ILogger<TenantResolutionPipeline> logger)
+    ILogger<TenantResolutionPipeline> logger) : ITenantResolutionPipeline
 {
     #region Fields
 
@@ -29,8 +30,8 @@ public sealed class TenantResolutionPipeline(
     /// </summary>
     /// <param name="context">The current HTTP context.</param>
     /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
-    /// <returns>A <see cref="TenantResolutionResult"/> from the first successful resolver, or a failure.</returns>
-    public async Task<TenantResolutionResult> ResolveAsync(
+    /// <returns>A <see cref="Result{T}"/> from the first successful resolver, or a failure.</returns>
+    public async Task<Result<string>> ResolveAsync(
         HttpContext context,
         CancellationToken cancellationToken = default)
     {
@@ -43,7 +44,7 @@ public sealed class TenantResolutionPipeline(
                 _logger.LogDebug(
                     "Tenant resolved by {ResolverType} with TenantId {TenantId}",
                     resolver.GetType().Name,
-                    result.TenantId);
+                    result.Value);
 
                 return result;
             }
@@ -51,12 +52,12 @@ public sealed class TenantResolutionPipeline(
             _logger.LogTrace(
                 "Resolver {ResolverType} did not resolve tenant: {Error}",
                 resolver.GetType().Name,
-                result.Error);
+                result.FirstError.Description);
         }
 
         _logger.LogDebug("No resolver was able to resolve the tenant for the current request");
 
-        return TenantResolutionResult.Fail("No resolver was able to resolve the tenant.");
+        return Result.Failure<string>(MultiTenancyErrors.TenantNotFound);
     }
 
     #endregion

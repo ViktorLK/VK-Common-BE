@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using VK.Blocks.Core.Results;
 using VK.Blocks.MultiTenancy.Abstractions;
-using VK.Blocks.MultiTenancy.Abstractions.Contracts;
+using VK.Blocks.MultiTenancy.Constants;
 using VK.Blocks.MultiTenancy.Options;
 
 namespace VK.Blocks.MultiTenancy.Resolution.Resolvers;
@@ -11,12 +13,12 @@ namespace VK.Blocks.MultiTenancy.Resolution.Resolvers;
 /// The domain template is configurable via <see cref="TenantResolutionOptions.DomainTemplate"/>.
 /// </summary>
 public sealed class DomainTenantResolver(
-    TenantResolutionOptions options,
+    IOptions<TenantResolutionOptions> options,
     ITenantStore tenantStore) : ITenantResolver
 {
     #region Fields
 
-    private readonly string _domainTemplate = options.DomainTemplate;
+    private readonly string _domainTemplate = options.Value.DomainTemplate;
     private readonly ITenantStore _tenantStore = tenantStore;
 
     #endregion
@@ -31,7 +33,7 @@ public sealed class DomainTenantResolver(
     #region Public Methods
 
     /// <inheritdoc />
-    public async Task<TenantResolutionResult> ResolveAsync(
+    public async Task<Result<string>> ResolveAsync(
         HttpContext context,
         CancellationToken cancellationToken = default)
     {
@@ -39,25 +41,24 @@ public sealed class DomainTenantResolver(
 
         if (string.IsNullOrWhiteSpace(host))
         {
-            return TenantResolutionResult.Fail("Request host is empty.");
+            return Result.Failure<string>(MultiTenancyErrors.TenantNotFound);
         }
 
         var tenantSegment = ExtractTenantSegment(host);
 
         if (string.IsNullOrWhiteSpace(tenantSegment))
         {
-            return TenantResolutionResult.Fail(
-                $"Could not extract tenant segment from host '{host}' using template '{_domainTemplate}'.");
+            return Result.Failure<string>(MultiTenancyErrors.TenantNotFound);
         }
 
         var tenantInfo = await _tenantStore.GetByDomainAsync(tenantSegment, cancellationToken);
 
         if (tenantInfo is not null)
         {
-            return TenantResolutionResult.Success(tenantInfo.Id);
+            return Result.Success(tenantInfo.Id);
         }
 
-        return TenantResolutionResult.Fail($"No tenant found for domain segment '{tenantSegment}'.");
+        return Result.Failure<string>(MultiTenancyErrors.TenantNotFound);
     }
 
     #endregion
@@ -73,7 +74,7 @@ public sealed class DomainTenantResolver(
     {
         // Template format: {tenant}.yourdomain.com
         // Extract the suffix after {tenant} placeholder
-        const string placeholder = "{tenant}";
+        const string placeholder = MultiTenancyConstants.Config.TenantPlaceholder;
         var placeholderIndex = _domainTemplate.IndexOf(placeholder, StringComparison.OrdinalIgnoreCase);
 
         if (placeholderIndex < 0)

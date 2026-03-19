@@ -1,8 +1,9 @@
-using System.Net;
-using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc;
+using VK.Blocks.Core.Results;
+using VK.Blocks.ExceptionHandling.Abstractions.Contracts;
 using VK.Blocks.MultiTenancy.Abstractions.Contracts;
 using VK.Blocks.MultiTenancy.Constants;
 using VK.Blocks.MultiTenancy.Context;
@@ -11,86 +12,92 @@ using VK.Blocks.MultiTenancy.Options;
 namespace VK.Blocks.MultiTenancy.Resolution;
 
 /// <summary>
-/// ASP.NET Core middleware that resolves the current tenant at the start of each request
-/// using the <see cref="TenantResolutionPipeline"/> and populates the <see cref="ITenantContext"/>.
+/// Orchestrates the tenant resolution process for each request.
 /// </summary>
 public sealed class TenantResolutionMiddleware(
     RequestDelegate next,
+    ITenantResolutionPipeline pipeline,
     ILogger<TenantResolutionMiddleware> logger,
     IOptions<MultiTenancyOptions> options)
 {
-    #region Fields
-
     private readonly RequestDelegate _next = next;
+    private readonly ITenantResolutionPipeline _pipeline = pipeline;
     private readonly ILogger<TenantResolutionMiddleware> _logger = logger;
     private readonly MultiTenancyOptions _options = options.Value;
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    public async Task InvokeAsync(HttpContext context, TenantContext tenantContext)
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
-    #endregion
-
-    #region Public Methods
-
-    /// <summary>
-    /// Invokes the middleware to resolve the tenant and populate the tenant context.
-    /// </summary>
-    /// <param name="context">The current HTTP context.</param>
-    /// <param name="pipeline">The tenant resolution pipeline.</param>
-    /// <param name="tenantContext">The tenant context to populate.</param>
-    public async Task InvokeAsync(
-        HttpContext context,
-        TenantResolutionPipeline pipeline,
-        TenantContext tenantContext)
-    {
-        var result = await pipeline.ResolveAsync(context, context.RequestAborted);
+        var result = await _pipeline.ResolveAsync(context, context.RequestAborted);
 
         if (result.IsSuccess)
         {
-            var tenantInfo = new TenantInfo(result.TenantId!, result.TenantId!);
-            tenantContext.SetTenant(tenantInfo);
+            var tenantId = result.Value!;
 
-            _logger.LogDebug(
-                "Tenant context set for TenantId {TenantId} on TraceId {TraceId}",
-                result.TenantId,
-                context.TraceIdentifier);
-        }
-        else if (_options.EnforceTenancy)
-        {
-            _logger.LogWarning(
-                "Tenant resolution failed and tenancy is enforced. TraceId {TraceId}. Error: {Error}",
-                context.TraceIdentifier,
-                result.Error);
-
-            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            context.Response.ContentType = "application/problem+json";
-
-            var problemDetails = new
+            // Basic validation to prevent malformed tenant IDs or injection attempts
+            if (tenantId.Length > 64 || !IsValidTenantId(tenantId))
             {
-                type = "https://tools.ietf.org/html/rfc7807",
-                title = "Tenant Resolution Failed",
-                status = (int)HttpStatusCode.Unauthorized,
-                detail = MultiTenancyConstants.Errors.MissingTenantMessage,
-                traceId = context.TraceIdentifier
-            };
+                _logger.LogWarning("Resolved tenant ID '{TenantId}' is invalid or too long. TraceId: {TraceId}",
+                    tenantId, context.TraceIdentifier);
 
-            await context.Response.WriteAsync(
-                JsonSerializer.Serialize(problemDetails, JsonOptions),
-                context.RequestAborted);
+                if (_options.EnforceTenancy)
+                {
+                    await WriteErrorResponseAsync(context, MultiTenancyErrors.InvalidTenantId);
+                    return;
+                }
+            }
+            else
+            {
+                var tenantInfo = new TenantInfo(tenantId, tenantId); // Using ID as Name for now
+                tenantContext.SetTenant(tenantInfo);
 
-            return;
+                _logger.LogInformation("Successfully resolved tenant '{TenantId}'. TraceId: {TraceId}",
+                    tenantId, context.TraceIdentifier);
+            }
         }
         else
         {
-            _logger.LogDebug(
-                "Tenant resolution failed but tenancy is not enforced. TraceId {TraceId}",
-                context.TraceIdentifier);
+            _logger.LogDebug("Tenant resolution failed: {Error}. TraceId: {TraceId}",
+                result.FirstError.Description, context.TraceIdentifier);
+
+            if (_options.EnforceTenancy)
+            {
+                await WriteErrorResponseAsync(context, result.FirstError);
+                return;
+            }
         }
 
         await _next(context);
     }
 
-    #endregion
+    private static bool IsValidTenantId(string tenantId)
+    {
+        // Simple alphanumeric check for tenant ID security
+        return tenantId.All(c => char.IsLetterOrDigit(c) || c == '-' || c == '_');
+    }
+
+    private async Task WriteErrorResponseAsync(HttpContext context, Error error)
+    {
+        var statusCode = error.Type switch
+        {
+            ErrorType.Validation => StatusCodes.Status400BadRequest,
+            ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
+            _ => StatusCodes.Status401Unauthorized
+        };
+
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/problem+json";
+
+        var problemDetails = new VKProblemDetails
+        {
+            Type = MultiTenancyConstants.Errors.ProblemDetailsType,
+            Title = MultiTenancyConstants.Errors.ProblemDetailsTitle,
+            Status = statusCode,
+            Detail = error.Description,
+            ErrorCode = error.Code,
+            Instance = context.Request.Path,
+            TraceId = context.TraceIdentifier
+        };
+
+        await context.Response.WriteAsJsonAsync(problemDetails);
+    }
 }

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Http;
-using VK.Blocks.MultiTenancy.Abstractions.Contracts;
+using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.MultiTenancy.Resolution;
 
@@ -22,8 +22,8 @@ public interface ITenantResolver
     /// <param name="context">The current HTTP context.</param>
     /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
     /// <returns>
-    /// A <see cref="TenantResolutionResult"/> indicating success with a tenant ID,
+    /// A <see cref="Result{T}"/> indicating success with a tenant ID,
     /// or failure with an error description.
     /// </returns>
-    Task<TenantResolutionResult> ResolveAsync(HttpContext context, CancellationToken cancellationToken = default);
+    Task<Result<string>> ResolveAsync(HttpContext context, CancellationToken cancellationToken = default);
 }
