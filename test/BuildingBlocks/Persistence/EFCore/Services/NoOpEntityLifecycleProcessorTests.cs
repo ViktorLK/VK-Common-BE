@@ -38,18 +38,39 @@ public class NoOpEntityLifecycleProcessorTests
     /// Verifies that all methods in <see cref="NoOpEntityLifecycleProcessor"/> can be called without errors, as they are no-ops.
     /// </summary>
     [Fact]
-    public void AllMethods_CanBeCalledWithoutError()
+    public void AllMethods_CanBeCalledWithoutError_Net8()
     {
         // Arrange
         var contextMock = new Mock<DbContext>();
         var setterMock = new Mock<EfCorePropertySetter<TestEntity>>();
 
         // Act & Assert
-        // Rationale: Ensure that calling any of the processor methods does not result in an exception.
         Action act1 = () => _sut.ProcessAuditing(contextMock.Object);
         Action act2 = () => _sut.ProcessSoftDelete(contextMock.Object);
         Action act3 = () => _sut.ProcessBulkUpdate(setterMock.Object);
         Action act4 = () => _sut.ProcessBulkSoftDelete(setterMock.Object);
+
+        act1.Should().NotThrow();
+        act2.Should().NotThrow();
+        act3.Should().NotThrow();
+        act4.Should().NotThrow();
+    }
+#else
+    /// <summary>
+    /// Verifies that all methods in <see cref="NoOpEntityLifecycleProcessor"/> can be called without errors, as they are no-ops.
+    /// </summary>
+    [Fact]
+    public void AllMethods_CanBeCalledWithoutError_Net10()
+    {
+        // Arrange
+        var contextMock = new Mock<DbContext>();
+        var adapterMock = new Mock<VK.Blocks.Persistence.Abstractions.Repositories.IPropertySetter<TestEntity>>();
+
+        // Act & Assert
+        Action act1 = () => _sut.ProcessAuditing(contextMock.Object);
+        Action act2 = () => _sut.ProcessSoftDelete(contextMock.Object);
+        Action act3 = () => _sut.ProcessBulkUpdate(adapterMock.Object);
+        Action act4 = () => _sut.ProcessBulkSoftDelete(adapterMock.Object);
 
         act1.Should().NotThrow();
         act2.Should().NotThrow();
