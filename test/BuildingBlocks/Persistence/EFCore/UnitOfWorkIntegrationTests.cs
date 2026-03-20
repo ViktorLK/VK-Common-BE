@@ -211,4 +211,54 @@ public class UnitOfWorkIntegrationTests : IntegrationTestBase<TestDbContext>
         // Assert
         Context.Database.CurrentTransaction.Should().BeNull();
     }
+
+    /// <summary>
+    /// Verifies that <see cref="UnitOfWork{TContext}.BeginTransactionAsync(System.Threading.CancellationToken)"/> throws InvalidOperationException when transaction is active.
+    /// </summary>
+    [Fact]
+    public async Task BeginTransactionAsync_WhenTransactionAlreadyActive_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var sut = new UnitOfWork<TestDbContext>(Context, _serviceProviderMock.Object);
+        await sut.BeginTransactionAsync();
+
+        // Act
+        Func<Task> act = async () => await sut.BeginTransactionAsync();
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage(RepositoryConstants.ErrorMessages.TransactionAlreadyActive);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="UnitOfWork{TContext}.RollbackTransactionAsync(System.Threading.CancellationToken)"/> does not throw when no transaction is active.
+    /// </summary>
+    [Fact]
+    public async Task RollbackTransactionAsync_WhenNoTransactionActive_DoesNotThrow()
+    {
+        // Arrange
+        var sut = new UnitOfWork<TestDbContext>(Context, _serviceProviderMock.Object);
+
+        // Act
+        Func<Task> act = async () => await sut.RollbackTransactionAsync();
+
+        // Assert
+        await act.Should().NotThrowAsync();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="UnitOfWork{TContext}.DisposeAsync"/> does not throw when no transaction is active.
+    /// </summary>
+    [Fact]
+    public async Task DisposeAsync_WhenNoTransactionActive_DoesNotThrow()
+    {
+        // Arrange
+        var sut = new UnitOfWork<TestDbContext>(Context, _serviceProviderMock.Object);
+
+        // Act
+        Func<Task> act = async () => await sut.DisposeAsync();
+
+        // Assert
+        await act.Should().NotThrowAsync();
+    }
 }

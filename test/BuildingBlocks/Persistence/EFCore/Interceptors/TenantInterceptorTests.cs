@@ -38,7 +38,7 @@ public class TenantInterceptorTests
     /// <summary>
     /// A test entity that implements <see cref="IMultiTenant"/>.
     /// </summary>
-    public class TestMultiTenantEntity : IMultiTenant
+    public class TestMultiTenantEntity : IMultiTenantEntity
     {
         /// <summary>
         /// Gets or sets the entity identifier.
@@ -46,19 +46,14 @@ public class TenantInterceptorTests
         public int Id { get; set; }
 
         /// <inheritdoc />
-        public string TenantId { get; set; } = string.Empty;
+        public string? TenantId { get; set; } = string.Empty;
     }
 
     /// <summary>
     /// A test database context for multi-tenancy tests.
     /// </summary>
-    /// <remarks>
-    /// Initializes a new instance of the <see cref="TestDbContext"/> class.
-    /// </remarks>
-    /// <param name="options">The database context options.</param>
     private class TestDbContext(DbContextOptions<TenantInterceptorTests.TestDbContext> options) : DbContext(options)
     {
-
         /// <summary>
         /// Gets or sets the multi-tenant entities.
         /// </summary>
@@ -183,5 +178,53 @@ public class TenantInterceptorTests
 
         // Assert
         result.Should().NotBeNull();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="TenantInterceptor.SavingChanges"/> throws <see cref="InvalidTenantImplementationException"/> when an entity implements IMultiTenant but not IMultiTenantEntity.
+    /// </summary>
+    [Fact]
+    public void SavingChanges_EntityImplementsIMultiTenantOnly_ThrowsInvalidTenantImplementationException()
+    {
+        // Arrange
+        using var context = CreateContext();
+        var entity = new TestMultiTenantOnlyEntity { Id = 1 };
+        context.Add(entity);
+
+        var eventData = new DbContextEventData(null!, null!, context);
+
+        // Act
+        Action act = () => _sut.SavingChanges(eventData, new InterceptionResult<int>());
+
+        // Assert
+        act.Should().Throw<InvalidTenantImplementationException>();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="TenantInterceptor.SavingChanges"/> skips entities that are not in the Added state.
+    /// </summary>
+    [Fact]
+    public void SavingChanges_ModifiedEntity_DoesNotInjectTenantId()
+    {
+        // Arrange
+        using var context = CreateContext();
+        var entity = new TestMultiTenantEntity { Id = 1, TenantId = "initial" };
+        context.Entities.Attach(entity);
+        context.Entry(entity).State = EntityState.Modified;
+        
+        _tenantProviderMock.Setup(x => x.GetCurrentTenantId()).Returns("new-tenant");
+        var eventData = new DbContextEventData(null!, null!, context);
+
+        // Act
+        _sut.SavingChanges(eventData, new InterceptionResult<int>());
+
+        // Assert
+        entity.TenantId.Should().Be("initial");
+    }
+
+    private class TestMultiTenantOnlyEntity : IMultiTenant
+    {
+        public int Id { get; set; }
+        public string? TenantId => "fixed";
     }
 }

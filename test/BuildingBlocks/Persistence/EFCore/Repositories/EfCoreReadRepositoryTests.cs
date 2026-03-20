@@ -11,7 +11,9 @@ using Moq;
 using VK.Blocks.Persistence.Core.Pagination;
 using VK.Blocks.Persistence.EFCore.Infrastructure;
 using VK.Blocks.Persistence.EFCore.Repositories;
+using VK.Blocks.Validation.Exceptions;
 using Xunit;
+
 
 namespace VK.Blocks.Persistence.EFCore.IntegrationTests.Repositories;
 
@@ -310,4 +312,169 @@ public class EfCoreReadRepositoryTests : IDisposable
         // Assert
         result.Should().HaveCount(1);
     }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.AnyAsync"/> returns true when matching entities exist.
+    /// </summary>
+    [Fact]
+    public async Task AnyAsync_MatchingEntities_ReturnsTrue()
+    {
+        // Arrange
+        _context.TestEntities.Add(new TestEntity { Id = 1, Name = "A" });
+        await _context.SaveChangesAsync();
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.AnyAsync(x => x.Name == "A");
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.AnyAsync"/> returns false when no matching entities exist.
+    /// </summary>
+    [Fact]
+    public async Task AnyAsync_NoMatchingEntities_ReturnsFalse()
+    {
+        // Arrange
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.AnyAsync(x => x.Name == "A");
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.CountAsync"/> returns the correct count of matching entities.
+    /// </summary>
+    [Fact]
+    public async Task CountAsync_MatchingEntities_ReturnsCount()
+    {
+        // Arrange
+        _context.TestEntities.AddRange(
+            new TestEntity { Id = 1, Name = "A" },
+            new TestEntity { Id = 2, Name = "A" },
+            new TestEntity { Id = 3, Name = "B" }
+        );
+        await _context.SaveChangesAsync();
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.CountAsync(x => x.Name == "A");
+
+        // Assert
+        result.Should().Be(2);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetPagedAsync"/> throws <see cref="ValidationException"/> when input is invalid.
+    /// </summary>
+    [Theory]
+    [InlineData(0, 10)]
+    [InlineData(1, 0)]
+    public async Task GetPagedAsync_InvalidInput_ThrowsValidationException(int pageNumber, int pageSize)
+    {
+        // Arrange
+        var sut = CreateSut();
+
+        // Act
+        Func<Task> act = async () => await sut.GetPagedAsync<int>(null, e => e.Id, pageNumber: pageNumber, pageSize: pageSize);
+
+        // Assert
+        await act.Should().ThrowAsync<ValidationException>();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetPagedAsync"/> returns an empty result when no entities match.
+    /// </summary>
+    [Fact]
+    public async Task GetPagedAsync_NoMatchingEntities_ReturnsEmptyPagedResult()
+    {
+        // Arrange
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.GetPagedAsync(e => e.Id > 100, e => e.Id);
+
+        // Assert
+        result.TotalCount.Should().Be(0);
+        result.Items.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetCursorPagedAsync"/> correctly pages backwards.
+    /// </summary>
+    [Fact]
+    public async Task GetCursorPagedAsync_Backward_ReturnsPreviousPage()
+    {
+        // Arrange
+        var entities = Enumerable.Range(1, 10).Select(i => new TestEntity { Id = i, Name = $"Name{i}" }).ToList();
+        _context.TestEntities.AddRange(entities);
+        await _context.SaveChangesAsync();
+
+        var sut = CreateSut();
+        _cursorSerializerMock.Setup(x => x.Serialize(It.IsAny<int>())).Returns((int val) => val.ToString());
+
+        // Act - Fetch first page forward
+        var page1 = await sut.GetCursorPagedAsync(null, e => e.Id, pageSize: 3);
+        
+        // Act - Fetch backwards from the end of first page
+        var cursor = int.Parse(page1.Items.Last().Id.ToString());
+        var result = await sut.GetCursorPagedAsync(null, e => e.Id, cursor: cursor, pageSize: 3, direction: CursorDirection.Backward);
+
+        // Assert
+        result.Items.Should().HaveCount(2); // IDs 1, 2 (3 is the cursor)
+        result.Items.First().Id.Should().Be(1);
+        result.Items.Last().Id.Should().Be(2);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.GetCursorPagedAsync"/> works with descending order.
+    /// </summary>
+    [Fact]
+    public async Task GetCursorPagedAsync_Descending_ReturnsCorrectOrder()
+    {
+        // Arrange
+        var entities = Enumerable.Range(1, 5).Select(i => new TestEntity { Id = i, Name = $"Name{i}" }).ToList();
+        _context.TestEntities.AddRange(entities);
+        await _context.SaveChangesAsync();
+
+        var sut = CreateSut();
+        _cursorSerializerMock.Setup(x => x.Serialize(It.IsAny<int>())).Returns((int val) => val.ToString());
+
+        // Act
+        var result = await sut.GetCursorPagedAsync(null, e => e.Id, pageSize: 2, ascending: false);
+
+        // Assert
+        result.Items.Should().HaveCount(2);
+        result.Items[0].Id.Should().Be(5);
+        result.Items[1].Id.Should().Be(4);
+        result.NextCursor.Should().Be("4");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="EfCoreReadRepository{TEntity}.FromSqlRawAsync"/> works with parameters.
+    /// </summary>
+    [Fact]
+    public async Task FromSqlRawAsync_WithParameters_ReturnsFilteredResults()
+    {
+        // Arrange
+        _context.TestEntities.AddRange(
+            new TestEntity { Id = 1, Name = "Target" },
+            new TestEntity { Id = 2, Name = "Other" }
+        );
+        await _context.SaveChangesAsync();
+        var sut = CreateSut();
+
+        // Act
+        var result = await sut.FromSqlRawAsync("SELECT * FROM TestEntities WHERE Name = @p0", default, "Target");
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].Name.Should().Be("Target");
+    }
 }
+
