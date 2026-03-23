@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Authentication\VK.Blocks.Authentication.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Authorization\VK.Blocks.Authorization.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\MultiTenancy\VK.Blocks.MultiTenancy.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Validation\VK.Blocks.Validation.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\ExceptionHandling\VK.Blocks.ExceptionHandling.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Web\VK.Blocks.Web.csproj" />
+  </ItemGroup>
+
+</Project>
