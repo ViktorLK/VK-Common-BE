@@ -146,6 +146,46 @@ public class SecureCursorSerializerTests
     }
 
     /// <summary>
+    /// Verifies that <see cref="SecureCursorSerializer.Deserialize{T}"/> returns default when payload is not valid JSON.
+    /// </summary>
+    [Fact]
+    public void Deserialize_InvalidJsonPayload_ReturnsDefault()
+    {
+        // Arrange
+        var sut = CreateSut();
+        var token = sut.Serialize(123);
+        var parts = token.Split('.');
+
+        // Rationale: Replace payload with valid base64 but invalid JSON
+        var badJsonPayload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("Not A JSON Object"));
+        var tamperedToken = $"{badJsonPayload}.{parts[1]}";
+
+        // Act
+        var result = sut.Deserialize<int>(tamperedToken);
+
+        // Assert
+        result.Should().Be(default);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="SecureCursorSerializer.Deserialize{T}"/> returns default when payload JSON doesn't deserialize to the expected token structure.
+    /// </summary>
+    [Fact]
+    public void Deserialize_WrongTypePayload_ReturnsDefault()
+    {
+        // Arrange
+        var sut = CreateSut();
+        // Serialize a string cursor, but try to deserialize as int
+        var token = sut.Serialize("StringCursorValidToken");
+
+        // Act
+        var result = sut.Deserialize<int>(token);
+
+        // Assert
+        result.Should().Be(default);
+    }
+
+    /// <summary>
     /// Verifies that the constructor throws <see cref="ArgumentNullException"/> when options are null.
     /// </summary>
     [Fact]

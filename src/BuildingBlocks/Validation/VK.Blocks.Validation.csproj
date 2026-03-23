@@ -13,6 +13,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>VK.Blocks.Validation.UnitTests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>

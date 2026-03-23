@@ -287,7 +287,9 @@ public class EfCoreRepositoryTests : IDisposable
         // Act
         var count = await sut.ExecuteUpdateAsync(
             e => e.Id == entity1.Id,
-            setter => setter.SetProperty(e => e.Value, 999)
+            setter => setter
+                .SetProperty(e => e.Value, 999)
+                .SetProperty(e => e.Name, e => e.Name + " Updated")
         );
 
         // Assert
@@ -295,6 +297,7 @@ public class EfCoreRepositoryTests : IDisposable
         context.ChangeTracker.Clear();
         var updatedEntity = await context.TestEntities.FindAsync(entity1.Id);
         updatedEntity!.Value.Should().Be(999);
+        updatedEntity.Name.Should().EndWith(" Updated");
 
         var otherEntity = await context.TestEntities.FindAsync(entity2.Id);
         otherEntity!.Value.Should().Be(20);
