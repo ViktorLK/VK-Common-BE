@@ -19,6 +19,6 @@ public sealed class ValidationBehavior<TRequest, TResponse>(IValidationPipeline 
         var result = await pipeline.ValidateAsync(request, cancellationToken);
         result.ThrowIfInvalid();
 
-        return await next();
+        return await next(cancellationToken);
     }
 }

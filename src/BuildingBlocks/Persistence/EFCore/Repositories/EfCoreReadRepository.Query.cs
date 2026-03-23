@@ -6,7 +6,7 @@ using VK.Blocks.Persistence.Core.Pagination;
 using VK.Blocks.Persistence.EFCore.Caches;
 using VK.Blocks.Persistence.EFCore.Extensions;
 using VK.Blocks.Validation;
-using VK.Blocks.Validation.Abstractions;
+using VK.Blocks.Validation.Abstractions.Contracts;
 using VK.Blocks.Validation.Exceptions;
 
 namespace VK.Blocks.Persistence.EFCore.Repositories;
