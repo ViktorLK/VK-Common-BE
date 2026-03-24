@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 
 namespace VK.Blocks.Web.CorrelationId;
-internal class DefaultCorrelationIdProvider : ICorrelationIdProvider
+internal sealed class DefaultCorrelationIdProvider : ICorrelationIdProvider
 {
     public string GetCorrelationId(HttpContext context, CorrelationIdOptions options)
     {

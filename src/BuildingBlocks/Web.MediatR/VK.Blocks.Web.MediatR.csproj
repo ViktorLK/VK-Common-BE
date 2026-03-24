@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>VK.Blocks.Web</RootNamespace>
+    <RootNamespace>VK.Blocks.Web.MediatR</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="MediatR" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
-    <ProjectReference Include="..\ExceptionHandling\VK.Blocks.ExceptionHandling.csproj" />
+    <ProjectReference Include="..\Web\VK.Blocks.Web.csproj" />
   </ItemGroup>
 
 </Project>

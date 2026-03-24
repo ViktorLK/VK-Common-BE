@@ -13,19 +13,9 @@ public interface IAuditProvider
     string CurrentUserId { get; }
 
     /// <summary>
-    /// Gets the name of the current user.
-    /// </summary>
-    string CurrentUserName { get; }
-
-    /// <summary>
     /// Gets the current UTC date and time.
     /// </summary>
     DateTimeOffset UtcNow { get; }
-
-    /// <summary>
-    /// Gets a value indicating whether the user is authenticated.
-    /// </summary>
-    bool IsAuthenticated { get; }
 
     #endregion
 }

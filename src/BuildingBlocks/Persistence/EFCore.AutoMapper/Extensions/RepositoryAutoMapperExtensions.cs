@@ -1,6 +1,7 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using System.Linq.Expressions;
+using VK.Blocks.Persistence.Abstractions.Repositories;
 using VK.Blocks.Persistence.EFCore.Extensions;
 
 namespace VK.Blocks.Persistence.EFCore.AutoMapper.Extensions;

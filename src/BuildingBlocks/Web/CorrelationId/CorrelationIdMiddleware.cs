@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
-using Serilog.Context;
 
 namespace VK.Blocks.Web.CorrelationId;
 
@@ -12,7 +11,7 @@ namespace VK.Blocks.Web.CorrelationId;
 /// Initializes a new instance of the <see cref="CorrelationIdMiddleware"/> class.
 /// </remarks>
 /// <param name="next">The next delegate in the request pipeline.</param>
-public class CorrelationIdMiddleware(RequestDelegate next, IOptions<CorrelationIdOptions> options)
+public sealed class CorrelationIdMiddleware(RequestDelegate next, IOptions<CorrelationIdOptions> options)
 {
     #region Public Methods
 
@@ -21,7 +20,7 @@ public class CorrelationIdMiddleware(RequestDelegate next, IOptions<CorrelationI
     /// </summary>
     /// <param name="context">The HTTP context.</param>
     /// <returns>A task that represents the completion of request processing.</returns>
-    public async Task Invoke(HttpContext context, ICorrelationIdProvider provider)
+    public async Task Invoke(HttpContext context, ICorrelationIdProvider provider, ILogger<CorrelationIdMiddleware> logger)
     {
         var optValue = options.Value;
 
@@ -32,8 +31,9 @@ public class CorrelationIdMiddleware(RequestDelegate next, IOptions<CorrelationI
             context.Response.Headers.Append(optValue.Header, correlationId);
         }
 
-        // Rationale: Pushes the Correlation ID to the Serilog LogContext so it attaches to all logs within this request scope.
-        using (LogContext.PushProperty(optValue.LogContextPropertyName, correlationId))
+        // Rationale: Pushes the Correlation ID to the logging scope so it attaches to all logs within this request scope.
+        // As long as the configured logging provider (e.g., Serilog) supports scopes, this will natively work.
+        using (logger.BeginScope(new Dictionary<string, object> { [optValue.LogContextPropertyName] = correlationId }))
         {
             await next(context);
         }
