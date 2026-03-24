@@ -29,6 +29,7 @@ This workflow performs a comprehensive architecture audit on a target directory,
 5. **Generate and Save the Report**:
     - Write the comprehensive Architecture Audit Report.
     - **Language Requirement**: The report MUST be written in **Business IT Japanese (ビジネスIT日本語)**.
+    - **Link Generation**: When referencing source code, use **project-relative paths** (e.g., `src/BuildingBlocks/...`) instead of absolute local paths to ensure portability.
     - The report structure MUST follow the schema defined in `ArchitectureAudit.md` (Executive Summary, Scores, Findings, Roadmap, etc.).
     - Ensure the directory exists (create it if necessary).
     - Save the generated Markdown report directly to the calculated output path.

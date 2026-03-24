@@ -1,11 +1,9 @@
-using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 using VK.Blocks.Web.CorrelationId;
-using VK.Blocks.Web.Infrastructure;
 
 namespace VK.Blocks.Web.Extensions;
 
@@ -24,7 +22,6 @@ public static class ServiceCollectionExtensions
     ///
     public static IServiceCollection AddApiStandards(this IServiceCollection services)
     {
-        services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
 
 
