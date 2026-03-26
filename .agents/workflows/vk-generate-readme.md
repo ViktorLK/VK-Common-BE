@@ -23,7 +23,7 @@ Generate a professional, portfolio-quality Japanese README.md for a specified pr
     - Write a professional Japanese README following the required sections:
         - **Title & Badges**: Project title with .NET, License, Build Status badge placeholders.
         - **Introduction (はじめに)**: Brief description of the module's purpose.
-        - **Architecture (アーキテクチャ)**: Design principles, patterns, and architectural styles used.
+        - **Architecture (アーキテクチャ)**: Design principles, patterns, and architectural styles used. **If the module involves complex logic or flows, include a Mermaid diagram.**
         - **Key Features (主な機能)**: Detailed feature list with technical terminology.
         - **Tech Stack (採用技術)**: All core technologies used.
         - **Getting Started (開始方法)**: How to clone and run.
