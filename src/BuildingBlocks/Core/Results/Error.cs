@@ -33,21 +33,33 @@ public record Error(string Code, string Description, ErrorType Type = ErrorType.
 /// </summary>
 public enum ErrorType
 {
-    /// <summary>A general failure.</summary>
+    /// <summary>A general failure. (HTTP 500)</summary>
     Failure = 0,
 
-    /// <summary>A validation error.</summary>
+    /// <summary>A validation error. (HTTP 400)</summary>
     Validation = 1,
 
-    /// <summary>A not found error.</summary>
+    /// <summary>A not found error. (HTTP 404)</summary>
     NotFound = 2,
 
-    /// <summary>A conflict error.</summary>
+    /// <summary>A conflict error. (HTTP 409)</summary>
     Conflict = 3,
 
-    /// <summary>An unauthorized error.</summary>
+    /// <summary>An unauthorized error. (HTTP 401)</summary>
     Unauthorized = 4,
 
-    /// <summary>A forbidden error.</summary>
-    Forbidden = 5
+    /// <summary>A forbidden error. (HTTP 403)</summary>
+    Forbidden = 5,
+
+    /// <summary>Too many requests (Rate limiting). (HTTP 429)</summary>
+    TooManyRequests = 6,
+
+    /// <summary>The service is temporarily unavailable. (HTTP 503)</summary>
+    ServiceUnavailable = 7,
+
+    /// <summary>A timeout occurred. (HTTP 408/504)</summary>
+    Timeout = 8,
+
+    /// <summary>An external service/gateway error. (HTTP 502/504)</summary>
+    ExternalError = 9
 }

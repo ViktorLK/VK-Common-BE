@@ -1,3 +1,4 @@
+
 namespace VK.Blocks.Core.Results;
 
 /// <summary>
@@ -54,10 +55,10 @@ public class Result : IResult
     #region Properties
 
     /// <summary>Gets a value indicating whether the operation was successful.</summary>
-    public bool IsSuccess { get; }
+    public virtual bool IsSuccess { get; }
 
     /// <summary>Gets a value indicating whether the operation failed.</summary>
-    public bool IsFailure => !IsSuccess;
+    public virtual bool IsFailure => !IsSuccess;
 
     /// <summary>Gets the errors associated with the result.</summary>
     public Error[] Errors { get; }

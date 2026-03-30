@@ -25,6 +25,10 @@ public static class ExceptionHandlingConstants
         public const string Unauthorized = "Unauthorized";
         public const string Forbidden = "Forbidden";
         public const string NotFound = "Not Found";
+        public const string TooManyRequests = "Too Many Requests";
+        public const string ServiceUnavailable = "Service Unavailable";
+        public const string GatewayTimeout = "Gateway Timeout";
+        public const string BadGateway = "Bad Gateway";
         public const string InternalServerError = "Internal Server Error";
     }
 

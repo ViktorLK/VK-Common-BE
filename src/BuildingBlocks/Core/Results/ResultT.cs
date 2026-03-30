@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace VK.Blocks.Core.Results;
@@ -11,6 +12,12 @@ public class Result<TValue> : Result
     #region Fields
 
     private readonly TValue? _value;
+
+    [MemberNotNullWhen(true, nameof(Value))]
+    public override bool IsSuccess => base.IsSuccess;
+
+    [MemberNotNullWhen(false, nameof(Value))]
+    public override bool IsFailure => base.IsFailure;
 
     #endregion
 
