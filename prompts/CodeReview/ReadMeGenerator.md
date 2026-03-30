@@ -16,7 +16,7 @@
 
 1.  **Title & Badge**: 项目标题，以及 .NET 8, License (MIT), Build Status 等徽章占位符。
 2.  **Introduction (はじめに)**: 简要介绍项目目的（为了探索 .NET 现代架构的最佳实践）。
-3.  **Architecture (アーキテクチャ)**: 提到项目中使用到的所有的Design Principles,Design Patterns,Architectural Principles,Architectural Styles,Architectural Patterns,Enterprise Patterns等。
+3.  **Architecture (アーキテクチャ)**: 提到项目中使用到的所有的Design Principles,Design Patterns,Architectural Principles,Architectural Styles,Architectural Patterns,Enterprise Patterns等。**如果包含复杂的业务流程或逻辑流，用 Mermaid 生成图。**
 4.  **Key Features (主な機能)**:
     - 详细列出项目中的功能点。
     - 请使用技术术语。

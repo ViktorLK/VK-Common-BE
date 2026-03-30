@@ -42,7 +42,11 @@ public sealed class ProblemDetailsFactory(IOptions<ExceptionHandlingOptions> opt
         StatusCodes.Status401Unauthorized => ExceptionHandlingConstants.ProblemDetailsTitles.Unauthorized,
         StatusCodes.Status403Forbidden => ExceptionHandlingConstants.ProblemDetailsTitles.Forbidden,
         StatusCodes.Status404NotFound => ExceptionHandlingConstants.ProblemDetailsTitles.NotFound,
-        StatusCodes.Status422UnprocessableEntity => "Validation Error", // Keeping existing logic
+        StatusCodes.Status422UnprocessableEntity => "Validation Error",
+        StatusCodes.Status429TooManyRequests => ExceptionHandlingConstants.ProblemDetailsTitles.TooManyRequests,
+        StatusCodes.Status502BadGateway => ExceptionHandlingConstants.ProblemDetailsTitles.BadGateway,
+        StatusCodes.Status503ServiceUnavailable => ExceptionHandlingConstants.ProblemDetailsTitles.ServiceUnavailable,
+        StatusCodes.Status504GatewayTimeout => ExceptionHandlingConstants.ProblemDetailsTitles.GatewayTimeout,
         StatusCodes.Status500InternalServerError => ExceptionHandlingConstants.ProblemDetailsTitles.InternalServerError,
         _ => "An error occurred"
     };

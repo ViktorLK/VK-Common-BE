@@ -22,6 +22,10 @@ public static class ErrorTypeExtensions
         ErrorType.NotFound => StatusCodes.Status404NotFound,
         ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
         ErrorType.Forbidden => StatusCodes.Status403Forbidden,
+        ErrorType.TooManyRequests => StatusCodes.Status429TooManyRequests,
+        ErrorType.ServiceUnavailable => StatusCodes.Status503ServiceUnavailable,
+        ErrorType.Timeout => StatusCodes.Status504GatewayTimeout,
+        ErrorType.ExternalError => StatusCodes.Status502BadGateway,
         _ => StatusCodes.Status500InternalServerError
     };
 
