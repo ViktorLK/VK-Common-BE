@@ -131,6 +131,13 @@ Documentation and code must evolve in sync.
 - **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required.
 - **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality.
 
+### Rule 16 — High-Performance Logging
+
+- **Location**: Define all source-generated loggers within their respective **Feature folder** (e.g. `ApiKeys/ApiKeyLog.cs`) or an `Internal/` sub-folder if the feature is complex. Only place globally shared or infrastructure-level loggers in a root `Diagnostics/` folder.
+- **Pattern**: USE `[LoggerMessage]` Source Generator (SG) for ALL logging. Define them as `internal static partial class` with extension methods on `ILogger`.
+- **Enforcement**: DIRECT calling of standard logger methods (e.g. `logger.LogInformation()`, `logger.LogWarning()`, `logger.LogError()`) is PROHIBITED in production code.
+- **Structured**: Continue to follow Rule 6 for template naming and TraceId requirements within the SG methods.
+
 ---
 
 ## Output Protocol
@@ -147,6 +154,7 @@ Documentation and code must evolve in sync.
     - ✅/❌ Error Constant → [actual finding: e.g. "UserErrors.NotFound used on line 31"]
     - ✅/❌ Polly → [actual finding: e.g. "Line 67 calls HttpClient without Polly policy → VIOLATION"]
     - ✅/❌ NoTracking → [actual finding: e.g. "Read query on line 34 missing .AsNoTracking()"]
+    - ✅/❌ LoggerMessage → [actual finding: e.g. "Line 42 uses direct logger.LogInformation → VIOLATION"]
 
 - **Language**: Logic and code in English. Explanations and ADR in **Professional Japanese**.
 - **Handshake**: Every response MUST start with: `"VK.Blocks Architect Mode Active."`
