@@ -130,6 +130,7 @@ Documentation and code must evolve in sync.
 
 - **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required.
 - **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality.
+- **Required Properties**: Use `required` keyword for all non-nullable properties in `record` or DTO types to ensure compile-time safety. STRICTLY PROHIBIT the use of `default!` for property initialization.
 
 ### Rule 16 — High-Performance Logging
 
@@ -151,6 +152,7 @@ Documentation and code must evolve in sync.
     - ✅/❌ TenantId → [actual finding: e.g. "Global Query Filter confirmed in BaseDbContext"]
     - ✅/❌ LogTemplate → [actual finding: e.g. "Line 45 uses string interpolation → VIOLATION"]
     - ✅/❌ No Null → [actual finding: e.g. "No null returns found"]
+    - ✅/❌ Required Keyword → [actual finding: e.g. "Id and Username correctly marked as required, no default! used"]
     - ✅/❌ Error Constant → [actual finding: e.g. "UserErrors.NotFound used on line 31"]
     - ✅/❌ Polly → [actual finding: e.g. "Line 67 calls HttpClient without Polly policy → VIOLATION"]
     - ✅/❌ NoTracking → [actual finding: e.g. "Read query on line 34 missing .AsNoTracking()"]

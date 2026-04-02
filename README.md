@@ -9,6 +9,16 @@
 
 ## 📦 現在の主要実装
 
+### 🔐 [VK.Blocks.Authentication](src/BuildingBlocks/Authentication/README.md)
+
+構成駆動型 (Configuration-Driven) の**マルチ戦略認証基盤**です。
+JWT、API Key、OAuth の各認証を同一のパイプラインで統合管理し、型安全なセマンティック認証属性 (`[JwtAuthorize]` 等) を提供します。
+高パフォーマンスなハッシュ生成や自己適応型のキャッシュクリーンアップなど、エンタープライズ品質のセキュリティ機能を備えています。
+
+👉 **[詳細な設計思想とドキュメントはこちら](src/BuildingBlocks/Authentication/README.md)**
+
+---
+
 ### 🗄️ [VK.Blocks.Persistence.EFCore](src/BuildingBlocks/Persistence/EFCore/README.md)
 
 Entity Framework Core をベースとした、高機能かつ堅牢な永続化層モジュールです。
