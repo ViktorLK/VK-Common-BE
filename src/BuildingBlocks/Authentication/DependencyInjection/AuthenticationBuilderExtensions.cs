@@ -60,9 +60,10 @@ public static class AuthenticationBuilderExtensions
     public static IVKBlockBuilder<AuthenticationBlock> AddClaimsProvider<T>(this IVKBlockBuilder<AuthenticationBlock> builder)
         where T : class, IVKClaimsProvider
     {
-        // Claims providers are usually additive, but the transformer currently takes the last one registered.
-        // We use AddScoped to allow implementation-specific dependencies.
-        builder.Services.AddScoped<IVKClaimsProvider, T>();
+        // Claims providers are usually additive.
+        // We use TryAddEnumerable to ensure that the same implementation is not registered multiple times,
+        // while allowing multiple different implementations to coexist.
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKClaimsProvider, T>());
         return builder;
     }
 

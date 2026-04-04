@@ -19,6 +19,36 @@ JWT (自己発行 / OIDC)、API Key、OAuth の 3 つの認証戦略を `appsett
 
 ---
 
+## 🧩 拡張モジュール: Authentication.OpenIdConnect
+
+外部 Identity Provider (IdP) と連携する場合は、コアライブラリを軽量に保つため、専用の拡張モジュールを使用します。
+
+### 利用シーン
+
+- **Azure AD B2C** / **Auth0** / **Google** などの外部認証基盤を利用する場合。
+- OAuth2 / OpenID Connect プロトコルによる認証が必要な場合。
+- 外部から提供される Claim を `VKClaimsTransformer` を通じて正規化したい場合。
+
+### 特徴
+
+- **Zero Dependency Core**: コアライブラリ `Authentication` は、ASP.NET Core の OpenIdConnect ライブラリに依存しません。必要なプロジェクトのみがこの拡張を導入します。
+- **Multi-Provider Support**: 設定ファイル（`appsettings.json`）の定義に基づき、複数の OIDC プロバイダーを動的に登録可能です。
+- **Claim Mapping**: 外部 IdP 固有の Claim 名を、システム内部で共通のセマンティクス（Role, TenantId, UserId 等）に自動マッピングします。
+- **Resilience-Ready Backchannel**: OIDC 通信用の HttpClient 名 (`OidcBackchannelName`) を公開しており、アプリケーション層で任意の例外リトライやサーキットブレーカー（Polly 等）を自由に構成可能です。
+
+### 導入例
+
+```csharp
+builder.Services.AddVKAuthenticationBlock(builder.Configuration)
+    .AddDiscoveryOAuth(builder.Configuration); // 構成駆動で OIDC プロバイダーを自動検証・登録
+```
+
+詳細は `src/BuildingBlocks/Authentication.OpenIdConnect/README.md` を参照してください。
+
+---
+
+## 🤝 Contributing
+
 ## アーキテクチャ
 
 ### 適用パターン
@@ -131,6 +161,7 @@ Authentication/
 
 - **分散トレース**: `ActivitySource` ベースの JWT 検証・API Key 検証・Claims 変換トレーシング
 - **メトリクス**: 認証試行数、レート制限違反数、失効ヒット数、リプレイ攻撃検出数、Claims 変換回数・所要時間
+- **OIDC 遅延監視**: Histogram (`vk.auth.oidc.duration`) による外部 IdP フェデレーション処理の所要時間計測（TenantId タグ対応によりマルチテナント監視に最適化）
 - **RFC 7807 エラーレスポンス**: `TraceId` 付き構造化エラーによる運用時のインシデント調査効率化
 - **Source Generated Logging**: `[LoggerMessage]` によるゼロアロケーションログ生成
 
@@ -199,14 +230,39 @@ Authentication/
                     "ClientId": "your-client-id",
                     "ClientSecret": "your-client-secret",
                     "CallbackPath": "/signin-github",
+                    "ResponseType": "code",
                     "GetClaimsFromUserInfoEndpoint": true,
                     "Scopes": ["user:email"]
+                },
+                "AzureB2C": {
+                    "Enabled": true,
+                    "Authority": "https://{your-tenant}.b2clogin.com/{your-tenant}.onmicrosoft.com/{b2c-user-flow}/v2.0",
+                    "ClientId": "{client-id}",
+                    "ClientSecret": "{client-secret}",
+                    "CallbackPath": "/signin-azureb2c",
+                    "ResponseType": "code",
+                    "Scopes": ["openid", "profile"]
+                },
+                "EntraExternal": {
+                    "Enabled": true,
+                    "Authority": "https://{your-tenant}.ciamlogin.com/",
+                    "ClientId": "{client-id}",
+                    "ClientSecret": "{client-secret}",
+                    "CallbackPath": "/signin-entra",
+                    "ResponseType": "code",
+                    "Scopes": ["openid", "profile", "email"]
                 }
             }
         }
     }
 }
 ```
+
+> [!TIP]
+> **Microsoft Identity Platforms (B2C / CIAM) 利用時の注意点**
+>
+> - **Azure AD B2C**: `Authority` には必ず `p=B2C_1_xxx` (User Flow) を含むか、上記のように V2.0 エンドポイントを正しく構成してください。
+> - **Claim Mapping**: マイクロソフト固有の `oid` や `tfp` といった Claim は、このモジュールの `[OAuthProvider]` スキーム（`AzureB2COidcClaimsMapper`等）によって自動的に共通セマンティクスへ変換介入されます。
 
 ### 3. DI 登録
 
@@ -224,6 +280,7 @@ builder.Services
 
 | 機能                             | 概要                                                  |
 | -------------------------------- | ----------------------------------------------------- |
+| **Auth Scheme Hot-Reload**       | IOptionsMonitor による認証スキーム (JWT/API Key 等) のリアルタイム構成更新 |
 | **Dynamic Session Revocation**   | 全デバイスログアウト / セッション単位のリモート無効化 |
 | **Scoped API Keys**              | リソース単位のアクセス制御 (PoLP)                     |
 | **Multi-Tenant Auth Isolation**  | テナントごとの OIDC プロバイダー動的切り替え          |

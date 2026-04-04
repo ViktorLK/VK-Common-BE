@@ -3,7 +3,7 @@ namespace VK.Blocks.Authentication.Features.OAuth;
 /// <summary>
 /// Configuration options for OAuth providers.
 /// </summary>
-public sealed class OAuthOptions
+public sealed class VKOAuthOptions
 {
     #region Properties
 

@@ -21,27 +21,33 @@ public sealed class OAuthProviderOptions
     /// <summary>
     /// Gets or sets the client identifier.
     /// </summary>
-    public string ClientId { get; set; } = string.Empty;
+    public required string ClientId { get; init; }
 
     /// <summary>
     /// Gets or sets the client secret.
     /// </summary>
-    public string ClientSecret { get; set; } = string.Empty;
+    public required string ClientSecret { get; init; }
 
     /// <summary>
     /// Gets or sets the authority URL.
     /// </summary>
-    public string Authority { get; set; } = string.Empty;
+    public required string Authority { get; init; }
 
     /// <summary>
     /// Gets or sets the callback path.
     /// </summary>
-    public string CallbackPath { get; set; } = string.Empty;
+    public required string CallbackPath { get; init; }
 
     /// <summary>
     /// Gets or sets the requested scopes.
     /// </summary>
-    public List<string> Scopes { get; set; } = [];
+    public List<string> Scopes { get; init; } = [];
+
+    /// <summary>
+    /// Gets or sets the response type (e.g. "code", "id_token").
+    /// Defaults to "code" in OIDC if not specified.
+    /// </summary>
+    public string? ResponseType { get; init; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to retrieve additional claims from the user info endpoint.

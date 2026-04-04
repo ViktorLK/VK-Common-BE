@@ -64,7 +64,7 @@ public sealed class VKAuthenticationOptions
     /// <summary>
     /// Gets or sets the configuration options for OAuth providers.
     /// </summary>
-    public OAuthOptions OAuth { get; set; } = new();
+    public VKOAuthOptions OAuth { get; set; } = new();
 
     #endregion
 }

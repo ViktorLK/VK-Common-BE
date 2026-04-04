@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -27,24 +28,30 @@ public static class AuthenticationBlockExtensions
     /// </summary>
     public static IVKBlockBuilder<AuthenticationBlock> AddVKAuthenticationBlock(this IServiceCollection services, IConfiguration configuration)
     {
+        // 0. Idempotency Check: Skip if already successfully registered
+        if (services.IsVKBlockRegistered<AuthenticationBlock>())
+        {
+            return new VKBlockBuilder<AuthenticationBlock>(services);
+        }
+
         services.TryAddSingleton(TimeProvider.System);
         var section = configuration.GetSection(VKAuthenticationOptions.SectionName);
 
         // 1. Standard Block Registration (Eager-bind, Singleton, DataAnnotations, ValidateOnStart)
         var authOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(section);
-        services.AddSingleton<IValidateOptions<VKAuthenticationOptions>, VKAuthenticationOptionsValidator>();
+        services.TryAddSingleton<IValidateOptions<VKAuthenticationOptions>, VKAuthenticationOptionsValidator>();
 
         // 2. JWT Validation Registration
         var jwtOptions = services.AddVKBlockOptions<JwtOptions>(section.GetSection(VKAuthenticationOptions.JwtSection));
-        services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
+        services.TryAddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
 
         // 3. API Key Registration
         var apiKeyOptions = services.AddVKBlockOptions<ApiKeyOptions>(section.GetSection(VKAuthenticationOptions.ApiKeySection));
-        services.AddSingleton<IValidateOptions<ApiKeyOptions>, ApiKeyOptionsValidator>();
+        services.TryAddSingleton<IValidateOptions<ApiKeyOptions>, ApiKeyOptionsValidator>();
 
         // 4. OAuth Registration
-        var oauthOptions = services.AddVKBlockOptions<OAuthOptions>(section.GetSection(VKAuthenticationOptions.OAuthSection));
-        services.AddSingleton<IValidateOptions<OAuthOptions>, OAuthOptionsValidator>();
+        var vkOAuthOptions = services.AddVKBlockOptions<VKOAuthOptions>(section.GetSection(VKAuthenticationOptions.OAuthSection));
+        services.TryAddSingleton<IValidateOptions<VKOAuthOptions>, VKOAuthOptionsValidator>();
 
         // Skip configuration of authentication schemes and handlers if the block is globally disabled.
         // NOTE: We register all strategy-specific options (JWT, ApiKey, OAuth) before this check
@@ -113,7 +120,7 @@ public static class AuthenticationBlockExtensions
 
         // 4. OAuth Mappers
         // Register OAuth claims mappers dynamically based on [OAuthProvider] attribute
-        if (oauthOptions.Enabled)
+        if (vkOAuthOptions.Enabled)
         {
             services.AddGeneratedOAuthMappers();
         }
@@ -147,7 +154,7 @@ public static class AuthenticationBlockExtensions
             // --- Authentication Groups (Combining schemes) ---
 
             // Group: User (Typical for human users, supports JWT/OIDC)
-            var hasUserSchemes = shouldRegisterJwt || (oauthOptions.Enabled && oauthOptions.Providers.Any(p => p.Value.Enabled));
+            var hasUserSchemes = shouldRegisterJwt || (vkOAuthOptions.Enabled && vkOAuthOptions.Providers.Any(p => p.Value.Enabled));
             if (hasUserSchemes)
             {
                 options.AddPolicy($"{AuthenticationConstants.GroupPolicyPrefix}{AuthGroups.User}", policy =>
@@ -157,9 +164,9 @@ public static class AuthenticationBlockExtensions
                         policy.AuthenticationSchemes.Add(jwtOptions.SchemeName);
                     }
 
-                    if (oauthOptions.Enabled)
+                    if (vkOAuthOptions.Enabled)
                     {
-                        foreach (var (providerName, providerOptions) in oauthOptions.Providers)
+                        foreach (var (providerName, providerOptions) in vkOAuthOptions.Providers)
                         {
                             if (providerOptions.Enabled)
                             {
@@ -203,6 +210,11 @@ public static class AuthenticationBlockExtensions
             }
         });
 
+        // 7. Mark-Self (Success Commit)
+        // We register the marker at the very end to ensure that its presence
+        // strictly implies that the entire block was successfully initialized.
+        services.AddVKBlockMarker<AuthenticationBlock>();
+
         return new VKBlockBuilder<AuthenticationBlock>(services);
     }
 
@@ -216,7 +228,13 @@ public static class AuthenticationBlockExtensions
     public static IVKBlockBuilder<AuthenticationBlock> AddOAuthMapper<TMapper>(this IVKBlockBuilder<AuthenticationBlock> builder, string providerName)
         where TMapper : class, IOAuthClaimsMapper
     {
-        builder.Services.AddKeyedScoped<IOAuthClaimsMapper, TMapper>(providerName);
+        // Keyed services in Microsoft.Extensions.DependencyInjection don't have a TryAdd equivalent yet.
+        // We implement a manual check to ensure Rule 18 (Idempotency) is satisfied.
+        if (!builder.Services.Any(d => d.ServiceType == typeof(IOAuthClaimsMapper) && d.IsKeyedService && Equals(d.ServiceKey, providerName)))
+        {
+            builder.Services.AddKeyedScoped<IOAuthClaimsMapper, TMapper>(providerName);
+        }
+
         return builder;
     }
 

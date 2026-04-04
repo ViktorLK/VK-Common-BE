@@ -139,6 +139,22 @@ Documentation and code must evolve in sync.
 - **Enforcement**: DIRECT calling of standard logger methods (e.g. `logger.LogInformation()`, `logger.LogWarning()`, `logger.LogError()`) is PROHIBITED in production code.
 - **Structured**: Continue to follow Rule 6 for template naming and TraceId requirements within the SG methods.
 
+### Rule 17 — Service Marker Pattern
+
+- Each BuildingBlock module MUST define a dedicated marker type (e.g. `public sealed class AuthenticationBlock;`).
+- Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Actual Registration, Mark-Self"** pattern:
+    1.  Check for self-registration via `IsVKBlockRegistered<OwnBlock>()` and return early if true.
+    2.  Validate prerequisites using `IsVKBlockRegistered<BaseBlock>()` and throw `InvalidOperationException` if missing.
+    3.  Perform actual service registration using idempotent patterns (Rule 18).
+    4.  Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` as the **FINAL step** (Success Commit).
+
+### Rule 18 — Idempotent Registration
+
+- All BuildingBlock options MUST be registered using the `AddVKBlockOptions<T>` pattern to handle binding and validation.
+- Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`).
+- Direct use of **`AddSingleton`**, **`AddScoped`**, or **`AddTransient`** is STRICTLY PROHIBITED within building block registration extensions to ensure idempotency across multiple module registrations.
+- **Exception**: Official framework extensions (e.g. `AddHttpContextAccessor`, `AddLogging`, `AddAuthentication`) that are known to be idempotent are allowed and preferred over manual `TryAdd` registrations.
+
 ---
 
 ## Output Protocol
@@ -157,6 +173,8 @@ Documentation and code must evolve in sync.
     - ✅/❌ Polly → [actual finding: e.g. "Line 67 calls HttpClient without Polly policy → VIOLATION"]
     - ✅/❌ NoTracking → [actual finding: e.g. "Read query on line 34 missing .AsNoTracking()"]
     - ✅/❌ LoggerMessage → [actual finding: e.g. "Line 42 uses direct logger.LogInformation → VIOLATION"]
+    - ✅/❌ Service Marker → [actual finding: e.g. "AuthenticationBlock marker confirmed on line 29"]
+    - ✅/❌ Idempotent Options → [actual finding: e.g. "services.Any() check implemented in Core on line 42"]
 
 - **Language**: Logic and code in English. Explanations and ADR in **Professional Japanese**.
 - **Handshake**: Every response MUST start with: `"VK.Blocks Architect Mode Active."`
