@@ -50,7 +50,7 @@ if (jwtToken.Id is { Length: > 0 } jti)
 {
     if (await blacklist.IsRevokedAsync(jti, cancellationToken).ConfigureAwait(false))
     {
-        return Result.Failure<AuthUser>(AuthenticationErrors.Jwt.Revoked);
+        return Result.Failure<AuthenticatedUser>(AuthenticationErrors.Jwt.Revoked);
     }
 }
 // 注意: ユーザーレベルの IsUserRevokedAsync チェックは実施していない
@@ -73,7 +73,7 @@ if (jwtToken.Id is { Length: > 0 } jti)
 
 1. **ASP.NET Core パイプラインの自然な拡張ポイント**: `OnTokenValidated` は JWT 検証パイプラインの標準的なフックポイントであり、ASP.NET Core ミドルウェアの責務として適切。
 2. **ユーザーレベルチェックの包含**: `OnTokenValidated` は `IsUserRevokedAsync` と `IsRevokedAsync` の両方を持ち、より包括的。
-3. **`JwtAuthenticationService` の責務簡素化**: `AuthenticateAsync` はトークンの暗号検証と `AuthUser` マッピングに専念し、インフラストラクチャ横断の関心事（キャッシュアクセス）から解放される。
+3. **`JwtAuthenticationService` の責務簡素化**: `AuthenticateAsync` はトークンの暗号検証と `AuthenticatedUser` マッピングに専念し、インフラストラクチャ横断の関心事（キャッシュアクセス）から解放される。
 
 ### 変更内容
 
@@ -83,7 +83,7 @@ if (jwtToken.Id is { Length: > 0 } jti)
 
   if (validatedToken is not JwtSecurityToken jwtToken)
   {
-      return Result.Failure<AuthUser>(AuthenticationErrors.Jwt.InvalidFormat);
+      return Result.Failure<AuthenticatedUser>(AuthenticationErrors.Jwt.InvalidFormat);
   }
 
 - // Explicitly check for revocation
@@ -91,7 +91,7 @@ if (jwtToken.Id is { Length: > 0 } jti)
 - {
 -     if (await blacklist.IsRevokedAsync(jti, cancellationToken).ConfigureAwait(false))
 -     {
--         return Result.Failure<AuthUser>(AuthenticationErrors.Jwt.Revoked);
+-         return Result.Failure<AuthenticatedUser>(AuthenticationErrors.Jwt.Revoked);
 -     }
 - }
 

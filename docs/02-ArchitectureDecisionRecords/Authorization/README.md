@@ -39,6 +39,12 @@
 **概要**: C# Source Generators（`IIncrementalGenerator`）を導入し、ハンドラーのDI登録や権限カタログの定数クラス生成をコンパイル時に自動化  
 **キーワード**: Source Generators, Compile-Time Safety, Boilerplate Reduction
 
+#### [ADR-005: Refactor Authorization Evaluation to Specialized Permission Evaluator Pattern and Retain Automation](./adr-005-refactor-authorization-evaluation-to-specialized-permission-evaluator-pattern-and-retain-automation.md)
+
+**Status**: ✅ Accepted  
+**概要**: 汎用的な `IVKAuthorizationHandler` を廃止し、Result Pattern を採用した `IPermissionEvaluator` へ移行。同時に自動登録 SG を新契約に適合。  
+**キーワード**: Result Pattern, Specialization, Low Friction, Vertical Slice
+
 ---
 
 ## 🎯 ADR の読み方ガイド
@@ -52,6 +58,7 @@
 ### 開発体験(DX)と自動化の理解用
 
 1. **ADR-004**: マジックストリングや手動DI登録の排除によるフェイルセーフの確立と、Source Generator の実践的導入
+2. **ADR-005**: 抽象から具体（IPermissionEvaluator）へのリファクタリングと、自動化を維持しながらアーキテクチャの純度を高める手法
 
 ---
 
@@ -61,5 +68,5 @@
 
 ---
 
-**Last Updated**: 2026-03-06  
-**Total ADRs**: 4
+**Last Updated**: 2026-04-02  
+**Total ADRs**: 5

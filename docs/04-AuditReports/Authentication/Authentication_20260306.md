@@ -80,7 +80,7 @@
     - `VKClaimsTransformer.cs` — `public class VKClaimsTransformer` → `sealed` にすべき
     - `AzureB2CClaimsMapper.cs`, `GoogleClaimsMapper.cs`, `GitHubClaimsMapper.cs` — 継承元の `OAuthClaimsMapperBase` が `abstract` のため、各実装クラスは `sealed` にできる
 
-- ⚠️ **[Rule 15 違反: `record` 未使用]**: `ApiKeyContext.cs` (Line 9) — `sealed class` として正しく宣言されているが、`sealed record` にするとバリューイコールティと不変性がより強く保証される。`AuthUser.cs` や `OAuthUserInfo.cs` は `record` を使用しており、一貫性のために `ApiKeyContext` も `sealed record` に移行を推奨。
+- ⚠️ **[Rule 15 違反: `record` 未使用]**: `ApiKeyContext.cs` (Line 9) — `sealed class` として正しく宣言されているが、`sealed record` にするとバリューイコールティと不変性がより強く保証される。`AuthenticatedUser.cs` や `ExternalIdentity.cs` は `record` を使用しており、一貫性のために `ApiKeyContext` も `sealed record` に移行を推奨。
 
 - ⚠️ **[Rule 14 準拠確認: 一ファイル一型]**: 全ファイルを確認した結果、各 `.cs` ファイルには単一の型のみが定義されており、Rule 14 に完全に準拠している。
 
@@ -106,7 +106,7 @@
 
 - **`IOptionsMonitor` による動的設定**: `JwtAuthenticationService` と `ApiKeyValidator` が `IOptionsMonitor<T>` を利用しており、アプリ再起動なしに設定変更を反映できる。
 
-- **`AuthUser` / `OAuthUserInfo` の `record` 実装**: 不変の値オブジェクトとして `record` を正しく使用。イコールティベースの比較が自動的に提供される。
+- **`AuthenticatedUser` / `ExternalIdentity` の `record` 実装**: 不変の値オブジェクトとして `record` を正しく使用。イコールティベースの比較が自動的に提供される。
 
 ---
 

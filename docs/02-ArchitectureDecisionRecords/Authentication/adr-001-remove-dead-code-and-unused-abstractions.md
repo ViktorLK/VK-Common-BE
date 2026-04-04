@@ -15,7 +15,7 @@
 
 ### 問題 A: 未使用クラス `AuthResult`
 
-`Abstractions/Contracts/AuthResult.cs` に定義された `AuthResult` クラスは、`Result` を継承しているが、モジュール内のどの箇所でも一切使用されていない。`IAuthenticationService.AuthenticateAsync` は `Result<AuthUser>` を返しており、`AuthResult` は完全なデッドコードとなっている。
+`Abstractions/Contracts/AuthResult.cs` に定義された `AuthResult` クラスは、`Result` を継承しているが、モジュール内のどの箇所でも一切使用されていない。`IAuthenticationService.AuthenticateAsync` は `Result<AuthenticatedUser>` を返しており、`AuthResult` は完全なデッドコードとなっている。
 
 ```csharp
 // 未使用のクラス — モジュール内での参照なし
@@ -70,7 +70,7 @@ public class AuthResult : Result
 
 ### Option 2: `AuthResult` を活用するリファクタリング
 
-- **Approach**: `IAuthenticationService` の戻り値を `Result<AuthUser>` から `AuthResult` に変更し、認証固有のメソッド（例えば `AuthResult.TokenExpired()` ファクトリ）を追加する。
+- **Approach**: `IAuthenticationService` の戻り値を `Result<AuthenticatedUser>` から `AuthResult` に変更し、認証固有のメソッド（例えば `AuthResult.TokenExpired()` ファクトリ）を追加する。
 - **Rejected Reason**: `Result<T>` パターンはプロジェクト全体で統一的に使用されており、認証固有の派生型を導入するメリットよりも一貫性維持のデメリットが上回る。`AuthenticationErrors` クラスによるエラー定数の集約で十分に表現力を確保できている。
 
 ## 5. Consequences & Mitigation (結果と緩和策)

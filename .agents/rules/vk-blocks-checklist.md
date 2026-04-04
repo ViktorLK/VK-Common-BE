@@ -130,6 +130,7 @@ Documentation and code must evolve in sync.
 
 - **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required.
 - **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality.
+- **Required Properties**: Use `required` keyword for all non-nullable properties in `record` or DTO types to ensure compile-time safety. STRICTLY PROHIBIT the use of `default!` for property initialization.
 
 ### Rule 16 — High-Performance Logging
 
@@ -137,6 +138,22 @@ Documentation and code must evolve in sync.
 - **Pattern**: USE `[LoggerMessage]` Source Generator (SG) for ALL logging. Define them as `internal static partial class` with extension methods on `ILogger`.
 - **Enforcement**: DIRECT calling of standard logger methods (e.g. `logger.LogInformation()`, `logger.LogWarning()`, `logger.LogError()`) is PROHIBITED in production code.
 - **Structured**: Continue to follow Rule 6 for template naming and TraceId requirements within the SG methods.
+
+### Rule 17 — Service Marker Pattern
+
+- Each BuildingBlock module MUST define a dedicated marker type (e.g. `public sealed class AuthenticationBlock;`).
+- Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Actual Registration, Mark-Self"** pattern:
+    1.  Check for self-registration via `IsVKBlockRegistered<OwnBlock>()` and return early if true.
+    2.  Validate prerequisites using `IsVKBlockRegistered<BaseBlock>()` and throw `InvalidOperationException` if missing.
+    3.  Perform actual service registration using idempotent patterns (Rule 18).
+    4.  Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` as the **FINAL step** (Success Commit).
+
+### Rule 18 — Idempotent Registration
+
+- All BuildingBlock options MUST be registered using the `AddVKBlockOptions<T>` pattern to handle binding and validation.
+- Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`).
+- Direct use of **`AddSingleton`**, **`AddScoped`**, or **`AddTransient`** is STRICTLY PROHIBITED within building block registration extensions to ensure idempotency across multiple module registrations.
+- **Exception**: Official framework extensions (e.g. `AddHttpContextAccessor`, `AddLogging`, `AddAuthentication`) that are known to be idempotent are allowed and preferred over manual `TryAdd` registrations.
 
 ---
 
@@ -151,10 +168,13 @@ Documentation and code must evolve in sync.
     - ✅/❌ TenantId → [actual finding: e.g. "Global Query Filter confirmed in BaseDbContext"]
     - ✅/❌ LogTemplate → [actual finding: e.g. "Line 45 uses string interpolation → VIOLATION"]
     - ✅/❌ No Null → [actual finding: e.g. "No null returns found"]
+    - ✅/❌ Required Keyword → [actual finding: e.g. "Id and Username correctly marked as required, no default! used"]
     - ✅/❌ Error Constant → [actual finding: e.g. "UserErrors.NotFound used on line 31"]
     - ✅/❌ Polly → [actual finding: e.g. "Line 67 calls HttpClient without Polly policy → VIOLATION"]
     - ✅/❌ NoTracking → [actual finding: e.g. "Read query on line 34 missing .AsNoTracking()"]
     - ✅/❌ LoggerMessage → [actual finding: e.g. "Line 42 uses direct logger.LogInformation → VIOLATION"]
+    - ✅/❌ Service Marker → [actual finding: e.g. "AuthenticationBlock marker confirmed on line 29"]
+    - ✅/❌ Idempotent Options → [actual finding: e.g. "services.Any() check implemented in Core on line 42"]
 
 - **Language**: Logic and code in English. Explanations and ADR in **Professional Japanese**.
 - **Handshake**: Every response MUST start with: `"VK.Blocks Architect Mode Active."`
