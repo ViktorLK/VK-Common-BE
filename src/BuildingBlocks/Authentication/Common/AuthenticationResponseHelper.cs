@@ -31,7 +31,7 @@ internal static class AuthenticationResponseHelper
 
         problemDetails.Extensions[AuthenticationConstants.TraceIdExtension] = context.TraceIdentifier;
 
-        return context.Response.WriteAsJsonAsync(problemDetails);
+        return context.Response.WriteAsJsonAsync(problemDetails, options: null, contentType: AuthenticationConstants.ProblemJsonContentType);
     }
 
     #endregion

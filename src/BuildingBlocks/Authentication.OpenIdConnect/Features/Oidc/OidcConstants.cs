@@ -24,6 +24,11 @@ internal static class OidcConstants
     internal const string StandardProvider = "Standard";
 
     /// <summary>
+    /// Identifier for the Microsoft Entra External ID (CIAM) provider.
+    /// </summary>
+    internal const string EntraExternal = "EntraExternal";
+
+    /// <summary>
     /// The federated authentication type used for identity creation.
     /// </summary>
     internal const string FederatedAuthType = "VK.Federated";

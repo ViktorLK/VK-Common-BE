@@ -9,6 +9,7 @@ trigger: always_on
 ### Rule 1 — Result Pattern
 
 - Application Layer: RETURN `Result<T>` only. NEVER return null.
+- For void operations, use `Result` (non-generic) or `Result<Unit>`. NEVER return bare `void` or `Task` from Application Layer handlers.
 - NEVER use `Result.Failure("raw string")`. ALWAYS use predefined `Error` constants.
 - Infrastructure Layer: exceptions ARE allowed, but MUST be caught at the boundary and mapped to `Result<T>`.
 - Follow RFC 7807 for HTTP error responses.
@@ -26,12 +27,18 @@ trigger: always_on
 
 - Use `async/await` + `CancellationToken` for ALL I/O operations.
 - NO `.Result`, `.Wait()`, or blocking calls.
+- Prefer `ValueTask<T>` over `Task<T>` for interfaces and hot-path methods where synchronous completion is the common case (cache hits, in-memory checks). Avoid `ValueTask` when the operation is always async or may be awaited multiple times.
+- ALL `await` calls within BuildingBlock/library code MUST use `.ConfigureAwait(false)` to prevent synchronization-context deadlocks.
 
 ### Rule 4 — Performance
 
 - NO database queries inside loops.
 - `.AsNoTracking()` is DEFAULT for all read queries.
 - Batch operations MUST use `ExecuteUpdateAsync` / `ExecuteDeleteAsync` where applicable.
+- NEVER use `ToListAsync()` without explicit pagination (`Take`/`Skip`) on unbounded queries.
+- Prefer projection (`Select`) over full entity materialization for read-only queries.
+- Prefer `ReadOnlySpan<T>` / `Span<T>` for string parsing and manipulation to avoid heap allocations.
+- Only use `stackalloc` for constant or provably small sizes (≤ 256 bytes) to prevent stack overflow risks.
 
 ### Rule 5 — Automation
 
@@ -41,16 +48,26 @@ trigger: always_on
 
 ### Rule 6 — Observability
 
-- USE structured log templates with placeholders: `"{Id}"`, `"{TenantId}"`.
-- NO string interpolation in log statements.
-- `TraceId` is MANDATORY in all log entries and error responses.
-- Exceptions MUST be logged with full context before mapping to `Result<T>`.
+#### Logging
+
+- **Pattern**: USE `[LoggerMessage]` Source Generator (SG) for ALL logging. Define as `internal static partial class` with extension methods on `ILogger`.
+- **Enforcement**: DIRECT calling of standard logger methods (e.g. `logger.LogInformation()`, `logger.LogWarning()`, `logger.LogError()`) is PROHIBITED in production code.
+- **Structured Templates**: USE structured log templates with placeholders: `"{Id}"`, `"{TenantId}"`. NO string interpolation.
+- **TraceId**: `TraceId` is MANDATORY in all log entries and error responses.
+- **Exception Context**: Exceptions MUST be logged with full context before mapping to `Result<T>`.
+- **Location**: Define SG loggers within their respective **Feature folder** (e.g. `ApiKeys/ApiKeyLog.cs`) or an `Internal/` sub-folder if the feature is complex. Only place globally shared or infrastructure-level loggers in a root `Diagnostics/` folder.
+
+#### Metrics & Tracing
+
+- **Diagnostics Class**: Each BuildingBlock MUST define `[VKBlockDiagnostics]` in a `Diagnostics/` folder to auto-generate `ActivitySource` and `Meter`.
+- **Constants**: ALL metric names and tag keys MUST be defined in `XxxDiagnosticsConstants.cs`. Follow OpenTelemetry Semantic Conventions.
+- **Instrument Selection**: Use `Counter` for counts, `Histogram` for durations, `UpDownCounter` for gauges. NEVER create metrics instruments inside loops.
 
 ### Rule 7 — Security
 
 - `TenantId` filtering MUST be enforced via EF Core Global Query Filters.
 - NO query is allowed to bypass tenant isolation.
-- ALL PII and secrets MUST be masked in logs via `SensitiveDataProcessor`.
+- ALL PII and secrets MUST be masked in logs via a dedicated masking processor (e.g. `SensitiveDataProcessor`).
 
 ### Rule 8 — Resiliency
 
@@ -68,6 +85,8 @@ trigger: always_on
     - ✅ Not found / empty result
     - ✅ Permission / tenant isolation failure
     - ✅ Infrastructure failure mapped to Result.Failure
+- **Naming**: Test class: `{TargetClass}Tests.cs`. Test method: `{Method}_{Scenario}_{ExpectedResult}` (e.g. `Handle_WhenUserNotFound_ReturnsNotFoundError`).
+- **Project**: Test project naming: `{ProjectName}.Tests`.
 
 ### Rule 10 — Code Generation
 
@@ -94,12 +113,7 @@ Interrupt the current flow and ask:
 > Should I generate an ADR to record this decision before we continue?"
 
 If confirmed → trigger `/publish-adr` using the current conversation as context.
-
-**Goal**
-
-Ensure _why this change was made_ is captured in real time,
-not reconstructed retroactively.
-Documentation and code must evolve in sync.
+Goal: Ensure _why this change was made_ is captured in real time, not reconstructed retroactively.
 
 ### Rule 12 — Folder Organization
 
@@ -118,7 +132,7 @@ Documentation and code must evolve in sync.
 - ALWAYS eliminate magic strings using this visibility hierarchy.
 - Constants file MUST be named after its scope:
   ✅ WorkingHoursConstants.cs
-  ❌ Constants.cs（Unknown what Constants）
+  ❌ Constants.cs
 
 ### Rule 14 — Type Segregation
 
@@ -132,28 +146,28 @@ Documentation and code must evolve in sync.
 - **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality.
 - **Required Properties**: Use `required` keyword for all non-nullable properties in `record` or DTO types to ensure compile-time safety. STRICTLY PROHIBIT the use of `default!` for property initialization.
 
-### Rule 16 — High-Performance Logging
-
-- **Location**: Define all source-generated loggers within their respective **Feature folder** (e.g. `ApiKeys/ApiKeyLog.cs`) or an `Internal/` sub-folder if the feature is complex. Only place globally shared or infrastructure-level loggers in a root `Diagnostics/` folder.
-- **Pattern**: USE `[LoggerMessage]` Source Generator (SG) for ALL logging. Define them as `internal static partial class` with extension methods on `ILogger`.
-- **Enforcement**: DIRECT calling of standard logger methods (e.g. `logger.LogInformation()`, `logger.LogWarning()`, `logger.LogError()`) is PROHIBITED in production code.
-- **Structured**: Continue to follow Rule 6 for template naming and TraceId requirements within the SG methods.
-
-### Rule 17 — Service Marker Pattern
+### Rule 16 — Service Marker Pattern
 
 - Each BuildingBlock module MUST define a dedicated marker type (e.g. `public sealed class AuthenticationBlock;`).
 - Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Actual Registration, Mark-Self"** pattern:
     1.  Check for self-registration via `IsVKBlockRegistered<OwnBlock>()` and return early if true.
     2.  Validate prerequisites using `IsVKBlockRegistered<BaseBlock>()` and throw `InvalidOperationException` if missing.
-    3.  Perform actual service registration using idempotent patterns (Rule 18).
+    3.  Perform actual service registration using idempotent patterns (Rule 17).
     4.  Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` as the **FINAL step** (Success Commit).
 
-### Rule 18 — Idempotent Registration
+### Rule 17 — Idempotent Registration
 
 - All BuildingBlock options MUST be registered using the `AddVKBlockOptions<T>` pattern to handle binding and validation.
 - Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`).
-- Direct use of **`AddSingleton`**, **`AddScoped`**, or **`AddTransient`** is STRICTLY PROHIBITED within building block registration extensions to ensure idempotency across multiple module registrations.
+- Direct `AddSingleton`/`AddScoped`/`AddTransient` is PROHIBITED within building block extensions.
 - **Exception**: Official framework extensions (e.g. `AddHttpContextAccessor`, `AddLogging`, `AddAuthentication`) that are known to be idempotent are allowed and preferred over manual `TryAdd` registrations.
+
+### Rule 18 — Modern C# Idioms
+
+- **Pattern Matching**: Prefer `is` and `switch` expressions over `if`/`else` chains and type casting for concise, readable branching.
+- **Record & with**: Use `record` types for immutable data models. Use `with` expressions for non-destructive mutation instead of manual copy constructors. (See Rule 15 for `sealed` semantics.)
+- **Null Handling**: Prefer `??` / `??=` / `?.` over explicit null checks. Use `is null` / `is not null` over `== null` to avoid operator overload side-effects and ensure pattern consistency.
+- **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
 
 ---
 
@@ -162,19 +176,22 @@ Documentation and code must evolve in sync.
 - **Code**: Production-ready C# 12+ only.
 - **Error Constants**: Define errors as `static readonly` fields on a dedicated `Errors` class per domain.
 - **Audit Checklist Protocol**: Before ending ANY code response, you MUST explicitly verify each item.
-  Format MUST be:
-    - ✅/❌ Result<T> → [actual finding: e.g. "Line 23 returns null → VIOLATION"]
-    - ✅/❌ Async/CT → [actual finding: e.g. "CancellationToken passed to all DbContext calls"]
-    - ✅/❌ TenantId → [actual finding: e.g. "Global Query Filter confirmed in BaseDbContext"]
-    - ✅/❌ LogTemplate → [actual finding: e.g. "Line 45 uses string interpolation → VIOLATION"]
-    - ✅/❌ No Null → [actual finding: e.g. "No null returns found"]
-    - ✅/❌ Required Keyword → [actual finding: e.g. "Id and Username correctly marked as required, no default! used"]
-    - ✅/❌ Error Constant → [actual finding: e.g. "UserErrors.NotFound used on line 31"]
-    - ✅/❌ Polly → [actual finding: e.g. "Line 67 calls HttpClient without Polly policy → VIOLATION"]
-    - ✅/❌ NoTracking → [actual finding: e.g. "Read query on line 34 missing .AsNoTracking()"]
-    - ✅/❌ LoggerMessage → [actual finding: e.g. "Line 42 uses direct logger.LogInformation → VIOLATION"]
-    - ✅/❌ Service Marker → [actual finding: e.g. "AuthenticationBlock marker confirmed on line 29"]
-    - ✅/❌ Idempotent Options → [actual finding: e.g. "services.Any() check implemented in Core on line 42"]
+  **Always check**:
+    - ✅/❌ Result<T> → [actual finding]
+    - ✅/❌ Async → CancellationToken, ValueTask hot-path
+    - ✅/❌ ConfigureAwait → .ConfigureAwait(false) on ALL awaits (library code)
+    - ✅/❌ No Null → [actual finding]
+    - ✅/❌ Required Keyword → [actual finding]
+    - ✅/❌ Error Constant → [actual finding]
+    - ✅/❌ Modern C# Idioms → [actual finding]
+      **When applicable** (only report items relevant to the code being changed):
+    - ✅/❌ TenantId → (DB/query code) [actual finding]
+    - ✅/❌ NoTracking → (DB read queries) [actual finding]
+    - ✅/❌ Polly → (external HTTP/SDK calls) [actual finding]
+    - ✅/❌ Observability → (logging/metrics code) [actual finding]
+    - ✅/❌ Service Marker → (DI registration) [actual finding]
+    - ✅/❌ Idempotent Options → (DI registration) [actual finding]
+    - ✅/❌ Span & stackalloc → (string parsing / fixed-size buffer ≤256 bytes)
 
-- **Language**: Logic and code in English. Explanations and ADR in **Professional Japanese**.
+- **Language**: Code, comments, and commit messages in English. Explanations and ADR in **Professional Japanese**.
 - **Handshake**: Every response MUST start with: `"VK.Blocks Architect Mode Active."`

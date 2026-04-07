@@ -269,14 +269,18 @@ Authentication/
 ```csharp
 builder.Services
     .AddVKAuthenticationBlock(builder.Configuration)
+    // .AddDiscoveryOAuth(builder.Configuration)             // ※ OIDC拡張パッケージ導入時のみ利用可能
     .AddClaimsProvider<MyCustomClaimsProvider>()          // カスタム Claims エンリッチメント
     .AddApiKeyRevocationProvider<RedisRevocationProvider>() // Redis ベース失効管理
-    .AddOAuthMapper<GoogleClaimsMapper>("Google");         // 追加プロバイダーマッパー
+    .AddOAuthMapper<GoogleClaimsMapper>("Google");         // (任意) 特定のプロバイダーに対するマッパーの手動上書き・追加
 ```
+
+> [!NOTE]
+> `AddDiscoveryOAuth` を利用するには、別パッケージの `VK.Blocks.Authentication.OpenIdConnect` を参照し、名前空間 `VK.Blocks.Authentication.OpenIdConnect.DependencyInjection` をインポートする必要があります。
 
 ---
 
-## 今後の展望
+## 🔭 今後の展望
 
 | 機能                             | 概要                                                  |
 | -------------------------------- | ----------------------------------------------------- |
