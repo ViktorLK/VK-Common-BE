@@ -16,7 +16,8 @@
     <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 
     <!-- Suppress version override warning for Central Package Management -->
-    <NoWarn>$(NoWarn);NU1903</NoWarn>
+    <!-- RS2008: Release tracking is not needed for internal generators -->
+    <NoWarn>$(NoWarn);NU1903;RS2008</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -15,8 +15,8 @@ namespace VK.Blocks.Generators.Authorization;
 [Generator]
 public sealed class MinimumRankGenerator : IIncrementalGenerator
 {
-    private const string _attributeName = "GenerateRankAuthorize";
-    private const string _attributeFullName = "VK.Blocks.Authorization.Abstractions." + _attributeName;
+    private const string AttributeName = "GenerateRankAuthorize";
+    private const string AttributeFullName = "VK.Blocks.Authorization.Abstractions." + AttributeName;
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -46,7 +46,7 @@ public sealed class MinimumRankGenerator : IIncrementalGenerator
                 var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName == _attributeFullName || fullName == _attributeFullName + "Attribute")
+                if (fullName == AttributeFullName || fullName == AttributeFullName + "Attribute")
                 {
                     if (context.SemanticModel.GetDeclaredSymbol(enumDeclaration) is not INamedTypeSymbol enumSymbol)
                     {
@@ -92,39 +92,26 @@ public sealed class MinimumRankGenerator : IIncrementalGenerator
         sb.AppendLine("namespace VK.Blocks.Authorization.Generated");
         sb.AppendLine("{");
 
-        // 1. Generate RankPolicies constants
-        sb.AppendLine("    /// <summary>");
-        sb.AppendLine($"    /// Authorization policy names generated from <see cref=\"{info.Namespace}.{info.Name}\"/>.");
-        sb.AppendLine("    /// </summary>");
-        sb.AppendLine("    public static class RankPolicies");
-        sb.AppendLine("    {");
-        foreach (var memberName in info.Members)
-        {
-            sb.AppendLine($"        public const string {memberName}AndAbove = \"{memberName}AndAbove\";");
-        }
-        sb.AppendLine("    }");
-        sb.AppendLine();
+        var attributeName = $"Require{info.Name}Attribute";
 
-        // 2. Generate MinimumRankAttribute
+        // Generate dynamic authorize attribute based on the enum name
         sb.AppendLine("    /// <summary>");
         sb.AppendLine($"    /// Marks a controller or action as requiring at least a specific <see cref=\"{info.Namespace}.{info.Name}\"/>.");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Method, AllowMultiple = false)]");
-        sb.AppendLine($"    public sealed class MinimumRankAttribute : AuthorizeAttribute");
+        sb.AppendLine($"    public sealed class {attributeName} : AuthorizeAttribute, IAuthorizationRequirementData");
         sb.AppendLine("    {");
         sb.AppendLine($"        public {info.Namespace}.{info.Name} Rank {{ get; }}");
         sb.AppendLine();
-        sb.AppendLine($"        public MinimumRankAttribute({info.Namespace}.{info.Name} rank)");
+        sb.AppendLine($"        public {attributeName}({info.Namespace}.{info.Name} rank)");
         sb.AppendLine("        {");
         sb.AppendLine("            Rank = rank;");
-        sb.AppendLine("            Policy = rank switch");
-        sb.AppendLine("            {");
-        foreach (var memberName in info.Members)
-        {
-            sb.AppendLine($"                {info.Namespace}.{info.Name}.{memberName} => RankPolicies.{memberName}AndAbove,");
-        }
-        sb.AppendLine("                _ => throw new System.ArgumentOutOfRangeException(nameof(rank))");
-        sb.AppendLine("            };");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.AppendLine("        /// <inheritdoc />");
+        sb.AppendLine("        public System.Collections.Generic.IEnumerable<IAuthorizationRequirement> GetRequirements()");
+        sb.AppendLine("        {");
+        sb.AppendLine($"            yield return new VK.Blocks.Authorization.Features.MinimumRank.MinimumRankRequirement((int)Rank, typeof({info.Namespace}.{info.Name}));");
         sb.AppendLine("        }");
         sb.AppendLine("    }");
 
