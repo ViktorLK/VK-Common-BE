@@ -30,5 +30,10 @@ Apply the strict coding guidelines defined in `prompts/CodeReview/CodeNormalizat
 5. **Save and Report**:
     - **Overwrite** the original files with the modified code.
     - Report the results to the user using the following format:
+    - Report the results to the user using the following format:
         - ✅ [Filename]: Brief summary of applied changes (e.g., "Added regions, sorted usings, converted namespace").
         - If a file required no changes, report it as `Skipped`.
+    - **Actionable Summary**: Create a Markdown file named `normalization-report.md` (save it using your Artifact tool) that aggregates a clear list of all `// TODO`, `// FIX`, `// PERF`, and `// SUGGEST` comments that were added or discovered during the run. Group them by filename. This creates a persistent action plan for the user rather than cluttering the chat.
+
+6. **Verify Build**:
+    - Make sure to run `dotnet build` against the modified project or solution to guarantee that your non-invasive formatting / comments did not accidentally break compilation.

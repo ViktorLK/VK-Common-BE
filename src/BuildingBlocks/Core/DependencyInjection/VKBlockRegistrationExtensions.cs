@@ -1,5 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace VK.Blocks.Core.DependencyInjection;
 
@@ -13,17 +15,17 @@ public static class VKBlockRegistrationExtensions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// <b>ARCHITECTURE NOTE (Dual-Registration Pattern):</b><br/>
-    /// This method performs a "double registration" of the options:
+    /// <b>ARCHITECTURE NOTE (Idempotent Dual-Registration Pattern):</b><br/>
+    /// This method performs a "double registration" of the options while ensuring idempotency:
     /// <list type="number">
     /// <item>Standard <c>IOptions&lt;T&gt;</c> registration for lazy-loading and ASP.NET Core compatibility.</item>
     /// <item>Direct <c>Singleton</c> registration of the same instance for eager-loading.</item>
     /// </list>
     /// <b>Why?</b><br/>
     /// 1. <b>Library Internal Access:</b> Building blocks often need synchronous access to their options during the
-    /// <c>ConfigureServices</c> phase to make structural decisions (e.g., conditional interceptor registration).<br/>
-    /// 2. <b>External Consumer Access:</b> Allows applications to inject the raw options class directly instead of
-    /// <c>IOptions&lt;T&gt;</c> for cleaner code in the business layer.
+    /// <c>ConfigureServices</c> phase.<br/>
+    /// 2. <b>Validation & Performance:</b> Manual <c>services.Any()</c> checks prevent redundant <c>IStartupValidator</c>
+    /// registrations, while <c>TryAddSingleton</c> ensures container level safety.
     /// </para>
     /// </remarks>
     /// <typeparam name="TOptions">The type of options to configure.</typeparam>
@@ -38,6 +40,15 @@ public static class VKBlockRegistrationExtensions
         var options = new TOptions();
         section.Bind(options);
 
+        // [IDEMPOTENCY CHECK]
+        // If the options type is already registered in the container, it means
+        // another module has already configured the options system and validation.
+        // We skip re-registration to avoid duplicate IStartupValidator instances.
+        if (services.Any(d => d.ServiceType == typeof(TOptions)))
+        {
+            return options;
+        }
+
         // Standard Options registration
         services.AddOptions<TOptions>()
             .Bind(section)
@@ -45,7 +56,7 @@ public static class VKBlockRegistrationExtensions
             .ValidateOnStart();
 
         // Singleton registration for direct injection & library-internal synchronous access
-        services.AddSingleton(options);
+        services.TryAddSingleton(options);
 
         return options;
     }
@@ -69,6 +80,12 @@ public static class VKBlockRegistrationExtensions
         var options = new TOptions();
         configure(options);
 
+        // [IDEMPOTENCY CHECK]
+        if (services.Any(d => d.ServiceType == typeof(TOptions)))
+        {
+            return options;
+        }
+
         // Standard Options registration
         services.AddOptions<TOptions>()
             .Configure(configure)
@@ -76,8 +93,53 @@ public static class VKBlockRegistrationExtensions
             .ValidateOnStart();
 
         // Singleton registration
-        services.AddSingleton(options);
+        services.TryAddSingleton(options);
 
         return options;
+    }
+
+    /// <summary>
+    /// Overrides a scoped service registration within the building block.
+    /// </summary>
+    /// <typeparam name="TMarker">The block marker.</typeparam>
+    /// <typeparam name="TService">The service interface/base type.</typeparam>
+    /// <typeparam name="TImplementation">The custom implementation type.</typeparam>
+    public static IVKBlockBuilder<TMarker> WithScoped<TMarker, TService, TImplementation>(
+        this IVKBlockBuilder<TMarker> builder)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        builder.Services.Replace(ServiceDescriptor.Scoped<TService, TImplementation>());
+        return builder;
+    }
+
+    /// <summary>
+    /// Overrides a singleton service registration within the building block.
+    /// </summary>
+    /// <typeparam name="TMarker">The block marker.</typeparam>
+    /// <typeparam name="TService">The service interface/base type.</typeparam>
+    /// <typeparam name="TImplementation">The custom implementation type.</typeparam>
+    public static IVKBlockBuilder<TMarker> WithSingleton<TMarker, TService, TImplementation>(
+        this IVKBlockBuilder<TMarker> builder)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        builder.Services.Replace(ServiceDescriptor.Singleton<TService, TImplementation>());
+        return builder;
+    }
+
+    /// <summary>
+    /// Overrides a transient service registration within the building block.
+    /// </summary>
+    /// <typeparam name="TMarker">The block marker.</typeparam>
+    /// <typeparam name="TService">The service interface/base type.</typeparam>
+    /// <typeparam name="TImplementation">The custom implementation type.</typeparam>
+    public static IVKBlockBuilder<TMarker> WithTransient<TMarker, TService, TImplementation>(
+        this IVKBlockBuilder<TMarker> builder)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        builder.Services.Replace(ServiceDescriptor.Transient<TService, TImplementation>());
+        return builder;
     }
 }

@@ -41,17 +41,17 @@ internal sealed class JwtAuthenticationService(
             return Result.Failure<AuthenticatedUser>(JwtErrors.EmptyToken);
         }
 
-        var jwtOptions = options.CurrentValue;
-
-        if (string.IsNullOrEmpty(jwtOptions.SecretKey))
-        {
-            logger.LogOptionsNotConfigured();
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, JwtErrors.ConfigurationError.Code);
-            return Result.Failure<AuthenticatedUser>(JwtErrors.ConfigurationError);
-        }
-
         try
         {
+            var jwtOptions = options.CurrentValue;
+
+            if (string.IsNullOrEmpty(jwtOptions.SecretKey))
+            {
+                logger.LogOptionsNotConfigured();
+                AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, JwtErrors.ConfigurationError.Code);
+                return Result.Failure<AuthenticatedUser>(JwtErrors.ConfigurationError);
+            }
+
             var validationParameters = JwtValidationFactory.Create(jwtOptions);
 
             // PERF: Using modern JsonWebTokenHandler for better performance and safety.

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authentication.DependencyInjection;
 using VK.Blocks.Authentication.Features.OAuth;
+using VK.Blocks.Authentication.Generated;
 using VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
 using VK.Blocks.Core.DependencyInjection;
 
@@ -79,6 +80,9 @@ public static class OidcAuthenticationBuilderExtensions
         {
             return builder;
         }
+
+        // Register mappers from the OIDC assembly ONLY if enabled
+        services.AddGeneratedOAuthMappers();
 
         var authBuilder = services.AddAuthentication();
 
