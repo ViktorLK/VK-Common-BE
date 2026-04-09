@@ -1,4 +1,7 @@
-﻿using System;
+using System;
+using VK.Blocks.Authorization.Abstractions;
+using VK.Blocks.Authorization.Common;
+using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.WorkingHours;
 
@@ -8,27 +11,8 @@ namespace VK.Blocks.Authorization.Features.WorkingHours;
 /// </summary>
 /// <param name="Start">Inclusive start of the allowed time window (local time).</param>
 /// <param name="End">Exclusive end of the allowed time window (local time).</param>
-public sealed record WorkingHoursRequirement : Microsoft.AspNetCore.Authorization.IAuthorizationRequirement
+public sealed record WorkingHoursRequirement(TimeOnly Start, TimeOnly End) : IVKAuthorizationRequirement
 {
-    #region Properties
-
-    /// <summary>
-    /// Inclusive start of the allowed time window (local time).
-    /// </summary>
-    public TimeOnly Start { get; init; }
-
-    /// <summary>
-    /// Exclusive end of the allowed time window (local time).
-    /// </summary>
-    public TimeOnly End { get; init; }
-
-    #endregion
-
-    public WorkingHoursRequirement(TimeOnly start, TimeOnly end)
-    {
-        Start = start;
-        End = end;
-    }
+    /// <inheritdoc />
+    public Error DefaultError => AuthorizationErrors.OutOfWorkingHours;
 }
-
-

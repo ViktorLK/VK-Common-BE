@@ -1,113 +1,159 @@
-﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Common;
+using VK.Blocks.Authorization.DependencyInjection;
+using VK.Blocks.Authorization.Diagnostics;
+using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.InternalNetwork;
 
 /// <summary>
 /// Grants access only when the request originates from within one of the configured
-/// CIDR ranges specified by <see cref="InternalNetworkRequirement"/>.
+/// CIDR ranges. Also provides programmatic evaluation via <see cref="IInternalNetworkEvaluator"/>.
 /// </summary>
-/// <remarks>
-/// <para>
-/// <strong>Security Note:</strong> This handler relies on <c>HttpContext.Connection.RemoteIpAddress</c>.
-/// If the application is hosted behind a reverse proxy or load balancer, you <strong>must</strong>
-/// configure the <c>ForwardedHeadersMiddleware</c> in the application pipeline (e.g. <c>UseForwardedHeaders()</c>)
-/// to ensure the original client IP is correctly populated, otherwise IP spoofing is possible.
-/// </para>
-/// </remarks>
-public sealed class InternalNetworkAuthorizationHandler(IHttpContextAccessor httpContextAccessor)
-    : AuthorizationHandler<InternalNetworkRequirement>
+public sealed class InternalNetworkAuthorizationHandler(
+    IIpAddressProvider ipAddressProvider,
+    IOptions<VKAuthorizationOptions> options,
+    ILogger<InternalNetworkAuthorizationHandler> logger)
+    : AuthorizationHandler<InternalNetworkRequirement>, IInternalNetworkEvaluator
 {
-    protected override Task HandleRequirementAsync(
+    private const string PolicyName = "InternalNetwork";
+    private readonly VKAuthorizationOptions _options = options.Value;
+
+    #region Public Methods
+
+    /// <inheritdoc />
+    protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         InternalNetworkRequirement requirement)
     {
-        var remoteIp = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress;
-
-        if (remoteIp is null)
+        if (context.User.Identity?.IsAuthenticated != true)
         {
-            context.Fail(new AuthorizationFailureReason(this, "Remote IP address could not be determined."));
-            return Task.CompletedTask;
+            return;
         }
 
-        // Normalise to IPv4 if the address is an IPv4-mapped IPv6 address.
-        if (remoteIp.IsIPv4MappedToIPv6)
-        {
-            remoteIp = remoteIp.MapToIPv4();
-        }
+        var result = await IsInternalNetworkAsync(context.User, allowedCidrs: requirement.AllowedCidrs)
+            .ConfigureAwait(false);
 
-        var allowed = requirement.AllowedCidrs.Any(cidr => IsInCidr(remoteIp, cidr));
-
-        if (allowed)
-        {
-            context.Succeed(requirement);
-        }
-        else
-        {
-            context.Fail(new AuthorizationFailureReason(this,
-                $"IP {remoteIp} is not in an allowed network range."));
-        }
-
-        return Task.CompletedTask;
+        context.ApplyResult(requirement, result, this);
     }
+
+    /// <inheritdoc />
+    public ValueTask<Result<bool>> IsInternalNetworkAsync(
+        ClaimsPrincipal? user = null,
+        IPAddress? remoteIp = null,
+        IReadOnlyList<string>? allowedCidrs = null,
+        CancellationToken ct = default)
+    {
+        var userId = user?.Identity?.Name ?? "System";
+
+        // 1. SuperAdmin Bypass Logic (Centralized via extension)
+        if (user != null && user.IsSuperAdmin(_options))
+        {
+            logger.LogInternalNetworkGranted(userId, remoteIp ?? IPAddress.None, PolicyName + " (Bypassed)");
+            return ValueTask.FromResult(Result.Success(true));
+        }
+
+        var sw = Stopwatch.StartNew();
+
+        // 2. Resolve IP
+        var ip = remoteIp ?? ipAddressProvider.GetRemoteIpAddress();
+        if (ip is null)
+        {
+            sw.RecordEvaluation(PolicyName, Result.Success(false));
+            logger.LogRemoteIpCouldNotBeDetermined(userId, PolicyName);
+            return ValueTask.FromResult(Result.Success(false));
+        }
+
+        // 2. Normalise to IPv4 if necessary
+        if (ip.IsIPv4MappedToIPv6)
+        {
+            ip = ip.MapToIPv4();
+        }
+
+        // 3. Match CIDRs
+        var activeCidrs = allowedCidrs ?? _options.InternalCidrs;
+        var isAllowed = activeCidrs?.Any(cidr => IsInCidr(ip, cidr)) == true;
+
+        // 4. Trace & Record
+        sw.RecordEvaluation(PolicyName, Result.Success(isAllowed));
+
+        if (isAllowed)
+        {
+            logger.LogInternalNetworkGranted(userId, ip, PolicyName);
+            return ValueTask.FromResult(Result.Success(true));
+        }
+
+        logger.LogInternalNetworkDenied(userId, ip, PolicyName);
+        return ValueTask.FromResult(Result.Success(false));
+    }
+
+    #endregion
+
+    #region Private Methods
 
     private static bool IsInCidr(IPAddress ip, string cidr)
     {
-        var parts = cidr.Split('/');
-        if (parts.Length != 2)
+        var span = cidr.AsSpan();
+        var slashIndex = span.IndexOf('/');
+        if (slashIndex == -1)
         {
             return false;
         }
 
-        if (!IPAddress.TryParse(parts[0], out var network))
+        if (!IPAddress.TryParse(span[..slashIndex], out var network) ||
+            !int.TryParse(span[(slashIndex + 1)..], out var prefixLength))
         {
             return false;
         }
 
-        if (!int.TryParse(parts[1], out var prefixLength))
-        {
-            return false;
-        }
-
-        // Ensure both addresses are in the same family.
         if (ip.AddressFamily != network.AddressFamily)
         {
             return false;
         }
 
-        var networkBytes = network.GetAddressBytes();
-        var ipBytes = ip.GetAddressBytes();
+        // Use stackalloc to avoid heap allocation (Rule 4: ≤ 256 bytes)
+        Span<byte> networkBytes = stackalloc byte[16];
+        Span<byte> ipBytes = stackalloc byte[16];
 
-        if (networkBytes.Length != ipBytes.Length)
+        if (!network.TryWriteBytes(networkBytes, out var networkLength) ||
+            !ip.TryWriteBytes(ipBytes, out var ipLength) ||
+            networkLength != ipLength)
         {
             return false;
         }
 
+        var activeNetworkBytes = networkBytes[..networkLength];
+        var activeIpBytes = ipBytes[..ipLength];
+
         var fullBytes = prefixLength / 8;
         var remainingBits = prefixLength % 8;
 
+        if (fullBytes > networkLength)
+        {
+            return false;
+        }
+
         for (var i = 0; i < fullBytes; i++)
         {
-            if (networkBytes[i] != ipBytes[i])
+            if (activeNetworkBytes[i] != activeIpBytes[i])
             {
                 return false;
             }
         }
 
-        for (var i = 0; i < fullBytes; i++)
-        {
-            if (networkBytes[i] != ipBytes[i])
-            {
-                return false;
-            }
-        }
-
-        if (remainingBits > 0)
+        if (remainingBits > 0 && fullBytes < networkLength)
         {
             var mask = (byte)(0xFF << (8 - remainingBits));
-            if ((networkBytes[fullBytes] & mask) != (ipBytes[fullBytes] & mask))
+            if ((activeNetworkBytes[fullBytes] & mask) != (activeIpBytes[fullBytes] & mask))
             {
                 return false;
             }
@@ -115,6 +161,6 @@ public sealed class InternalNetworkAuthorizationHandler(IHttpContextAccessor htt
 
         return true;
     }
+
+    #endregion
 }
-
-

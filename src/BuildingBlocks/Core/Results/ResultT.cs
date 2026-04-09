@@ -7,7 +7,7 @@ namespace VK.Blocks.Core.Results;
 /// Represents the result of an operation with a value.
 /// </summary>
 /// <typeparam name="TValue">The type of the value.</typeparam>
-public class Result<TValue> : Result
+public sealed class Result<TValue> : Result
 {
     #region Fields
 
@@ -26,7 +26,7 @@ public class Result<TValue> : Result
     /// <summary>
     /// Initializes a new instance of the <see cref="Result{TValue}"/> class.
     /// </summary>
-    protected internal Result(TValue? value, bool isSuccess, Error error)
+    internal Result(TValue? value, bool isSuccess, Error error)
         : base(isSuccess, error)
     {
         _value = value;
@@ -35,7 +35,7 @@ public class Result<TValue> : Result
     /// <summary>
     /// Initializes a new instance of the <see cref="Result{TValue}"/> class.
     /// </summary>
-    protected internal Result(TValue? value, bool isSuccess, IEnumerable<Error> errors)
+    internal Result(TValue? value, bool isSuccess, IEnumerable<Error> errors)
         : base(isSuccess, errors)
     {
         _value = value;

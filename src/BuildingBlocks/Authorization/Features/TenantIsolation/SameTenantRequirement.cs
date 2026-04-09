@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using VK.Blocks.Authorization.Abstractions;
+using VK.Blocks.Authorization.Common;
+using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.TenantIsolation;
 
@@ -6,9 +8,8 @@ namespace VK.Blocks.Authorization.Features.TenantIsolation;
 /// Requires the authenticated user to belong to the same tenant as the target resource.
 /// Use with <c>TenantAuthorizationHandler</c>.
 /// </summary>
-public sealed record SameTenantRequirement : Microsoft.AspNetCore.Authorization.IAuthorizationRequirement
+public sealed record SameTenantRequirement : IVKAuthorizationRequirement
 {
+    /// <inheritdoc />
+    public Error DefaultError => AuthorizationErrors.TenantMismatch;
 }
-
-
-

@@ -10,12 +10,17 @@ internal static class DynamicPoliciesConstants
     /// <summary>
     /// Indicates an equality check operator.
     /// </summary>
-    public const string OperatorEquals = "Equals";
+    internal const string OperatorEquals = "Equals";
 
     /// <summary>
     /// Indicates an existence check operator.
     /// </summary>
-    public const string OperatorExists = "Exists";
+    internal const string OperatorExists = "Exists";
+
+    /// <summary>
+    /// Indicates a contains check operator.
+    /// </summary>
+    internal const string OperatorContains = "Contains";
 
     #endregion
 }

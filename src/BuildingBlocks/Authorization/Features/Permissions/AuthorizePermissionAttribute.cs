@@ -1,28 +1,30 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 
 namespace VK.Blocks.Authorization.Features.Permissions;
 
 /// <summary>
 /// Marks a controller or action as requiring a specific permission.
-/// The permission is resolved dynamically via <see cref="VK.Blocks.Authorization.Permissions.PermissionPolicyProvider"/>.
+/// Note: This class is NOT sealed because it is used as a base class by PermissionsCatalogGenerator.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
-public sealed class AuthorizePermissionAttribute : AuthorizeAttribute
+public class AuthorizePermissionAttribute(string permission) : AuthorizeAttribute, IAuthorizationRequirementData
 {
-    #region Constructors
-
-    public AuthorizePermissionAttribute(string permission)
-    {
-        Permission = permission;
-        Policy = $"{PermissionsConstants.PolicyPrefix}{permission}";
-    }
-
-    #endregion
 
     #region Properties
 
-    public string Permission { get; }
+    public string Permission { get; } = permission;
+
+    #endregion
+
+    #region Methods
+
+    /// <inheritdoc />
+    public IEnumerable<IAuthorizationRequirement> GetRequirements()
+    {
+        yield return new PermissionRequirement(Permission);
+    }
 
     #endregion
 }

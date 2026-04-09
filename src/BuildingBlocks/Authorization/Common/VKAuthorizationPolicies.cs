@@ -1,9 +1,9 @@
-﻿namespace VK.Blocks.Authorization;
+namespace VK.Blocks.Authorization.Common;
 
 /// <summary>
 /// Well-known VK authorization policy names used by the builder extensions.
 /// </summary>
-public static class VKPolicies
+public static class VKAuthorizationPolicies
 {
     #region Fields
 
@@ -29,4 +29,3 @@ public static class VKPolicies
 
     #endregion
 }
-

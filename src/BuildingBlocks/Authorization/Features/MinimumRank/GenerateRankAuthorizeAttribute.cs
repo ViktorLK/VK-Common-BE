@@ -1,6 +1,6 @@
 using System;
 
-namespace VK.Blocks.Authorization.Abstractions;
+namespace VK.Blocks.Authorization.Features.MinimumRank;
 
 /// <summary>
 /// Triggers the <c>MinimumRankGenerator</c> Source Generator to create

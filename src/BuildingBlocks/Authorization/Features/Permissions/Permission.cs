@@ -1,4 +1,4 @@
-﻿namespace VK.Blocks.Authorization.Features.Permissions;
+namespace VK.Blocks.Authorization.Features.Permissions;
 
 /// <summary>
 /// Represents a named permission that can be assigned to roles.
@@ -7,10 +7,9 @@ public sealed record Permission
 {
     #region Properties
 
-    public string Name { get; init; } = default!;
+    public required string Name { get; init; }
     public string? Description { get; init; }
-    public string Module { get; init; } = default!;
+    public required string Module { get; init; }
 
     #endregion
 }
-
