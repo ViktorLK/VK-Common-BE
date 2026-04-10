@@ -7,17 +7,21 @@ using Microsoft.Extensions.Logging;
 using VK.Blocks.Authorization.Common;
 using VK.Blocks.Authorization.Diagnostics;
 using VK.Blocks.Core.Results;
+using VK.Blocks.Authorization.Features.Permissions.Internal;
 
 namespace VK.Blocks.Authorization.Features.Permissions;
 
 /// <summary>
-/// Evaluates <see cref="PermissionRequirement"/> by delegating to <see cref="IPermissionProvider"/>.
+/// Evaluates <see cref="PermissionRequirement"/> by delegating to multiple <see cref="IPermissionProvider"/> implementations.
 /// </summary>
 public sealed class PermissionHandler(
-    IPermissionProvider permissionProvider,
+    IEnumerable<IPermissionProvider> permissionProviders,
     ILogger<PermissionHandler> logger)
     : AuthorizationHandler<PermissionRequirement>, IPermissionEvaluator
 {
+    // Ensure we have at least one provider
+    private readonly List<IPermissionProvider> _providers = [.. permissionProviders];
+
     #region Public Methods
 
     /// <inheritdoc />
@@ -30,39 +34,90 @@ public sealed class PermissionHandler(
             return;
         }
 
-        var result = await HasPermissionAsync(context.User, requirement.Permission).ConfigureAwait(false);
+        var result = await HasPermissionsAsync(context.User, requirement.Permissions, requirement.Mode).ConfigureAwait(false);
         context.ApplyResult(requirement, result, this);
     }
 
+    /// <summary>
+    /// Evaluates multiple permissions based on the specified mode across all registered providers.
+    /// </summary>
+    public async ValueTask<Result<bool>> HasPermissionsAsync(
+        ClaimsPrincipal user,
+        IEnumerable<string> permissions,
+        PermissionEvaluationMode mode,
+        CancellationToken ct = default)
+    {
+        var permissionList = permissions.ToList();
+        var userId = user.Identity?.Name ?? "Unknown";
+        var compositePolicy = mode == PermissionEvaluationMode.All
+            ? $"Permissions:All[{string.Join(",", permissionList)}]"
+            : $"Permissions:Any[{string.Join(",", permissionList)}]";
+
+        var sw = Stopwatch.StartNew();
+
+        var isAllowed = mode == PermissionEvaluationMode.All;
+        Error? lastError = null;
+
+        foreach (var permission in permissionList)
+        {
+            var isThisPermissionAllowed = false;
+
+            // Check across all providers (OR logic: any provider granting counts as allowed)
+            foreach (var provider in _providers)
+            {
+                var result = await provider.HasPermissionAsync(user, permission, ct).ConfigureAwait(false);
+
+                if (!result.IsSuccess)
+                {
+                    lastError = result.FirstError;
+                    logger.LogPermissionCheckError(permission, userId, lastError.Code, lastError.Description);
+                    continue; // Check next provider
+                }
+
+                if (result.Value)
+                {
+                    isThisPermissionAllowed = true;
+                    break; // Granted by this provider, no need to check others for THIS permission
+                }
+            }
+
+            if (isThisPermissionAllowed)
+            {
+                logger.LogPermissionGranted(permission, userId);
+                if (mode == PermissionEvaluationMode.Any)
+                {
+                    isAllowed = true;
+                    break;
+                }
+            }
+            else
+            {
+                logger.LogPermissionDenied(permission, userId);
+                if (mode == PermissionEvaluationMode.All)
+                {
+                    isAllowed = false;
+                    break;
+                }
+            }
+        }
+
+        var finalResult = lastError is not null && !isAllowed
+            ? Result.Failure<bool>(lastError)
+            : Result.Success(isAllowed);
+
+        // Record aggregated evaluation
+        sw.RecordEvaluation(compositePolicy, finalResult);
+
+        return finalResult;
+    }
+
     /// <inheritdoc />
-    public async ValueTask<Result<bool>> HasPermissionAsync(
+    public ValueTask<Result<bool>> HasPermissionAsync(
         ClaimsPrincipal user,
         string permission,
         CancellationToken ct = default)
     {
-        var userId = user.Identity?.Name ?? "Unknown";
-        var policyName = $"{PermissionsConstants.PolicyPrefix}{permission}";
-
-        var sw = Stopwatch.StartNew();
-        var result = await permissionProvider.HasPermissionAsync(user, permission, ct).ConfigureAwait(false);
-        
-        // 1. Trace & Record (Centralized via extension)
-        sw.RecordEvaluation(policyName, result);
-
-        if (result.IsSuccess && result.Value)
-        {
-            logger.LogPermissionGranted(permission, userId);
-            return Result.Success(true);
-        }
-
-        if (!result.IsSuccess)
-        {
-            logger.LogPermissionCheckError(permission, userId, result.FirstError.Code, result.FirstError.Description);
-            return Result.Failure<bool>(result.Errors);
-        }
-
-        logger.LogPermissionDenied(permission, userId);
-        return Result.Success(false);
+        return HasPermissionsAsync(user, [permission], PermissionEvaluationMode.All, ct);
     }
 
     #endregion

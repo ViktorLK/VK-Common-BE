@@ -61,37 +61,23 @@ public static class AuthorizationServiceCollectionExtensions
         services.TryAddSingleton<ISyncStateStore, NoOpSyncStateStore>();
 
         // 3. Feature: Dynamic Policies
-        services.TryAddScoped<IDynamicPolicyProvider, DefaultDynamicPolicyProvider>();
-        services.TryAddScoped<IDynamicPolicyEvaluator, DefaultDynamicPolicyEvaluator>();
+        services.AddDynamicPoliciesFeature();
 
         // 4. Feature: Roles
-        services.TryAddScoped<IRoleProvider, DefaultRoleProvider>();
-        services.TryAddScoped<RoleHandler>();
-        services.TryAddScoped<IRoleEvaluator>(sp => sp.GetRequiredService<RoleHandler>());
+        services.AddRolesFeature();
 
         // 5. Feature: Multi-Tenancy
-        services.TryAddScoped<IUserTenantProvider, DefaultUserTenantProvider>();
-        services.TryAddScoped<TenantAuthorizationHandler>();
-        services.TryAddScoped<ITenantEvaluator>(sp => sp.GetRequiredService<TenantAuthorizationHandler>());
+        services.AddTenantIsolationFeature();
 
         // 6. Feature: Network & Infrastructure
-        services.TryAddScoped<IIpAddressProvider, DefaultIpAddressProvider>();
-        services.TryAddScoped<InternalNetworkAuthorizationHandler>();
-        services.TryAddScoped<IInternalNetworkEvaluator>(sp => sp.GetRequiredService<InternalNetworkAuthorizationHandler>());
+        services.AddInternalNetworkFeature();
 
         // 7. Feature: Permissions
-        services.TryAddScoped<IPermissionProvider, DefaultPermissionProvider>();
-        services.TryAddScoped<PermissionHandler>();
-        services.TryAddScoped<IPermissionEvaluator>(sp => sp.GetRequiredService<PermissionHandler>());
+        services.AddPermissionsFeature();
 
         // 8. Feature: Ranks & Working Hours
-        services.TryAddScoped<IRankProvider, DefaultRankProvider>();
-        services.TryAddScoped<MinimumRankAuthorizationHandler>();
-        services.TryAddScoped<IMinimumRankEvaluator>(sp => sp.GetRequiredService<MinimumRankAuthorizationHandler>());
-        
-        services.TryAddScoped<IWorkingHoursProvider, DefaultWorkingHoursProvider>();
-        services.TryAddScoped<WorkingHoursAuthorizationHandler>();
-        services.TryAddScoped<IWorkingHoursEvaluator>(sp => sp.GetRequiredService<WorkingHoursAuthorizationHandler>());
+        services.AddMinimumRankFeature();
+        services.AddWorkingHoursFeature();
 
         // 9. Source Generated Components
         // Auto-register generated IAuthorizationHandler and IVKAuthorizationHandler implementations
@@ -104,7 +90,6 @@ public static class AuthorizationServiceCollectionExtensions
     }
 
     #endregion
-
 }
 
 

@@ -17,8 +17,8 @@ const server = new McpServer({
 // Register tool for generating Architectural Decision Records (ADRs)
 // Pattern B: MCP reads the prompt template, AI generates and writes the final .md file
 server.tool(
-  "publish_adr",
-  "Generates an ADR by reading the official ADR_PROMPT rulebook and instructing the AI to write the full document, then save it to docs/02-ArchitectureDecisionRecords/<module>/",
+  "draft_adr",
+  "Generates an ADR draft based on the official rulebook. Returns a prompt instructing the AI to write and save the final .md files.",
   {
     sourceDir: z.string().describe(
       "Path to the source code directory being documented (e.g. 'src/BuildingBlocks/Authentication'). Determines the output subdirectory."
@@ -128,7 +128,7 @@ Do NOT skip either step. Do NOT just print the content in chat.
 // Register tool for listing building blocks
 server.tool(
   "list_building_blocks",
-  "Lists all available BuildingBlock modules in the VK-Common-BE solution, including their internal project dependencies.",
+  "Lists all available BuildingBlock modules and their dependencies. Returns a formatted prompt for the AI.",
   {},
   async () => {
     try {
@@ -185,7 +185,7 @@ ${JSON.stringify(modules, null, 2)}
 // Register tool for auditing EF Core migrations
 server.tool(
   "audit_ef_migrations",
-  "Scans EF Core migration files for potentially destructive operations like DROP TABLE or DROP COLUMN.",
+  "Scans EF Core migration files for destructive operations. Returns a prompt instructing the AI to warn the user.",
   {
     migrationsDir: z.string().describe("Path to the EF Core Migrations directory (e.g. 'src/BuildingBlocks/Identity/Migrations')."),
   },
@@ -243,8 +243,8 @@ ${findings.length > 0
 
 // Register tool for generating Integration Tests from OpenAPI/Swagger JSON
 server.tool(
-  "generate_api_tests",
-  "Parses an OpenAPI (Swagger) JSON file and generates instructions to create integration tests for all endpoints.",
+  "draft_api_tests",
+  "Parses an OpenAPI JSON file and returns a prompt instructing the AI to generate integration tests.",
   {
     swaggerJsonPath: z.string().describe("Path to the swagger.json file."),
   },
@@ -271,7 +271,7 @@ server.tool(
       }
 
       const prompt = `
-[MCP Tool: generate_api_tests]
+[MCP Tool: draft_api_tests]
 I have parsed the OpenAPI specification from \`${swaggerJsonPath}\`.
 Found ${endpoints.length} endpoints.
 

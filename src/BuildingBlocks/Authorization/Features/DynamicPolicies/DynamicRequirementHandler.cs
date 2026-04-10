@@ -22,8 +22,12 @@ public sealed class DynamicRequirementHandler(IDynamicPolicyEvaluator evaluator)
             return;
         }
 
+        var sw = Stopwatch.StartNew();
         var result = await evaluator.EvaluateAsync(context.User, requirement, default)
             .ConfigureAwait(false);
+
+        // 1. Record evaluation metrics (Rule 6 Compliance)
+        sw.RecordEvaluation($"DynamicPolicy:{requirement.Attribute}", result);
 
         context.ApplyResult(requirement, result, this);
     }

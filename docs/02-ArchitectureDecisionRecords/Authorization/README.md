@@ -69,6 +69,12 @@
 **概要**: 属性生成時に Module プレフィックスを強制し、未管理権限に Misc を付与することで、大規模統合時の命名競合を根絶する治理戦略  
 **キーワード**: Namespacing, Governance, Conflict Prevention
 
+#### [ADR-010: Standardization of Authorization Vertical Slice Structure and Delegated Registration](./adr-010-standardization-of-authorization-vertical-slice-structure-and-delegated-registration.md)
+
+**Status**: ✅ Accepted  
+**概要**: 各機能の構造を [Root/Metadata/Internal] に標準化し、DI 登録を中央から各機能へ委譲することで、カプセル化と保守性を向上させるアーキテクチャ  
+**キーワード**: Vertical Slice, Encapsulation, Delegated Registration, Metadata Separation
+
 ---
 
 ## 🎯 ADR の読み方ガイド
@@ -85,6 +91,7 @@
 1. **ADR-004**: マジックストリングや手動DI登録の排除によるフェイルセーフの確立と、Source Generator の実践的導入
 2. **ADR-007**: 権限のメタデータ管理と強タイプ属性生成による「コンパイラを味方につける」開発手法
 3. **ADR-009**: 多人数開発における権限の命名競合をシステマティックに防ぐ方法
+4. **ADR-010**: 複雑化したモジュールの保守性を維持するための、垂直スライスの標準化と登録の委譲手法
 
 ### 性能と信頼性の理解用
 

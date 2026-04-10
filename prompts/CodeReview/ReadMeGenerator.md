@@ -14,13 +14,13 @@
 
 请包含以下章节：
 
-1.  **Title & Badge**: 项目标题，以及 .NET 8, License (MIT), Build Status 等徽章占位符。
+1.  **Title & Badge**: 项目标题，以及 .NET 10, License (MIT), Build Status 等徽章占位符。
 2.  **Introduction (はじめに)**: 简要介绍项目目的（为了探索 .NET 现代架构的最佳实践）。
 3.  **Architecture (アーキテクチャ)**: 提到项目中使用到的所有的Design Principles,Design Patterns,Architectural Principles,Architectural Styles,Architectural Patterns,Enterprise Patterns等。**如果包含复杂的业务流程或逻辑流，用 Mermaid 生成图。**
 4.  **Key Features (主な機能)**:
     - 详细列出项目中的功能点。
     - 请使用技术术语。
-5.  **Tech Stack (採用技術)**: 列出项目中使用到的所有核心技术栈 (.NET 9, EF Core, MediatR, FluentValidation, Serilog, OpenTelemetry, Docker 等)。
+5.  **Tech Stack (採用技術)**: 列出项目中使用到的所有核心技术栈 (.NET 10, EF Core, MediatR, FluentValidation, Serilog, OpenTelemetry, Docker 等)。
 6.  **Getting Started (開始方法)**: 简述如何 Clone 和 Run。
 7.  **Future Roadmap (今後の展望)**: (可选) 比如计划添加的功能点。
 

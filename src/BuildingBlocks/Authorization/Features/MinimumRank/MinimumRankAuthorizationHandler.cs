@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using VK.Blocks.Authorization.Common;
 using VK.Blocks.Authorization.DependencyInjection;
 using VK.Blocks.Authorization.Diagnostics;
+using VK.Blocks.Authorization.Features.MinimumRank.Internal;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.MinimumRank;

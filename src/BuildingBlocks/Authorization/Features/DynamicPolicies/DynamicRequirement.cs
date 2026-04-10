@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using VK.Blocks.Authorization.Abstractions;
 using VK.Blocks.Authorization.Common;
+using VK.Blocks.Authorization.Features.DynamicPolicies.Internal;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.DynamicPolicies;
