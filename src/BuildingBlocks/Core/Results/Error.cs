@@ -6,7 +6,7 @@ namespace VK.Blocks.Core.Results;
 /// <param name="Code">The unique error code.</param>
 /// <param name="Description">The error description.</param>
 /// <param name="Type">The error type (e.g., Validation, NotFound, Failure).</param>
-public record Error(string Code, string Description, ErrorType Type = ErrorType.Failure)
+public sealed record Error(string Code, string Description, ErrorType Type = ErrorType.Failure)
 {
     #region Fields
 

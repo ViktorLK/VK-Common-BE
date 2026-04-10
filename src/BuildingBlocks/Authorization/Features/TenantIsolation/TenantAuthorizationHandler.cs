@@ -1,58 +1,91 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using System.Diagnostics;
+using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Common;
+using VK.Blocks.Authorization.DependencyInjection;
 using VK.Blocks.Authorization.Diagnostics;
+using VK.Blocks.Authorization.Features.TenantIsolation.Internal;
+using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.TenantIsolation;
 
 /// <summary>
-/// Grants access when the authenticated user belongs to the same tenant as the target resource.
-/// Evaluates <see cref="SameTenantRequirement"/>.
+/// Enforces tenant isolation and supports configurable bypass for SuperAdmins.
 /// </summary>
-public sealed class TenantAuthorizationHandler : AuthorizationHandler<SameTenantRequirement>
+public sealed class TenantAuthorizationHandler(
+    IUserTenantProvider userTenantProvider,
+    IOptions<VKAuthorizationOptions> options,
+    ILogger<TenantAuthorizationHandler> logger)
+    : AuthorizationHandler<SameTenantRequirement>, ITenantEvaluator
 {
+    private const string PolicyName = "TenantIsolation";
+    private readonly VKAuthorizationOptions _options = options.Value;
+
     #region Public Methods
 
     /// <inheritdoc />
-    protected override Task HandleRequirementAsync(
+    protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         SameTenantRequirement requirement)
     {
-        // Example logic: Extract tenant ID from claims and compare with resource
-        // In a real scenario, the resource would be an entity with a TenantId property
-
-        var userTenantId = context.User.FindFirst(TenantIsolationConstants.TenantIdClaimType)?.Value;
-
-        // If the resource is null, we might be checking global access
-        // If it's an object, we attempt to check its tenant ID
-        if (context.Resource is null)
+        if (context.User.Identity?.IsAuthenticated != true)
         {
-            if (!string.IsNullOrEmpty(userTenantId))
-            {
-                context.Succeed(requirement);
-                AuthorizationDiagnostics.RecordDecision("TenantIsolation", true);
-            }
-            else
-            {
-                AuthorizationDiagnostics.RecordDecision("TenantIsolation", false);
-            }
-            return Task.CompletedTask;
+            return;
         }
 
-        // Logic for resource-based tenant check would go here
-        // For now, if the user has a tenant ID, we let it pass the basic requirement
-        if (!string.IsNullOrEmpty(userTenantId))
+        var targetTenantId = context.Resource as string;
+        var result = await HasSameTenantAsync(context.User, targetTenantId).ConfigureAwait(false);
+
+        context.ApplyResult(requirement, result, this);
+    }
+
+    /// <inheritdoc />
+    public ValueTask<Result<bool>> HasSameTenantAsync(
+        ClaimsPrincipal user,
+        string? targetTenantId = null,
+        CancellationToken ct = default)
+    {
+        var userId = user.Identity?.Name ?? "Unknown";
+
+        // 1. SuperAdmin Bypass Logic (Centralized via extension)
+        if (!_options.StrictTenantIsolation && user.IsSuperAdmin(_options))
         {
-            context.Succeed(requirement);
-            AuthorizationDiagnostics.RecordDecision("TenantIsolation", true);
+            logger.LogTenantCheckSucceeded(userId, "GLOBAL", targetTenantId ?? "ANY", PolicyName);
+            return ValueTask.FromResult(Result.Success(true));
+        }
+
+        var sw = Stopwatch.StartNew();
+        var userTenantId = userTenantProvider.GetUserTenantId(user);
+
+        // 2. Logic Evaluation
+        var isAllowed = !string.IsNullOrEmpty(userTenantId) && 
+                        (string.IsNullOrEmpty(targetTenantId) || 
+                         string.Equals(userTenantId, targetTenantId, System.StringComparison.OrdinalIgnoreCase));
+
+        // 3. Diagnostics & Recording (Centralized via extension)
+        sw.RecordEvaluation(PolicyName, Result.Success(isAllowed));
+
+        if (isAllowed)
+        {
+            logger.LogTenantCheckSucceeded(userId, userTenantId!, targetTenantId, PolicyName);
+            return ValueTask.FromResult(Result.Success(true));
+        }
+
+        if (string.IsNullOrEmpty(userTenantId))
+        {
+            logger.LogTenantCheckMissingId(userId, PolicyName);
         }
         else
         {
-            AuthorizationDiagnostics.RecordDecision("TenantIsolation", false);
+            logger.LogTenantCheckMismatch(userId, userTenantId, targetTenantId, PolicyName);
         }
-
-        return Task.CompletedTask;
+        
+        return ValueTask.FromResult(Result.Success(false));
     }
 
     #endregion
 }
-
-

@@ -39,6 +39,7 @@ trigger: always_on
 - Prefer projection (`Select`) over full entity materialization for read-only queries.
 - Prefer `ReadOnlySpan<T>` / `Span<T>` for string parsing and manipulation to avoid heap allocations.
 - Only use `stackalloc` for constant or provably small sizes (≤ 256 bytes) to prevent stack overflow risks.
+- Prefer `ArrayPool<T>.Shared` for large temporary buffers (> 256 bytes) to reduce GC pressure and avoid LOH allocations. ALWAYS return the array in a `finally` block.
 
 ### Rule 5 — Automation
 
@@ -115,7 +116,31 @@ Interrupt the current flow and ask:
 If confirmed → trigger `/publish-adr` using the current conversation as context.
 Goal: Ensure _why this change was made_ is captured in real time, not reconstructed retroactively.
 
-### Rule 12 — Folder Organization
+### Rule 12 — Modern C# Semantics
+
+- **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required.
+- **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality. Use `with` expressions for non-destructive mutation instead of manual copy constructors.
+- **Required Properties**: Use `required` keyword for all non-nullable properties in `record` or DTO types to ensure compile-time safety. STRICTLY PROHIBIT the use of `default!` for property initialization.
+- **Pattern Matching**: Prefer `is` and `switch` expressions over `if`/`else` chains and type casting for concise, readable branching.
+- **Null Handling**: Prefer `??` / `??=` / `?.` over explicit null checks. Use `is null` / `is not null` over `== null` to avoid operator overload side-effects and ensure pattern consistency.
+- **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
+
+### Rule 13 — Service Registration Pattern
+
+- Each BuildingBlock module MUST define a dedicated marker type (e.g. `public sealed class AuthenticationBlock;`).
+- Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Actual Registration, Mark-Self"** pattern:
+    1.  Check for self-registration via `IsVKBlockRegistered<OwnBlock>()` and return early if true.
+    2.  Validate prerequisites using `IsVKBlockRegistered<BaseBlock>()` and throw `InvalidOperationException` if missing.
+    3.  Perform actual service registration using idempotent patterns (see below).
+    4.  Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` as the **FINAL step** (Success Commit).
+- All BuildingBlock options MUST be registered using the `AddVKBlockOptions<T>` pattern to handle binding and validation.
+- Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`).
+- Direct `AddSingleton`/`AddScoped`/`AddTransient` is PROHIBITED within building block extensions.
+- **Exception**: Official framework extensions (e.g. `AddHttpContextAccessor`, `AddLogging`, `AddAuthentication`) that are known to be idempotent are allowed and preferred over manual `TryAdd` registrations.
+
+### Rule 14 — Structural Organization
+
+#### Folder Layout
 
 - **Feature-Driven (Vertical Slice)**: Group related Handlers, Requirements, Attributes, and Models into a single feature folder (e.g. `Features/WorkingHours/`).
 - **NO Type-Driven Folders**: Avoid grouping by technical type (e.g., separating all Handlers from Requirements).
@@ -124,7 +149,7 @@ Goal: Ensure _why this change was made_ is captured in real time, not reconstruc
   ✅ Features/WorkingHours/
   ❌ Features/HandleWorkingHours/
 
-### Rule 13 — Constant Visibility
+#### Constant Visibility
 
 - **Single File Scope:** Use `private const` within the class.
 - **Cross-file (Same Feature):** Extract to an `internal static class XxxConstants` inside the feature's folder.
@@ -134,40 +159,11 @@ Goal: Ensure _why this change was made_ is captured in real time, not reconstruc
   ✅ WorkingHoursConstants.cs
   ❌ Constants.cs
 
-### Rule 14 — Type Segregation
+#### Type Segregation
 
 - **One File, One Type**: NEVER declare multiple primary `class`, `record`, or `interface` types in a single `.cs` file.
 - **Navigation**: Extract nested or bundled types into their own files to maintain high cohesive navigation.
 - **Exception**: Private nested types used exclusively within the same class MAY remain in the same file. e.g. private sealed record InternalResult(...)
-
-### Rule 15 — Modern C# Semantics
-
-- **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required.
-- **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality.
-- **Required Properties**: Use `required` keyword for all non-nullable properties in `record` or DTO types to ensure compile-time safety. STRICTLY PROHIBIT the use of `default!` for property initialization.
-
-### Rule 16 — Service Marker Pattern
-
-- Each BuildingBlock module MUST define a dedicated marker type (e.g. `public sealed class AuthenticationBlock;`).
-- Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Actual Registration, Mark-Self"** pattern:
-    1.  Check for self-registration via `IsVKBlockRegistered<OwnBlock>()` and return early if true.
-    2.  Validate prerequisites using `IsVKBlockRegistered<BaseBlock>()` and throw `InvalidOperationException` if missing.
-    3.  Perform actual service registration using idempotent patterns (Rule 17).
-    4.  Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` as the **FINAL step** (Success Commit).
-
-### Rule 17 — Idempotent Registration
-
-- All BuildingBlock options MUST be registered using the `AddVKBlockOptions<T>` pattern to handle binding and validation.
-- Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`).
-- Direct `AddSingleton`/`AddScoped`/`AddTransient` is PROHIBITED within building block extensions.
-- **Exception**: Official framework extensions (e.g. `AddHttpContextAccessor`, `AddLogging`, `AddAuthentication`) that are known to be idempotent are allowed and preferred over manual `TryAdd` registrations.
-
-### Rule 18 — Modern C# Idioms
-
-- **Pattern Matching**: Prefer `is` and `switch` expressions over `if`/`else` chains and type casting for concise, readable branching.
-- **Record & with**: Use `record` types for immutable data models. Use `with` expressions for non-destructive mutation instead of manual copy constructors. (See Rule 15 for `sealed` semantics.)
-- **Null Handling**: Prefer `??` / `??=` / `?.` over explicit null checks. Use `is null` / `is not null` over `== null` to avoid operator overload side-effects and ensure pattern consistency.
-- **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
 
 ---
 
@@ -191,7 +187,7 @@ Goal: Ensure _why this change was made_ is captured in real time, not reconstruc
     - ✅/❌ Observability → (logging/metrics code) [actual finding]
     - ✅/❌ Service Marker → (DI registration) [actual finding]
     - ✅/❌ Idempotent Options → (DI registration) [actual finding]
-    - ✅/❌ Span & stackalloc → (string parsing / fixed-size buffer ≤256 bytes)
+    - ✅/❌ Span, stackalloc & ArrayPool → (string parsing / buffer management)
 
 - **Language**: Code, comments, and commit messages in English. Explanations and ADR in **Professional Japanese**.
 - **Handshake**: Every response MUST start with: `"VK.Blocks Architect Mode Active."`

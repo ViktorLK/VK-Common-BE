@@ -29,7 +29,7 @@ public abstract class AggregateRoot<TId> : Entity<TId> where TId : notnull
     /// <summary>
     /// Gets the domain events raised by this aggregate since its last save.
     /// </summary>
-    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents;
 
     #endregion
 

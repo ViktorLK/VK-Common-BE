@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace VK.Blocks.Core.Guards;
 
 /// <summary>
@@ -11,8 +13,11 @@ public static class Guard
 
     /// <summary>Ensures a reference-type value is not null.</summary>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static T NotNull<T>(T? value, string paramName) where T : class =>
-        value ?? throw new ArgumentNullException(paramName);
+    public static T NotNull<T>(T? value, [CallerArgumentExpression(nameof(value))] string? paramName = null) where T : class
+    {
+        ArgumentNullException.ThrowIfNull(value, paramName);
+        return value;
+    }
 
     /// <summary>Ensures a string is neither null nor whitespace.</summary>
     /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is null or whitespace.</exception>

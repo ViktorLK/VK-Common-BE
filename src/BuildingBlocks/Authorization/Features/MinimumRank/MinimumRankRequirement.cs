@@ -1,25 +1,18 @@
-﻿
+using System;
+using VK.Blocks.Authorization.Abstractions;
+using VK.Blocks.Authorization.Common;
+using VK.Blocks.Core.Results;
+
 namespace VK.Blocks.Authorization.Features.MinimumRank;
 
 /// <summary>
-/// Requires the authenticated user to hold at least the specified <see cref="MinimumRank"/>
-/// as expressed in the <c>vk_rank</c> claim.
+/// Requires the authenticated user to have a specific minimum rank.
 /// Use with <c>MinimumRankAuthorizationHandler</c>.
 /// </summary>
-/// <param name="MinimumRank">The lowest rank that is permitted to proceed.</param>
-public sealed record MinimumRankRequirement : Microsoft.AspNetCore.Authorization.IAuthorizationRequirement
+/// <param name="MinimumRankValue">The integer value of the lowest rank that is permitted to proceed.</param>
+/// <param name="EnumType">The type of the enum representing the ranks, used for claim parsing fallback.</param>
+public sealed record MinimumRankRequirement(int MinimumRankValue, Type EnumType) : IVKAuthorizationRequirement
 {
-    #region Properties
-
-    /// <summary>
-    /// The lowest rank that is permitted to proceed.
-    /// </summary>
-    public EmployeeRank MinimumRank { get; init; }
-
-    #endregion
-
-    public MinimumRankRequirement(EmployeeRank minimumRank)
-    {
-        MinimumRank = minimumRank;
-    }
+    /// <inheritdoc />
+    public Error DefaultError => AuthorizationErrors.InsufficientRank;
 }
