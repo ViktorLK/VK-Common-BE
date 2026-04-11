@@ -1,3 +1,5 @@
+using VK.Blocks.Authentication.Features.Jwt.Internal;
+using VK.Blocks.Authentication.Features.Jwt.Metadata;
 using Microsoft.Extensions.Options;
 
 namespace VK.Blocks.Authentication.Features.Jwt;
@@ -12,6 +14,11 @@ public sealed class JwtOptionsValidator : IValidateOptions<JwtOptions>
     /// <inheritdoc />
     public ValidateOptionsResult Validate(string? name, JwtOptions options)
     {
+        if (!options.Enabled)
+        {
+            return ValidateOptionsResult.Success;
+        }
+
         if (string.IsNullOrWhiteSpace(options.Issuer))
         {
             return ValidateOptionsResult.Fail(JwtConstants.IssuerRequired);

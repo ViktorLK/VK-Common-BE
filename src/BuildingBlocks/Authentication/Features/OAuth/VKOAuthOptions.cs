@@ -10,7 +10,7 @@ public sealed class VKOAuthOptions
     /// <summary>
     /// Gets or sets a value indicating whether OAuth provider registration is enabled.
     /// </summary>
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; } = false;
 
     /// <summary>
     /// Gets or sets the configured OAuth providers, keyed by provider name.

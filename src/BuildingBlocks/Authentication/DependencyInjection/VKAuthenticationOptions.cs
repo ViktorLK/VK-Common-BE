@@ -38,7 +38,7 @@ public sealed class VKAuthenticationOptions
     /// <summary>
     /// Gets or sets a value indicating whether authentication is enabled.
     /// </summary>
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; } = false;
 
     /// <summary>
     /// Gets or sets the default authentication scheme.

@@ -14,7 +14,7 @@ JWT (自己発行 / OIDC)、API Key、OAuth の 3 つの認証戦略を `appsett
 
 - **Zero-Dependency InMemory Default**: 開発・テスト環境ではインフラ依存なしで即座に動作
 - **Production-Ready Extensibility**: Redis / Azure Cache 等への差し替えは DI 登録のみで完了
-- **Fail-Fast Validation**: 不正な設定は起動時に即座に検出し、ランタイムエラーを未然に防止
+- **Fail-Fast Validation**: 有効化された機能の設定不備を起動時に即座に検出し、ランタイムエラーを防止
 - **Self-Adaptive Resource Management**: InMemory プロバイダーの自動クリーンアップと、外部ストア切替時の自動スキップ
 
 ---
@@ -110,15 +110,13 @@ Authentication/
 ├── Abstractions/             # 共有ドメインモデル (AuthenticatedUser, ExternalIdentity, VKClaimTypes)
 ├── Common/                   # 横断的関心事 (Constants, AuthGroups, InMemoryCleanup, ResponseHelper)
 │   └── Extensions/           # ClaimsPrincipal 拡張メソッド
-├── DependencyInjection/      # Fluent Builder API, Options, Validators
+├── DependencyInjection/      # Module-level DI 登録 (AuthenticationBlock, Options)
 ├── Diagnostics/              # OpenTelemetry ActivitySource / Meter / Constants
 └── Features/                 # Vertical Slice 機能群
-    ├── ApiKeys/              # API Key 認証 (Validator, Store, RateLimiter, Revocation)
-    ├── Jwt/                  # JWT 認証 (Symmetric / OIDC Discovery)
-    │   └── RefreshTokens/    # リフレッシュトークン (Rotation Validation, Revocation)
-    ├── OAuth/                # OAuth Claims Mapping (Provider-Agnostic)
-    │   └── Mappers/          # プロバイダー固有マッパー (GitHub, etc.)
-    └── SemanticAttributes/   # 型安全な認証属性 ([JwtAuthorize], [ApiKeyAuthorize], [AuthGroup])
+    ├── ApiKeys/              # API Key 認証 (Metadata, Internal, Persistence, DI)
+    ├── Jwt/                  # JWT 認証 (Metadata, Internal, Persistence, DI)
+    ├── OAuth/                # OAuth クレームマッピング (Metadata, Internal, Mappers, DI)
+    └── SemanticAttributes/   # 型安全なメタデータ属性 (Metadata)
 ```
 
 ---
@@ -142,6 +140,8 @@ Authentication/
 ### 🌐 OAuth クレームマッピング
 
 - **Source Generator 駆動の自動登録**: `[OAuthProvider]` 属性によるリフレクション不使用のマッパー登録
+- **個別認可ポリシーの自動生成**: 各プロバイダーに対し、`VK.Group.{ProviderName}` (例: `VK.Group.GitHub`) という名称の認可ポリシーが自動登録されます。
+- **コンパイル時ディスカバリ**: `OAuthProviderMetadata` を利用した動的なポリシー構成 (`IConfigureOptions<AuthorizationOptions>`) により、DI 登録ロジックの肥大化を防止
 - **Template Method パターン**: `OAuthClaimsMapperBase` を継承することで、プロバイダー固有のマッピングを最小限のコードで実装
 - **Keyed Service 統合**: .NET 10 の Keyed DI を活用したプロバイダー別マッパー解決
 
@@ -155,6 +155,7 @@ Authentication/
 [AuthGroup(AuthGroups.User)]     // JWT + OAuth を許可 (人間ユーザー)
 [AuthGroup(AuthGroups.Service)]  // API Key + JWT を許可 (M2M 通信)
 [AuthGroup(AuthGroups.Internal)] // API Key のみ許可 (内部管理)
+[Authorize(Policy = "VK.Group.GitHub")] // 特定のプロバイダー（GitHub等）による認証のみ許可
 ```
 
 ### 📡 可観測性 (Observability)
@@ -189,13 +190,20 @@ Authentication/
 
 ---
 
-## 開始方法
-
 ### 1. パッケージ参照
 
 ```xml
 <ProjectReference Include="..\Authentication\VK.Blocks.Authentication.csproj" />
 ```
+
+> [!IMPORTANT]
+> **明示的オプトイン (Explicit Opt-in) モデル**
+>
+> `VK.Blocks.Authentication` は、安全性の観点から**すべての機能がデフォルトで無効化 (Enabled: false)** されています。
+>
+> - ルートの `Authentication:Enabled` スイッチを含め、JWT や API Key などのすべての認証戦略はデフォルトで有効になりません。
+> - 利用したい機能およびルートブロックについて、`appsettings.json` で明示的に `"Enabled": true` を設定する必要があります。
+> - 有効化（Enabled: true）した際、必須設定（Issuer や SecretKey 等）が不足している場合は、**Fail-Fast 原則に基づきアプリケーションは起動時に停止（Crash）**します。
 
 ### 2. 構成 (appsettings.json)
 
@@ -270,13 +278,33 @@ Authentication/
 builder.Services
     .AddVKAuthenticationBlock(builder.Configuration)
     // .AddDiscoveryOAuth(builder.Configuration)             // ※ OIDC拡張パッケージ導入時のみ利用可能
-    .AddClaimsProvider<MyCustomClaimsProvider>()          // カスタム Claims エンリッチメント
-    .AddApiKeyRevocationProvider<RedisRevocationProvider>() // Redis ベース失効管理
-    .AddOAuthMapper<GoogleClaimsMapper>("Google");         // (任意) 特定のプロバイダーに対するマッパーの手動上書き・追加
+    .TryAddClaimsProvider<MyCustomClaimsProvider>()       // カスタム Claims エンリッチメント
+    .WithApiKeyRevocationProvider<RedisRevocationProvider>() // Redis ベース失効管理
+    .TryAddOAuthMapper<GoogleClaimsMapper>("Google");      // (任意) 特定のプロバイダーに対するマッパーの手動上書き・追加
 ```
 
 > [!NOTE]
 > `AddDiscoveryOAuth` を利用するには、別パッケージの `VK.Blocks.Authentication.OpenIdConnect` を参照し、名前空間 `VK.Blocks.Authentication.OpenIdConnect.DependencyInjection` をインポートする必要があります。
+
+---
+
+## 🛠️ 技術的詳細: バリデータ登録
+
+本ライブラリは `TryAddEnumerable` パターンを用いた、安全で拡張可能なオプション検証を提供しています。
+
+### カスタムバリデータの追加
+
+`AddVKBlockOptions` を呼び出した後、さらに独自の `IValidateOptions<T>` を追加する場合は、必ず **`TryAddEnumerableSingleton`**（または `TryAddEnumerable`）を使用してください。
+
+```csharp
+// ❌ 悪い例: 定義済みのバリデータがスキップされてしまいます
+services.TryAddSingleton<IValidateOptions<MyOptions>, MyValidator>();
+
+// ✅ 良い例: 安全に複数のバリデータを併存させることができます
+services.TryAddEnumerableSingleton<IValidateOptions<MyOptions>, MyValidator>();
+```
+
+**理由:** `AddVKBlockOptions` 内部で `DataAnnotations` 等の標準バリデータが既に登録されているため、単純な `TryAdd` では後続のバリデータが「登録済み」とみなされてスキップされてしまうためです。
 
 ---
 

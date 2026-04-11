@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using VK.Blocks.Authentication.Features.Jwt.Metadata;
+using VK.Blocks.Core.Attributes;
 
 namespace VK.Blocks.Authentication.Features.Jwt;
 
@@ -12,7 +14,7 @@ public sealed class JwtOptions
     /// <summary>
     /// Gets or sets a value indicating whether JWT validation is enabled.
     /// </summary>
-    public bool Enabled { get; set; } = true;
+    public bool Enabled { get; set; } = false;
 
     /// <summary>
     /// Gets or sets the authentication scheme name for JWT.

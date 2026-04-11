@@ -12,7 +12,7 @@
 
 Authorization ビルディングブロックの開発が進むにつれ、多くの機能（Roles, Permissions, MinimumRank 等）が追加された。しかし、以下の課題が浮き彫りになっていた：
 
-1.  **中央集約的な DI 登録**: `AuthorizationServiceCollectionExtensions.cs` が全機能の内部クラス（`DefaultRoleProvider` 等）を直接参照しており、機能を追加するたびに名前空間と依存関係が肥大化していた。
+1.  **中央集約的な DI 登録**: `AuthorizationBlockExtensions.cs` が全機能の内部クラス（`DefaultRoleProvider` 等）を直接参照しており、機能を追加するたびに名前空間と依存関係が肥大化していた。
 2.  **フォルダ構造の不一致**: 機能によってサブフォルダ（Metadata, Internal）の有無や属性の配置場所が異なり、開発者がどこにファイルを置くべきか迷う状況であった。
 3.  **Source Generator の保守性**: SG のトリガー属性が `Abstractions/` に散らばっており、機能単位でのカプセル化（Vertical Slice）が不完全であった。
 
