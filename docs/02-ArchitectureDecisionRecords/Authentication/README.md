@@ -54,6 +54,12 @@
 **概要**: インフラ構成（In-Memory vs Distributed）を自律的に検知し、不要なクリーンアップ用バックグラウンドタスクを自己停止（Hard Exit）させることでリソースを最適化する  
 **キーワード**: Self-Adaptive, Background Service, Resource Optimization, Lifecycle Management
 
+#### [ADR-018: Standardization of Authentication Opt-in Model and Idempotent Validation Patterns](./adr-018-standardization-of-authentication-opt-in-model-and-idempotent-validation-patterns.md)
+
+**Status**: ✅ Accepted  
+**概要**: 認証ライブラリをデフォルト無効（Enabled: false）のオプトイン方式へ移行し、IValidateOptions と TryAddEnumerable を用いた厳格かつべき等なバリデーション構成を標準化する  
+**キーワード**: Explicit Opt-in, Fail-Fast, Idempotency, Validation Patterns
+
 ---
 
 ### Standards & Compliance (標準とコンプライアンス)
@@ -127,5 +133,5 @@
 
 ---
 
-**Last Updated**: 2026-04-01  
-**Total ADRs**: 17
+**Last Updated**: 2026-04-11  
+**Total ADRs**: 18

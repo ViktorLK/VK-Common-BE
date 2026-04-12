@@ -299,6 +299,98 @@ Ensure you test:
   }
 );
 
+/**
+ * Recursively walks a directory and returns an array of files.
+ */
+async function getFiles(dir: string, excludePatterns: string[]): Promise<string[]> {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  const files = await Promise.all(entries.map(async (entry) => {
+    const res = path.join(dir, entry.name);
+    // Standardize path for pattern matching
+    const normalizedPath = res.replace(/\\/g, "/");
+    
+    if (excludePatterns.some(p => normalizedPath.includes(`/${p}/`) || normalizedPath.endsWith(`/${p}`))) {
+      return [];
+    }
+
+    if (entry.isDirectory()) {
+      return getFiles(res, excludePatterns);
+    } else {
+      return [res];
+    }
+  }));
+  return files.flat();
+}
+
+// Register tool for exporting codebase to Markdown
+server.tool(
+  "export_codebase_to_markdown",
+  "Consolidates source code from a directory into a single Markdown file. Supports path-specific exports and proper encoding.",
+  {
+    sourcePath: z.string().optional().default("src").describe("Directory to scan (relative to project root, e.g. 'src/BuildingBlocks/Core')."),
+    outputPath: z.string().optional().default("artifacts/Snapshots/CodebaseSnapshot.md").describe("Output Markdown file name."),
+  },
+  async ({ sourcePath, outputPath }) => {
+    try {
+      const projectRoot = path.resolve(__dirname, "../../");
+      const fullSourcePath = path.resolve(projectRoot, sourcePath);
+      
+      // Generate timestamp: yyyyMMddHHmmss
+      const now = new Date();
+      const timestamp = now.getFullYear().toString() +
+        (now.getMonth() + 1).toString().padStart(2, '0') +
+        now.getDate().toString().padStart(2, '0') +
+        now.getHours().toString().padStart(2, '0') +
+        now.getMinutes().toString().padStart(2, '0') +
+        now.getSeconds().toString().padStart(2, '0');
+
+      // If use default outputPath, or if it's just a filename, move it to a timestamped folder
+      let finalPath = outputPath;
+      if (outputPath === "artifacts/Snapshots/CodebaseSnapshot.md" || !outputPath.includes("/") && !outputPath.includes("\\")) {
+        const fileName = path.basename(outputPath);
+        finalPath = path.join("artifacts", `Snapshots_${timestamp}`, fileName);
+      }
+
+      const fullOutputPath = path.resolve(projectRoot, finalPath);
+      await fs.mkdir(path.dirname(fullOutputPath), { recursive: true });
+
+      const excludePatterns = ["bin", "obj", ".git", ".vs", "node_modules", "artifacts", "TestResults", ".gemini", ".nx"];
+      const allowedExtensions = [".cs", ".csproj", ".json", ".md", ".yaml", ".yml", ".ts", ".js"];
+
+      // 1. Get all files recursively
+      const allFiles = await getFiles(fullSourcePath, excludePatterns);
+      const targetFiles = allFiles.filter(f => allowedExtensions.includes(path.extname(f).toLowerCase()));
+
+      // 2. Initialize output file
+      const header = `# Codebase Snapshot\nGenerated on: ${new Date().toISOString()}\nSource Path: ${sourcePath}\n\n---\n\n`;
+      await fs.writeFile(fullOutputPath, header, "utf-8");
+
+      let fileCount = 0;
+      for (const filePath of targetFiles) {
+        const relativeName = path.relative(projectRoot, filePath);
+        const ext = path.extname(filePath).toLowerCase();
+        const lang = ext === ".cs" ? "csharp" : (ext === ".csproj" ? "xml" : ext.slice(1));
+        
+        const content = await fs.readFile(filePath, "utf-8");
+        const entry = `## File: ${relativeName}\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\n---\n\n`;
+        await fs.appendFile(fullOutputPath, entry, "utf-8");
+        fileCount++;
+      }
+
+      const resultText = `Successfully exported ${fileCount} files from \`${sourcePath}\` to \`${finalPath}\`.`;
+      return {
+        content: [{ type: "text", text: resultText }],
+      };
+
+    } catch (error: any) {
+      return {
+        content: [{ type: "text", text: `[Error] Failed to export codebase: ${error.message}` }],
+        isError: true,
+      };
+    }
+  }
+);
+
 async function main() {
 
   const transport = new StdioServerTransport();

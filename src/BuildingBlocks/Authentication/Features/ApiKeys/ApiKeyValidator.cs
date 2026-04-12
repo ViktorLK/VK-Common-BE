@@ -1,8 +1,11 @@
+using System.Buffers;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Diagnostics;
+using VK.Blocks.Authentication.Features.ApiKeys.Internal;
+using VK.Blocks.Authentication.Features.ApiKeys.Persistence;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authentication.Features.ApiKeys;
@@ -26,7 +29,7 @@ public sealed class ApiKeyValidator(
     /// <param name="rawApiKey">The raw API key string to be validated.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A result containing the API key context if successful; otherwise, an error.</returns>
-    public async Task<Result<ApiKeyContext>> ValidateAsync(
+    public async ValueTask<Result<ApiKeyContext>> ValidateAsync(
         string rawApiKey,
         CancellationToken cancellationToken = default)
     {
@@ -123,21 +126,36 @@ public sealed class ApiKeyValidator(
     private static string HashApiKey(string rawApiKey)
     {
         // PERF: Using stackalloc to avoid memory allocation for frequent calls.
+        // Rule 4.3: Use ArrayPool for large temporary buffers (> 256 bytes) to reduce GC pressure.
         var maxByteCount = Encoding.UTF8.GetMaxByteCount(rawApiKey.Length);
-        Span<byte> buffer = maxByteCount <= 256 ? stackalloc byte[maxByteCount] : new byte[maxByteCount];
-        var byteCount = Encoding.UTF8.GetBytes(rawApiKey, buffer);
+        byte[]? sharedBuffer = null;
+        Span<byte> buffer = maxByteCount <= 256
+            ? stackalloc byte[maxByteCount]
+            : (sharedBuffer = ArrayPool<byte>.Shared.Rent(maxByteCount));
 
-        Span<byte> hashBuffer = stackalloc byte[32]; // SHA256 produces 32 bytes
-        SHA256.HashData(buffer[..byteCount], hashBuffer);
-
-        // PERF: High-performance hex string generation with only one allocation (Audit 2026-04-01).
-        Span<char> hexBuffer = stackalloc char[64];
-        for (var i = 0; i < hashBuffer.Length; i++)
+        try
         {
-            hashBuffer[i].TryFormat(hexBuffer[(i * 2)..], out _, "x2");
-        }
+            var byteCount = Encoding.UTF8.GetBytes(rawApiKey, buffer);
 
-        return new string(hexBuffer);
+            Span<byte> hashBuffer = stackalloc byte[32]; // SHA256 produces 32 bytes
+            SHA256.HashData(buffer[..byteCount], hashBuffer);
+
+            // PERF: High-performance hex string generation with only one allocation (Audit 2026-04-01).
+            Span<char> hexBuffer = stackalloc char[64];
+            for (var i = 0; i < hashBuffer.Length; i++)
+            {
+                hashBuffer[i].TryFormat(hexBuffer[(i * 2)..], out _, "x2");
+            }
+
+            return new string(hexBuffer);
+        }
+        finally
+        {
+            if (sharedBuffer is not null)
+            {
+                ArrayPool<byte>.Shared.Return(sharedBuffer);
+            }
+        }
     }
 
     /// <summary>

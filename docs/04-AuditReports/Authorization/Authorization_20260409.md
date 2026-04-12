@@ -210,12 +210,11 @@ var options = builder.Services
 
 ### ✅ 3. DI 登録の完全な Rule 16/17 準拠
 
-- `AuthorizationBlock` マーカー型宣言 ✅
-- 冪等性チェック (`IsVKBlockRegistered`) ✅
-- `TryAdd` パターン完全適用 ✅
-- `AddVKBlockMarker` による自己登録 ✅
 - `AddVKBlockOptions` によるオプション登録 ✅
 - `IValidateOptions<T>` による起動時バリデーション ✅
+- `AuthorizationBlockExtensions` による統一された登録インターフェース ✅
+- 冪等な `AddVKAuthorizationBlock` 実装 ✅
+- 包括的な `AuthorizationBlockRegistrationTests` による検証 ✅
 
 ### ✅ 4. VKAuthorizationOptionsValidator — 包括的構成バリデーション
 

@@ -22,6 +22,11 @@ public sealed class ApiKeyOptionsValidator : IValidateOptions<ApiKeyOptions>
             return ValidateOptionsResult.Fail("A valid HeaderName is required for API Key authentication.");
         }
 
+        if (string.IsNullOrWhiteSpace(options.SchemeName))
+        {
+            return ValidateOptionsResult.Fail("A valid SchemeName is required for API Key authentication.");
+        }
+
         if (options.MinLength < 0)
         {
             return ValidateOptionsResult.Fail("ApiKey:MinLength must be a non-negative integer.");

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace VK.Blocks.Authentication.Abstractions;
 
@@ -16,7 +17,7 @@ public interface IVKClaimsProvider
     /// <param name="userId">The unique identifier of the user.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A collection of claims to append to the authenticated user's identity.</returns>
-    Task<IEnumerable<Claim>> GetUserClaimsAsync(string userId, CancellationToken cancellationToken = default);
+    ValueTask<IEnumerable<Claim>> GetUserClaimsAsync(string userId, CancellationToken cancellationToken = default);
 
     #endregion
 }

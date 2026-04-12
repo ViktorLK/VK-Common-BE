@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authentication.Features.OAuth.Internal;
 
 namespace VK.Blocks.Authentication.Features.OAuth;
 
