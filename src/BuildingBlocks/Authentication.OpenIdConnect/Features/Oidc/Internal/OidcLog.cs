@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
+namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
 /// <summary>
 /// Source-generated high-performance loggers for the OIDC feature.

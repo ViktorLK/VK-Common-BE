@@ -1,4 +1,4 @@
-namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
+namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
 /// <summary>
 /// Centralized constants for OIDC diagnostics.

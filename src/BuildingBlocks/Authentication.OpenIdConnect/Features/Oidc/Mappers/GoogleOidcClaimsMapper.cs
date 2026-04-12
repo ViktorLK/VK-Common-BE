@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.OAuth.Mappers;
+using VK.Blocks.Authentication.Features.OAuth.Metadata;
+using VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Mappers;
 

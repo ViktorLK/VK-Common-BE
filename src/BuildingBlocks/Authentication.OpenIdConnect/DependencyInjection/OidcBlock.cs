@@ -1,4 +1,4 @@
-namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection;
+namespace VK.Blocks.Authentication.OpenIdConnect;
 
 /// <summary>
 /// A marker type for the OpenID Connect authentication building block.

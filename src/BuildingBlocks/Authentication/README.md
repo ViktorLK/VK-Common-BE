@@ -172,6 +172,35 @@ Authentication/
 - `ReferenceEquals` ベースのアクティブプロバイダー検出 — Redis 等に切替時にクリーンアップを自動スキップ
 - プロバイダー 0 件時のバックグラウンドサービス即座終了によるリソース効率化
 
+### ⚙️ Source Generator 連携 (`OAuthProviderMapperGenerator`)
+
+本モジュールは `VK.Blocks.Generators` の **`OAuthProviderMapperGenerator`** と連携し、以下のコードをコンパイル時に自動生成します：
+
+- **Keyed DI 自動登録**: `[OAuthProvider("GitHub")]` 属性が付与されたすべての `IOAuthClaimsMapper` 実装を検出し、`AddKeyedScoped` による DI 登録コードを生成（リフレクション不使用）
+- **重複検出**: 同一プロバイダー名に対して複数のマッパーが検出された場合、`VK0001` コンパイラ警告を発行
+- **プロバイダーメタデータ生成**: `VKOAuthGeneratedMetadata.AllProviders` として、登録済みプロバイダー名のコンパイル時リストを生成。`IConfigureOptions<AuthorizationOptions>` による動的ポリシー構成はこのメタデータを消費
+
+> [!NOTE]
+> このジェネレーターはアセンブリ名ベースでスコープが制限されており、`VK.Blocks.Authentication` プロジェクトでは `VKOAuth` プレフィックス、`VK.Blocks.Authentication.OpenIdConnect` プロジェクトでは `VKOidc` プレフィックスで生成されます。両プロジェクト間でのマッパー衝突は発生しません。
+
+#### 💡 実装例 (OAuth Mapper)
+
+```csharp
+// 1. マッパーの実装に属性を付与するだけ
+[OAuthProvider("GitHub")]
+internal sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
+{
+    protected override Result<IEnumerable<Claim>> MapClaims(ExternalIdentity identity)
+    {
+        // GitHub 固有のクレーム正規化ロジックを実装
+        return Result.Success(identity.Claims);
+    }
+}
+
+// 2. コンパイル時に以下の DI 登録コードが自動生成されます
+// services.AddKeyedScoped<IOAuthClaimsMapper, "GitHub", typeof(GitHubClaimsMapper)>();
+```
+
 ---
 
 ## 採用技術

@@ -10,7 +10,7 @@ using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.DependencyInjection;
 using VK.Blocks.Authentication.Features.OAuth;
 
-namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
+namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
 /// <summary>
 /// A factory for creating standardized OIDC event handlers.

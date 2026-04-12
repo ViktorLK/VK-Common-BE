@@ -30,7 +30,7 @@ sequenceDiagram
     App->>Core: 1. AddVKAuthenticationBlock()
     Core-->>App: Core Initialized (Marker Set)
     
-    App->>Oidc: 2. AddDiscoveryOAuth()
+    App->>Oidc: 2. AddVKOidcBlock()
     Oidc->>Core: Check Prerequisite (IsRegistered?)
     Oidc->>Oidc: Execute TryAdd & Bind Options
     Oidc-->>App: Finalize (OidcBlock Marker Set)
@@ -82,11 +82,10 @@ sequenceDiagram
 必ずコアブロック (`AuthenticationBlock`) を登録した **後** に登録してください。
 
 ```csharp
-// 1. 基盤となる認証ブロックの登録
-builder.Services.AddVKAuthenticationBlock(builder.Configuration);
-
-// 2. OIDC 拡張ブロックの登録（依存チェックとappsettings内の全有効プロバイダーの動的登録が自動実行されます）
-builder.Services.AddDiscoveryOAuth(builder.Configuration);
+// 1. 基盤となる認証ブロックの登録と OIDC 拡張ブロックの登録（連鎖的な Fluent API）
+builder.Services
+    .AddVKAuthenticationBlock(builder.Configuration)
+    .AddVKOidcBlock(builder.Configuration); // 依存チェックとappsettings内の全有効プロバイダー動的登録が自動実行されます
 ```
 
 ### 2. AppSettings の設定構成

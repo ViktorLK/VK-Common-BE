@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using VK.Blocks.Core.Attributes;
 
-namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
+namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
 /// <summary>
 /// Centralized Diagnostics definition for the VK.Blocks.Authentication.OpenIdConnect building block.

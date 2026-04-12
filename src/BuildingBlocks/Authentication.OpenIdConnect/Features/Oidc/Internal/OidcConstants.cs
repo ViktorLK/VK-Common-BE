@@ -1,13 +1,19 @@
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
+namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
 /// <summary>
 /// Constants specific to the OpenID Connect providers.
 /// </summary>
 internal static class OidcConstants
 {
+    /// <summary>
+    /// Global backchannel name for OIDC communication.
+    /// Consumers can use this name to apply custom HttpClient policies.
+    /// </summary>
+    internal const string OidcBackchannelName = "OidcBackchannel";
+
     /// <summary>
     /// Identifier for the Azure B2C provider.
     /// </summary>
@@ -51,7 +57,7 @@ internal static class OidcConstants
     #region Error and Activity Messages
 
     internal const string MapperNotFoundMessage = "OIDC Claims Mapper was not found.";
-    internal const string DependencyMissingMessage = "AddDiscoveryOAuth requires AddVKAuthenticationBlock to be called first.";
+    internal const string DependencyMissingMessage = "AddVKOidcBlock requires AddVKAuthenticationBlock to be called first.";
     internal const string MissingConfigErrorMessage = "OIDC Provider configuration missing for scheme: {0}";
 
     #endregion

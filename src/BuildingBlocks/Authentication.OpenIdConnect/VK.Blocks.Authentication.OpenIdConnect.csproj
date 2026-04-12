@@ -8,6 +8,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="VK.Blocks.Authentication.OpenIdConnect.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Authentication\VK.Blocks.Authentication.csproj" />
   </ItemGroup>
 </Project>

@@ -3,13 +3,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.DependencyInjection;
 
-namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
+namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
 /// <summary>
 /// A validator that ensures each OpenIdConnectOptions configuration has a corresponding 
 /// OAuthProviderOptions entry in the VKAuthenticationOptions.
 /// </summary>
-internal sealed class OidcProviderValidator(
+public sealed class OidcProviderValidator(
     IOptions<VKAuthenticationOptions> vkOptions,
     ILogger<OidcProviderValidator> logger) : IValidateOptions<OpenIdConnectOptions>
 {

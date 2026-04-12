@@ -1,0 +1,39 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
+using VK.Blocks.Authentication.Common;
+using VK.Blocks.Authentication.Features.OAuth;
+using VK.Blocks.Authentication.Generated;
+
+namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
+
+/// <summary>
+/// Automatically configures individual authorization policies for discovered OIDC providers.
+/// Enables fine-grained authorization like [Authorize(Policy = "VK.Group.Google")].
+/// </summary>
+internal sealed class OidcPolicyConfiguration(IOptions<VKOAuthOptions> oauthOptions) : IConfigureOptions<AuthorizationOptions>
+{
+    public void Configure(AuthorizationOptions options)
+    {
+        var vkOAuthOptions = oauthOptions.Value;
+        if (!vkOAuthOptions.Enabled)
+        {
+            return;
+        }
+
+        // We use the metadata generated specifically for the OIDC assembly.
+        foreach (var providerName in VKOidcGeneratedMetadata.AllProviders)
+        {
+            if (vkOAuthOptions.Providers.TryGetValue(providerName, out var providerOptions) && providerOptions.Enabled)
+            {
+                var scheme = providerOptions.SchemeName ?? providerName;
+                
+                // Register Individual Provider Policy (e.g., "VK.Group.Google")
+                options.AddPolicy($"{AuthenticationConstants.GroupPolicyPrefix}{providerName}", policy =>
+                {
+                    policy.AuthenticationSchemes.Add(scheme);
+                    policy.RequireAuthenticatedUser();
+                });
+            }
+        }
+    }
+}
