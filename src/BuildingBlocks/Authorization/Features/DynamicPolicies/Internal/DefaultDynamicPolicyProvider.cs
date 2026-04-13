@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using VK.Blocks.Authorization.Common;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.DynamicPolicies.Internal;
@@ -17,6 +18,9 @@ public sealed class DefaultDynamicPolicyProvider : IDynamicPolicyProvider
         CancellationToken cancellationToken = default)
     {
         var claimValue = user.FindFirst(attributeName)?.Value;
-        return ValueTask.FromResult(Result.Success(claimValue));
+        
+        return claimValue is null 
+            ? ValueTask.FromResult(Result.Failure<string?>(AuthorizationErrors.AttributeNotFound))
+            : ValueTask.FromResult(Result.Success<string?>(claimValue));
     }
 }

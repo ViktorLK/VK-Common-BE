@@ -70,4 +70,12 @@ public static class AuthorizationErrors
         "Authorization.DynamicPolicyFailed",
         "The dynamic policy requirement was not met.",
         ErrorType.Forbidden);
+
+    /// <summary>
+    /// The requested dynamic attribute was not found on the user principal.
+    /// </summary>
+    public static readonly Error AttributeNotFound = new(
+        "Authorization.AttributeNotFound",
+        "The requested dynamic attribute was not found on the user principal.",
+        ErrorType.NotFound);
 }

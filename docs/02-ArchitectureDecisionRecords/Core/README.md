@@ -1,0 +1,40 @@
+# ADR Index — Core
+
+このディレクトリには、`VK.Blocks.Core` モジュールの主要な設計決定を記録した ADR が含まれています。
+
+## 📚 ADR 一覧
+
+#### [ADR-001: Expanding Global ErrorType for Enterprise-Grade Error Handling](./adr-001-expanding-global-errortype-for-enterprise-grade-error-handling.md)
+
+**Status**: ✅ Accepted  
+**概要**: 全局 `ErrorType` 枚举を拡張し、429, 503, 502/504 等の工業級 HTTP マッピングをサポート。  
+**キーワード**: Result Pattern, RESTful, Enterprise Error Handling
+
+---
+
+#### [ADR-002: Idempotent BuildingBlock Options Registration in DI Container](./adr-002-idempotent-buildingblock-options-registration-in-di-container.md)
+
+**Status**: ✅ Accepted  
+**概要**: `AddVKBlockOptions` において、`Any()` チェックと `TryAddSingleton` を組み合わせ、重複した検証ロジックと DI 記述子の登録を防止。  
+**キーワード**: Idempotency, DI Container, Startup Performance
+
+---
+
+#### [ADR-003: Introducing Service Marker Pattern for BuildingBlock Modularization](./adr-003-introducing-service-marker-pattern-for-buildingblock-modularization.md)
+
+**Status**: ✅ Accepted  
+**概要**: オプション型に基づいた間接的な依存性チェックを廃止し、`AddVKBlockMarker<T>` を用いたセマンティックなサービス登録確認を導入。  
+**キーワード**: Service Marker, Modularity, Dependency Validation
+
+---
+
+#### [ADR-004: Unified Synchronization State Abstraction in Core](./adr-004-unified-synchronization-state-abstraction-in-core.md)
+
+**Status**: ✅ Accepted  
+**概要**: メタデータ同期用のハッシュ指紋を管理する `ISyncStateStore` 抽象を導入。全 Building Block で一貫した同期プロトコルを確立。  
+**キーワード**: Synchronization, Abstraction, Idempotency, No-Op Fallback
+
+---
+
+**Last Updated**: 2026-04-08  
+**Total ADRs**: 4

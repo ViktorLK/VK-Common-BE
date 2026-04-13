@@ -1,4 +1,4 @@
-namespace VK.Blocks.Authentication.Abstractions;
+namespace VK.Blocks.Core.Context;
 
 /// <summary>
 /// Standardized claim types used across VK system.

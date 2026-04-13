@@ -19,5 +19,8 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)src\BuildingBlocks\Generators\VK.Blocks.Generators.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)src\BuildingBlocks\Generators.CodeFixes\VK.Blocks.Generators.CodeFixes.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>
