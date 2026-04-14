@@ -1,7 +1,8 @@
 using FluentAssertions;
 using VK.Blocks.Authentication.Features.OAuth;
+using VK.Blocks.Authentication.Features.OAuth.Internal;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.OAuth;
+namespace VK.Blocks.Authentication.UnitTests.Features.OAuth.Internal;
 
 public sealed class OAuthErrorsTests
 {

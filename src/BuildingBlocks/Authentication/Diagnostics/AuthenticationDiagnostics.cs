@@ -15,36 +15,20 @@ public static partial class AuthenticationDiagnostics
 
     #region Fields
 
-    /// <summary>
-    /// Counter tracking the number of authentication attempts.
-    /// Includes tags for "auth.type" (e.g., JWT, ApiKey) and "auth.result" (Success, Failure).
-    /// </summary>
-    public static readonly Counter<long> AuthenticationRequests;
+    private static readonly Counter<long> _authenticationRequests;
 
-    /// <summary>
-    /// Counter tracking the number of API key rate limit violations.
-    /// </summary>
-    public static readonly Counter<long> TooManyRequests;
+    private static readonly Counter<long> _tooManyRequests;
 
-    /// <summary>
-    /// Counter tracking the number of authentication requests rejected due to revocation.
-    /// </summary>
-    public static readonly Counter<long> Revocations;
+    private static readonly Counter<long> _revocations;
 
-    /// <summary>
-    /// Counter tracking the number of detected refresh token replay attacks.
-    /// </summary>
-    public static readonly Counter<long> ReplayAttacks;
+    private static readonly Counter<long> _replayAttacks;
 
-    /// <summary>
-    /// Counter tracking the number of claims transformation attempts.
-    /// </summary>
-    public static readonly Counter<long> ClaimsTransformations;
+    private static readonly Counter<long> _claimsTransformations;
 
     /// <summary>
     /// Histogram tracking the duration of claims transformation.
     /// </summary>
-    public static readonly Histogram<double> ClaimsTransformationDuration;
+    private static readonly Histogram<double> ClaimsTransformationDuration;
 
     #endregion
 
@@ -52,28 +36,28 @@ public static partial class AuthenticationDiagnostics
 
     static AuthenticationDiagnostics()
     {
-        AuthenticationRequests = Meter.CreateCounter<long>(
+        _authenticationRequests = Meter.CreateCounter<long>(
             AuthenticationDiagnosticsConstants.AuthRequestCounterName,
             description: AuthenticationDiagnosticsConstants.AuthRequestCounterDescription
         );
 
-        TooManyRequests = Meter.CreateCounter<long>(
+        _tooManyRequests = Meter.CreateCounter<long>(
             AuthenticationDiagnosticsConstants.TooManyRequestsCounterName,
             unit: AuthenticationDiagnosticsConstants.TooManyRequestsCounterUnit,
             description: AuthenticationDiagnosticsConstants.TooManyRequestsCounterDescription
         );
 
-        Revocations = Meter.CreateCounter<long>(
+        _revocations = Meter.CreateCounter<long>(
             AuthenticationDiagnosticsConstants.RevocationCounterName,
             description: AuthenticationDiagnosticsConstants.RevocationCounterDescription
         );
 
-        ReplayAttacks = Meter.CreateCounter<long>(
+        _replayAttacks = Meter.CreateCounter<long>(
             AuthenticationDiagnosticsConstants.ReplayCounterName,
             description: AuthenticationDiagnosticsConstants.ReplayCounterDescription
         );
 
-        ClaimsTransformations = Meter.CreateCounter<long>(
+        _claimsTransformations = Meter.CreateCounter<long>(
             AuthenticationDiagnosticsConstants.ClaimsTransformationCounterName,
             description: AuthenticationDiagnosticsConstants.ClaimsTransformationCounterDescription
         );
@@ -108,7 +92,7 @@ public static partial class AuthenticationDiagnostics
             tags.Add(AuthenticationDiagnosticsConstants.TagFailureReason, failureReason);
         }
 
-        AuthenticationRequests.Add(1, tags);
+        _authenticationRequests.Add(1, tags);
     }
 
     /// <summary>
@@ -117,7 +101,7 @@ public static partial class AuthenticationDiagnostics
     /// <param name="authType">The type of authentication.</param>
     public static void RecordRevocationHit(string authType)
     {
-        Revocations.Add(1, new KeyValuePair<string, object?>(AuthenticationDiagnosticsConstants.TagAuthType, authType));
+        _revocations.Add(1, new KeyValuePair<string, object?>(AuthenticationDiagnosticsConstants.TagAuthType, authType));
     }
 
     /// <summary>
@@ -126,7 +110,7 @@ public static partial class AuthenticationDiagnostics
     /// <param name="familyId">The family identifier of the token.</param>
     public static void RecordReplayAttack(string familyId)
     {
-        ReplayAttacks.Add(1, new KeyValuePair<string, object?>(AuthenticationDiagnosticsConstants.TagUserId, familyId));
+        _replayAttacks.Add(1, new KeyValuePair<string, object?>(AuthenticationDiagnosticsConstants.TagUserId, familyId));
     }
 
     /// <summary>
@@ -141,7 +125,7 @@ public static partial class AuthenticationDiagnostics
             { AuthenticationDiagnosticsConstants.TagClaimsTransformed, applied }
         };
 
-        ClaimsTransformations.Add(1, tags);
+        _claimsTransformations.Add(1, tags);
         ClaimsTransformationDuration.Record(durationMs, tags);
     }
 
@@ -158,7 +142,7 @@ public static partial class AuthenticationDiagnostics
             { AuthenticationDiagnosticsConstants.TagTenantId, tenantId ?? string.Empty }
         };
 
-        TooManyRequests.Add(1, tags);
+        _tooManyRequests.Add(1, tags);
     }
 
     #endregion

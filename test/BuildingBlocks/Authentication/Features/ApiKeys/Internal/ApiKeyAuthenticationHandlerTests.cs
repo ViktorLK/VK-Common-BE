@@ -9,11 +9,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VK.Blocks.Authentication.Features.ApiKeys;
+using VK.Blocks.Authentication.Features.ApiKeys.Metadata;
+using VK.Blocks.Authentication.Features.ApiKeys.Persistence;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Core.Results;
 using Xunit;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys;
+namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys.Internal;
 
 public sealed class ApiKeyAuthenticationHandlerTests
 {

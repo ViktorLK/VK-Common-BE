@@ -1,7 +1,7 @@
 using FluentAssertions;
-using VK.Blocks.Authentication.Features.OAuth.Mappers;
+using VK.Blocks.Authentication.Features.OAuth.Metadata;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.OAuth.Mappers;
+namespace VK.Blocks.Authentication.UnitTests.Features.OAuth.Metadata;
 
 public sealed class OAuthProviderAttributeTests
 {

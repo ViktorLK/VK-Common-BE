@@ -8,12 +8,28 @@ namespace VK.Blocks.Core.Results;
 /// <param name="Type">The error type (e.g., Validation, NotFound, Failure).</param>
 public sealed record Error(string Code, string Description, ErrorType Type = ErrorType.Failure)
 {
+    #region Factory Methods
+
+    public static Error Validation(string code, string description) => new(code, description, ErrorType.Validation);
+    public static Error Unauthorized(string code, string description) => new(code, description, ErrorType.Unauthorized);
+    public static Error Forbidden(string code, string description) => new(code, description, ErrorType.Forbidden);
+    public static Error NotFound(string code, string description) => new(code, description, ErrorType.NotFound);
+    public static Error Conflict(string code, string description) => new(code, description, ErrorType.Conflict);
+    public static Error PreconditionFailed(string code, string description) => new(code, description, ErrorType.PreconditionFailed);
+    public static Error TooManyRequests(string code, string description) => new(code, description, ErrorType.TooManyRequests);
+    public static Error Failure(string code, string description) => new(code, description, ErrorType.Failure);
+    public static Error ExternalError(string code, string description) => new(code, description, ErrorType.ExternalError);
+    public static Error ServiceUnavailable(string code, string description) => new(code, description, ErrorType.ServiceUnavailable);
+    public static Error Timeout(string code, string description) => new(code, description, ErrorType.Timeout);
+
+    #endregion
+
     #region Fields
 
     /// <summary>
     /// Represents no error.
     /// </summary>
-    public static readonly Error None = new(string.Empty, string.Empty, ErrorType.Failure);
+    public static readonly Error None = new(string.Empty, string.Empty, ErrorType.None);
 
     /// <summary>
     /// Represents a null value error.
@@ -33,33 +49,39 @@ public sealed record Error(string Code, string Description, ErrorType Type = Err
 /// </summary>
 public enum ErrorType
 {
-    /// <summary>A general failure. (HTTP 500)</summary>
-    Failure = 0,
+    /// <summary>Represents no error.</summary>
+    None = -1,
 
-    /// <summary>A validation error. (HTTP 400)</summary>
+    /// <summary>A validation error.</summary>
     Validation = 1,
 
-    /// <summary>A not found error. (HTTP 404)</summary>
-    NotFound = 2,
-
-    /// <summary>A conflict error. (HTTP 409)</summary>
-    Conflict = 3,
-
-    /// <summary>An unauthorized error. (HTTP 401)</summary>
+    /// <summary>An unauthorized error.</summary>
     Unauthorized = 4,
 
-    /// <summary>A forbidden error. (HTTP 403)</summary>
+    /// <summary>A forbidden error.</summary>
     Forbidden = 5,
 
-    /// <summary>Too many requests (Rate limiting). (HTTP 429)</summary>
+    /// <summary>A not found error.</summary>
+    NotFound = 2,
+
+    /// <summary>A conflict error.</summary>
+    Conflict = 3,
+
+    /// <summary>A precondition failed error.</summary>
+    PreconditionFailed = 10,
+
+    /// <summary>Too many requests (Rate limiting).</summary>
     TooManyRequests = 6,
 
-    /// <summary>The service is temporarily unavailable. (HTTP 503)</summary>
+    /// <summary>A general failure.</summary>
+    Failure = 0,
+
+    /// <summary>An external service/gateway error.</summary>
+    ExternalError = 9,
+
+    /// <summary>The service is temporarily unavailable.</summary>
     ServiceUnavailable = 7,
 
-    /// <summary>A timeout occurred. (HTTP 408/504)</summary>
-    Timeout = 8,
-
-    /// <summary>An external service/gateway error. (HTTP 502/504)</summary>
-    ExternalError = 9
+    /// <summary>A timeout occurred.</summary>
+    Timeout = 8
 }

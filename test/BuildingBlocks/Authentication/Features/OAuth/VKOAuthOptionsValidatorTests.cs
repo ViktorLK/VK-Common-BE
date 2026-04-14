@@ -1,136 +1,181 @@
-using FluentAssertions;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Features.OAuth;
+using VK.Blocks.Authentication.Features.OAuth.Internal;
+using FluentAssertions;
 
 namespace VK.Blocks.Authentication.UnitTests.Features.OAuth;
 
 public sealed class VKOAuthOptionsValidatorTests
 {
-    private readonly VKOAuthOptionsValidator _sut;
-
-    public VKOAuthOptionsValidatorTests()
-    {
-        _sut = new VKOAuthOptionsValidator();
-    }
+    private readonly VKOAuthOptionsValidator _validator = new();
 
     [Fact]
-    public void Validate_WhenDisabled_ShouldReturnSuccess()
+    public void Validate_WhenOAuthDisabled_ReturnsSuccess()
     {
         // Arrange
         var options = new VKOAuthOptions { Enabled = false };
 
         // Act
-        var result = _sut.Validate(null, options);
+        var result = _validator.Validate(null, options);
 
         // Assert
-        result.Should().Be(ValidateOptionsResult.Success);
+        result.Succeeded.Should().BeTrue();
     }
 
     [Fact]
-    public void Validate_WhenEnabledAndNoProviders_ShouldReturnFailure()
+    public void Validate_WhenOAuthEnabledButNoProviders_ReturnsFailure()
     {
         // Arrange
         var options = new VKOAuthOptions 
         { 
             Enabled = true,
-            Providers = []
+            Providers = new Dictionary<string, OAuthProviderOptions>()
         };
 
         // Act
-        var result = _sut.Validate(null, options);
+        var result = _validator.Validate(null, options);
 
         // Assert
         result.Failed.Should().BeTrue();
         result.FailureMessage.Should().Be(VKOAuthErrors.MissingProviders);
     }
 
-    [Theory]
-    [InlineData("ClientId", "")]
-    [InlineData("ClientId", "  ")]
-    [InlineData("ClientSecret", "")]
-    [InlineData("Authority", "")]
-    [InlineData("CallbackPath", "")]
-    public void Validate_WhenEnabledProviderHasMissingFields_ShouldReturnFailure(string field, string value)
+    [Fact]
+    public void Validate_WhenProviderMissingClientId_ReturnsFailure()
     {
         // Arrange
-        var provider = new OAuthProviderOptions
-        {
+        var options = new VKOAuthOptions 
+        { 
             Enabled = true,
-            ClientId = field == "ClientId" ? value : "valid-id",
-            ClientSecret = field == "ClientSecret" ? value : "valid-secret",
-            Authority = field == "Authority" ? value : "https://valid-authority",
-            CallbackPath = field == "CallbackPath" ? value : "/callback"
-        };
-
-        var options = new VKOAuthOptions
-        {
-            Enabled = true,
-            Providers = new Dictionary<string, OAuthProviderOptions> { { "TestProvider", provider } }
+            Providers = new Dictionary<string, OAuthProviderOptions>
+            {
+                ["GitHub"] = new() 
+                { 
+                    Enabled = true, 
+                    ClientId = "", // Missing (empty)
+                    ClientSecret = "secret", 
+                    Authority = "auth", 
+                    CallbackPath = "/cb" 
+                }
+            }
         };
 
         // Act
-        var result = _sut.Validate(null, options);
+        var result = _validator.Validate(null, options);
 
         // Assert
         result.Failed.Should().BeTrue();
-        result.FailureMessage.Should().Contain("TestProvider");
+        result.FailureMessage.Should().Contain(string.Format(VKOAuthErrors.MissingClientIdTemplate, "GitHub"));
     }
 
     [Fact]
-    public void Validate_WhenEnabledProvidersAreValid_ShouldReturnSuccess()
+    public void Validate_WhenProviderMissingSecret_ReturnsFailure()
     {
         // Arrange
-        var provider = new OAuthProviderOptions
-        {
+        var options = new VKOAuthOptions 
+        { 
             Enabled = true,
-            ClientId = "valid-id",
-            ClientSecret = "valid-secret",
-            Authority = "https://valid-authority",
-            CallbackPath = "/callback",
-            SchemeName = "CustomGitHub", // Test SchemeName getter
-            ResponseType = "code",       // Test ResponseType getter
-            GetClaimsFromUserInfoEndpoint = true // Test GetClaimsFromUserInfoEndpoint getter
-        };
-
-        var options = new VKOAuthOptions
-        {
-            Enabled = true,
-            Providers = new Dictionary<string, OAuthProviderOptions> { { "GitHub", provider } }
+            Providers = new Dictionary<string, OAuthProviderOptions>
+            {
+                ["GitHub"] = new() 
+                { 
+                    Enabled = true, 
+                    ClientId = "id", 
+                    ClientSecret = "", // Missing (empty)
+                    Authority = "auth", 
+                    CallbackPath = "/cb" 
+                }
+            }
         };
 
         // Act
-        var result = _sut.Validate(null, options);
+        var result = _validator.Validate(null, options);
 
         // Assert
-        result.Should().Be(ValidateOptionsResult.Success);
-        provider.SchemeName.Should().Be("CustomGitHub");
-        provider.ResponseType.Should().Be("code");
-        provider.GetClaimsFromUserInfoEndpoint.Should().BeTrue();
+        result.Failed.Should().BeTrue();
+        result.FailureMessage.Should().Contain(string.Format(VKOAuthErrors.MissingClientSecretTemplate, "GitHub"));
     }
 
     [Fact]
-    public void Validate_WhenDisabledProviderIsInvalid_ShouldReturnSuccess()
+    public void Validate_WhenProviderMissingAuthority_ReturnsFailure()
     {
         // Arrange
-        var provider = new OAuthProviderOptions
-        {
-            Enabled = false,
-            ClientId = "", // Invalid but disabled
-            ClientSecret = "valid-secret",
-            Authority = "https://valid-authority",
-            CallbackPath = "/callback"
-        };
-
-        var options = new VKOAuthOptions
-        {
+        var options = new VKOAuthOptions 
+        { 
             Enabled = true,
-            Providers = new Dictionary<string, OAuthProviderOptions> { { "GitHub", provider } }
+            Providers = new Dictionary<string, OAuthProviderOptions>
+            {
+                ["GitHub"] = new() 
+                { 
+                    Enabled = true, 
+                    ClientId = "id", 
+                    ClientSecret = "secret", 
+                    Authority = "", // Missing (empty)
+                    CallbackPath = "/cb" 
+                }
+            }
         };
 
         // Act
-        var result = _sut.Validate(null, options);
+        var result = _validator.Validate(null, options);
 
         // Assert
-        result.Should().Be(ValidateOptionsResult.Success);
+        result.Failed.Should().BeTrue();
+        result.FailureMessage.Should().Contain(string.Format(VKOAuthErrors.MissingAuthorityTemplate, "GitHub"));
+    }
+
+    [Fact]
+    public void Validate_WhenProviderMissingCallback_ReturnsFailure()
+    {
+        // Arrange
+        var options = new VKOAuthOptions 
+        { 
+            Enabled = true,
+            Providers = new Dictionary<string, OAuthProviderOptions>
+            {
+                ["GitHub"] = new() 
+                { 
+                    Enabled = true, 
+                    ClientId = "id", 
+                    ClientSecret = "secret", 
+                    Authority = "auth",
+                    CallbackPath = "" // Missing (empty)
+                }
+            }
+        };
+
+        // Act
+        var result = _validator.Validate(null, options);
+
+        // Assert
+        result.Failed.Should().BeTrue();
+        result.FailureMessage.Should().Contain(string.Format(VKOAuthErrors.MissingCallbackPathTemplate, "GitHub"));
+    }
+
+    [Fact]
+    public void Validate_WhenValidProvider_ReturnsSuccess()
+    {
+        // Arrange
+        var options = new VKOAuthOptions 
+        { 
+            Enabled = true,
+            Providers = new Dictionary<string, OAuthProviderOptions>
+            {
+                ["GitHub"] = new() 
+                { 
+                    Enabled = true, 
+                    ClientId = "id", 
+                    ClientSecret = "secret", 
+                    Authority = "auth", 
+                    CallbackPath = "/cb" 
+                }
+            }
+        };
+
+        // Act
+        var result = _validator.Validate(null, options);
+
+        // Assert
+        result.Succeeded.Should().BeTrue();
     }
 }

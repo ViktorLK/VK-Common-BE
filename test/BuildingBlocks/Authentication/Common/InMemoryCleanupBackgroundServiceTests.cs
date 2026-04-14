@@ -73,67 +73,19 @@ public sealed class InMemoryCleanupBackgroundServiceTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_ShouldPerformCleanup_OnActiveProviders()
-    {
-        // Arrange
-        var providerMock = new Mock<IInMemoryCacheCleanup>();
-        providerMock.Setup(x => x.AssociatedServiceType).Returns(typeof(string)); // Just a dummy type
-        _cleanupProviders.Add(providerMock.Object);
-
-        // Mock the provider being active in DI
-        _serviceProviderMock.Setup(x => x.GetService(typeof(string))).Returns(providerMock.Object);
-
-        // Set interval to 1 minute (minimum for int)
-        _optionsMock.Setup(x => x.CurrentValue).Returns(new VKAuthenticationOptions 
-        { 
-            InMemoryCleanupIntervalMinutes = 1 
-        });
-
-        var service = new InMemoryCleanupBackgroundService(
-            _serviceProviderMock.Object,
-            _cleanupProviders,
-            _optionsMock.Object,
-            _loggerMock.Object);
-
-        var cts = new CancellationTokenSource();
-
-        // Act
-        await service.StartAsync(cts.Token);
-        
-        // Wait a bit - unfortunately we can't easily trigger the cleanup in a unit test 
-        // without waiting for 1 minute or refactoring the service to use a mockable delay.
-        // For now, we verify the service starts and performs the initial scan.
-        await Task.Delay(100);
-        
-        await service.StopAsync(CancellationToken.None);
-        cts.Cancel();
-
-        // Assert
-        // The initial scan happened
-        _loggerMock.Verify(
-            x => x.Log(
-                It.IsAny<LogLevel>(),
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.AtLeastOnce);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_ShouldSkipProvider_WhenNotActiveInDI()
+    public async Task ExecuteAsync_ShouldPerformCleanupLoop_WhenIntervalElapses()
     {
         // Arrange
         var providerMock = new Mock<IInMemoryCacheCleanup>();
         providerMock.Setup(x => x.AssociatedServiceType).Returns(typeof(string));
         _cleanupProviders.Add(providerMock.Object);
 
-        // Mock the provider NOT being active in DI (e.g. replaced by Redis)
-        _serviceProviderMock.Setup(x => x.GetService(typeof(string))).Returns(new object()); // Different instance
+        _serviceProviderMock.Setup(x => x.GetService(typeof(string))).Returns(providerMock.Object);
 
+        // Setting interval to 0 to trigger immediately in tests
         _optionsMock.Setup(x => x.CurrentValue).Returns(new VKAuthenticationOptions 
         { 
-            InMemoryCleanupIntervalMinutes = 1 
+            InMemoryCleanupIntervalMinutes = 0 
         });
 
         var service = new InMemoryCleanupBackgroundService(
@@ -146,19 +98,103 @@ public sealed class InMemoryCleanupBackgroundServiceTests
 
         // Act
         await service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        
+        // Wait long enough for at least one loop iteration (Delay(0) is fast)
+        await Task.Delay(50);
+        
         await service.StopAsync(CancellationToken.None);
+        cts.Cancel();
 
         // Assert
-        providerMock.Verify(x => x.CleanupExpiredEntries(), Times.Never);
-        // Verify LogSkippingProvider was called
+        providerMock.Verify(x => x.CleanupExpiredEntries(), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldContinue_WhenProviderThrows()
+    {
+        // Arrange
+        var provider1Mock = new Mock<IInMemoryCacheCleanup>();
+        provider1Mock.Setup(x => x.AssociatedServiceType).Returns(typeof(string));
+        provider1Mock.Setup(x => x.CleanupExpiredEntries()).Throws(new Exception("Cleanup failed"));
+
+        var provider2Mock = new Mock<IInMemoryCacheCleanup>();
+        provider2Mock.Setup(x => x.AssociatedServiceType).Returns(typeof(int));
+
+        _cleanupProviders.Add(provider1Mock.Object);
+        _cleanupProviders.Add(provider2Mock.Object);
+
+        _serviceProviderMock.Setup(x => x.GetService(typeof(string))).Returns(provider1Mock.Object);
+        _serviceProviderMock.Setup(x => x.GetService(typeof(int))).Returns(provider2Mock.Object);
+
+        _optionsMock.Setup(x => x.CurrentValue).Returns(new VKAuthenticationOptions 
+        { 
+            InMemoryCleanupIntervalMinutes = 0 
+        });
+
+        var service = new InMemoryCleanupBackgroundService(
+            _serviceProviderMock.Object,
+            _cleanupProviders,
+            _optionsMock.Object,
+            _loggerMock.Object);
+
+        var cts = new CancellationTokenSource();
+
+        // Act
+        await service.StartAsync(cts.Token);
+        await Task.Delay(50);
+        await service.StopAsync(CancellationToken.None);
+        cts.Cancel();
+
+        // Assert
+        provider1Mock.Verify(x => x.CleanupExpiredEntries(), Times.AtLeastOnce);
+        provider2Mock.Verify(x => x.CleanupExpiredEntries(), Times.AtLeastOnce); // Should still call provider2
+        
+        // Verify error was logged
         _loggerMock.Verify(
             x => x.Log(
-                It.IsAny<LogLevel>(),
+                LogLevel.Error,
                 It.IsAny<EventId>(),
                 It.IsAny<It.IsAnyType>(),
-                null,
+                It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_ShouldSkipProvider_InLoop_WhenNotActive()
+    {
+        // Arrange
+        var providerMock = new Mock<IInMemoryCacheCleanup>();
+        providerMock.Setup(x => x.AssociatedServiceType).Returns(typeof(string));
+        _cleanupProviders.Add(providerMock.Object);
+
+        // Initial scan: active
+        // Loop: inactive (different object)
+        _serviceProviderMock.SetupSequence(x => x.GetService(typeof(string)))
+            .Returns(providerMock.Object) // Used for initial scan
+            .Returns(new object());       // Used inside while loop
+
+        _optionsMock.Setup(x => x.CurrentValue).Returns(new VKAuthenticationOptions 
+        { 
+            InMemoryCleanupIntervalMinutes = 0 
+        });
+
+        var service = new InMemoryCleanupBackgroundService(
+            _serviceProviderMock.Object,
+            _cleanupProviders,
+            _optionsMock.Object,
+            _loggerMock.Object);
+
+        var cts = new CancellationTokenSource();
+
+        // Act
+        await service.StartAsync(cts.Token);
+        await Task.Delay(50);
+        await service.StopAsync(CancellationToken.None);
+        cts.Cancel();
+
+        // Assert
+        // Should NOT have called cleanup in the loop
+        providerMock.Verify(x => x.CleanupExpiredEntries(), Times.Never);
     }
 }

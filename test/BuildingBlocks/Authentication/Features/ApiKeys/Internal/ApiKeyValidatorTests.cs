@@ -6,9 +6,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VK.Blocks.Authentication.Features.ApiKeys;
+using VK.Blocks.Authentication.Features.ApiKeys.Metadata;
+using VK.Blocks.Authentication.Features.ApiKeys.Persistence;
+using VK.Blocks.Authentication.Features.ApiKeys.Internal;
 using VK.Blocks.Core.Results;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys;
+namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys.Internal;
 
 public sealed class ApiKeyValidatorTests
 {
@@ -44,6 +47,11 @@ public sealed class ApiKeyValidatorTests
 
         _optionsMonitorMock.Setup(x => x.CurrentValue).Returns(_options);
         _timeProviderMock.Setup(x => x.GetUtcNow()).Returns(DateTimeOffset.UtcNow);
+
+        _revocationProviderMock.Setup(x => x.IsRevokedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _rateLimiterMock.Setup(x => x.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         _sut = new ApiKeyValidator(
             _storeMock.Object,
@@ -222,5 +230,102 @@ public sealed class ApiKeyValidatorTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.KeyId.Should().Be(record.Id);
         _storeMock.Verify(x => x.UpdateLastUsedAtAsync(record.Id, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_UpdateLastUsedFails_StillReturnsSuccess()
+    {
+        // Arrange
+        var rawKey = _fixture.Create<string>().PadRight(_options.MinLength, 'a');
+        var record = _fixture.Build<ApiKeyRecord>()
+            .With(x => x.IsEnabled, true)
+            .With(x => x.ExpiresAt, (DateTimeOffset?)null)
+            .Create();
+
+        _storeMock.Setup(x => x.FindByHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success(record));
+        _revocationProviderMock.Setup(x => x.IsRevokedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _rateLimiterMock.Setup(x => x.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+            
+        _storeMock.Setup(x => x.UpdateLastUsedAtAsync(It.IsAny<Guid>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _sut.ValidateAsync(rawKey);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue("Validation should succeed even if last-used update fails");
+        result.Value!.KeyId.Should().Be(record.Id);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_TrackLastUsedAtDisabled_DoesNotUpdate()
+    {
+        // Arrange
+        _options.TrackLastUsedAt = false;
+        var rawKey = _fixture.Create<string>().PadRight(_options.MinLength, 'a');
+        var record = _fixture.Build<ApiKeyRecord>()
+            .With(x => x.IsEnabled, true)
+            .With(x => x.ExpiresAt, (DateTimeOffset?)null)
+            .Create();
+
+        _storeMock.Setup(x => x.FindByHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success(record));
+        _revocationProviderMock.Setup(x => x.IsRevokedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        await _sut.ValidateAsync(rawKey);
+
+        // Assert
+        _storeMock.Verify(x => x.UpdateLastUsedAtAsync(It.IsAny<Guid>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_RateLimitingDisabled_DoesNotCheckRateLimiter()
+    {
+        // Arrange
+        _options.EnableRateLimiting = false;
+        var rawKey = _fixture.Create<string>().PadRight(_options.MinLength, 'a');
+        var record = _fixture.Build<ApiKeyRecord>()
+            .With(x => x.IsEnabled, true)
+            .With(x => x.ExpiresAt, (DateTimeOffset?)null)
+            .Create();
+
+        _storeMock.Setup(x => x.FindByHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success(record));
+        _revocationProviderMock.Setup(x => x.IsRevokedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        await _sut.ValidateAsync(rawKey);
+
+        // Assert
+        _rateLimiterMock.Verify(x => x.IsAllowedAsync(It.IsAny<Guid>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_LargeKey_HashesCorrectly()
+    {
+        // Arrange
+        // Key longer than 256 bytes to trigger ArrayPool logic
+        var rawKey = new string('a', 300); 
+        var record = _fixture.Build<ApiKeyRecord>()
+            .With(x => x.IsEnabled, true)
+            .With(x => x.ExpiresAt, (DateTimeOffset?)null)
+            .Create();
+
+        _storeMock.Setup(x => x.FindByHashAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success(record));
+        _revocationProviderMock.Setup(x => x.IsRevokedAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        // Act
+        var result = await _sut.ValidateAsync(rawKey);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
     }
 }

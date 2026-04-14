@@ -1,8 +1,9 @@
 using FluentAssertions;
 using VK.Blocks.Authentication.UnitTests.Common;
-using VK.Blocks.Authentication.Features.Jwt.RefreshTokens;
+using VK.Blocks.Authentication.Features.Jwt.Internal;
+using VK.Blocks.Authentication.Features.Jwt.Persistence;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.Jwt.RefreshTokens;
+namespace VK.Blocks.Authentication.UnitTests.Features.Jwt.Internal;
 
 public sealed class InMemoryJwtTokenRevocationProviderTests
 {

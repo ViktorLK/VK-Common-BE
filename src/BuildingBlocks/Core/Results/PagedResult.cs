@@ -4,7 +4,7 @@ namespace VK.Blocks.Core.Results;
 /// Represents the result of an offset-based pagination operation.
 /// </summary>
 /// <typeparam name="T">The type of the elements in the page.</typeparam>
-public class PagedResult<T>
+public sealed class PagedResult<T>
 {
     #region Properties
 

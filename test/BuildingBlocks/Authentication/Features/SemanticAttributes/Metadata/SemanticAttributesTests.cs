@@ -1,8 +1,9 @@
 using FluentAssertions;
 using VK.Blocks.Authentication.Common;
 using VK.Blocks.Authentication.Features.SemanticAttributes;
+using VK.Blocks.Authentication.Features.SemanticAttributes.Metadata;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.SemanticAttributes;
+namespace VK.Blocks.Authentication.UnitTests.Features.SemanticAttributes.Metadata;
 
 public sealed class SemanticAttributesTests
 {

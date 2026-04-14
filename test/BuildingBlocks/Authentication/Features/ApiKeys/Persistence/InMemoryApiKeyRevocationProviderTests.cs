@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using VK.Blocks.Authentication.Features.ApiKeys;
+using VK.Blocks.Authentication.Features.ApiKeys.Internal;
+using VK.Blocks.Authentication.Features.ApiKeys.Persistence;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys;
+namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys.Persistence;
 
 public sealed class InMemoryApiKeyRevocationProviderTests
 {

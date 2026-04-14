@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FluentAssertions;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.OAuth;
+using VK.Blocks.Authentication.Features.OAuth.Internal;
 using VK.Blocks.Authentication.Features.OAuth.Mappers;
 
 namespace VK.Blocks.Authentication.UnitTests.Features.OAuth.Mappers;
