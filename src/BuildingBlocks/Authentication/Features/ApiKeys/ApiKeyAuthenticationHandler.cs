@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Common;
+using VK.Blocks.Core.Context;
 
 namespace VK.Blocks.Authentication.Features.ApiKeys;
 

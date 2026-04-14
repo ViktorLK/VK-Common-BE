@@ -1,7 +1,8 @@
 using FluentAssertions;
 using VK.Blocks.Authentication.Features.ApiKeys;
+using VK.Blocks.Authentication.Features.ApiKeys.Metadata;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys;
+namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys.Metadata;
 
 public sealed class ApiKeyOptionsValidatorTests
 {
@@ -108,5 +109,19 @@ public sealed class ApiKeyOptionsValidatorTests
         // Assert
         result.Failed.Should().BeTrue();
         result.FailureMessage.Should().Contain("RateLimitWindowSeconds");
+    }
+
+    [Fact]
+    public void Validate_WithEmptySchemeName_ShouldReturnFailure()
+    {
+        // Arrange
+        var options = new ApiKeyOptions { Enabled = true, SchemeName = "" };
+
+        // Act
+        var result = _validator.Validate(null, options);
+
+        // Assert
+        result.Failed.Should().BeTrue();
+        result.FailureMessage.Should().Contain("SchemeName");
     }
 }

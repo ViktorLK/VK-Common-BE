@@ -9,6 +9,6 @@ public sealed class DefaultIpAddressProvider(IHttpContextAccessor httpContextAcc
     /// <inheritdoc />
     public IPAddress? GetRemoteIpAddress()
     {
-        return httpContextAccessor.HttpContext?.Connection.RemoteIpAddress;
+        return httpContextAccessor.HttpContext?.Connection?.RemoteIpAddress;
     }
 }

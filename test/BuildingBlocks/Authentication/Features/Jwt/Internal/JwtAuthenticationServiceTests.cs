@@ -9,10 +9,12 @@ using Moq;
 using VK.Blocks.Authentication.Common;
 using VK.Blocks.Authentication.Common.Extensions;
 using VK.Blocks.Authentication.Features.Jwt;
-using VK.Blocks.Authentication.Features.Jwt.RefreshTokens;
+using VK.Blocks.Authentication.Features.Jwt.Internal;
+using VK.Blocks.Authentication.Features.Jwt.Metadata;
+using VK.Blocks.Authentication.Features.Jwt.Persistence;
 using VK.Blocks.Core.Results;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.Jwt;
+namespace VK.Blocks.Authentication.UnitTests.Features.Jwt.Internal;
 
 public sealed class JwtAuthenticationServiceTests
 {

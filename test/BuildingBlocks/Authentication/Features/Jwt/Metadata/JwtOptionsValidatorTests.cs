@@ -1,9 +1,11 @@
 using FluentAssertions;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Features.Jwt;
+using VK.Blocks.Authentication.Features.Jwt.Internal;
+using VK.Blocks.Authentication.Features.Jwt.Metadata;
 using Xunit;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.Jwt;
+namespace VK.Blocks.Authentication.UnitTests.Features.Jwt.Metadata;
 
 public sealed class JwtOptionsValidatorTests
 {
@@ -61,7 +63,7 @@ public sealed class JwtOptionsValidatorTests
     public void Validate_MissingIssuer_ReturnsFail(string? issuer)
     {
         // Arrange
-        var options = new JwtOptions { Issuer = issuer! };
+        var options = new JwtOptions { Enabled = true, Issuer = issuer!, Audience = "TestAudience" };
 
         // Act
         var result = _validator.Validate(null, options);
@@ -78,7 +80,7 @@ public sealed class JwtOptionsValidatorTests
     public void Validate_MissingAudience_ReturnsFail(string? audience)
     {
         // Arrange
-        var options = new JwtOptions { Issuer = "Issuer", Audience = audience! };
+        var options = new JwtOptions { Enabled = true, Issuer = "TestIssuer", Audience = audience! };
 
         // Act
         var result = _validator.Validate(null, options);
@@ -92,7 +94,7 @@ public sealed class JwtOptionsValidatorTests
     public void Validate_NegativeClockSkew_ReturnsFail()
     {
         // Arrange
-        var options = new JwtOptions { Issuer = "Issuer", Audience = "Audience", ClockSkewSeconds = -1 };
+        var options = new JwtOptions { Enabled = true, Issuer = "Issuer", Audience = "Audience", ClockSkewSeconds = -1 };
 
         // Act
         var result = _validator.Validate(null, options);
@@ -108,6 +110,7 @@ public sealed class JwtOptionsValidatorTests
         // Arrange
         var options = new JwtOptions 
         { 
+            Enabled = true,
             Issuer = "Issuer", 
             Audience = "Audience", 
             AuthMode = JwtAuthMode.Symmetric,
@@ -127,6 +130,7 @@ public sealed class JwtOptionsValidatorTests
         // Arrange
         var options = new JwtOptions 
         { 
+            Enabled = true,
             Issuer = "Issuer", 
             Audience = "Audience", 
             AuthMode = JwtAuthMode.Symmetric,
@@ -149,6 +153,7 @@ public sealed class JwtOptionsValidatorTests
         // Arrange
         var options = new JwtOptions 
         { 
+            Enabled = true,
             Issuer = "Issuer", 
             Audience = "Audience", 
             AuthMode = JwtAuthMode.Symmetric,
@@ -172,6 +177,7 @@ public sealed class JwtOptionsValidatorTests
         // Arrange
         var options = new JwtOptions 
         { 
+            Enabled = true,
             Issuer = "Issuer", 
             Audience = "Audience", 
             AuthMode = JwtAuthMode.Symmetric,
@@ -193,6 +199,7 @@ public sealed class JwtOptionsValidatorTests
         // Arrange
         var options = new JwtOptions 
         { 
+            Enabled = true,
             Issuer = "Issuer", 
             Audience = "Audience", 
             AuthMode = JwtAuthMode.OidcDiscovery,
@@ -213,6 +220,7 @@ public sealed class JwtOptionsValidatorTests
         // Arrange
         var options = new JwtOptions 
         { 
+            Enabled = true,
             Issuer = "Issuer", 
             Audience = "Audience", 
             AuthMode = (JwtAuthMode)999

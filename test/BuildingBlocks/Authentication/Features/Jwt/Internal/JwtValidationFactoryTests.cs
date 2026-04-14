@@ -2,8 +2,10 @@ using FluentAssertions;
 using Microsoft.IdentityModel.Tokens;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.Jwt;
+using VK.Blocks.Authentication.Features.Jwt.Internal;
+using VK.Blocks.Authentication.Features.Jwt.Metadata;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.Jwt;
+namespace VK.Blocks.Authentication.UnitTests.Features.Jwt.Internal;
 
 public sealed class JwtValidationFactoryTests
 {

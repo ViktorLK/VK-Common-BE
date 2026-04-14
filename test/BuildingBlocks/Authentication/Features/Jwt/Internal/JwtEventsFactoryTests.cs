@@ -8,9 +8,10 @@ using Microsoft.IdentityModel.Tokens;
 using Moq;
 using VK.Blocks.Authentication.Common;
 using VK.Blocks.Authentication.Features.Jwt;
+using VK.Blocks.Authentication.Features.Jwt.Internal;
 using VK.Blocks.Core.Results;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.Jwt;
+namespace VK.Blocks.Authentication.UnitTests.Features.Jwt.Internal;
 
 public sealed class JwtEventsFactoryTests
 {

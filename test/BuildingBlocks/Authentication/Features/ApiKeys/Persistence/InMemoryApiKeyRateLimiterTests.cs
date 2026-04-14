@@ -4,8 +4,10 @@ using AutoFixture;
 using FluentAssertions;
 using Moq;
 using VK.Blocks.Authentication.Features.ApiKeys;
+using VK.Blocks.Authentication.Features.ApiKeys.Internal;
+using VK.Blocks.Authentication.Features.ApiKeys.Persistence;
 
-namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys;
+namespace VK.Blocks.Authentication.UnitTests.Features.ApiKeys.Persistence;
 
 public sealed class InMemoryApiKeyRateLimiterTests
 {
@@ -123,6 +125,89 @@ public sealed class InMemoryApiKeyRateLimiterTests
         // Actually, let's just move time forward and check if another call works without being blocked by old state.
         // But for cleanup, it's more about memory. 
         // We can verify that after cleanup, a new call with even limit 1 works.
+        var result = await _sut.IsAllowedAsync(keyId, 1, 60);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsAllowedAsync_MultipleKeys_AreIsolated()
+    {
+        // Arrange
+        var keyId1 = Guid.NewGuid();
+        var keyId2 = Guid.NewGuid();
+        
+        // Consume limit for key1
+        await _sut.IsAllowedAsync(keyId1, 1, 60);
+        var result1 = await _sut.IsAllowedAsync(keyId1, 1, 60);
+        result1.Should().BeFalse();
+
+        // Act - Check key2
+        var result2 = await _sut.IsAllowedAsync(keyId2, 1, 60);
+
+        // Assert
+        result2.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsAllowedAsync_ExactlyAtLimit_ReturnsTrueThenFalse()
+    {
+        // Arrange
+        var keyId = Guid.NewGuid();
+        const int limit = 5;
+        
+        // Act & Assert
+        for (int i = 0; i < limit; i++)
+        {
+            var result = await _sut.IsAllowedAsync(keyId, limit, 60);
+            result.Should().BeTrue($"Request {i + 1} should be allowed");
+        }
+
+        var overLimitResult = await _sut.IsAllowedAsync(keyId, limit, 60);
+        overLimitResult.Should().BeFalse("Request over limit should be blocked");
+    }
+
+    [Fact]
+    public async Task CleanupExpiredEntries_KeepsActiveEntries()
+    {
+        // Arrange
+        var keyId1 = Guid.NewGuid();
+        var keyId2 = Guid.NewGuid();
+        var startTime = new DateTimeOffset(2024, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        _timeProviderMock.Setup(p => p.GetUtcNow()).Returns(startTime);
+
+        // Key1: Recent (30 mins ago)
+        await _sut.IsAllowedAsync(keyId1, 10, 60);
+        
+        // Key2: Old (90 mins ago)
+        _timeProviderMock.Setup(p => p.GetUtcNow()).Returns(startTime.AddMinutes(-90));
+        await _sut.IsAllowedAsync(keyId2, 10, 60);
+
+        // Act - Run cleanup at startTime
+        _timeProviderMock.Setup(p => p.GetUtcNow()).Returns(startTime);
+        _sut.CleanupExpiredEntries();
+
+        // Assert
+        // Key1 should still be present (active window is gone but it shouldn't have been removed from cache)
+        var result1 = await _sut.IsAllowedAsync(keyId1, 10, 60);
+        result1.Should().BeTrue();
+        
+        // Key2 should have been removed. If we request it now, it should start a fresh window.
+        var result2 = await _sut.IsAllowedAsync(keyId2, 10, 60);
+        result2.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DisposeAsync_ClearsCache()
+    {
+        // Arrange
+        var keyId = Guid.NewGuid();
+        await _sut.IsAllowedAsync(keyId, 1, 60);
+        await _sut.IsAllowedAsync(keyId, 1, 60); // Over limit
+
+        // Act
+        await _sut.DisposeAsync();
+
+        // Assert - After dispose (clear), it should be allowed again
         var result = await _sut.IsAllowedAsync(keyId, 1, 60);
         result.Should().BeTrue();
     }

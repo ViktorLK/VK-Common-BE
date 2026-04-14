@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authentication.Common.Extensions;
 using VK.Blocks.Authentication.Diagnostics;
+using VK.Blocks.Core.Context;
 
 namespace VK.Blocks.Authentication.Abstractions;
 
