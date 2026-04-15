@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -23,9 +24,8 @@ public sealed class TenantAuthorizationHandler(
     : AuthorizationHandler<SameTenantRequirement>, ITenantEvaluator
 {
     private const string PolicyName = "TenantIsolation";
-    private readonly VKAuthorizationOptions _options = options.Value;
 
-    #region Public Methods
+    private readonly VKAuthorizationOptions _options = options.Value;
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
@@ -62,9 +62,9 @@ public sealed class TenantAuthorizationHandler(
         var userTenantId = userTenantProvider.GetUserTenantId(user);
 
         // 2. Logic Evaluation
-        var isAllowed = !string.IsNullOrEmpty(userTenantId) && 
-                        (string.IsNullOrEmpty(targetTenantId) || 
-                         string.Equals(userTenantId, targetTenantId, System.StringComparison.OrdinalIgnoreCase));
+        var isAllowed = !string.IsNullOrEmpty(userTenantId) &&
+                        (string.IsNullOrEmpty(targetTenantId) ||
+                         string.Equals(userTenantId, targetTenantId, StringComparison.OrdinalIgnoreCase));
 
         // 3. Diagnostics & Recording (Centralized via extension)
         sw.RecordEvaluation(PolicyName, Result.Success(isAllowed));
@@ -83,9 +83,7 @@ public sealed class TenantAuthorizationHandler(
         {
             logger.LogTenantCheckMismatch(userId, userTenantId, targetTenantId, PolicyName);
         }
-        
+
         return ValueTask.FromResult(Result.Success(false));
     }
-
-    #endregion
 }

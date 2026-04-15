@@ -8,8 +8,6 @@ namespace VK.Blocks.Authentication.Common;
 /// </summary>
 internal static class AuthenticationResponseHelper
 {
-    #region Public Methods
-
     /// <summary>
     /// Writes a standardized 401 Unauthorized ProblemDetails response.
     /// </summary>
@@ -33,6 +31,4 @@ internal static class AuthenticationResponseHelper
 
         return context.Response.WriteAsJsonAsync(problemDetails, options: null, contentType: AuthenticationConstants.ProblemJsonContentType);
     }
-
-    #endregion
 }

@@ -21,14 +21,8 @@ internal sealed class JwtAuthenticationService(
     ILogger<JwtAuthenticationService> logger,
     IJwtTokenRevocationProvider revocationProvider) : IJwtAuthenticationService
 {
-    #region Fields
-
     private readonly JsonWebTokenHandler _tokenHandler = new();
     private readonly Dictionary<string, bool> _revocationCache = [];
-
-    #endregion
-
-    #region Public Methods
 
     /// <inheritdoc />
     public async Task<Result<AuthenticatedUser>> AuthenticateAsync(string token, CancellationToken cancellationToken = default)
@@ -147,6 +141,4 @@ internal sealed class JwtAuthenticationService(
 
         return Result.Success();
     }
-
-    #endregion
 }

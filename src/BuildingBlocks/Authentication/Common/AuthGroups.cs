@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Common;
 /// </summary>
 public static class AuthGroups
 {
-    #region Fields
-
     /// <summary>
     /// Represents standard interactive users (e.g. JWT-based).
     /// </summary>
@@ -21,6 +19,4 @@ public static class AuthGroups
     /// Represents internal machine-to-machine or administrative access.
     /// </summary>
     public const string Internal = "Internal";
-
-    #endregion
 }

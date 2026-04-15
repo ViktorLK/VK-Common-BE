@@ -16,8 +16,8 @@ public sealed class DefaultPermissionProvider(IOptions<VKAuthorizationOptions> o
 
     /// <inheritdoc />
     public ValueTask<Result<bool>> HasPermissionAsync(
-        ClaimsPrincipal user, 
-        string permission, 
+        ClaimsPrincipal user,
+        string permission,
         CancellationToken ct = default)
     {
         if (user.Identity?.IsAuthenticated != true)
@@ -27,7 +27,7 @@ public sealed class DefaultPermissionProvider(IOptions<VKAuthorizationOptions> o
 
         // Check for the specific permission claim type from options
         var hasPermission = user.HasClaim(_options.PermissionClaimType, permission);
-        
+
         return ValueTask.FromResult(Result.Success(hasPermission));
     }
 }

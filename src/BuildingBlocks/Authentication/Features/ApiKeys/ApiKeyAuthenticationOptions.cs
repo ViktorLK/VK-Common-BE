@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys;
 /// </summary>
 public sealed class ApiKeyAuthenticationOptions : AuthenticationSchemeOptions
 {
-    #region Properties
-
     /// <summary>
     /// Gets or sets the HTTP header name that contains the API key.
     /// </summary>
@@ -18,6 +16,4 @@ public sealed class ApiKeyAuthenticationOptions : AuthenticationSchemeOptions
     /// Gets or sets the authentication type associated with the API key.
     /// </summary>
     public string AuthType { get; set; } = "ApiKey";
-
-    #endregion
 }

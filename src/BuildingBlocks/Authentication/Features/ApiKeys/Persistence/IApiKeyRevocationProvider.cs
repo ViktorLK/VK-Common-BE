@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys.Persistence;
 /// </summary>
 public interface IApiKeyRevocationProvider
 {
-    #region Public Methods
-
     /// <summary>
     /// Returns <c>true</c> when the given API Key ID has been revoked.
     /// </summary>
@@ -23,6 +21,4 @@ public interface IApiKeyRevocationProvider
     /// <param name="ct">A cancellation token.</param>
     /// <returns>A task that represents the asynchronous revocation operation.</returns>
     ValueTask RevokeAsync(string keyId, TimeSpan ttl, CancellationToken ct = default);
-
-    #endregion
 }

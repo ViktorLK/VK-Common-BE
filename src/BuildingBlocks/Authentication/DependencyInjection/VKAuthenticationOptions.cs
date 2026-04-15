@@ -9,8 +9,6 @@ namespace VK.Blocks.Authentication.DependencyInjection;
 /// </summary>
 public sealed class VKAuthenticationOptions
 {
-    #region Fields
-
     /// <summary>
     /// The configuration section name for authentication options.
     /// </summary>
@@ -30,10 +28,6 @@ public sealed class VKAuthenticationOptions
     /// The configuration section name for OAuth options within the authentication block.
     /// </summary>
     public const string OAuthSection = "OAuth";
-
-    #endregion
-
-    #region Properties
 
     /// <summary>
     /// Gets or sets a value indicating whether authentication is enabled.
@@ -65,6 +59,4 @@ public sealed class VKAuthenticationOptions
     /// Gets or sets the configuration options for OAuth providers.
     /// </summary>
     public VKOAuthOptions OAuth { get; set; } = new();
-
-    #endregion
 }

@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Common;
 /// </summary>
 public static class AuthenticationConstants
 {
-    #region Fields
-
     /// <summary>
     /// The default authentication policy name for JWT tokens.
     /// </summary>
@@ -66,6 +64,4 @@ public static class AuthenticationConstants
     /// Validation message when no authentication strategies are enabled.
     /// </summary>
     public const string AtLeastOneStrategyRequired = "Authentication block is enabled, but no authentication strategies (JWT, ApiKey, or OAuth) are enabled. Enable at least one strategy or set 'Authentication:Enabled' to false.";
-
-    #endregion
 }

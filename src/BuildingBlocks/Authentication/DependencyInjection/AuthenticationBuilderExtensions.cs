@@ -13,8 +13,6 @@ namespace VK.Blocks.Authentication.DependencyInjection;
 /// </summary>
 public static class AuthenticationBuilderExtensions
 {
-    #region Public Methods
-
     /// <summary>
     /// Registers a custom JWT refresh token validator.
     /// </summary>
@@ -59,6 +57,4 @@ public static class AuthenticationBuilderExtensions
         builder.Services.TryAddKeyedScoped<IOAuthClaimsMapper, TMapper>(providerName);
         return builder;
     }
-
-    #endregion
 }

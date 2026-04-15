@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 public sealed class JwtTokenRevocationService(IJwtTokenRevocationProvider revocationProvider) : IJwtTokenRevocationService
 {
-    #region Public Methods
-
     /// <summary>
     /// Revokes an access token asynchronously by its JWT ID (JTI).
     /// </summary>
@@ -42,6 +40,4 @@ public sealed class JwtTokenRevocationService(IJwtTokenRevocationProvider revoca
             await revocationProvider.RevokeUserAsync(userId, ttl, cancellationToken).ConfigureAwait(false);
         }
     }
-
-    #endregion
 }

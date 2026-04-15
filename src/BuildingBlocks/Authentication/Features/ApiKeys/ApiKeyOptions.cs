@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys;
 /// </summary>
 public sealed class ApiKeyOptions
 {
-    #region Properties
-
     /// <summary>
     /// Gets or sets a value indicating whether API key authentication is enabled.
     /// Defaults to false.
@@ -59,6 +57,4 @@ public sealed class ApiKeyOptions
     /// Defaults to false.
     /// </summary>
     public bool TrackLastUsedAt { get; set; } = false;
-
-    #endregion
 }

@@ -5,18 +5,10 @@ namespace VK.Blocks.Authentication.Diagnostics;
 /// </summary>
 internal static class AuthenticationDiagnosticsConstants
 {
-    #region Fields
-
-    #region Source and Meter
-
     /// <summary>
     /// The diagnostic source name for the Authentication block.
     /// </summary>
     public const string SourceName = "VK.Blocks.Authentication";
-
-    #endregion
-
-    #region Counters
 
     /// <summary>
     /// Counter name for tracking authentication requests.
@@ -88,10 +80,6 @@ internal static class AuthenticationDiagnosticsConstants
     /// </summary>
     public const string ClaimsTransformationDurationDescription = "Time taken for claims transformation";
 
-    #endregion
-
-    #region Activity Names
-
     /// <summary>
     /// Activity name for JWT authentication.
     /// </summary>
@@ -111,10 +99,6 @@ internal static class AuthenticationDiagnosticsConstants
     /// Activity name for revocation checking.
     /// </summary>
     public const string ActivityIsRevoked = "JwtTokenRevocationService.IsRevokedAsync";
-
-    #endregion
-
-    #region Tag Keys
 
     /// <summary>
     /// Tag key for the authentication type.
@@ -151,10 +135,6 @@ internal static class AuthenticationDiagnosticsConstants
     /// </summary>
     public const string TagClaimsTransformed = "auth.claims_transformed";
 
-    #endregion
-
-    #region Tag Values
-
     /// <summary>
     /// Tag value for a successful operation.
     /// </summary>
@@ -174,8 +154,4 @@ internal static class AuthenticationDiagnosticsConstants
     /// Tag value for API key authentication type.
     /// </summary>
     public const string TypeApiKey = "apikey";
-
-    #endregion
-
-    #endregion
 }

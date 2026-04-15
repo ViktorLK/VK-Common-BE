@@ -54,27 +54,15 @@ internal static class OidcConstants
     /// </summary>
     internal const string DefaultResponseType = OpenIdConnectParameterNames.Code;
 
-    #region Error and Activity Messages
-
     internal const string MapperNotFoundMessage = "OIDC Claims Mapper was not found.";
     internal const string DependencyMissingMessage = "AddVKOidcBlock requires AddVKAuthenticationBlock to be called first.";
     internal const string MissingConfigErrorMessage = "OIDC Provider configuration missing for scheme: {0}";
 
-    #endregion
-
-    #region Standard OIDC Claims
-
     internal const string ClaimSub = JwtRegisteredClaimNames.Sub;
     internal const string ClaimEmail = JwtRegisteredClaimNames.Email;
     internal const string ClaimName = JwtRegisteredClaimNames.Name;
-
-    #endregion
- 
-    #region Azure AD B2C Specific Claims
  
     internal const string ClaimTfp = "tfp";
     internal const string ClaimAcr = JwtRegisteredClaimNames.Acr;
     internal const string ClaimEmails = "emails";
- 
-    #endregion
 }

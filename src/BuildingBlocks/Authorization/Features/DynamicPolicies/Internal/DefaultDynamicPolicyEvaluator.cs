@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -18,7 +19,6 @@ public sealed class DefaultDynamicPolicyEvaluator(
     : IDynamicPolicyEvaluator
 {
     private const string PolicyName = "DynamicPolicy";
-    #region Public Methods
 
     /// <inheritdoc />
     public async ValueTask<Result<bool>> EvaluateAsync(
@@ -71,6 +71,4 @@ public sealed class DefaultDynamicPolicyEvaluator(
 
         return finalResult;
     }
-
-    #endregion
 }

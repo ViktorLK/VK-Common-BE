@@ -12,6 +12,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 /// </summary>
 internal sealed class OidcPolicyConfiguration(IOptions<VKOAuthOptions> oauthOptions) : IConfigureOptions<AuthorizationOptions>
 {
+    /// <inheritdoc />
     public void Configure(AuthorizationOptions options)
     {
         var vkOAuthOptions = oauthOptions.Value;

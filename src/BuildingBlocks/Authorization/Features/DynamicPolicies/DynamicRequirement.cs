@@ -11,35 +11,30 @@ namespace VK.Blocks.Authorization.Features.DynamicPolicies;
 /// </summary>
 public sealed record DynamicRequirement : IVKAuthorizationRequirement
 {
-    #region Properties
-
     /// <summary>
-    /// The name of the requirement.
+    /// Gets the name of the requirement.
     /// </summary>
     public required string Name { get; init; }
 
     /// <summary>
-    /// The operator used for evaluation. Defaults to Equals.
+    /// Gets the operator used for evaluation. Defaults to Equals.
     /// </summary>
     public required string Operator { get; init; } = DynamicPoliciesConstants.OperatorEquals;
 
     /// <summary>
-    /// The attribute or claim type to evaluate.
+    /// Gets the attribute or claim type to evaluate.
     /// </summary>
     public required string Attribute { get; init; }
 
     /// <summary>
-    /// The expected value to compare against.
+    /// Gets the expected value to compare against.
     /// </summary>
     public object? Value { get; init; }
 
-    #endregion
-
-    #region Implementation of IVKAuthorizationRequirement
-
+    /// <summary>
+    /// Gets the default error associated with the requirement failure.
+    /// </summary>
     /// <inheritdoc />
     public Error DefaultError => AuthorizationErrors.DynamicPolicyFailed;
-
-    #endregion
 }
 

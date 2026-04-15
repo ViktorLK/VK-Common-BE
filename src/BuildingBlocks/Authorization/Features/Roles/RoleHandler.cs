@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,14 +17,12 @@ namespace VK.Blocks.Authorization.Features.Roles;
 /// </summary>
 public sealed class RoleHandler(
     IRoleProvider roleProvider,
-    ILogger<RoleHandler> logger) 
+    ILogger<RoleHandler> logger)
     : AuthorizationHandler<RoleRequirement>, IRoleEvaluator
 {
-    #region Public Methods
-
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
-        AuthorizationHandlerContext context, 
+        AuthorizationHandlerContext context,
         RoleRequirement requirement)
     {
         if (context.User.Identity?.IsAuthenticated != true)
@@ -37,8 +36,8 @@ public sealed class RoleHandler(
 
     /// <inheritdoc />
     public async ValueTask<Result<bool>> HasRoleAsync(
-        ClaimsPrincipal user, 
-        string role, 
+        ClaimsPrincipal user,
+        string role,
         CancellationToken ct = default)
     {
         return await HasRolesAsync(user, [role], ct).ConfigureAwait(false);
@@ -46,14 +45,14 @@ public sealed class RoleHandler(
 
     /// <inheritdoc />
     public async ValueTask<Result<bool>> HasRolesAsync(
-        ClaimsPrincipal user, 
-        string[] roles, 
+        ClaimsPrincipal user,
+        string[] roles,
         CancellationToken ct = default)
     {
         var userId = user.Identity?.Name ?? "Unknown";
         var requiredRolesStr = string.Join(", ", roles);
-        var policyName = roles.Length == 1 
-            ? $"{RolesConstants.PolicyPrefix}{roles[0]}" 
+        var policyName = roles.Length == 1
+            ? $"{RolesConstants.PolicyPrefix}{roles[0]}"
             : $"{RolesConstants.MultiRolePrefix}[{requiredRolesStr}]";
 
         var sw = Stopwatch.StartNew();
@@ -78,7 +77,7 @@ public sealed class RoleHandler(
                 lastError = result.FirstError;
             }
         }
-        
+
         // 1. Trace & Record (Centralized via extension)
         var finalResult = lastError is not null ? Result.Failure<bool>(lastError) : Result.Success(isAllowed);
         sw.RecordEvaluation(policyName, finalResult);
@@ -97,6 +96,4 @@ public sealed class RoleHandler(
 
         return finalResult;
     }
-
-    #endregion
 }

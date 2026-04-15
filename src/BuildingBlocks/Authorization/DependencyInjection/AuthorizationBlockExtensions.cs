@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Diagnostics;
 using VK.Blocks.Authorization.Features.DynamicPolicies;
 using VK.Blocks.Authorization.Features.InternalNetwork;
 using VK.Blocks.Authorization.Features.MinimumRank;
@@ -13,6 +14,7 @@ using VK.Blocks.Authorization.Features.WorkingHours;
 using VK.Blocks.Authorization.Generated;
 using VK.Blocks.Core.Abstractions;
 using VK.Blocks.Core.DependencyInjection;
+using VK.Blocks.Core.Diagnostics;
 using VK.Blocks.Core.Internal;
 
 namespace VK.Blocks.Authorization.DependencyInjection;
@@ -22,8 +24,6 @@ namespace VK.Blocks.Authorization.DependencyInjection;
 /// </summary>
 public static class AuthorizationBlockExtensions
 {
-    #region Main Registration
-
     /// <summary>
     /// Adds VK authorization services to the specified <see cref="IServiceCollection"/>.
     /// </summary>
@@ -88,15 +88,12 @@ public static class AuthorizationBlockExtensions
         // Auto-register generated IAuthorizationHandler and IVKAuthorizationHandler implementations
         services.AddGeneratedAuthorizationHandlers();
 
+        // Register the security metadata provider for web discovery
+        services.TryAddEnumerableSingleton<ISecurityMetadataProvider, AuthorizationMetadataProvider>();
+
         // 10. Mark-Self (Success Commit)
         services.AddVKBlockMarker<AuthorizationBlock>();
 
         return new VKBlockBuilder<AuthorizationBlock>(services);
     }
-
-    #endregion
 }
-
-
-
-

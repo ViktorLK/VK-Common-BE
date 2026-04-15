@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 public static class JwtRefreshTokenErrors
 {
-    #region Fields
-
     /// <summary>
     /// Error when any required identifier (JTI or Family ID) is missing.
     /// </summary>
@@ -28,6 +26,4 @@ public static class JwtRefreshTokenErrors
     /// Error when a server-side service (like Redis) is unavailable.
     /// </summary>
     public static readonly Error ServiceUnavailable = new("RefreshToken.ServiceUnavailable", "The refresh token server is currently unavailable.", ErrorType.Failure);
-
-    #endregion
 }

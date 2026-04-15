@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Common;
 /// </summary>
 internal static partial class InMemoryCleanupLog
 {
-    #region Logger Messages
-
     /// <summary>
     /// Logs that no active in-memory providers were detected and the service is stopping.
     /// </summary>
@@ -74,6 +72,4 @@ internal static partial class InMemoryCleanupLog
         Level = LogLevel.Information,
         Message = "In-Memory Cleanup Service: Stopping.")]
     public static partial void LogServiceStopping(this ILogger logger);
-
-    #endregion
 }

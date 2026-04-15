@@ -11,21 +11,20 @@ namespace VK.Blocks.Authorization.Features.Roles;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
 public sealed class AuthorizeRolesAttribute(params string[] roles) : AuthorizeAttribute, IAuthorizationRequirementData
 {
-    #region Properties
-
+    /// <summary>
+    /// Gets the collection of required roles.
+    /// </summary>
     public string[] RequiredRoles { get; } = roles;
 
-    #endregion
-
-    #region Methods
-
+    /// <summary>
+    /// Returns the authorization requirements defined by this attribute.
+    /// </summary>
+    /// <returns>A collection of requirements.</returns>
     /// <inheritdoc />
     public IEnumerable<IAuthorizationRequirement> GetRequirements()
     {
         yield return new RoleRequirement(RequiredRoles);
     }
-
-    #endregion
 }
 
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ public static class PermissionStoreExtensions
     {
         var lastHash = await stateStore.GetLastHashAsync(SyncKey, ct).ConfigureAwait(false);
 
-        if (string.Equals(lastHash, currentHash, System.StringComparison.Ordinal))
+        if (string.Equals(lastHash, currentHash, StringComparison.Ordinal))
         {
             return Result.Success();
         }

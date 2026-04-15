@@ -7,17 +7,6 @@ namespace VK.Blocks.Authentication.Features.OAuth.Metadata;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class OAuthProviderAttribute : Attribute
 {
-    #region Properties
-
-    /// <summary>
-    /// Gets the name of the OAuth provider.
-    /// </summary>
-    public string ProviderName { get; }
-
-    #endregion
-
-    #region Constructors
-
     /// <summary>
     /// Initializes a new instance of the <see cref="OAuthProviderAttribute"/> class.
     /// </summary>
@@ -28,5 +17,8 @@ public sealed class OAuthProviderAttribute : Attribute
         ProviderName = providerName;
     }
 
-    #endregion
+    /// <summary>
+    /// Gets the name of the OAuth provider.
+    /// </summary>
+    public string ProviderName { get; }
 }

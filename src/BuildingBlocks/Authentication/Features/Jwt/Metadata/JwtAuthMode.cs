@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Metadata;
 /// </summary>
 public enum JwtAuthMode
 {
-    #region Enum Values
-
     /// <summary>
     /// Self-issued tokens validated with a symmetric key (e.g., HMAC-SHA256).
     /// </summary>
@@ -16,6 +14,4 @@ public enum JwtAuthMode
     /// Third-party tokens validated via OIDC Discovery (JWKS endpoint).
     /// </summary>
     OidcDiscovery = 1
-
-    #endregion
 }

@@ -8,8 +8,6 @@ namespace VK.Blocks.Authorization.Common;
 /// </summary>
 public sealed record EndpointAuthorizationInfo
 {
-    #region Properties
-
     /// <summary>
     /// Gets the full name of the endpoint (e.g. "Namespace.Controller.Method").
     /// </summary>
@@ -44,6 +42,4 @@ public sealed record EndpointAuthorizationInfo
     /// Gets additional custom metadata discovered from attributes.
     /// </summary>
     public IReadOnlyDictionary<string, object?> AdditionalMetadata { get; init; } = new Dictionary<string, object?>();
-
-    #endregion
 }

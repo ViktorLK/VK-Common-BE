@@ -4,7 +4,9 @@ using VK.Blocks.Authorization.DependencyInjection;
 
 namespace VK.Blocks.Authorization.Features.TenantIsolation.Internal;
 
-/// <inheritdoc />
+/// <summary>
+/// Default implementation of <see cref="IUserTenantProvider"/> that retrieves tenant ID from claims.
+/// </summary>
 public sealed class DefaultUserTenantProvider(IOptions<VKAuthorizationOptions> options) : IUserTenantProvider
 {
     private readonly VKAuthorizationOptions _options = options.Value;

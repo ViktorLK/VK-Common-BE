@@ -13,13 +13,13 @@ public sealed class DefaultDynamicPolicyProvider : IDynamicPolicyProvider
 {
     /// <inheritdoc />
     public ValueTask<Result<string?>> GetAttributeValueAsync(
-        ClaimsPrincipal user, 
-        string attributeName, 
+        ClaimsPrincipal user,
+        string attributeName,
         CancellationToken cancellationToken = default)
     {
         var claimValue = user.FindFirst(attributeName)?.Value;
-        
-        return claimValue is null 
+
+        return claimValue is null
             ? ValueTask.FromResult(Result.Failure<string?>(AuthorizationErrors.AttributeNotFound))
             : ValueTask.FromResult(Result.Success<string?>(claimValue));
     }

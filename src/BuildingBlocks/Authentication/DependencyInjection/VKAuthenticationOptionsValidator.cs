@@ -8,8 +8,6 @@ namespace VK.Blocks.Authentication.DependencyInjection;
 /// </summary>
 public sealed class VKAuthenticationOptionsValidator : IValidateOptions<VKAuthenticationOptions>
 {
-    #region Public Methods
-
     /// <inheritdoc />
     public ValidateOptionsResult Validate(string? name, VKAuthenticationOptions options)
     {
@@ -38,6 +36,4 @@ public sealed class VKAuthenticationOptionsValidator : IValidateOptions<VKAuthen
 
         return ValidateOptionsResult.Success;
     }
-
-    #endregion
 }

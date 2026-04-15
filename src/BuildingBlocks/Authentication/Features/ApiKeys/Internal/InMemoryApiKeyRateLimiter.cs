@@ -10,21 +10,11 @@ namespace VK.Blocks.Authentication.Features.ApiKeys.Internal;
 /// </summary>
 public sealed class InMemoryApiKeyRateLimiter(TimeProvider timeProvider) : IApiKeyRateLimiter, IInMemoryCacheCleanup, IAsyncDisposable
 {
-    #region Fields
-
     private readonly ConcurrentDictionary<Guid, RateLimitState> _cache = new();
     private readonly object _cleanupLock = new();
 
-    #endregion
-
-    #region Properties
-
     /// <inheritdoc />
     public Type AssociatedServiceType => typeof(IApiKeyRateLimiter);
-
-    #endregion
-
-    #region Public Methods
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
@@ -94,15 +84,9 @@ public sealed class InMemoryApiKeyRateLimiter(TimeProvider timeProvider) : IApiK
         }
     }
 
-    #endregion
-
-    #region Nested Types
-
     private sealed class RateLimitState
     {
         public ConcurrentQueue<long> Timestamps { get; } = new();
         public long LastTouchedAt { get; set; }
     }
-
-    #endregion
 }

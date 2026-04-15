@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Authorization.Features.Permissions.Metadata;
@@ -27,5 +28,5 @@ public interface IPermissionStore
     /// <param name="permission">The permission name to check.</param>
     /// <param name="ct">A cancellation token.</param>
     /// <returns>A result indicating whether the permission is granted.</returns>
-    ValueTask<Result<bool>> HasPermissionAsync(System.Security.Claims.ClaimsPrincipal user, string permission, CancellationToken ct = default);
+    ValueTask<Result<bool>> HasPermissionAsync(ClaimsPrincipal user, string permission, CancellationToken ct = default);
 }

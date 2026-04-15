@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace VK.Blocks.Authorization.Features.InternalNetwork.Internal;
 
-/// <inheritdoc />
+/// <summary>
+/// Default implementation of <see cref="IIpAddressProvider"/> using <see cref="IHttpContextAccessor"/>.
+/// </summary>
 public sealed class DefaultIpAddressProvider(IHttpContextAccessor httpContextAccessor) : IIpAddressProvider
 {
     /// <inheritdoc />

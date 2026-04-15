@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys.Internal;
 /// </summary>
 public static class ApiKeyErrors
 {
-    #region Fields
-
     /// <summary>
     /// Error returned when the API key is empty or missing.
     /// </summary>
@@ -38,6 +36,4 @@ public static class ApiKeyErrors
     /// Error returned when the API key has exceeded its rate limit.
     /// </summary>
     public static readonly Error RateLimitExceeded = new("ApiKey.RateLimitExceeded", "Too many requests", ErrorType.TooManyRequests);
-
-    #endregion
 }

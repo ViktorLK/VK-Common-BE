@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 internal static partial class JwtLog
 {
-    #region Logger Messages
-
     /// <summary>
     /// Logs a message indicating that JWT validation options are not configured properly.
     /// </summary>
@@ -63,6 +61,4 @@ internal static partial class JwtLog
         Level = LogLevel.Warning,
         Message = "Potential refresh token replay attack detected! FamilyId: {FamilyId}, JTI: {Jti}. The token has been reused.")]
     public static partial void LogRefreshTokenReplayDetected(this ILogger logger, string familyId, string jti);
-
-    #endregion
 }

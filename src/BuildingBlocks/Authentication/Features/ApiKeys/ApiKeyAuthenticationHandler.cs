@@ -19,8 +19,6 @@ public sealed class ApiKeyAuthenticationHandler(
     ApiKeyValidator validator)
         : AuthenticationHandler<ApiKeyAuthenticationOptions>(options, logger, encoder)
 {
-    #region Protected Methods
-
     /// <inheritdoc />
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -38,12 +36,13 @@ public sealed class ApiKeyAuthenticationHandler(
         }
 
         var context = result.Value;
-        var claims = new List<Claim>
-        {
+
+        // SUGGEST: Use C# 12 collection expression []
+        List<Claim> claims = [
             new(VKClaimTypes.UserId,   context.OwnerId),
             new(VKClaimTypes.KeyId,    context.KeyId.ToString()),
             new(VKClaimTypes.AuthType, Options.AuthType),
-        };
+        ];
 
         if (context.TenantId is not null)
         {
@@ -67,6 +66,4 @@ public sealed class ApiKeyAuthenticationHandler(
     {
         return AuthenticationResponseHelper.WriteUnauthorizedResponseAsync(Context, "API key is missing or invalid");
     }
-
-    #endregion
 }

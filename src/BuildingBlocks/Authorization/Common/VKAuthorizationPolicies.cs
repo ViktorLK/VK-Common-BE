@@ -5,8 +5,6 @@ namespace VK.Blocks.Authorization.Common;
 /// </summary>
 public static class VKAuthorizationPolicies
 {
-    #region Fields
-
     /// <summary>
     /// Policy indicating access is restricted to working hours only.
     /// </summary>
@@ -26,6 +24,4 @@ public static class VKAuthorizationPolicies
     /// Policy indicating access requires financial data write permissions.
     /// </summary>
     public const string FinancialDataWrite = nameof(FinancialDataWrite);
-
-    #endregion
 }

@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.OAuth;
 /// </summary>
 public sealed class OAuthProviderOptions
 {
-    #region Properties
-
     /// <summary>
     /// Gets or sets a value indicating whether this provider is enabled.
     /// </summary>
@@ -54,6 +52,4 @@ public sealed class OAuthProviderOptions
     /// Necessary for providers that don't include all profile data in the ID Token (e.g. GitHub).
     /// </summary>
     public bool GetClaimsFromUserInfoEndpoint { get; set; }
-
-    #endregion
 }

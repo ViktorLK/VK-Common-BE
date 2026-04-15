@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,8 +8,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authorization.Common;
 using VK.Blocks.Authorization.Diagnostics;
-using VK.Blocks.Core.Results;
 using VK.Blocks.Authorization.Features.Permissions.Internal;
+using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.Permissions;
 
@@ -19,10 +21,7 @@ public sealed class PermissionHandler(
     ILogger<PermissionHandler> logger)
     : AuthorizationHandler<PermissionRequirement>, IPermissionEvaluator
 {
-    // Ensure we have at least one provider
     private readonly List<IPermissionProvider> _providers = [.. permissionProviders];
-
-    #region Public Methods
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
@@ -41,6 +40,11 @@ public sealed class PermissionHandler(
     /// <summary>
     /// Evaluates multiple permissions based on the specified mode across all registered providers.
     /// </summary>
+    /// <param name="user">The user to evaluate.</param>
+    /// <param name="permissions">The collection of permissions to check.</param>
+    /// <param name="mode">The evaluation mode (All/Any).</param>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>A result indicating if the permissions are granted.</returns>
     public async ValueTask<Result<bool>> HasPermissionsAsync(
         ClaimsPrincipal user,
         IEnumerable<string> permissions,
@@ -119,6 +123,4 @@ public sealed class PermissionHandler(
     {
         return HasPermissionsAsync(user, [permission], PermissionEvaluationMode.All, ct);
     }
-
-    #endregion
 }

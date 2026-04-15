@@ -20,7 +20,7 @@ public static class JwtRegistration
     /// Adds JWT authentication services to the container and registers the Bearer authentication scheme.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <param name="section">The configuration section for JWT options.</param>
+    /// <param name="jwtSection">The configuration section for JWT options.</param>
     /// <param name="authBuilder">The authentication builder to register the scheme.</param>
     /// <returns>The registered <see cref="JwtOptions"/> instance.</returns>
     public static JwtOptions AddJwtFeature(this IServiceCollection services, IConfigurationSection jwtSection, AuthenticationBuilder authBuilder)

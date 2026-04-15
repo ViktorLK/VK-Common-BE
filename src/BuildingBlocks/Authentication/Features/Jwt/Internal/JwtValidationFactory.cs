@@ -11,8 +11,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 public static class JwtValidationFactory
 {
-    #region Public Methods
-
     /// <summary>
     /// Creates a new instance of <see cref="TokenValidationParameters"/> using the provided options.
     /// </summary>
@@ -49,6 +47,4 @@ public static class JwtValidationFactory
 
         return parameters;
     }
-
-    #endregion
 }

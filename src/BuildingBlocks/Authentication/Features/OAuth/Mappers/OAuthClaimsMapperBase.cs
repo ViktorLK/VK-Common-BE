@@ -9,8 +9,6 @@ namespace VK.Blocks.Authentication.Features.OAuth.Mappers;
 /// </summary>
 public abstract class OAuthClaimsMapperBase : IOAuthClaimsMapper
 {
-    #region Public Methods
-
     /// <inheritdoc />
     public virtual IEnumerable<Claim> MapToClaims(ExternalIdentity userInfo)
     {
@@ -28,6 +26,4 @@ public abstract class OAuthClaimsMapperBase : IOAuthClaimsMapper
             yield return new Claim(VKClaimTypes.Name, userInfo.Name);
         }
     }
-
-    #endregion
 }

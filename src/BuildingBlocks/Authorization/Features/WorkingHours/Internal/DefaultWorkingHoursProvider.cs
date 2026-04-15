@@ -2,22 +2,23 @@ using System;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authorization.DependencyInjection;
 
 namespace VK.Blocks.Authorization.Features.WorkingHours.Internal;
 
-/// <inheritdoc />
+/// <summary>
+/// Default implementation of <see cref="IWorkingHoursProvider"/> that uses global configuration.
+/// </summary>
 public sealed class DefaultWorkingHoursProvider(
-    IOptions<VKAuthorizationOptions> options) 
+    IOptions<VKAuthorizationOptions> options)
     : IWorkingHoursProvider
 {
     private readonly VKAuthorizationOptions _options = options.Value;
 
     /// <inheritdoc />
     public ValueTask<(TimeOnly Start, TimeOnly End)?> GetWorkingHoursAsync(
-        ClaimsPrincipal user, 
+        ClaimsPrincipal user,
         CancellationToken ct = default)
     {
         // Return global defaults from options
