@@ -2,7 +2,7 @@ using System.Security.Claims;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.OAuth.Metadata;
 using VK.Blocks.Authentication.Features.OAuth.Internal;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Features.OAuth.Mappers;
 
@@ -12,8 +12,6 @@ namespace VK.Blocks.Authentication.Features.OAuth.Mappers;
 [OAuthProvider(OAuthConstants.GitHub)]
 public sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
 {
-    #region Public Methods
-
     /// <inheritdoc />
     public override IEnumerable<Claim> MapToClaims(ExternalIdentity userInfo)
     {
@@ -34,6 +32,4 @@ public sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
             yield return new Claim(VKClaimTypes.ProfileUrl, htmlUrl);
         }
     }
-
-    #endregion
 }

@@ -10,6 +10,9 @@ namespace VK.Blocks.Authorization.Features.TenantIsolation;
 /// </summary>
 public sealed record SameTenantRequirement : IVKAuthorizationRequirement
 {
+    /// <summary>
+    /// Gets the default error associated with the requirement failure.
+    /// </summary>
     /// <inheritdoc />
     public Error DefaultError => AuthorizationErrors.TenantMismatch;
 }

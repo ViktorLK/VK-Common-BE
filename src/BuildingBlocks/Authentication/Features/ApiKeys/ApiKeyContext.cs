@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys;
 /// </summary>
 public sealed record ApiKeyContext
 {
-    #region Properties
-
     /// <summary>
     /// Gets the unique identifier of the API key.
     /// </summary>
@@ -26,6 +24,4 @@ public sealed record ApiKeyContext
     /// Gets the list of scopes authorized for the API key.
     /// </summary>
     public IReadOnlyList<string> Scopes { get; init; } = [];
-
-    #endregion
 }

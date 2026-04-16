@@ -1,9 +1,8 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.Authentication.Diagnostics;
-using VK.Blocks.Authentication.Features.Jwt;
 using VK.Blocks.Authentication.Common;
+using VK.Blocks.Authentication.Diagnostics;
 using VK.Blocks.Authentication.Features.Jwt.Persistence;
 using VK.Blocks.Core.Results;
 
@@ -18,21 +17,11 @@ public sealed class InMemoryJwtRefreshTokenValidator(
     TimeProvider timeProvider,
     ILogger<InMemoryJwtRefreshTokenValidator> logger) : IJwtRefreshTokenValidator, IInMemoryCacheCleanup, IAsyncDisposable
 {
-    #region Fields
-
     private readonly ConcurrentDictionary<string, DateTimeOffset> _consumedJtis = new();
     private readonly object _cleanupLock = new();
 
-    #endregion
-
-    #region Properties
-
     /// <inheritdoc />
     public Type AssociatedServiceType => typeof(IJwtRefreshTokenValidator);
-
-    #endregion
-
-    #region Public Methods
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
@@ -101,6 +90,4 @@ public sealed class InMemoryJwtRefreshTokenValidator(
             Monitor.Exit(_cleanupLock);
         }
     }
-
-    #endregion
 }

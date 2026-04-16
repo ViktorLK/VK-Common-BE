@@ -5,8 +5,6 @@ namespace VK.Blocks.Authorization.Features.DynamicPolicies.Internal;
 /// </summary>
 internal static class DynamicPoliciesConstants
 {
-    #region Fields
-
     /// <summary>
     /// Indicates an equality check operator.
     /// </summary>
@@ -21,6 +19,4 @@ internal static class DynamicPoliciesConstants
     /// Indicates a contains check operator.
     /// </summary>
     internal const string OperatorContains = "Contains";
-
-    #endregion
 }

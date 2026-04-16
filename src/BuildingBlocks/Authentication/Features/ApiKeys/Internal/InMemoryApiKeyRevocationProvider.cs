@@ -10,21 +10,11 @@ namespace VK.Blocks.Authentication.Features.ApiKeys.Internal;
 /// </summary>
 public sealed class InMemoryApiKeyRevocationProvider(TimeProvider timeProvider) : IApiKeyRevocationProvider, IInMemoryCacheCleanup, IAsyncDisposable
 {
-    #region Fields
-
     private readonly ConcurrentDictionary<string, DateTimeOffset> _revocations = new();
     private readonly object _cleanupLock = new();
 
-    #endregion
-
-    #region Properties
-
     /// <inheritdoc />
     public Type AssociatedServiceType => typeof(IApiKeyRevocationProvider);
-
-    #endregion
-
-    #region Public Methods
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
@@ -95,6 +85,4 @@ public sealed class InMemoryApiKeyRevocationProvider(TimeProvider timeProvider) 
             Monitor.Exit(_cleanupLock);
         }
     }
-
-    #endregion
 }

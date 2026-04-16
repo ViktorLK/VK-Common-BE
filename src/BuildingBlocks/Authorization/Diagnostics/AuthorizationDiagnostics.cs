@@ -1,5 +1,14 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.Authorization.Common;
+using VK.Blocks.Authorization.Diagnostics.Models;
+using VK.Blocks.Authorization.Features.Permissions;
+using VK.Blocks.Authorization.Generated;
 using VK.Blocks.Core.Attributes;
 using VK.Blocks.Core.Results;
 
@@ -10,22 +19,17 @@ namespace VK.Blocks.Authorization.Diagnostics;
 /// The Source Generator automatically emits the ActivitySource and Meter fields for this class.
 /// </summary>
 [VKBlockDiagnostics(AuthorizationDiagnosticsConstants.SourceName)]
-internal static partial class AuthorizationDiagnostics
+public static partial class AuthorizationDiagnostics
 {
-    // ActivitySource and Meter are generated automatically into a partial class.
-
-    #region Fields
-
     private static readonly Counter<long> _authorizationDecisions;
 
     private static readonly Counter<long> _failureReasons;
 
     private static readonly Histogram<double> _evaluationDuration;
 
-    #endregion
-
-    #region Constructors
-
+    /// <summary>
+    /// Initializes static members of the <see cref="AuthorizationDiagnostics"/> class.
+    /// </summary>
     static AuthorizationDiagnostics()
     {
         _authorizationDecisions = Meter.CreateCounter<long>(
@@ -42,9 +46,57 @@ internal static partial class AuthorizationDiagnostics
             description: AuthorizationDiagnosticsConstants.EvaluationDurationDescription);
     }
 
-    #endregion
+    /// <summary>
+    /// Gets the compile-time authorization metadata (topology).
+    /// </summary>
+    /// <returns>A map of endpoint names to authorization information.</returns>
+    public static IReadOnlyDictionary<string, EndpointAuthorizationInfo> GetAuthorizationMetadata()
+        => AuthorizationMetadata.Endpoints;
 
-    #region Public Methods
+    /// <summary>
+    /// Gets the deterministic hash of the authorization metadata.
+    /// </summary>
+    /// <returns>A deterministic hash string representating the metadata state.</returns>
+    public static string GetMetadataHash() => AuthorizationMetadata.MetadataHash;
+
+    /// <summary>
+    /// Gets runtime information about all registered authorization handlers and permission evaluators.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider to resolve handler information.</param>
+    /// <returns>A collection of registered authorization handlers.</returns>
+    public static Task<IEnumerable<AuthorizationHandlerInfo>> GetRegisteredHandlersAsync(IServiceProvider serviceProvider)
+    {
+        var handlers = serviceProvider.GetServices<IAuthorizationHandler>();
+        var evaluators = serviceProvider.GetServices<IPermissionEvaluator>();
+
+        var result = new List<AuthorizationHandlerInfo>();
+
+        foreach (var handler in handlers)
+        {
+            result.Add(new AuthorizationHandlerInfo
+            {
+                HandlerType = handler.GetType().Name,
+                IsPermissionEvaluator = handler is IPermissionEvaluator,
+                DisplayName = handler.GetType().Name.Replace("Handler", "")
+            });
+        }
+
+        // Add evaluators that might not be registered as IAuthorizationHandler (rare but possible)
+        foreach (var evaluator in evaluators)
+        {
+            if (result.All(r => r.HandlerType != evaluator.GetType().Name))
+            {
+                result.Add(new AuthorizationHandlerInfo
+                {
+                    HandlerType = evaluator.GetType().Name,
+                    IsPermissionEvaluator = true,
+                    DisplayName = evaluator.GetType().Name.Replace("Evaluator", "")
+                });
+            }
+        }
+
+        return Task.FromResult<IEnumerable<AuthorizationHandlerInfo>>(result);
+    }
 
     /// <summary>
     /// Records an authorization decision.
@@ -82,6 +134,4 @@ internal static partial class AuthorizationDiagnostics
             new KeyValuePair<string, object?>(AuthorizationDiagnosticsConstants.TagPolicyName, policyName),
             new KeyValuePair<string, object?>(AuthorizationDiagnosticsConstants.TagDecision, isAllowed ? "Allowed" : "Denied"));
     }
-
-    #endregion
 }

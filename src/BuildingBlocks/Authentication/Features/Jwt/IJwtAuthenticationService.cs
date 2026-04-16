@@ -9,8 +9,6 @@ namespace VK.Blocks.Authentication.Features.Jwt;
 /// </summary>
 public interface IJwtAuthenticationService
 {
-    #region Public Methods
-
     /// <summary>
     /// Authenticates a user based on the provided token.
     /// </summary>
@@ -26,6 +24,4 @@ public interface IJwtAuthenticationService
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A result indicating whether the principal is still valid.</returns>
     Task<Result> ValidateRevocationAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default);
-
-    #endregion
 }

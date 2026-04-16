@@ -26,9 +26,8 @@ public sealed class WorkingHoursAuthorizationHandler(
     : AuthorizationHandler<WorkingHoursRequirement>, IWorkingHoursEvaluator
 {
     private const string PolicyName = "WorkingHours";
-    private readonly VKAuthorizationOptions _options = options.Value;
 
-    #region Public Methods
+    private readonly VKAuthorizationOptions _options = options.Value;
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
@@ -36,8 +35,8 @@ public sealed class WorkingHoursAuthorizationHandler(
         WorkingHoursRequirement requirement)
     {
         var result = await IsWithinWorkingHoursAsync(
-                context.User, 
-                requirement.Start, 
+                context.User,
+                requirement.Start,
                 requirement.End)
             .ConfigureAwait(false);
 
@@ -86,6 +85,4 @@ public sealed class WorkingHoursAuthorizationHandler(
         logger.LogAuthorizationFailed(userId, now, activeStart, activeEnd, PolicyName);
         return Result.Success(false);
     }
-
-    #endregion
 }

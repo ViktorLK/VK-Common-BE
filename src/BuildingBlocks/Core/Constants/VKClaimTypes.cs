@@ -1,12 +1,10 @@
-namespace VK.Blocks.Core.Context;
+namespace VK.Blocks.Core.Constants;
 
 /// <summary>
 /// Standardized claim types used across VK system.
 /// </summary>
 public static class VKClaimTypes
 {
-    #region Fields
-
     /// <summary>
     /// The claim type for the tenant identifier.
     /// </summary>
@@ -101,6 +99,5 @@ public static class VKClaimTypes
     /// Standard JWT ID (jti) claim type.
     /// </summary>
     public const string Jti = "jti";
-
-    #endregion
 }
+

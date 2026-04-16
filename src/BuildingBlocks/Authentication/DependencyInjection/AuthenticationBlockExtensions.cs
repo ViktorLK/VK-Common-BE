@@ -5,11 +5,13 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Common;
+using VK.Blocks.Authentication.Diagnostics;
 using VK.Blocks.Authentication.Features.ApiKeys;
 using VK.Blocks.Authentication.Features.Jwt;
 using VK.Blocks.Authentication.Features.OAuth;
 using VK.Blocks.Authentication.Generated;
 using VK.Blocks.Core.DependencyInjection;
+using VK.Blocks.Core.Diagnostics;
 
 namespace VK.Blocks.Authentication.DependencyInjection;
 
@@ -18,8 +20,6 @@ namespace VK.Blocks.Authentication.DependencyInjection;
 /// </summary>
 public static class AuthenticationBlockExtensions
 {
-    #region Public Methods
-
     /// <summary>
     /// Adds the VK authentication block configuration to the specified <see cref="IServiceCollection"/>.
     /// </summary>
@@ -37,10 +37,8 @@ public static class AuthenticationBlockExtensions
                 string.Format(CoreConstants.MissingCoreRegistrationMessage, typeof(AuthenticationBlock).Assembly.GetName().Name));
         }
 
+        var authOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(configuration);
         var authSection = configuration.GetSection(VKAuthenticationOptions.SectionName);
-
-        // 1. Standard Block Registration (Eager-bind, Singleton, DataAnnotations, ValidateOnStart)
-        var authOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(authSection);
         
         // Initialize builder earlier to use idempotent registration helpers
         var builder = new VKBlockBuilder<AuthenticationBlock>(services);
@@ -71,17 +69,20 @@ public static class AuthenticationBlockExtensions
         // 5. Core Authentication Setup Completion
         // We ensure our transformer is registered LAST to ensure it takes precedence over
         // any defaults (like NoopClaimsTransformation) registered by framework extensions.
-        services.AddTransient<IClaimsTransformation, VKClaimsTransformer>();
+        services.TryAddTransient<IClaimsTransformation, VKClaimsTransformer>();
 
-        // 6. Mark-Self (Success Commit)
+        // 6. Discovery & Auto-Registration
+        // We register any IVKClaimsProvider implementations discovered by the source generator.
+        services.AddGeneratedClaimsProviders();
+
+        // Register the security metadata provider for web discovery
+        services.TryAddEnumerableSingleton<ISecurityMetadataProvider, AuthenticationMetadataProvider>();
+
+        // 7. Mark-Self (Success Commit)
         services.AddVKBlockMarker<AuthenticationBlock>();
 
         return builder;
     }
-
-    #endregion
-
-    #region Private Methods
 
     private static AuthenticationBuilder AddCoreAuthenticationFramework(
         this IServiceCollection services,
@@ -184,6 +185,4 @@ public static class AuthenticationBlockExtensions
             }
         });
     }
-
-    #endregion
 }

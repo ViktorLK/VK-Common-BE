@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 public static class JwtErrors
 {
-    #region Fields
-
     /// <summary>
     /// Error when the provided token is null or whitespace.
     /// </summary>
@@ -48,6 +46,4 @@ public static class JwtErrors
     /// Error when the token audience does not match configuration.
     /// </summary>
     public static readonly Error AudienceInvalid = new("Auth.AudienceInvalid", "The token audience is invalid.", ErrorType.Unauthorized);
-
-    #endregion
 }

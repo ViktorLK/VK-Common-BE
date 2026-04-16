@@ -264,5 +264,5 @@ MethodInfo を共有することで、メモリ使用量を削減。
 
 ## Related Documents (関連ドキュメント)
 
-- 📄 [ADR-002: Static Generic Caching](./adr-002-static-generic-caching.md) - 同じキャッシュ戦略
-- 📄 [Architecture Audit Report](/docs/AuditReports/EFCore_Persistence_20260218.md) - MethodInfo Caching の評価
+- 📄 [ADR-002: Static Generic Caching](/docs/02-ArchitectureDecisionRecords/EFCore/adr-002-static-generic-caching.md) - 同じキャッシュ戦略
+- 📄 [Architecture Audit Report](/docs/04-AuditReports/EFCore/EFCore_Persistence_20260218.md) - MethodInfo Caching の評価

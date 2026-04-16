@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.OAuth.Internal;
 /// </summary>
 internal static class OAuthConstants
 {
-    #region Fields
-
     /// <summary>
     /// Identifier for the GitHub provider.
     /// </summary>
@@ -21,6 +19,4 @@ internal static class OAuthConstants
     /// Message for missing Authority.
     /// </summary>
     public const string AuthorityRequired = "OAuth provider '{0}' is enabled but missing Authority.";
-
-    #endregion
 }

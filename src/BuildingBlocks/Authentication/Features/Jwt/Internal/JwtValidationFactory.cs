@@ -2,7 +2,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.Jwt.Metadata;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 
@@ -11,8 +11,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 public static class JwtValidationFactory
 {
-    #region Public Methods
-
     /// <summary>
     /// Creates a new instance of <see cref="TokenValidationParameters"/> using the provided options.
     /// </summary>
@@ -49,6 +47,4 @@ public static class JwtValidationFactory
 
         return parameters;
     }
-
-    #endregion
 }

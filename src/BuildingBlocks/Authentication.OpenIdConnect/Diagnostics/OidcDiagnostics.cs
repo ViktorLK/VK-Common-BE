@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using VK.Blocks.Core.Attributes;
 
-namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
+namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
 
 /// <summary>
 /// Centralized Diagnostics definition for the VK.Blocks.Authentication.OpenIdConnect building block.
@@ -11,43 +11,31 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 [VKBlockDiagnostics(OidcDiagnosticsConstants.SourceName)]
 internal static partial class OidcDiagnostics
 {
-    #region Fields
+    private static readonly Counter<long> _authenticationRequests;
 
-    /// <summary>
-    /// Counter tracking the number of OIDC authentication attempts.
-    /// </summary>
-    public static readonly Counter<long> AuthenticationRequests;
-
-    /// <summary>
-    /// Histogram tracking the duration of OIDC authentication/validation.
-    /// </summary>
-    public static readonly Histogram<double> ValidationDuration;
-
-    #endregion
-
-    #region Constructors
+    private static readonly Histogram<double> _validationDuration;
 
     static OidcDiagnostics()
     {
-        AuthenticationRequests = Meter.CreateCounter<long>(
+        _authenticationRequests = Meter.CreateCounter<long>(
             OidcDiagnosticsConstants.AuthRequestCounterName,
             description: "Number of OIDC authentication attempts"
         );
 
-        ValidationDuration = Meter.CreateHistogram<double>(
+        _validationDuration = Meter.CreateHistogram<double>(
             OidcDiagnosticsConstants.AuthDurationHistogramName,
             unit: "ms",
             description: "Duration of OIDC authentication/validation"
         );
     }
 
-    #endregion
-
-    #region Public Methods
-
     /// <summary>
     /// Records an OIDC authentication attempt result.
     /// </summary>
+    /// <param name="provider">The authentication provider name.</param>
+    /// <param name="isSuccess">Whether the attempt was successful.</param>
+    /// <param name="failureReason">The reason for failure if not successful.</param>
+    /// <param name="tenantId">The optional tenant identifier.</param>
     public static void RecordAuthAttempt(string provider, bool isSuccess, string? failureReason = null, string? tenantId = null)
     {
         var tags = new TagList
@@ -66,12 +54,16 @@ internal static partial class OidcDiagnostics
             tags.Add(OidcDiagnosticsConstants.TagAuthFailureReason, failureReason);
         }
 
-        AuthenticationRequests.Add(1, tags);
+        _authenticationRequests.Add(1, tags);
     }
 
     /// <summary>
     /// Records the duration of an OIDC validation attempt.
     /// </summary>
+    /// <param name="provider">The authentication provider name.</param>
+    /// <param name="durationMs">The duration in milliseconds.</param>
+    /// <param name="isSuccess">Whether the validation was successful.</param>
+    /// <param name="tenantId">The optional tenant identifier.</param>
     public static void RecordDuration(string provider, double durationMs, bool isSuccess, string? tenantId = null)
     {
         var tags = new TagList
@@ -85,18 +77,18 @@ internal static partial class OidcDiagnostics
             tags.Add(OidcDiagnosticsConstants.TagTenantId, tenantId);
         }
 
-        ValidationDuration.Record(durationMs, tags);
+        _validationDuration.Record(durationMs, tags);
     }
 
     /// <summary>
     /// Starts a new activity for OIDC token validation.
     /// </summary>
+    /// <param name="provider">The authentication provider name.</param>
+    /// <returns>The started <see cref="Activity"/> or null if diagnostics are disabled.</returns>
     public static Activity? StartOidcValidation(string provider)
     {
         var activity = Source.StartActivity(OidcDiagnosticsConstants.ActivityAuthenticateOidc);
         activity?.SetTag(OidcDiagnosticsConstants.TagAuthProvider, provider);
         return activity;
     }
-
-    #endregion
 }

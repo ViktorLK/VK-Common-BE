@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -27,9 +28,8 @@ public sealed class InternalNetworkAuthorizationHandler(
     : AuthorizationHandler<InternalNetworkRequirement>, IInternalNetworkEvaluator
 {
     private const string PolicyName = "InternalNetwork";
-    private readonly VKAuthorizationOptions _options = options.Value;
 
-    #region Public Methods
+    private readonly VKAuthorizationOptions _options = options.Value;
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
@@ -97,10 +97,6 @@ public sealed class InternalNetworkAuthorizationHandler(
         return ValueTask.FromResult(Result.Success(false));
     }
 
-    #endregion
-
-    #region Private Methods
-
     private static bool IsInCidr(IPAddress ip, string cidr)
     {
         var span = cidr.AsSpan();
@@ -162,6 +158,4 @@ public sealed class InternalNetworkAuthorizationHandler(
 
         return true;
     }
-
-    #endregion
 }

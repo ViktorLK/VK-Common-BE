@@ -5,11 +5,18 @@ namespace VK.Blocks.Authorization.Features.Permissions.Metadata;
 /// </summary>
 public sealed record Permission
 {
-    #region Properties
-
+    /// <summary>
+    /// Gets the unique name of the permission.
+    /// </summary>
     public required string Name { get; init; }
-    public string? Description { get; init; }
-    public required string Module { get; init; }
 
-    #endregion
+    /// <summary>
+    /// Gets the human-readable description of the permission.
+    /// </summary>
+    public string? Description { get; init; }
+
+    /// <summary>
+    /// Gets the module name this permission belongs to.
+    /// </summary>
+    public required string Module { get; init; }
 }

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace VK.Blocks.Core.Context;
+namespace VK.Blocks.Core.Abstractions;
 
 /// <summary>
 /// Provides access to the current user's identity and authentication state
@@ -8,8 +8,6 @@ namespace VK.Blocks.Core.Context;
 /// </summary>
 public interface IUserContext
 {
-    #region Properties
-
     /// <summary>
     /// Gets the unique identifier of the current user,
     /// or <c>null</c> if the user is not authenticated.
@@ -38,6 +36,5 @@ public interface IUserContext
     /// Gets a value indicating whether the current user is authenticated.
     /// </summary>
     bool IsAuthenticated { get; }
-
-    #endregion
 }
+

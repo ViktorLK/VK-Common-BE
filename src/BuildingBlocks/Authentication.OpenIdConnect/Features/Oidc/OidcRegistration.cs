@@ -5,11 +5,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Core.DependencyInjection;
 using VK.Blocks.Authentication.DependencyInjection;
 using VK.Blocks.Authentication.Features.OAuth;
 using VK.Blocks.Authentication.Generated;
 using VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
-using VK.Blocks.Core.DependencyInjection;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
 
@@ -21,6 +21,9 @@ public static class OidcRegistration
     /// <summary>
     /// Discovers and registers OAuth providers with Fail-Fast validation.
     /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration to bind from.</param>
+    /// <returns>The same <paramref name="services"/> instance.</returns>
     internal static IServiceCollection AddOidcFeature(this IServiceCollection services, IConfiguration configuration)
     {
         var authSection = configuration.GetSection(VKAuthenticationOptions.SectionName);

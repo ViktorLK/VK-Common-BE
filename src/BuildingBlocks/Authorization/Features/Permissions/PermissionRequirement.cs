@@ -11,17 +11,21 @@ namespace VK.Blocks.Authorization.Features.Permissions;
 /// <param name="Permissions">The list of permissions required.</param>
 /// <param name="Mode">The evaluation mode (All/Any). Defaults to All.</param>
 public sealed record PermissionRequirement(
-    ImmutableArray<string> Permissions, 
-    PermissionEvaluationMode Mode = PermissionEvaluationMode.All) 
+    ImmutableArray<string> Permissions,
+    PermissionEvaluationMode Mode = PermissionEvaluationMode.All)
     : IVKAuthorizationRequirement
 {
+    /// <summary>
+    /// Gets the default error associated with the requirement failure.
+    /// </summary>
     /// <inheritdoc />
     public Error DefaultError => AuthorizationErrors.PermissionDenied;
 
     /// <summary>
-    /// Shorthand constructor for a single permission.
+    /// Initializes a new instance with a single permission.
     /// </summary>
-    public PermissionRequirement(string permission) 
+    /// <param name="permission">The permission name.</param>
+    public PermissionRequirement(string permission)
         : this([permission], PermissionEvaluationMode.All)
     {
     }

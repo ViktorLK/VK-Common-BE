@@ -18,7 +18,7 @@ public static class OAuthRegistration
     /// Adds OAuth authentication services and dynamic mappers to the container.
     /// </summary>
     /// <param name="services">The service collection.</param>
-    /// <param name="section">The configuration section for OAuth options.</param>
+    /// <param name="oauthSection">The configuration section for OAuth options.</param>
     /// <returns>The registered <see cref="VKOAuthOptions"/> instance.</returns>
     public static VKOAuthOptions AddOAuthFeature(this IServiceCollection services, IConfigurationSection oauthSection)
     {

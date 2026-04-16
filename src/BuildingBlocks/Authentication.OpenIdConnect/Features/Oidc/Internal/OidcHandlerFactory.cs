@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.DependencyInjection;
 using VK.Blocks.Authentication.Features.OAuth;
+using VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
@@ -17,8 +18,11 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 /// </summary>
 internal static class OidcHandlerFactory
 {
-    #region Public Methods
-
+    /// <summary>
+    /// Creates a delegate for the OnTokenValidated event.
+    /// </summary>
+    /// <param name="providerName">The name of the authentication provider.</param>
+    /// <returns>A function that handles the token validation context.</returns>
     public static Func<TokenValidatedContext, Task> CreateOnTokenValidated(string providerName)
     {
         return context =>
@@ -72,10 +76,9 @@ internal static class OidcHandlerFactory
         };
     }
 
-    #endregion
-
-    #region Internal Methods
-
+    /// <summary>
+    /// Extracts external identity information from the token validation context.
+    /// </summary>
     internal static ExternalIdentity ExtractExternalIdentity(TokenValidatedContext context, string providerName)
     {
         var principal = context.Principal;
@@ -106,6 +109,4 @@ internal static class OidcHandlerFactory
             Claims = claims
         };
     }
-
-    #endregion
 }

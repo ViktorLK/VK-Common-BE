@@ -25,9 +25,8 @@ public sealed class MinimumRankAuthorizationHandler(
     : AuthorizationHandler<MinimumRankRequirement>, IMinimumRankEvaluator
 {
     private static string PolicyName => MinimumRankConstants.PolicyName;
-    private readonly VKAuthorizationOptions _options = options.Value;
 
-    #region Public Methods
+    private readonly VKAuthorizationOptions _options = options.Value;
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
@@ -40,8 +39,8 @@ public sealed class MinimumRankAuthorizationHandler(
         }
 
         var result = await HasMinimumRankAsync(
-                context.User, 
-                requirement.MinimumRankValue, 
+                context.User,
+                requirement.MinimumRankValue,
                 requirement.EnumType)
             .ConfigureAwait(false);
 
@@ -106,6 +105,4 @@ public sealed class MinimumRankAuthorizationHandler(
         logger.LogAuthorizationFailed(userId, userRankValue, minimumRank);
         return Result.Success(false);
     }
-
-    #endregion
 }

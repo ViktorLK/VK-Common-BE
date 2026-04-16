@@ -6,20 +6,18 @@ using VK.Blocks.Authorization.Features.InternalNetwork;
 using VK.Blocks.Authorization.Features.InternalNetwork.Internal;
 using VK.Blocks.Authorization.Features.WorkingHours;
 using VK.Blocks.Authorization.Features.WorkingHours.Internal;
+using VK.Blocks.Core.Abstractions;
 
 namespace VK.Blocks.Authorization.DependencyInjection;
 
 /// <summary>
-/// Root configuration options for the Authorization building block.
+/// Configuration options for the authorization building block.
 /// </summary>
-public sealed class VKAuthorizationOptions
+public sealed class VKAuthorizationOptions : IVKBlockOptions
 {
-    #region Fields
+    public static string SectionName => "VKBlocks:Authorization";
 
-    /// <summary>
-    /// The configuration section name for authorization options.
-    /// </summary>
-    public const string SectionName = "Authorization";
+    #region Fields
 
     /// <summary>
     /// Gets or sets which built-in policies should be registered.

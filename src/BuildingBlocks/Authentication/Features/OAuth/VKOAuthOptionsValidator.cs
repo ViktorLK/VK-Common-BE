@@ -16,7 +16,7 @@ public sealed class VKOAuthOptionsValidator : IValidateOptions<VKOAuthOptions>
             return ValidateOptionsResult.Success;
         }
 
-        if (options.Providers == null || options.Providers.Count == 0)
+        if (options.Providers is null || options.Providers.Count is 0)
         {
             return ValidateOptionsResult.Fail(VKOAuthErrors.MissingProviders);
         }

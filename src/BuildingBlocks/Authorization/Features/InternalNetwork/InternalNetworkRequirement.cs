@@ -11,6 +11,9 @@ namespace VK.Blocks.Authorization.Features.InternalNetwork;
 /// <param name="AllowedCidrs">Allowed CIDR notations.</param>
 public sealed record InternalNetworkRequirement(IReadOnlyList<string> AllowedCidrs) : IVKAuthorizationRequirement
 {
+    /// <summary>
+    /// Gets the default error associated with the requirement failure.
+    /// </summary>
     /// <inheritdoc />
     public Error DefaultError => AuthorizationErrors.InternalNetworkDenied;
 }

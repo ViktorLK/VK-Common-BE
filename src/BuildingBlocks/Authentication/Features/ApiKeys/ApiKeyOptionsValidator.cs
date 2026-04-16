@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys;
 /// </summary>
 public sealed class ApiKeyOptionsValidator : IValidateOptions<ApiKeyOptions>
 {
-    #region Public Methods
-
     /// <inheritdoc />
     public ValidateOptionsResult Validate(string? name, ApiKeyOptions options)
     {
@@ -47,6 +45,4 @@ public sealed class ApiKeyOptionsValidator : IValidateOptions<ApiKeyOptions>
 
         return ValidateOptionsResult.Success;
     }
-
-    #endregion
 }

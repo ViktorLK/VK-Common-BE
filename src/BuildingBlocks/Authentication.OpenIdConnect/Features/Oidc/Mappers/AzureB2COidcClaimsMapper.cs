@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using VK.Blocks.Core.Constants;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.OAuth.Mappers;
 using VK.Blocks.Authentication.Features.OAuth.Metadata;
@@ -12,8 +13,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Mappers;
 [OAuthProvider(OidcConstants.AzureB2C)]
 public sealed class AzureB2COidcClaimsMapper : OAuthClaimsMapperBase
 {
-    #region Public Methods
-
+    /// <inheritdoc />
     public override IEnumerable<Claim> MapToClaims(ExternalIdentity userInfo)
     {
         foreach (var claim in base.MapToClaims(userInfo))
@@ -32,6 +32,4 @@ public sealed class AzureB2COidcClaimsMapper : OAuthClaimsMapperBase
             yield return new Claim(ClaimTypes.Email, emails);
         }
     }
-
-    #endregion
 }

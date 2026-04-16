@@ -1,9 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.Core.DependencyInjection;
+using VK.Blocks.Core.Diagnostics;
 using VK.Blocks.Authentication.DependencyInjection;
+using VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
 using VK.Blocks.Authentication.OpenIdConnect.Features.Oidc;
 using VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
-using VK.Blocks.Core.DependencyInjection;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection;
 
@@ -12,11 +14,12 @@ namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection;
 /// </summary>
 public static class OidcAuthenticationBuilderExtensions
 {
-    #region Public Methods
-
     /// <summary>
     /// Discovers and registers OAuth providers with Fail-Fast validation.
     /// </summary>
+    /// <param name="builder">The VK block builder.</param>
+    /// <param name="configuration">The configuration to bind from.</param>
+    /// <returns>The same <paramref name="builder"/> instance for chaining.</returns>
     public static IVKBlockBuilder<AuthenticationBlock> AddVKOidcBlock(this IVKBlockBuilder<AuthenticationBlock> builder, IConfiguration configuration)
     {
         // 0. Idempotency Check
@@ -34,11 +37,12 @@ public static class OidcAuthenticationBuilderExtensions
         // 1. Feature Registration
         builder.Services.AddOidcFeature(configuration);
 
+        // 1.5 Diagnostic Registration
+        builder.Services.TryAddEnumerableSingleton<ISecurityMetadataProvider, OidcMetadataProvider>();
+
         // 2. Mark-Self (Success Commit)
         builder.Services.AddVKBlockMarker<OidcBlock>();
 
         return builder;
     }
-
-    #endregion
 }

@@ -7,7 +7,6 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 /// </summary>
 internal static partial class OidcLog
 {
-    #region Public Methods
 
     [LoggerMessage(
         EventId = 1001,
@@ -38,6 +37,4 @@ internal static partial class OidcLog
         Level = LogLevel.Error,
         Message = "OIDC Configuration Mapping Failed: Provider: [{AuthProvider}]. TraceId: {TraceId}")]
     public static partial void LogOidcMappingError(this ILogger logger, string authProvider, string traceId);
-
-    #endregion
 }

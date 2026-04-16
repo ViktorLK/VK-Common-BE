@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Abstractions;
 /// </summary>
 public sealed record AuthenticatedUser
 {
-    #region Properties
-
     /// <summary>
     /// Gets the unique identifier of the user.
     /// </summary>
@@ -43,6 +41,4 @@ public sealed record AuthenticatedUser
     /// Gets the claims associated with the user.
     /// </summary>
     public IReadOnlyDictionary<string, string> Claims { get; init; } = new Dictionary<string, string>();
-
-    #endregion
 }

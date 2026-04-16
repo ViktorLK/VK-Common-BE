@@ -13,6 +13,9 @@ namespace VK.Blocks.Authorization.Features.MinimumRank;
 /// <param name="EnumType">The type of the enum representing the ranks, used for claim parsing fallback.</param>
 public sealed record MinimumRankRequirement(int MinimumRankValue, Type EnumType) : IVKAuthorizationRequirement
 {
+    /// <summary>
+    /// Gets the default error associated with the requirement failure.
+    /// </summary>
     /// <inheritdoc />
     public Error DefaultError => AuthorizationErrors.InsufficientRank;
 }

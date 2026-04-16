@@ -21,8 +21,6 @@ public sealed class ApiKeyValidator(
     TimeProvider timeProvider,
     ILogger<ApiKeyValidator> logger)
 {
-    #region Public Methods
-
     /// <summary>
     /// Validates a raw API key asynchronously.
     /// </summary>
@@ -114,10 +112,6 @@ public sealed class ApiKeyValidator(
         });
     }
 
-    #endregion
-
-    #region Private Methods
-
     /// <summary>
     /// Hashes the raw API key using SHA256.
     /// </summary>
@@ -175,6 +169,4 @@ public sealed class ApiKeyValidator(
             logger.LogLastUsedUpdateFailed(ex, keyId.ToString());
         }
     }
-
-    #endregion
 }

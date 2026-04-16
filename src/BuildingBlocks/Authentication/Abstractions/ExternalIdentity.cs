@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Abstractions;
 /// </summary>
 public sealed record ExternalIdentity
 {
-    #region Properties
-
     /// <summary>
     /// Gets the name of the OAuth provider.
     /// </summary>
@@ -37,6 +35,4 @@ public sealed record ExternalIdentity
     /// Examples: "tid" (Azure Tenant ID), "hd" (Google Hosted Domain), "avatar_url" (GitHub), "picture" (Google), "locale", etc.
     /// </summary>
     public IReadOnlyDictionary<string, string> Claims { get; init; } = new Dictionary<string, string>();
-
-    #endregion
 }

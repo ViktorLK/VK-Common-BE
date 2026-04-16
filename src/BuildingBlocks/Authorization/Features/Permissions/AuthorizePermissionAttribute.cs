@@ -25,6 +25,7 @@ public class AuthorizePermissionAttribute : AuthorizeAttribute, IAuthorizationRe
     /// <summary>
     /// Initializes a new instance with a single permission.
     /// </summary>
+    /// <param name="permission">The permission name.</param>
     public AuthorizePermissionAttribute(string permission)
     {
         Permissions = [permission];
@@ -33,16 +34,19 @@ public class AuthorizePermissionAttribute : AuthorizeAttribute, IAuthorizationRe
     /// <summary>
     /// Initializes a new instance with multiple permissions.
     /// </summary>
+    /// <param name="permissions">The permissions required.</param>
     protected AuthorizePermissionAttribute(params string[] permissions)
     {
         Permissions = [.. permissions];
     }
 
+    /// <summary>
+    /// Returns the authorization requirements defined by this attribute.
+    /// </summary>
+    /// <returns>A collection of requirements.</returns>
     /// <inheritdoc />
     public IEnumerable<IAuthorizationRequirement> GetRequirements()
     {
         yield return new PermissionRequirement(Permissions, Mode);
     }
 }
-
-

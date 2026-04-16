@@ -368,4 +368,4 @@ dotnet test --filter "FullyQualifiedName~VK.Blocks.Authorization"
 
 ## ライセンス
 
-本プロジェクトは [MIT License](../../../LICENSE) の下で公開されています。
+本プロジェクトは [MIT License](/LICENSE) の下で公開されています。

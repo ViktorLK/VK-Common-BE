@@ -317,8 +317,8 @@ action("Hello");  // → MyMethod("Hello") が実行される
 
 ## Related Documents (関連ドキュメント)
 
-- 📄 [ADR-001: Hybrid Auditing Strategy](./adr-001-hybrid-auditing.md) - Soft Delete の使用シナリオ
-- 📄 [Architecture Audit Report](/docs/AuditReports/EFCore_Persistence_20260218.md) - Dynamic Query Filters の評価
+- 📄 [ADR-001: Hybrid Auditing Strategy](/docs/02-ArchitectureDecisionRecords/EFCore/adr-001-hybrid-auditing.md) - Soft Delete の使用シナリオ
+- 📄 [Architecture Audit Report](/docs/04-AuditReports/EFCore/EFCore_Persistence_20260218.md) - Dynamic Query Filters の評価
 - 📖 [Global Query Filters (EF Core)](https://learn.microsoft.com/en-us/ef/core/querying/filters)
 
 ---

@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 internal static class JwtConstants
 {
-    #region Fields
-
     /// <summary>
     /// The minimum required length for the JWT secret key (32 characters / 256 bits).
     /// </summary>
@@ -21,8 +19,6 @@ internal static class JwtConstants
     /// The maximum allowed lifetime for a refresh token in days.
     /// </summary>
     public const int MaxRefreshTokenLifetimeDays = 90;
-
-    #region Configuration Validation
 
     /// <summary>
     /// Error message when DefaultScheme is missing.
@@ -69,10 +65,6 @@ internal static class JwtConstants
     /// </summary>
     public const string ClockSkewInvalid = "ClockSkewSeconds must be zero or positive.";
 
-    #endregion
-
-    #region Response Headers & Details
-
     /// <summary>
     /// HTTP header name used to indicate that a token has expired.
     /// </summary>
@@ -97,8 +89,4 @@ internal static class JwtConstants
     /// Default detail message for unauthorized responses.
     /// </summary>
     public const string DefaultUnauthorizedDetail = "You are not authorized or the token is invalid.";
-
-    #endregion
-
-    #endregion
 }

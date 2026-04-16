@@ -9,8 +9,6 @@ namespace VK.Blocks.Authentication.Features.Jwt;
 /// </summary>
 public sealed class JwtOptions
 {
-    #region Properties
-
     /// <summary>
     /// Gets or sets a value indicating whether JWT validation is enabled.
     /// </summary>
@@ -75,6 +73,4 @@ public sealed class JwtOptions
     /// Gets or sets the lifetime of a refresh token in days. Defaults to 30.
     /// </summary>
     public int RefreshTokenLifetimeDays { get; set; } = 30;
-
-    #endregion
 }

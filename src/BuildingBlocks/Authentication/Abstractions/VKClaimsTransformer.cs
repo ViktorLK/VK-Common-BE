@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authentication.Common.Extensions;
 using VK.Blocks.Authentication.Diagnostics;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Abstractions;
 
@@ -15,12 +15,10 @@ namespace VK.Blocks.Authentication.Abstractions;
 /// It uses <see cref="IVKClaimsProvider"/> if registered in the DI container.
 /// </summary>
 public sealed class VKClaimsTransformer(
-    IServiceScopeFactory scopeFactory, 
+    IServiceScopeFactory scopeFactory,
     IHttpContextAccessor httpContextAccessor,
     ILogger<VKClaimsTransformer> logger) : IClaimsTransformation
 {
-    #region Public Methods
-
     /// <inheritdoc />
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
@@ -46,23 +44,32 @@ public sealed class VKClaimsTransformer(
         }
 
         using var scope = scopeFactory.CreateScope();
-        var claimsProvider = scope.ServiceProvider.GetService<IVKClaimsProvider>();
+        var claimsProviders = scope.ServiceProvider.GetServices<IVKClaimsProvider>().ToList();
 
-        if (claimsProvider is not null)
+        if (claimsProviders.Count > 0)
         {
             try
             {
                 // 2. Restore CancellationToken propagation via IHttpContextAccessor (Rule 3).
                 var cancellationToken = httpContextAccessor.HttpContext?.RequestAborted ?? default;
-                var dynamicClaims = await claimsProvider.GetUserClaimsAsync(userId, cancellationToken).ConfigureAwait(false);
 
-                if (dynamicClaims is not null)
+                List<Claim> allDynamicClaims = [];
+                foreach (var provider in claimsProviders)
+                {
+                    var claims = await provider.GetUserClaimsAsync(userId, cancellationToken).ConfigureAwait(false);
+                    if (claims is not null)
+                    {
+                        allDynamicClaims.AddRange(claims);
+                    }
+                }
+
+                if (allDynamicClaims.Count > 0)
                 {
                     // 3. Clone the principal to keep the original immutable as per best practices.
                     var clone = principal.Clone();
                     var newIdentity = (ClaimsIdentity)clone.Identity!;
 
-                    newIdentity.AddClaims(dynamicClaims);
+                    newIdentity.AddClaims(allDynamicClaims);
 
                     // 4. Mark the identity as transformed.
                     newIdentity.AddClaim(new Claim(VKClaimTypes.ClaimsTransformed, "true"));
@@ -79,7 +86,7 @@ public sealed class VKClaimsTransformer(
                 // Resilience: Do not crash the entire request if claims enrichment fails.
                 // Log and return the original principal (Rule 6).
                 logger.LogClaimsTransformationError(ex, userId);
-                
+
                 AuthenticationDiagnostics.RecordClaimsTransformation(
                     Stopwatch.GetElapsedTime(startTime).TotalMilliseconds, applied: false);
             }
@@ -90,6 +97,4 @@ public sealed class VKClaimsTransformer(
 
         return principal;
     }
-
-    #endregion
 }

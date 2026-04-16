@@ -11,8 +11,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 internal static class JwtEventsFactory
 {
-    #region Public Methods
-
     /// <summary>
     /// Creates the JWT bearer events mapped to the standard authentication pipeline.
     /// </summary>
@@ -54,6 +52,4 @@ internal static class JwtEventsFactory
             }
         };
     }
-
-    #endregion
 }

@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.OAuth.Internal;
 /// </summary>
 public static class OAuthErrors
 {
-    #region Fields
-
     /// <summary>
     /// Error when a requested OAuth provider is not supported by the system.
     /// </summary>
@@ -38,6 +36,4 @@ public static class OAuthErrors
     /// Error when user info retrieval from the external provider fails.
     /// </summary>
     public static readonly Error UserInfoFailure = new("OAuth.UserInfoFailure", "Failed to retrieve user information from the external provider.", ErrorType.Failure);
-
-    #endregion
 }

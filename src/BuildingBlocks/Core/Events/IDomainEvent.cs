@@ -1,3 +1,5 @@
+using System;
+
 namespace VK.Blocks.Core.Events;
 
 /// <summary>
@@ -7,13 +9,14 @@ namespace VK.Blocks.Core.Events;
 /// </summary>
 public interface IDomainEvent
 {
-    #region Properties
-
-    /// <summary>Gets the unique identifier for this event instance.</summary>
+    /// <summary>
+    /// Gets the unique identifier for this event instance.
+    /// </summary>
     Guid EventId { get; }
 
-    /// <summary>Gets the UTC date and time when this event occurred.</summary>
+    /// <summary>
+    /// Gets the UTC date and time when this event occurred.
+    /// </summary>
     DateTimeOffset OccurredOn { get; }
-
-    #endregion
 }
+

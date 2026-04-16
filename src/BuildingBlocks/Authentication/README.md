@@ -43,7 +43,7 @@ builder.Services.AddVKAuthenticationBlock(builder.Configuration)
     .AddDiscoveryOAuth(builder.Configuration); // 構成駆動で OIDC プロバイダーを自動検証・登録
 ```
 
-詳細は `src/BuildingBlocks/Authentication.OpenIdConnect/README.md` を参照してください。
+詳細は [/src/BuildingBlocks/Authentication.OpenIdConnect/README.md](/src/BuildingBlocks/Authentication.OpenIdConnect/README.md) を参照してください。
 
 ---
 
@@ -352,4 +352,4 @@ services.TryAddEnumerableSingleton<IValidateOptions<MyOptions>, MyValidator>();
 
 ## ライセンス
 
-MIT License — 詳細は [LICENSE](../../../LICENSE) を参照してください。
+MIT License — 詳細は [LICENSE](/LICENSE) を参照してください。

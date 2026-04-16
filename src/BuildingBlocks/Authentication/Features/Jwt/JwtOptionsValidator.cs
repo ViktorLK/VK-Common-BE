@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Features.Jwt.Internal;
 using VK.Blocks.Authentication.Features.Jwt.Metadata;
-using Microsoft.Extensions.Options;
 
 namespace VK.Blocks.Authentication.Features.Jwt;
 
@@ -9,8 +9,6 @@ namespace VK.Blocks.Authentication.Features.Jwt;
 /// </summary>
 public sealed class JwtOptionsValidator : IValidateOptions<JwtOptions>
 {
-    #region Public Methods
-
     /// <inheritdoc />
     public ValidateOptionsResult Validate(string? name, JwtOptions options)
     {
@@ -65,6 +63,4 @@ public sealed class JwtOptionsValidator : IValidateOptions<JwtOptions>
 
         return ValidateOptionsResult.Success;
     }
-
-    #endregion
 }

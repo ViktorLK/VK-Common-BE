@@ -13,8 +13,7 @@ public sealed class OidcProviderValidator(
     IOptions<VKAuthenticationOptions> vkOptions,
     ILogger<OidcProviderValidator> logger) : IValidateOptions<OpenIdConnectOptions>
 {
-    #region Public Methods
-
+    /// <inheritdoc />
     public ValidateOptionsResult Validate(string? name, OpenIdConnectOptions options)
     {
         // Null or default scheme name handling
@@ -36,6 +35,4 @@ public sealed class OidcProviderValidator(
         
         return ValidateOptionsResult.Success;
     }
-
-    #endregion
 }

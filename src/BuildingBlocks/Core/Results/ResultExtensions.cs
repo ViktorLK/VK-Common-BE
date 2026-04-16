@@ -6,12 +6,15 @@ namespace VK.Blocks.Core.Results;
 /// </summary>
 public static class ResultExtensions
 {
-    #region Bind (Chaining)
-
     /// <summary>
     /// Binds the result of a function to the result of the previous operation within a railway-oriented programming flow.
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The function to execute if the result is successful.</param>
+    /// <returns>A new <see cref="Result{TOut}"/>.</returns>
     public static Result<TOut> Bind<TIn, TOut>(
         this Result<TIn> result,
         Func<TIn, Result<TOut>> func)
@@ -28,6 +31,10 @@ public static class ResultExtensions
     /// Binds the result of a function to the result of the previous operation (void Result).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The function to execute if the result is successful.</param>
+    /// <returns>A new <see cref="Result{TOut}"/>.</returns>
     public static Result<TOut> Bind<TOut>(
         this Result result,
         Func<Result<TOut>> func)
@@ -44,6 +51,9 @@ public static class ResultExtensions
     /// Binds the result of a function to the result of the previous operation (void Result).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The function to execute if the result is successful.</param>
+    /// <returns>A new <see cref="Result"/>.</returns>
     public static Result Bind(
         this Result result,
         Func<Result> func)
@@ -60,6 +70,10 @@ public static class ResultExtensions
     /// Binds the result of a function to the result of the previous operation (Result{T}).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The function to execute if the result is successful.</param>
+    /// <returns>A new <see cref="Result"/>.</returns>
     public static Result Bind<TIn>(
         this Result<TIn> result,
         Func<TIn, Result> func)
@@ -76,6 +90,11 @@ public static class ResultExtensions
     /// Binds the result of an asynchronous function to the result of the previous operation within a railway-oriented programming flow.
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The asynchronous function to execute if the result is successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result{TOut}"/>.</returns>
     public static async Task<Result<TOut>> BindAsync<TIn, TOut>(
         this Result<TIn> result,
         Func<TIn, Task<Result<TOut>>> func)
@@ -85,47 +104,59 @@ public static class ResultExtensions
             return Result.Failure<TOut>(result.Errors);
         }
 
-        return await func(result.Value!);
+        return await func(result.Value!).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Binds the result of an asynchronous function to the result of an asynchronous previous operation.
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the input result.</param>
+    /// <param name="func">The asynchronous function to execute if the result is successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result{TOut}"/>.</returns>
     public static async Task<Result<TOut>> BindAsync<TIn, TOut>(
         this Task<Result<TIn>> resultTask,
         Func<TIn, Task<Result<TOut>>> func)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure<TOut>(result.Errors);
         }
 
-        return await func(result.Value!);
+        return await func(result.Value!).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Binds the result of an asynchronous function to the result of an asynchronous previous operation (void Result).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the input result.</param>
+    /// <param name="func">The asynchronous function to execute if the result is successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result{TOut}"/>.</returns>
     public static async Task<Result<TOut>> BindAsync<TOut>(
         this Task<Result> resultTask,
         Func<Task<Result<TOut>>> func)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure<TOut>(result.Errors);
         }
 
-        return await func();
+        return await func().ConfigureAwait(false);
     }
 
     /// <summary>
     /// Binds the result of an asynchronous function to the result of the previous operation (void Result).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The asynchronous function to execute if the result is successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result"/>.</returns>
     public static async Task<Result> BindAsync(
         this Result result,
         Func<Task<Result>> func)
@@ -135,30 +166,37 @@ public static class ResultExtensions
             return result;
         }
 
-        return await func();
+        return await func().ConfigureAwait(false);
     }
 
     /// <summary>
     /// Binds the result of an asynchronous function to the result of an asynchronous previous operation (void Result).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <param name="resultTask">The asynchronous task containing the input result.</param>
+    /// <param name="func">The asynchronous function to execute if the result is successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result"/>.</returns>
     public static async Task<Result> BindAsync(
         this Task<Result> resultTask,
         Func<Task<Result>> func)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return result;
         }
 
-        return await func();
+        return await func().ConfigureAwait(false);
     }
 
     /// <summary>
     /// Binds the result of an asynchronous function to the result of the previous operation (Result{T}).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The asynchronous function to execute if the result is successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result"/>.</returns>
     public static async Task<Result> BindAsync<TIn>(
         this Result<TIn> result,
         Func<TIn, Task<Result>> func)
@@ -168,34 +206,40 @@ public static class ResultExtensions
             return Result.Failure(result.Errors);
         }
 
-        return await func(result.Value!);
+        return await func(result.Value!).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Binds the result of an asynchronous function to the result of an asynchronous previous operation (Result{T}).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the input result.</param>
+    /// <param name="func">The asynchronous function to execute if the result is successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result"/>.</returns>
     public static async Task<Result> BindAsync<TIn>(
         this Task<Result<TIn>> resultTask,
         Func<TIn, Task<Result>> func)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure(result.Errors);
         }
 
-        return await func(result.Value!);
+        return await func(result.Value!).ConfigureAwait(false);
     }
 
-    #endregion
-
-    #region Map (Transformation)
 
     /// <summary>
     /// Maps the value of a successful result to a new value using the specified function.
     /// If the result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The mapping function.</param>
+    /// <returns>A new <see cref="Result{TOut}"/>.</returns>
     public static Result<TOut> Map<TIn, TOut>(
         this Result<TIn> result,
         Func<TIn, TOut> func)
@@ -212,6 +256,10 @@ public static class ResultExtensions
     /// Maps a successful void Result to a new value using the specified function.
     /// If the result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The mapping function.</param>
+    /// <returns>A new <see cref="Result{TOut}"/>.</returns>
     public static Result<TOut> Map<TOut>(
         this Result result,
         Func<TOut> func)
@@ -228,6 +276,11 @@ public static class ResultExtensions
     /// Maps the value of a successful result to a new value using the specified asynchronous function.
     /// If the result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The asynchronous mapping function.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result{TOut}"/>.</returns>
     public static async Task<Result<TOut>> MapAsync<TIn, TOut>(
         this Result<TIn> result,
         Func<TIn, Task<TOut>> func)
@@ -237,51 +290,61 @@ public static class ResultExtensions
             return Result.Failure<TOut>(result.Errors);
         }
 
-        return Result.Success(await func(result.Value!));
+        return Result.Success(await func(result.Value!).ConfigureAwait(false));
     }
 
     /// <summary>
     /// Maps the value of an asynchronous successful result to a new value using the specified asynchronous function.
     /// If the result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the input result.</param>
+    /// <param name="func">The asynchronous mapping function.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result{TOut}"/>.</returns>
     public static async Task<Result<TOut>> MapAsync<TIn, TOut>(
         this Task<Result<TIn>> resultTask,
         Func<TIn, Task<TOut>> func)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure<TOut>(result.Errors);
         }
 
-        return Result.Success(await func(result.Value!));
+        return Result.Success(await func(result.Value!).ConfigureAwait(false));
     }
 
     /// <summary>
     /// Maps a successful asynchronous void Result to a new value using the specified asynchronous function.
     /// If the result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the input result.</param>
+    /// <param name="func">The asynchronous mapping function.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result{TOut}"/>.</returns>
     public static async Task<Result<TOut>> MapAsync<TOut>(
         this Task<Result> resultTask,
         Func<Task<TOut>> func)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure<TOut>(result.Errors);
         }
 
-        return Result.Success(await func());
+        return Result.Success(await func().ConfigureAwait(false));
     }
 
-    #endregion
-
-    #region Tap (Side Effects)
 
     /// <summary>
     /// Executes an action if the result is successful, without changing the result.
     /// Useful for logging, auditing, or other side effects.
     /// </summary>
+    /// <typeparam name="T">The type of the result value.</typeparam>
+    /// <param name="result">The result.</param>
+    /// <param name="action">The action to execute if successful.</param>
+    /// <returns>The original result.</returns>
     public static Result<T> Tap<T>(this Result<T> result, Action<T> action)
     {
         if (result.IsSuccess)
@@ -296,6 +359,9 @@ public static class ResultExtensions
     /// Executes an action if the result is successful, without changing the result.
     /// Useful for logging, auditing, or other side effects.
     /// </summary>
+    /// <param name="result">The result.</param>
+    /// <param name="action">The action to execute if successful.</param>
+    /// <returns>The original result.</returns>
     public static Result Tap(this Result result, Action action)
     {
         if (result.IsSuccess)
@@ -310,11 +376,15 @@ public static class ResultExtensions
     /// Executes an asynchronous function if the result is successful, without changing the result.
     /// Useful for logging, auditing, or other side effects.
     /// </summary>
+    /// <typeparam name="T">The type of the result value.</typeparam>
+    /// <param name="result">The result.</param>
+    /// <param name="func">The asynchronous function to execute if successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the original result.</returns>
     public static async Task<Result<T>> TapAsync<T>(this Result<T> result, Func<T, Task> func)
     {
         if (result.IsSuccess)
         {
-            await func(result.Value!);
+            await func(result.Value!).ConfigureAwait(false);
         }
 
         return result;
@@ -324,12 +394,16 @@ public static class ResultExtensions
     /// Executes an asynchronous function if an asynchronous result is successful, without changing the result.
     /// Useful for logging, auditing, or other side effects.
     /// </summary>
+    /// <typeparam name="T">The type of the result value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the result.</param>
+    /// <param name="func">The asynchronous function to execute if successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the original result.</returns>
     public static async Task<Result<T>> TapAsync<T>(this Task<Result<T>> resultTask, Func<T, Task> func)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsSuccess)
         {
-            await func(result.Value!);
+            await func(result.Value!).ConfigureAwait(false);
         }
 
         return result;
@@ -339,11 +413,14 @@ public static class ResultExtensions
     /// Executes an asynchronous function if the result is successful, without changing the result.
     /// Useful for logging, auditing, or other side effects.
     /// </summary>
+    /// <param name="result">The result.</param>
+    /// <param name="func">The asynchronous function to execute if successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the original result.</returns>
     public static async Task<Result> TapAsync(this Result result, Func<Task> func)
     {
         if (result.IsSuccess)
         {
-            await func();
+            await func().ConfigureAwait(false);
         }
 
         return result;
@@ -353,25 +430,29 @@ public static class ResultExtensions
     /// Executes an asynchronous function if an asynchronous result is successful, without changing the result.
     /// Useful for logging, auditing, or other side effects.
     /// </summary>
+    /// <param name="resultTask">The asynchronous task containing the result.</param>
+    /// <param name="func">The asynchronous function to execute if successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the original result.</returns>
     public static async Task<Result> TapAsync(this Task<Result> resultTask, Func<Task> func)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsSuccess)
         {
-            await func();
+            await func().ConfigureAwait(false);
         }
 
         return result;
     }
 
-    #endregion
-
-    #region Ensure (Validation)
-
     /// <summary>
     /// Ensures that the value of a successful result satisfies a condition.
     /// If the condition is not met, a failure result with the specified error is returned.
     /// </summary>
+    /// <typeparam name="T">The type of the result value.</typeparam>
+    /// <param name="result">The result.</param>
+    /// <param name="predicate">The condition to check.</param>
+    /// <param name="error">The error if the condition is not met.</param>
+    /// <returns>A <see cref="Result{T}"/> indicating success or failure.</returns>
     public static Result<T> Ensure<T>(
         this Result<T> result,
         Func<T, bool> predicate,
@@ -389,6 +470,11 @@ public static class ResultExtensions
     /// Ensures that the value of a successful result satisfies an asynchronous condition.
     /// If the condition is not met, a failure result with the specified error is returned.
     /// </summary>
+    /// <typeparam name="T">The type of the result value.</typeparam>
+    /// <param name="result">The result.</param>
+    /// <param name="predicate">The asynchronous condition to check.</param>
+    /// <param name="error">The error if the condition is not met.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result{T}"/>.</returns>
     public static async Task<Result<T>> EnsureAsync<T>(
         this Result<T> result,
         Func<T, Task<bool>> predicate,
@@ -399,34 +485,41 @@ public static class ResultExtensions
             return result;
         }
 
-        return await predicate(result.Value!) ? result : Result.Failure<T>(error);
+        return await predicate(result.Value!).ConfigureAwait(false) ? result : Result.Failure<T>(error);
     }
 
     /// <summary>
     /// Ensures that the value of an asynchronous successful result satisfies an asynchronous condition.
     /// If the condition is not met, a failure result with the specified error is returned.
     /// </summary>
+    /// <typeparam name="T">The type of the result value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the result.</param>
+    /// <param name="predicate">The asynchronous condition to check.</param>
+    /// <param name="error">The error if the condition is not met.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="Result{T}"/>.</returns>
     public static async Task<Result<T>> EnsureAsync<T>(
         this Task<Result<T>> resultTask,
         Func<T, Task<bool>> predicate,
         Error error)
     {
-        var result = await resultTask;
+        var result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return result;
         }
 
-        return await predicate(result.Value!) ? result : Result.Failure<T>(error);
+        return await predicate(result.Value!).ConfigureAwait(false) ? result : Result.Failure<T>(error);
     }
-
-    #endregion
-
-    #region Match (Terminal)
 
     /// <summary>
     /// Matches the result to a value based on success or failure.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input result value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The result.</param>
+    /// <param name="onSuccess">The function to execute if successful.</param>
+    /// <param name="onFailure">The function to execute if failed.</param>
+    /// <returns>The result value of type <typeparamref name="TOut"/>.</returns>
     public static TOut Match<TIn, TOut>(
         this Result<TIn> result,
         Func<TIn, TOut> onSuccess,
@@ -438,6 +531,11 @@ public static class ResultExtensions
     /// <summary>
     /// Matches the result to a value based on success or failure (void Result).
     /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The result.</param>
+    /// <param name="onSuccess">The function to execute if successful.</param>
+    /// <param name="onFailure">The function to execute if failed.</param>
+    /// <returns>The result value of type <typeparamref name="TOut"/>.</returns>
     public static TOut Match<TOut>(
         this Result result,
         Func<TOut> onSuccess,
@@ -449,48 +547,70 @@ public static class ResultExtensions
     /// <summary>
     /// Matches the result to a value based on success or failure using asynchronous handlers.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input result value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The result.</param>
+    /// <param name="onSuccess">The asynchronous function to execute if successful.</param>
+    /// <param name="onFailure">The asynchronous function to execute if failed.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the result value of type <typeparamref name="TOut"/>.</returns>
     public static async Task<TOut> MatchAsync<TIn, TOut>(
         this Result<TIn> result,
         Func<TIn, Task<TOut>> onSuccess,
         Func<Error[], Task<TOut>> onFailure)
     {
-        return result.IsSuccess ? await onSuccess(result.Value!) : await onFailure(result.Errors);
+        return result.IsSuccess ? await onSuccess(result.Value!).ConfigureAwait(false) : await onFailure(result.Errors).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Matches an asynchronous result to a value based on success or failure using asynchronous handlers.
     /// </summary>
+    /// <typeparam name="TIn">The type of the input result value.</typeparam>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the result.</param>
+    /// <param name="onSuccess">The asynchronous function to execute if successful.</param>
+    /// <param name="onFailure">The asynchronous function to execute if failed.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the result value of type <typeparamref name="TOut"/>.</returns>
     public static async Task<TOut> MatchAsync<TIn, TOut>(
         this Task<Result<TIn>> resultTask,
         Func<TIn, Task<TOut>> onSuccess,
         Func<Error[], Task<TOut>> onFailure)
     {
-        var result = await resultTask;
-        return result.IsSuccess ? await onSuccess(result.Value!) : await onFailure(result.Errors);
+        var result = await resultTask.ConfigureAwait(false);
+        return result.IsSuccess ? await onSuccess(result.Value!).ConfigureAwait(false) : await onFailure(result.Errors).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Matches the result to a value based on success or failure using asynchronous handlers (void Result).
     /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The result.</param>
+    /// <param name="onSuccess">The asynchronous function to execute if successful.</param>
+    /// <param name="onFailure">The asynchronous function to execute if failed.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the result value of type <typeparamref name="TOut"/>.</returns>
     public static async Task<TOut> MatchAsync<TOut>(
         this Result result,
         Func<Task<TOut>> onSuccess,
         Func<Error[], Task<TOut>> onFailure)
     {
-        return result.IsSuccess ? await onSuccess() : await onFailure(result.Errors);
+        return result.IsSuccess ? await onSuccess().ConfigureAwait(false) : await onFailure(result.Errors).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Matches an asynchronous result to a value based on success or failure using asynchronous handlers (void Result).
     /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="resultTask">The asynchronous task containing the result.</param>
+    /// <param name="onSuccess">The asynchronous function to execute if successful.</param>
+    /// <param name="onFailure">The asynchronous function to execute if failed.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the result value of type <typeparamref name="TOut"/>.</returns>
     public static async Task<TOut> MatchAsync<TOut>(
         this Task<Result> resultTask,
         Func<Task<TOut>> onSuccess,
         Func<Error[], Task<TOut>> onFailure)
     {
-        var result = await resultTask;
-        return result.IsSuccess ? await onSuccess() : await onFailure(result.Errors);
+        var result = await resultTask.ConfigureAwait(false);
+        return result.IsSuccess ? await onSuccess().ConfigureAwait(false) : await onFailure(result.Errors).ConfigureAwait(false);
     }
-
-    #endregion
 }
+
+

@@ -10,22 +10,12 @@ namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 /// </summary>
 public sealed class InMemoryJwtTokenRevocationProvider(TimeProvider timeProvider) : IJwtTokenRevocationProvider, IInMemoryCacheCleanup, IAsyncDisposable
 {
-    #region Fields
-
     private readonly ConcurrentDictionary<string, DateTimeOffset> _revokedJtis = new();
     private readonly ConcurrentDictionary<string, DateTimeOffset> _revokedUsers = new();
     private readonly object _cleanupLock = new();
 
-    #endregion
-
-    #region Properties
-
     /// <inheritdoc />
     public Type AssociatedServiceType => typeof(IJwtTokenRevocationProvider);
-
-    #endregion
-
-    #region Public Methods
 
     /// <inheritdoc />
     public ValueTask DisposeAsync()
@@ -146,6 +136,4 @@ public sealed class InMemoryJwtTokenRevocationProvider(TimeProvider timeProvider
             Monitor.Exit(_cleanupLock);
         }
     }
-
-    #endregion
 }

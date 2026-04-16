@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys.Internal;
 /// </summary>
 internal static partial class ApiKeyLog
 {
-    #region Public Methods
-
     /// <summary>
     /// Logs that an API key is too short based on the minimum length requirement.
     /// </summary>
@@ -86,6 +84,4 @@ internal static partial class ApiKeyLog
         Level = LogLevel.Warning,
         Message = "Failed to update LastUsedAt for KeyId: {KeyId}")]
     public static partial void LogLastUsedUpdateFailed(this ILogger logger, Exception ex, string keyId);
-
-    #endregion
 }

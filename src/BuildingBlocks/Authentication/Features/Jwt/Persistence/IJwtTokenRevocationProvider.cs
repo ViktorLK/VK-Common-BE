@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.Jwt.Persistence;
 /// </summary>
 public interface IJwtTokenRevocationProvider
 {
-    #region Public Methods
-
     /// <summary>
     /// Returns <c>true</c> when the given JTI has been revoked.
     /// </summary>
@@ -40,6 +38,4 @@ public interface IJwtTokenRevocationProvider
     /// <param name="ct">A cancellation token.</param>
     /// <returns>A task that represents the asynchronous revocation operation.</returns>
     ValueTask RevokeUserAsync(string userId, TimeSpan ttl, CancellationToken ct = default);
-
-    #endregion
 }

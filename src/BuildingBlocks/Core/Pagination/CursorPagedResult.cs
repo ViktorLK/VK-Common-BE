@@ -1,13 +1,13 @@
-namespace VK.Blocks.Persistence.Core.Pagination;
+using System.Collections.Generic;
+
+namespace VK.Blocks.Core.Pagination;
 
 /// <summary>
 /// Represents the result of a cursor-based pagination operation.
 /// </summary>
 /// <typeparam name="T">The type of the elements in the page.</typeparam>
-public class CursorPagedResult<T>
+public sealed class CursorPagedResult<T>
 {
-    #region Properties
-
     /// <summary>
     /// Gets the collection of items in the current page.
     /// </summary>
@@ -37,13 +37,5 @@ public class CursorPagedResult<T>
     /// Gets the size of the page.
     /// </summary>
     public int PageSize { get; init; }
-
-    #endregion
 }
 
-public enum CursorDirection
-{
-    Forward,
-
-    Backward
-}

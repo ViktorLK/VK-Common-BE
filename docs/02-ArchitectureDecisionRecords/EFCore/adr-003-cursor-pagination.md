@@ -473,8 +473,8 @@ pageSize: 3
 
 ## Related Documents (関連ドキュメント)
 
-- 📄 [ADR-004: Expression Compilation Caching](./adr-004-expression-caching.md) - カーソルセレクタのコンパイルキャッシュ
-- 📄 [Architecture Audit Report](/docs/AuditReports/EFCore_Persistence_20260218.md) - カーソルページネーションの評価（⭐⭐⭐⭐☆）
+- 📄 [ADR-004: Expression Compilation Caching](/docs/02-ArchitectureDecisionRecords/EFCore/adr-004-expression-caching.md) - カーソルセレクタのコンパイルキャッシュ
+- 📄 [Architecture Audit Report](/docs/04-AuditReports/EFCore/EFCore_Persistence_20260218.md) - カーソルページネーションの評価（⭐⭐⭐⭐☆）
 - 📖 [Use the Index, Luke! - Pagination](https://use-the-index-luke.com/sql/partial-results/fetch-next-page) - SQL インデックスとページネーション
 - 📖 [GraphQL Cursor Connections Specification](https://relay.dev/graphql/connections.htm) - Relay 仕様（参考）
 

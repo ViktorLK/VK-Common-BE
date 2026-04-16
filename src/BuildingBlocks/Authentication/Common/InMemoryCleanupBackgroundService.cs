@@ -15,13 +15,7 @@ public sealed class InMemoryCleanupBackgroundService(
     IOptionsMonitor<VKAuthenticationOptions> options,
     ILogger<InMemoryCleanupBackgroundService> logger) : BackgroundService
 {
-    #region Fields
-
     private int _activeProvidersCount;
-
-    #endregion
-
-    #region Protected Methods
 
     /// <inheritdoc />
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -35,7 +29,7 @@ public sealed class InMemoryCleanupBackgroundService(
 
             _activeProvidersCount = activeProviders.Count;
 
-            if (_activeProvidersCount == 0)
+            if (_activeProvidersCount is 0)
             {
                 logger.LogNoActiveProviders();
                 return;
@@ -86,6 +80,4 @@ public sealed class InMemoryCleanupBackgroundService(
 
         logger.LogServiceStopping();
     }
-
-    #endregion
 }

@@ -1,5 +1,10 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.Authentication.Common;
+using VK.Blocks.Authentication.Diagnostics.Models;
+using VK.Blocks.Authentication.Generated;
 using VK.Blocks.Core.Attributes;
 
 namespace VK.Blocks.Authentication.Diagnostics;
@@ -12,8 +17,6 @@ namespace VK.Blocks.Authentication.Diagnostics;
 public static partial class AuthenticationDiagnostics
 {
     // ActivitySource and Meter are generated automatically into a partial class.
-
-    #region Fields
 
     private static readonly Counter<long> _authenticationRequests;
 
@@ -28,11 +31,7 @@ public static partial class AuthenticationDiagnostics
     /// <summary>
     /// Histogram tracking the duration of claims transformation.
     /// </summary>
-    private static readonly Histogram<double> ClaimsTransformationDuration;
-
-    #endregion
-
-    #region Constructors
+    private static readonly Histogram<double> _claimsTransformationDuration;
 
     static AuthenticationDiagnostics()
     {
@@ -62,16 +61,12 @@ public static partial class AuthenticationDiagnostics
             description: AuthenticationDiagnosticsConstants.ClaimsTransformationCounterDescription
         );
 
-        ClaimsTransformationDuration = Meter.CreateHistogram<double>(
+        _claimsTransformationDuration = Meter.CreateHistogram<double>(
             AuthenticationDiagnosticsConstants.ClaimsTransformationDurationName,
             unit: AuthenticationDiagnosticsConstants.ClaimsTransformationDurationUnit,
             description: AuthenticationDiagnosticsConstants.ClaimsTransformationDurationDescription
         );
     }
-
-    #endregion
-
-    #region Public Methods
 
     /// <summary>
     /// Records an authentication attempt result.
@@ -126,7 +121,7 @@ public static partial class AuthenticationDiagnostics
         };
 
         _claimsTransformations.Add(1, tags);
-        ClaimsTransformationDuration.Record(durationMs, tags);
+        _claimsTransformationDuration.Record(durationMs, tags);
     }
 
     /// <summary>
@@ -144,10 +139,6 @@ public static partial class AuthenticationDiagnostics
 
         _tooManyRequests.Add(1, tags);
     }
-
-    #endregion
-
-    #region Activity Factories
 
     /// <summary>
     /// Starts a new activity for JWT validation.
@@ -167,5 +158,35 @@ public static partial class AuthenticationDiagnostics
     public static Activity? StartClaimsTransformation()
         => Source.StartActivity(AuthenticationDiagnosticsConstants.ActivityTransformClaims);
 
-    #endregion
+    /// <summary>
+    /// Gets the compile-time authentication metadata (topology).
+    /// </summary>
+    /// <returns>A map of endpoint names to authentication information.</returns>
+    public static IReadOnlyDictionary<string, EndpointAuthenticationInfo> GetAuthenticationMetadata()
+        => AuthenticationMetadata.Endpoints;
+
+    /// <summary>
+    /// Gets the deterministic hash of the authentication metadata.
+    /// </summary>
+    public static string GetMetadataHash() => AuthenticationMetadata.MetadataHash;
+
+    /// <summary>
+    /// Gets runtime information about all registered authentication schemes.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider to resolve scheme information.</param>
+    /// <returns>A collection of registered authentication schemes.</returns>
+    public static async Task<IEnumerable<AuthenticationSchemeInfo>> GetRegisteredSchemesAsync(IServiceProvider serviceProvider)
+    {
+        var schemeProvider = serviceProvider.GetRequiredService<IAuthenticationSchemeProvider>();
+        var schemes = await schemeProvider.GetAllSchemesAsync().ConfigureAwait(false);
+        var defaultScheme = await schemeProvider.GetDefaultAuthenticateSchemeAsync().ConfigureAwait(false);
+
+        return schemes.Select(s => new AuthenticationSchemeInfo
+        {
+            Name = s.Name,
+            DisplayName = s.DisplayName,
+            HandlerType = s.HandlerType.Name,
+            IsDefault = defaultScheme?.Name == s.Name
+        });
+    }
 }

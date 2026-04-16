@@ -9,8 +9,6 @@ namespace VK.Blocks.Authentication.Abstractions;
 /// </summary>
 public interface IVKClaimsProvider
 {
-    #region Public Methods
-
     /// <summary>
     /// Retrieves claims for the specified user asynchronously.
     /// </summary>
@@ -18,6 +16,4 @@ public interface IVKClaimsProvider
     /// <param name="cancellationToken">A cancellation token.</param>
     /// <returns>A collection of claims to append to the authenticated user's identity.</returns>
     ValueTask<IEnumerable<Claim>> GetUserClaimsAsync(string userId, CancellationToken cancellationToken = default);
-
-    #endregion
 }

@@ -9,8 +9,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys.Persistence;
 /// </summary>
 public interface IApiKeyStore
 {
-    #region Public Methods
-
     /// <summary>
     /// Finds an API key record asynchronously by its hashed key.
     /// </summary>
@@ -27,6 +25,4 @@ public interface IApiKeyStore
     /// <param name="ct">A cancellation token.</param>
     /// <returns>A task that represents the asynchronous update operation.</returns>
     ValueTask UpdateLastUsedAtAsync(Guid keyId, DateTimeOffset usedAt, CancellationToken ct = default);
-
-    #endregion
 }

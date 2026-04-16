@@ -5,8 +5,6 @@ namespace VK.Blocks.Authentication.Features.Jwt;
 /// </summary>
 public interface IJwtTokenRevocationService
 {
-    #region Public Methods
-
     /// <summary>
     /// Revokes an access token asynchronously by its JWT ID (JTI).
     /// </summary>
@@ -25,6 +23,4 @@ public interface IJwtTokenRevocationService
     /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A task that represents the asynchronous revocation operation.</returns>
     Task RevokeAllUserTokensAsync(string userId, TimeSpan? timeToLive = null, CancellationToken cancellationToken = default);
-
-    #endregion
 }

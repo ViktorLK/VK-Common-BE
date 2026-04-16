@@ -7,8 +7,6 @@ namespace VK.Blocks.Authentication.Features.ApiKeys.Metadata;
 /// </summary>
 public sealed record ApiKeyRecord : IMultiTenant
 {
-    #region Properties
-
     /// <summary>
     /// Gets the unique identifier of the API key record.
     /// </summary>
@@ -36,6 +34,4 @@ public sealed record ApiKeyRecord : IMultiTenant
     /// Gets the scopes associated with the API key.
     /// </summary>
     public IReadOnlyList<string> Scopes { get; init; } = [];
-
-    #endregion
 }

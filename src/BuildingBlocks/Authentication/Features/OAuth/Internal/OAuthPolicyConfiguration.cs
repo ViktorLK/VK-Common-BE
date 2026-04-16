@@ -11,6 +11,7 @@ namespace VK.Blocks.Authentication.Features.OAuth.Internal;
 /// </summary>
 internal sealed class OAuthPolicyConfiguration(IOptions<VKOAuthOptions> oauthOptions) : IConfigureOptions<AuthorizationOptions>
 {
+    /// <inheritdoc />
     public void Configure(AuthorizationOptions options)
     {
         var vkOAuthOptions = oauthOptions.Value;

@@ -5,10 +5,9 @@ namespace VK.Blocks.Core.Primitives;
 /// </summary>
 public interface IConcurrency
 {
-    #region Properties
-
-    /// <summary>Gets or sets the row version for concurrency checks.</summary>
+    /// <summary>
+    /// Gets or sets the row version for concurrency checks.
+    /// </summary>
     byte[] RowVersion { get; set; }
-
-    #endregion
 }
+

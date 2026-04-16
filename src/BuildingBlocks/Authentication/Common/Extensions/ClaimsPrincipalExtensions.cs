@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using VK.Blocks.Authentication.Abstractions;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authentication.Common.Extensions;
@@ -10,8 +10,6 @@ namespace VK.Blocks.Authentication.Common.Extensions;
 /// </summary>
 public static class ClaimsPrincipalExtensions
 {
-    #region Public Methods
-
     /// <summary>
     /// Gets the user identifier from the claims principal.
     /// </summary>
@@ -137,6 +135,4 @@ public static class ClaimsPrincipalExtensions
 
         return Result.Success(user);
     }
-
-    #endregion
 }
