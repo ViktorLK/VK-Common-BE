@@ -1,4 +1,4 @@
-namespace VK.Blocks.Persistence.Core.Pagination;
+namespace VK.Blocks.Core.Pagination;
 
 /// <summary>
 /// Defines the contract for serializing and deserializing cursor values
@@ -30,3 +30,4 @@ public interface ICursorSerializer
     /// <returns>The deserialized cursor value, or <c>default</c> if invalid.</returns>
     T? Deserialize<T>(string? token);
 }
+

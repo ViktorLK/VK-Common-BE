@@ -4,7 +4,7 @@
 
 ## 📚 ADR 一覧
 
-#### [ADR-001: Expanding Global ErrorType for Enterprise-Grade Error Handling](./adr-001-expanding-global-errortype-for-enterprise-grade-error-handling.md)
+#### [ADR-001: Expanding Global ErrorType for Enterprise-Grade Error Handling](/docs/02-ArchitectureDecisionRecords/Core/adr-001-expanding-global-errortype-for-enterprise-grade-error-handling.md)
 
 **Status**: ✅ Accepted  
 **概要**: 全局 `ErrorType` 枚举を拡張し、429, 503, 502/504 等の工業級 HTTP マッピングをサポート。  
@@ -12,7 +12,7 @@
 
 ---
 
-#### [ADR-002: Idempotent BuildingBlock Options Registration in DI Container](./adr-002-idempotent-buildingblock-options-registration-in-di-container.md)
+#### [ADR-002: Idempotent BuildingBlock Options Registration in DI Container](/docs/02-ArchitectureDecisionRecords/Core/adr-002-idempotent-buildingblock-options-registration-in-di-container.md)
 
 **Status**: ✅ Accepted  
 **概要**: `AddVKBlockOptions` において、`Any()` チェックと `TryAddSingleton` を組み合わせ、重複した検証ロジックと DI 記述子の登録を防止。  
@@ -20,7 +20,7 @@
 
 ---
 
-#### [ADR-003: Introducing Service Marker Pattern for BuildingBlock Modularization](./adr-003-introducing-service-marker-pattern-for-buildingblock-modularization.md)
+#### [ADR-003: Introducing Service Marker Pattern for BuildingBlock Modularization](/docs/02-ArchitectureDecisionRecords/Core/adr-003-introducing-service-marker-pattern-for-buildingblock-modularization.md)
 
 **Status**: ✅ Accepted  
 **概要**: オプション型に基づいた間接的な依存性チェックを廃止し、`AddVKBlockMarker<T>` を用いたセマンティックなサービス登録確認を導入。  
@@ -28,7 +28,7 @@
 
 ---
 
-#### [ADR-004: Unified Synchronization State Abstraction in Core](./adr-004-unified-synchronization-state-abstraction-in-core.md)
+#### [ADR-004: Unified Synchronization State Abstraction in Core](/docs/02-ArchitectureDecisionRecords/Core/adr-004-unified-synchronization-state-abstraction-in-core.md)
 
 **Status**: ✅ Accepted  
 **概要**: メタデータ同期用のハッシュ指紋を管理する `ISyncStateStore` 抽象を導入。全 Building Block で一貫した同期プロトコルを確立。  

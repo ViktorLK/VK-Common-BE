@@ -8,7 +8,7 @@
 
 1. **语言限制**：所有新增的注释、文档、TODO 必须使用 **Professional Technical English**。
 2. **禁止动刀**：严禁修改任何可执行的业务逻辑代码。
-3. **允许范围**：仅限于 `using` 排序、`#region` 重组、注释补全。
+3. **允许范围**：仅限于 `using` 排序、注释补全。
 4. **格式保持**：严格保持原有的缩进风格（Space 或 Tab）。
 
 # 检修任务清单
@@ -19,10 +19,10 @@
 - **Usings**：
     - 删除所有 Unused usings。
     - 按照 `System` -> `Microsoft` -> `第三方库` -> `当前项目项目` 的顺序进行字母升序排列。
-- **Regions & Member Ordering**:
-    - 必须按照此顺序排列：`Fields`, `Properties`, `Constructors`, `Public Methods`, `Private Methods`。
-    - 确保每个 region 都有明确的开始和结束标识。
-    - **Access Modifiers**：在每个 Region 内部，必须按可见性从大到小排列（`public` -> `internal` -> `protected` -> `private`），并且 `static` 成员在普通成员之上。
+- **Member Ordering**:
+    - **禁止使用**：严禁在代码中使用 `#region` 指令。
+    - **排序逻辑**：类成员逻辑上必须按照此顺序排列：`Fields`, `Properties`, `Constructors`, `Public Methods`, `Private Methods`。
+    - **Access Modifiers**：成员必须按可见性从大到小排列（`public` -> `internal` -> `protected` -> `private`），并且 `static` 成员在普通成员之上。
 - **Formatting & Spacing**：
     - **空行**：方法之间、属性之间必须保留且仅保留一个空行。消除多余的连续空行。
     - **大括号风格**：严格执行 Allman 风格。左大括号 `{` 必须另起一行，不允许跟在方法签名的末尾（单行闭包例外）。

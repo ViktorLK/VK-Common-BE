@@ -369,9 +369,9 @@ Expression Compilation Caching は、**Memoization の典型例**：
 
 ## Related Documents (関連ドキュメント)
 
-- 📄 [ADR-003: Cursor-Based Pagination](./adr-003-cursor-pagination.md) - このキャッシュを使用する主要なシナリオ
-- 📄 [ADR-002: Static Generic Caching](./adr-002-static-generic-caching.md) - 別のキャッシュ戦略
-- 📄 [Architecture Audit Report](/docs/AuditReports/EFCore_Persistence_20260218.md) - Expression キャッシュの評価
+- 📄 [ADR-003: Cursor-Based Pagination](/docs/02-ArchitectureDecisionRecords/EFCore/adr-003-cursor-pagination.md) - このキャッシュを使用する主要なシナリオ
+- 📄 [ADR-002: Static Generic Caching](/docs/02-ArchitectureDecisionRecords/EFCore/adr-002-static-generic-caching.md) - 別のキャッシュ戦略
+- 📄 [Architecture Audit Report](/docs/04-AuditReports/EFCore/EFCore_Persistence_20260218.md) - Expression キャッシュの評価
 - 📖 [Expression Trees (C# Programming Guide)](https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/expression-trees/) - Microsoft 公式ドキュメント
 
 ---

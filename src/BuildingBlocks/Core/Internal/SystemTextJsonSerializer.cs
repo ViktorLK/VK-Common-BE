@@ -31,3 +31,4 @@ public sealed class SystemTextJsonSerializer : IJsonSerializer
     /// <inheritdoc />
     public T? Deserialize<T>(ReadOnlySpan<byte> utf8Json) => JsonSerializer.Deserialize<T>(utf8Json, _defaultOptions);
 }
+

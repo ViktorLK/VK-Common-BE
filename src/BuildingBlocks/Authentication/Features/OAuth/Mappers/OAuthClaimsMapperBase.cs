@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using VK.Blocks.Authentication.Abstractions;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Features.OAuth.Mappers;
 

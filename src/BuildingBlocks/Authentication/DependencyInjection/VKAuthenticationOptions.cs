@@ -1,18 +1,19 @@
 using VK.Blocks.Authentication.Features.ApiKeys;
 using VK.Blocks.Authentication.Features.Jwt;
 using VK.Blocks.Authentication.Features.OAuth;
+using VK.Blocks.Core.Abstractions;
 
 namespace VK.Blocks.Authentication.DependencyInjection;
 
 /// <summary>
-/// Root configuration options for the Authentication building block.
+/// Configuration options for the authentication building block.
 /// </summary>
-public sealed class VKAuthenticationOptions
+public sealed class VKAuthenticationOptions : IVKBlockOptions
 {
     /// <summary>
     /// The configuration section name for authentication options.
     /// </summary>
-    public const string SectionName = "Authentication";
+    public static string SectionName => "VKBlocks:Authentication";
 
     /// <summary>
     /// The configuration section name for JWT options within the authentication block.

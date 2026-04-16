@@ -285,8 +285,8 @@ public void ProcessBulkUpdate<TEntity>(IPropertySetter<TEntity> setter) where TE
 
 ## Related Documents (関連ドキュメント)
 
-- 📄 [ADR-001: Hybrid Auditing Strategy](./adr-001-hybrid-auditing.md) - このキャッシュを使用する主要なシナリオ
-- 📄 [Architecture Audit Report](/docs/AuditReports/EFCore_Persistence_20260218.md) - 静的ジェネリックキャッシュの評価（⭐⭐⭐⭐⭐）
+- 📄 [ADR-001: Hybrid Auditing Strategy](/docs/02-ArchitectureDecisionRecords/EFCore/adr-001-hybrid-auditing.md) - このキャッシュを使用する主要なシナリオ
+- 📄 [Architecture Audit Report](/docs/04-AuditReports/EFCore/EFCore_Persistence_20260218.md) - 静的ジェネリックキャッシュの評価（⭐⭐⭐⭐⭐）
 - 📖 [CLR via C# (Jeffrey Richter)](https://www.microsoftpressstore.com/store/clr-via-c-sharp-9780735667457) - 静的ジェネリックの内部動作
 
 ---

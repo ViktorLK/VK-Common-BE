@@ -2,7 +2,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.Jwt.Metadata;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 

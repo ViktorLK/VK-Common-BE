@@ -9,41 +9,15 @@ namespace VK.Blocks.Core.Results;
 /// <typeparam name="TValue">The type of the value.</typeparam>
 public sealed class Result<TValue> : Result
 {
-    #region Fields
-
     private readonly TValue? _value;
 
+    /// <inheritdoc />
     [MemberNotNullWhen(true, nameof(Value))]
     public override bool IsSuccess => base.IsSuccess;
 
+    /// <inheritdoc />
     [MemberNotNullWhen(false, nameof(Value))]
     public override bool IsFailure => base.IsFailure;
-
-    #endregion
-
-    #region Constructors
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Result{TValue}"/> class.
-    /// </summary>
-    internal Result(TValue? value, bool isSuccess, Error error)
-        : base(isSuccess, error)
-    {
-        _value = value;
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Result{TValue}"/> class.
-    /// </summary>
-    internal Result(TValue? value, bool isSuccess, IEnumerable<Error> errors)
-        : base(isSuccess, errors)
-    {
-        _value = value;
-    }
-
-    #endregion
-
-    #region Properties
 
     /// <summary>
     /// Gets the value associated with the result.
@@ -56,15 +30,40 @@ public sealed class Result<TValue> : Result
         throw new InvalidOperationException("Success result contains null value. This should not happen.")
         : throw new InvalidOperationException("Cannot access Value on a failed Result. Check IsSuccess before accessing Value.");
 
-    #endregion
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Result{TValue}"/> class.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="isSuccess">Indicates whether the operation was successful.</param>
+    /// <param name="error">The error associated with the result.</param>
+    internal Result(TValue? value, bool isSuccess, Error error)
+        : base(isSuccess, error)
+    {
+        _value = value;
+    }
 
-    #region Operators
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Result{TValue}"/> class.
+    /// </summary>
+    /// <param name="value">The value.</param>
+    /// <param name="isSuccess">Indicates whether the operation was successful.</param>
+    /// <param name="errors">The errors associated with the result.</param>
+    internal Result(TValue? value, bool isSuccess, IEnumerable<Error> errors)
+        : base(isSuccess, errors)
+    {
+        _value = value;
+    }
 
-    /// <summary>Implicitly converts a value to a success result.</summary>
+    /// <summary>
+    /// Implicitly converts a value to a success result.
+    /// </summary>
+    /// <param name="value">The value to convert.</param>
     public static implicit operator Result<TValue>(TValue? value) => Create(value);
 
-    /// <summary>Implicitly converts an error to a failure result.</summary>
+    /// <summary>
+    /// Implicitly converts an error to a failure result.
+    /// </summary>
+    /// <param name="error">The error to convert.</param>
     public static implicit operator Result<TValue>(Error error) => Failure<TValue>(error);
-
-    #endregion
 }
+

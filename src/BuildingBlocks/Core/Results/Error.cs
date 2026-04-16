@@ -8,24 +8,6 @@ namespace VK.Blocks.Core.Results;
 /// <param name="Type">The error type (e.g., Validation, NotFound, Failure).</param>
 public sealed record Error(string Code, string Description, ErrorType Type = ErrorType.Failure)
 {
-    #region Factory Methods
-
-    public static Error Validation(string code, string description) => new(code, description, ErrorType.Validation);
-    public static Error Unauthorized(string code, string description) => new(code, description, ErrorType.Unauthorized);
-    public static Error Forbidden(string code, string description) => new(code, description, ErrorType.Forbidden);
-    public static Error NotFound(string code, string description) => new(code, description, ErrorType.NotFound);
-    public static Error Conflict(string code, string description) => new(code, description, ErrorType.Conflict);
-    public static Error PreconditionFailed(string code, string description) => new(code, description, ErrorType.PreconditionFailed);
-    public static Error TooManyRequests(string code, string description) => new(code, description, ErrorType.TooManyRequests);
-    public static Error Failure(string code, string description) => new(code, description, ErrorType.Failure);
-    public static Error ExternalError(string code, string description) => new(code, description, ErrorType.ExternalError);
-    public static Error ServiceUnavailable(string code, string description) => new(code, description, ErrorType.ServiceUnavailable);
-    public static Error Timeout(string code, string description) => new(code, description, ErrorType.Timeout);
-
-    #endregion
-
-    #region Fields
-
     /// <summary>
     /// Represents no error.
     /// </summary>
@@ -41,47 +23,92 @@ public sealed record Error(string Code, string Description, ErrorType Type = Err
     /// </summary>
     public static readonly Error ConditionNotMet = new("Error.ConditionNotMet", "The specified condition was not met.", ErrorType.Failure);
 
-    #endregion
+    /// <summary>
+    /// Creates a validation error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A validation error.</returns>
+    public static Error Validation(string code, string description) => new(code, description, ErrorType.Validation);
+
+    /// <summary>
+    /// Creates an unauthorized error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>An unauthorized error.</returns>
+    public static Error Unauthorized(string code, string description) => new(code, description, ErrorType.Unauthorized);
+
+    /// <summary>
+    /// Creates a forbidden error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A forbidden error.</returns>
+    public static Error Forbidden(string code, string description) => new(code, description, ErrorType.Forbidden);
+
+    /// <summary>
+    /// Creates a not found error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A not found error.</returns>
+    public static Error NotFound(string code, string description) => new(code, description, ErrorType.NotFound);
+
+    /// <summary>
+    /// Creates a conflict error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A conflict error.</returns>
+    public static Error Conflict(string code, string description) => new(code, description, ErrorType.Conflict);
+
+    /// <summary>
+    /// Creates a precondition failed error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A precondition failed error.</returns>
+    public static Error PreconditionFailed(string code, string description) => new(code, description, ErrorType.PreconditionFailed);
+
+    /// <summary>
+    /// Creates a too many requests error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A too many requests error.</returns>
+    public static Error TooManyRequests(string code, string description) => new(code, description, ErrorType.TooManyRequests);
+
+    /// <summary>
+    /// Creates a failure error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A failure error.</returns>
+    public static Error Failure(string code, string description) => new(code, description, ErrorType.Failure);
+
+    /// <summary>
+    /// Creates an external error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>An external error.</returns>
+    public static Error ExternalError(string code, string description) => new(code, description, ErrorType.ExternalError);
+
+    /// <summary>
+    /// Creates a service unavailable error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A service unavailable error.</returns>
+    public static Error ServiceUnavailable(string code, string description) => new(code, description, ErrorType.ServiceUnavailable);
+
+    /// <summary>
+    /// Creates a timeout error.
+    /// </summary>
+    /// <param name="code">The error code.</param>
+    /// <param name="description">The error description.</param>
+    /// <returns>A timeout error.</returns>
+    public static Error Timeout(string code, string description) => new(code, description, ErrorType.Timeout);
 }
 
-/// <summary>
-/// Defines the types of errors that can occur.
-/// </summary>
-public enum ErrorType
-{
-    /// <summary>Represents no error.</summary>
-    None = -1,
-
-    /// <summary>A validation error.</summary>
-    Validation = 1,
-
-    /// <summary>An unauthorized error.</summary>
-    Unauthorized = 4,
-
-    /// <summary>A forbidden error.</summary>
-    Forbidden = 5,
-
-    /// <summary>A not found error.</summary>
-    NotFound = 2,
-
-    /// <summary>A conflict error.</summary>
-    Conflict = 3,
-
-    /// <summary>A precondition failed error.</summary>
-    PreconditionFailed = 10,
-
-    /// <summary>Too many requests (Rate limiting).</summary>
-    TooManyRequests = 6,
-
-    /// <summary>A general failure.</summary>
-    Failure = 0,
-
-    /// <summary>An external service/gateway error.</summary>
-    ExternalError = 9,
-
-    /// <summary>The service is temporarily unavailable.</summary>
-    ServiceUnavailable = 7,
-
-    /// <summary>A timeout occurred.</summary>
-    Timeout = 8
-}

@@ -4,7 +4,7 @@ using VK.Blocks.Core.Results;
 namespace VK.Blocks.Core.Models;
 
 /// <summary>
-/// A transport-neutral representation of an error response, providing a standard error envelope 
+/// A transport-neutral representation of an error response, providing a standard error envelope
 /// suitable for cross-layer and cross-service communication (REST, gRPC, SignalR, etc.).
 /// Independent of any specific transport or web framework.
 /// </summary>
@@ -36,7 +36,7 @@ public sealed record VKErrorResponse
     public IDictionary<string, object?> Metadata { get; init; } = new Dictionary<string, object?>();
 
     /// <summary>
-    /// Gets or sets diagnostic debug information. 
+    /// Gets or sets diagnostic debug information.
     /// </summary>
     public VKErrorDebugInfo? DebugInfo { get; init; }
 
@@ -45,3 +45,4 @@ public sealed record VKErrorResponse
     /// </summary>
     public IReadOnlyList<VKErrorDetail>? Errors { get; init; }
 }
+

@@ -37,10 +37,8 @@ public static class AuthenticationBlockExtensions
                 string.Format(CoreConstants.MissingCoreRegistrationMessage, typeof(AuthenticationBlock).Assembly.GetName().Name));
         }
 
+        var authOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(configuration);
         var authSection = configuration.GetSection(VKAuthenticationOptions.SectionName);
-
-        // 1. Standard Block Registration (Eager-bind, Singleton, DataAnnotations, ValidateOnStart)
-        var authOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(authSection);
         
         // Initialize builder earlier to use idempotent registration helpers
         var builder = new VKBlockBuilder<AuthenticationBlock>(services);

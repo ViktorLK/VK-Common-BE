@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core.Abstractions;
+using VK.Blocks.Core.Abstractions.Internal;
 using VK.Blocks.Core.Internal;
 
 namespace VK.Blocks.Core.DependencyInjection;
@@ -27,6 +28,7 @@ public static class CoreBlockExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<IGuidGenerator, SequentialGuidGenerator>();
         services.TryAddSingleton<IJsonSerializer, SystemTextJsonSerializer>();
+        services.TryAddSingleton<IUserContext, NullUserContext>();
 
         // 2. Mark-Self (Success Commit)
         return services.AddVKBlockMarker<CoreBlock>();

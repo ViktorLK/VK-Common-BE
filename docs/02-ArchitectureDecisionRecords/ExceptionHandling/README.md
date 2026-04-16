@@ -4,7 +4,7 @@
 
 ## 📚 ADR 一覧
 
-#### [ADR-001: Standardizing ProblemDetails Factory and ExceptionHandling DI Builder](./adr-001-standardizing-problemdetails-factory-and-exceptionhandling-di-builder.md)
+#### [ADR-001: Standardizing ProblemDetails Factory and ExceptionHandling DI Builder](/docs/02-ArchitectureDecisionRecords/ExceptionHandling/adr-001-standardizing-problemdetails-factory-and-exceptionhandling-di-builder.md)
 
 **Status**: ✅ Accepted  
 **概要**: `ExceptionHandling` モジュール内の依存性の逆転（DIP）とテスト容易性を確保するため、ファクトリのインターフェース化とDI登録における型安全なBuilderパターンの導入を決定しました。  
@@ -12,7 +12,7 @@
 
 ---
 
-#### [ADR-002: Chain of Responsibility Pattern for Exception Handling](./adr-002-chain-of-responsibility-pattern-for-exception-handling.md)
+#### [ADR-002: Chain of Responsibility Pattern for Exception Handling](/docs/02-ArchitectureDecisionRecords/ExceptionHandling/adr-002-chain-of-responsibility-pattern-for-exception-handling.md)
 
 **Status**: ✅ Accepted  
 **概要**: 例外処理の中央集権的な `switch` 文を排除し、拡張性（OCP）と保守性（SRP）の高い Chain of Responsibility パターンに基づくミドルウェアのアーキテクチャを採用しました。  
@@ -20,7 +20,7 @@
 
 ---
 
-#### [ADR-003: Standardizing Error Responses with RFC 7807 ProblemDetails](./adr-003-standardizing-error-responses-with-rfc7807-problemdetails.md)
+#### [ADR-003: Standardizing Error Responses with RFC 7807 ProblemDetails](/docs/02-ArchitectureDecisionRecords/ExceptionHandling/adr-003-standardizing-error-responses-with-rfc7807-problemdetails.md)
 
 **Status**: ✅ Accepted  
 **概要**: 全てのAPIエラー形式を RFC 7807 (ProblemDetails) 標準に統一し、デバッグトレース用の `TraceId` と国際化用の `ErrorCode` を拡張属性として必須化しました。  

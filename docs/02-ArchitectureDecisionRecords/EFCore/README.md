@@ -6,7 +6,7 @@
 
 ### Core Architecture (コアアーキテクチャ)
 
-#### [ADR-001: Hybrid Auditing Strategy](./adr-001-hybrid-auditing.md)
+#### [ADR-001: Hybrid Auditing Strategy](/docs/02-ArchitectureDecisionRecords/EFCore/adr-001-hybrid-auditing.md)
 
 **Status**: ✅ Accepted  
 **概要**: 標準 CRUD 操作では Interceptor、Bulk 操作では Repository で明示的に監査処理を実行するハイブリッド戦略  
@@ -17,28 +17,28 @@
 
 ### Performance Optimization (性能最適化)
 
-#### [ADR-002: Static Generic Caching for Zero-Overhead Metadata](./adr-002-static-generic-caching.md)
+#### [ADR-002: Static Generic Caching for Zero-Overhead Metadata](/docs/02-ArchitectureDecisionRecords/EFCore/adr-002-static-generic-caching.md)
 
 **Status**: ✅ Accepted  
 **概要**: C# の静的ジェネリッククラスを活用し、型メタデータ（`IAuditable`, `ISoftDelete` の実装有無）をゼロコストでキャッシュ  
 **性能向上**: 62倍（50ns → <1ns）  
 **キーワード**: Static Generic, CLR, Reflection Optimization
 
-#### [ADR-004: Expression Compilation Caching for High-Performance Cursor Pagination](./adr-004-expression-caching.md)
+#### [ADR-004: Expression Compilation Caching for High-Performance Cursor Pagination](/docs/02-ArchitectureDecisionRecords/EFCore/adr-004-expression-caching.md)
 
 **Status**: ✅ Accepted  
 **概要**: `ExpressionEqualityComparer` を使用し、Expression Tree のコンパイル結果をキャッシュ  
 **性能向上**: 91倍（10,000ms → 109ms）  
 **キーワード**: Expression Tree, ExpressionEqualityComparer, Memoization
 
-#### [ADR-008: MethodInfo Caching for Bulk Operations](./adr-008-methodinfo-caching.md)
+#### [ADR-008: MethodInfo Caching for Bulk Operations](/docs/02-ArchitectureDecisionRecords/EFCore/adr-008-methodinfo-caching.md)
 
 **Status**: ✅ Accepted  
 **概要**: 静的ジェネリッククラスで `SetProperty` の MethodInfo をキャッシュ  
 **性能向上**: 100倍（50μs → <1μs）  
 **キーワード**: MethodInfo, Reflection, Micro-Optimization
 
-#### [ADR-012: EF Core Bulk Optimization and Adapter Pattern for .NET 10](./adr-012-efcore-bulk-update-refactoring.md)
+#### [ADR-012: EF Core Bulk Optimization and Adapter Pattern for .NET 10](/docs/02-ArchitectureDecisionRecords/EFCore/adr-012-efcore-bulk-update-refactoring.md)
 
 **Status**: ✅ Accepted  
 **概要**: Bulk操作の共通監査処理とEF Coreの動的プロパティ更新に対し、Adapter PatternとSource Generatorsを採用してゼロアロケーション化とOCPを維持  
@@ -49,14 +49,14 @@
 
 ### Scalability (スケーラビリティ)
 
-#### [ADR-003: Cursor-Based Pagination with Bidirectional Scrolling](./adr-003-cursor-pagination.md)
+#### [ADR-003: Cursor-Based Pagination with Bidirectional Scrolling](/docs/02-ArchitectureDecisionRecords/EFCore/adr-003-cursor-pagination.md)
 
 **Status**: ✅ Accepted  
 **概要**: Offset Pagination の Deep Pagination 問題を解決する Cursor Pagination の実装  
 **性能向上**: 1,250倍（10,000ページ目で 5,000ms → 4ms）  
 **キーワード**: Cursor Pagination, Expression Tree, Bidirectional Scrolling
 
-#### [ADR-005: IAsyncEnumerable for Memory-Efficient Data Streaming](./adr-005-async-enumerable-streaming.md)
+#### [ADR-005: IAsyncEnumerable for Memory-Efficient Data Streaming](/docs/02-ArchitectureDecisionRecords/EFCore/adr-005-async-enumerable-streaming.md)
 
 **Status**: ✅ Accepted  
 **概要**: C# 8.0 の `IAsyncEnumerable` を使用し、大規模データセットをストリーミング処理  
@@ -67,34 +67,34 @@
 
 ### Design Patterns (設計パターン)
 
-#### [ADR-006: Command-Query Separation (CQS) in Repository Pattern](./adr-006-cqs-repository.md)
+#### [ADR-006: Command-Query Separation (CQS) in Repository Pattern](/docs/02-ArchitectureDecisionRecords/EFCore/adr-006-cqs-repository.md)
 
 **Status**: ✅ Accepted  
 **概要**: 読み取り専用 Repository と書き込み専用 Repository を分離し、CQS 原則を適用  
 **性能向上**: 33%（AsNoTracking による最適化）  
 **キーワード**: CQS, CQRS, Repository Pattern
 
-#### [ADR-007: Dynamic Global Query Filters via Reflection](./adr-007-dynamic-query-filters.md)
+#### [ADR-007: Dynamic Global Query Filters via Reflection](/docs/02-ArchitectureDecisionRecords/EFCore/adr-007-dynamic-query-filters.md)
 
 **Status**: ✅ Accepted  
 **概要**: Reflection を使用し、`ISoftDelete` エンティティに Global Query Filter を自動適用  
 **コード削減**: 90%（100行 → 10行）  
 **キーワード**: Reflection, Global Query Filter, Convention over Configuration
 
-#### [ADR-009: Cursor Serializer Abstraction (`ICursorSerializer`)](./adr-009-cursor-serializer-abstraction.md)
+#### [ADR-009: Cursor Serializer Abstraction (`ICursorSerializer`)](/docs/02-ArchitectureDecisionRecords/EFCore/adr-009-cursor-serializer-abstraction.md)
 
 **Status**: ✅ Accepted  
 **概要**: カーソルのシリアライズ戦略を `ICursorSerializer` インターフェースで抽象化し、Strategy パターンで差し替え可能にする。開発用 `SimpleCursorSerializer` と本番用 `SecureCursorSerializer`（HMAC-SHA256）を DI で切り替え  
 **Supersedes**: ADR-003 Future Considerations §1  
 **キーワード**: Strategy Pattern, ICursorSerializer, HMAC-SHA256, DIP, OCP
 
-#### [ADR-010: Decoupling Multi-Tenancy from Auditing Infrastructure](./adr-010-decoupling-multitenancy.md)
+#### [ADR-010: Decoupling Multi-Tenancy from Auditing Infrastructure](/docs/02-ArchitectureDecisionRecords/EFCore/adr-010-decoupling-multitenancy.md)
 
 **Status**: ✅ Accepted  
 **概要**: `IAuditProvider` に混在していた `TenantId` の責務を専用の `ITenantProvider` に分離し、Multi-Tenancy と Auditing のアーキテクチャ上の疎結合性を向上させる  
 **キーワード**: Separation of Concerns, Interface Segregation, Multi-Tenancy
 
-#### [ADR-011: Null Object Pattern for IEntityLifecycleProcessor](./adr-011-entity-lifecycle-processor-null-object.md)
+#### [ADR-011: Null Object Pattern for IEntityLifecycleProcessor](/docs/02-ArchitectureDecisionRecords/EFCore/adr-011-entity-lifecycle-processor-null-object.md)
 
 **Status**: ✅ Accepted  
 **概要**: Auditing や SoftDelete 機能がOFFの場合のDIコンポーネント依存解決エラーを防ぐため、Null Object Pattern (`NoOpEntityLifecycleProcessor`) を採用し、アーキテクチャの Fail-Fast 原則（コンストラクタの Nullable 排除）を維持する  

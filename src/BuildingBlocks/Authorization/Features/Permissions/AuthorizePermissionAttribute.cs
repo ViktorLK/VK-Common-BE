@@ -50,5 +50,3 @@ public class AuthorizePermissionAttribute : AuthorizeAttribute, IAuthorizationRe
         yield return new PermissionRequirement(Permissions, Mode);
     }
 }
-
-

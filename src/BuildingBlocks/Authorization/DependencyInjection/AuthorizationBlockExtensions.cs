@@ -47,8 +47,7 @@ public static class AuthorizationBlockExtensions
         }
 
         // 1. Options Registration (Eager-bind, Singleton, DataAnnotations, ValidateOnStart)
-        var options = services.AddVKBlockOptions<VKAuthorizationOptions>(
-            configuration.GetSection(VKAuthorizationOptions.SectionName));
+        var options = services.AddVKBlockOptions<VKAuthorizationOptions>(configuration);
 
         // Initialize builder early to use registration helpers
         var builder = new VKBlockBuilder<AuthorizationBlock>(services);
