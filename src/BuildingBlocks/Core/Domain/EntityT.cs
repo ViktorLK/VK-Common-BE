@@ -1,4 +1,5 @@
-namespace VK.Blocks.Core.Primitives;
+using System;
+namespace VK.Blocks.Core.Domain;
 
 /// <summary>
 /// Base class for all domain entities with a strongly-typed identity.

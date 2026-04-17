@@ -14,8 +14,8 @@ public interface ISyncStateStore
     /// Retrieves the last stored hash/version for a specific synchronization key.
     /// </summary>
     /// <param name="key">The unique key for the synchronization task (e.g. "Permissions", "Menus").</param>
-    /// <param name="ct">A cancellation token.</param>
-    /// <returns>The last stored hash, or null if it does not exist.</returns>
+    /// <param name="ct">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> representing the asynchronous operation, containing the last stored hash, or <c>null</c> if it does not exist.</returns>
     ValueTask<string?> GetLastHashAsync(string key, CancellationToken ct = default);
 
     /// <summary>
@@ -23,7 +23,7 @@ public interface ISyncStateStore
     /// </summary>
     /// <param name="key">The unique key for the synchronization task.</param>
     /// <param name="hash">The new hash to store.</param>
-    /// <param name="ct">A cancellation token.</param>
-    /// <returns>A result indicating success or failure.</returns>
+    /// <param name="ct">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> representing the asynchronous operation, containing a <see cref="Result"/> indicating success or failure.</returns>
     ValueTask<Result> UpdateHashAsync(string key, string hash, CancellationToken ct = default);
 }

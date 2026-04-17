@@ -21,7 +21,14 @@ public static class VKTenancyConstants
     /// </summary>
     public static class Errors
     {
+        /// <summary>
+        /// Error indicating that the required tenant identifier is missing from the request.
+        /// </summary>
         public const string TenantMissing = "Tenancy.TenantMissing";
+
+        /// <summary>
+        /// Error indicating that the provided tenant identifier is invalid or not found.
+        /// </summary>
         public const string TenantInvalid = "Tenancy.TenantInvalid";
     }
 }

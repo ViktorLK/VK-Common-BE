@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Concurrent;
-using VK.Blocks.Core.Primitives;
+using VK.Blocks.Core.Domain;
 
 namespace VK.Blocks.Core.Caches;
 
@@ -58,10 +59,25 @@ public static class EntityMetadata
         {
             var cap = EntityCapability.None;
 
-            if (typeof(IAuditable).IsAssignableFrom(t)) cap |= EntityCapability.Auditable;
-            if (typeof(ISoftDelete).IsAssignableFrom(t)) cap |= EntityCapability.SoftDelete;
-            if (typeof(IMultiTenant).IsAssignableFrom(t)) cap |= EntityCapability.MultiTenant;
-            if (typeof(IMultiTenantEntity).IsAssignableFrom(t)) cap |= EntityCapability.MultiTenantEntity;
+            if (typeof(IAuditable).IsAssignableFrom(t))
+            {
+                cap |= EntityCapability.Auditable;
+            }
+
+            if (typeof(ISoftDelete).IsAssignableFrom(t))
+            {
+                cap |= EntityCapability.SoftDelete;
+            }
+
+            if (typeof(IMultiTenant).IsAssignableFrom(t))
+            {
+                cap |= EntityCapability.MultiTenant;
+            }
+
+            if (typeof(IMultiTenantEntity).IsAssignableFrom(t))
+            {
+                cap |= EntityCapability.MultiTenantEntity;
+            }
 
             return cap;
         });

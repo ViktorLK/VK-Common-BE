@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.Primitives;
+namespace VK.Blocks.Core.Domain;
 
 /// <summary>
 /// Defines the contract for entities that support optimistic concurrency control.

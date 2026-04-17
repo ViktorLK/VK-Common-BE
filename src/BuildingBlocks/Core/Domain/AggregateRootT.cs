@@ -1,9 +1,10 @@
-using VK.Blocks.Core.Events;
+using System.Collections.Generic;
+using VK.Blocks.Core.Domain.Events;
 
-namespace VK.Blocks.Core.Primitives;
+namespace VK.Blocks.Core.Domain;
 
 /// <summary>
-/// Base class for aggregate roots — domain entities that serve as the
+/// Base class for aggregate roots  Edomain entities that serve as the
 /// consistency boundary for a cluster of related objects.
 /// Aggregates accumulate domain events that are dispatched after persistence.
 /// </summary>

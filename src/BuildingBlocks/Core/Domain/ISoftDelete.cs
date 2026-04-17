@@ -1,4 +1,5 @@
-namespace VK.Blocks.Core.Primitives;
+using System;
+namespace VK.Blocks.Core.Domain;
 
 /// <summary>
 /// Defines the contract for entities that support soft deletion.

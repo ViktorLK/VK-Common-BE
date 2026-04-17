@@ -26,6 +26,11 @@ public static class VKClaimTypes
     public const string ExternalId = "vk.external.id";
 
     /// <summary>
+    /// The claim type for the identity provider name.
+    /// </summary>
+    public const string ExternalProvider = "vk.external.provider";
+
+    /// <summary>
     /// The claim type for user permissions.
     /// </summary>
     public const string Permissions = "vk.permissions";

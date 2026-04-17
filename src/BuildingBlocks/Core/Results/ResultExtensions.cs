@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 namespace VK.Blocks.Core.Results;
 
 /// <summary>

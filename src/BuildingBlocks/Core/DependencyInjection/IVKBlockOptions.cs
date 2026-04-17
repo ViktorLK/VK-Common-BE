@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.Abstractions;
+namespace VK.Blocks.Core.DependencyInjection;
 
 /// <summary>
 /// Defines the base contract for building block configuration options.

@@ -1,6 +1,7 @@
+using System;
 using System.Runtime.CompilerServices;
 
-namespace VK.Blocks.Core.Guards;
+namespace VK.Blocks.Core.Internal;
 
 /// <summary>
 /// Provides static guard clause helpers to enforce preconditions

@@ -1,11 +1,18 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
 namespace VK.Blocks.Core.Results;
 
 /// <summary>
 /// Represents the result of an offset-based pagination operation.
 /// </summary>
 /// <typeparam name="T">The type of the elements in the page.</typeparam>
-public sealed class PagedResult<T>
+public sealed class PagedResult<T> : IPagedResult
 {
+    /// <inheritdoc/>
+    IEnumerable IPagedResult.Items => Items;
+
     /// <summary>
     /// Gets the collection of items in the current page.
     /// </summary>

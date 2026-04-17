@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
@@ -7,6 +9,7 @@ namespace VK.Blocks.Core.Results;
 /// Represents the result of an operation with a value.
 /// </summary>
 /// <typeparam name="TValue">The type of the value.</typeparam>
+// SUGGEST: Convert to C# 12 Primary Constructor
 public sealed class Result<TValue> : Result
 {
     private readonly TValue? _value;

@@ -20,7 +20,7 @@ trigger: always_on
     1.  Check for self-registration via `IsVKBlockRegistered<OwnBlock>()` and return early if true.
     2.  Validate prerequisites using `IsVKBlockRegistered<BaseBlock>()` and throw `InvalidOperationException` if missing.
     3.  Perform actual service registration using idempotent patterns (see below).
-    4.  Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` as the **FINAL step** (Success Commit).
+    4.  Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` immediately after options registration, but BEFORE any early returns related to feature-toggle (`Enabled`) checks. This ensures the block is recognized for dependency resolution.
 - ALL idempotency checks (including `TOptions` registration) MUST use the semantic `IsVKBlockRegistered<T>()` helper instead of manual `Any()` checks.
 - Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`).
 - Direct `AddSingleton`/`AddScoped`/`AddTransient` is PROHIBITED within building block extensions.

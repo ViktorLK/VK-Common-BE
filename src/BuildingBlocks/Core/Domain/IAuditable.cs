@@ -1,4 +1,5 @@
-namespace VK.Blocks.Core.Primitives;
+using System;
+namespace VK.Blocks.Core.Domain;
 
 /// <summary>
 /// Defines the contract for auditable entities that track creation and modification details.

@@ -1,6 +1,6 @@
 using System;
 
-namespace VK.Blocks.Core.Events;
+namespace VK.Blocks.Core.Domain.Events;
 
 /// <summary>
 /// Marker interface for domain events.

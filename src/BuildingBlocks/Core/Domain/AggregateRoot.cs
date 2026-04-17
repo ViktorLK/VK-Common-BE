@@ -1,4 +1,5 @@
-namespace VK.Blocks.Core.Primitives;
+using System;
+namespace VK.Blocks.Core.Domain;
 
 /// <summary>
 /// Shorthand base for aggregate roots with a <see cref="Guid"/> primary key.

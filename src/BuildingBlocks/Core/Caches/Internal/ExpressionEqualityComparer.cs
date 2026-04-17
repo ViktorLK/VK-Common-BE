@@ -1,7 +1,9 @@
+using System.Collections.Generic;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace VK.Blocks.Core.Expressions.Internal;
+namespace VK.Blocks.Core.Caches.Internal;
 
 /// <summary>
 /// A comparer that evaluates the equality of two expression trees.

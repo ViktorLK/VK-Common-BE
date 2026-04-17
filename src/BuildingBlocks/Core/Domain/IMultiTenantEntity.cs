@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.Primitives;
+namespace VK.Blocks.Core.Domain;
 
 /// <summary>
 /// Defines an entity that belongs to a specific tenant in a multi-tenant system with a setter.

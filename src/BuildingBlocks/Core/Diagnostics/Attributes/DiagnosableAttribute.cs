@@ -1,6 +1,6 @@
 using System;
 
-namespace VK.Blocks.Core.Attributes;
+namespace VK.Blocks.Core.Diagnostics;
 
 /// <summary>
 /// Marks a class as diagnosable, triggering Rule 6 (Observability) compliance checks.

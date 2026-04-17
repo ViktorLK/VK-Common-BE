@@ -1,4 +1,5 @@
-namespace VK.Blocks.Core.Attributes;
+using System;
+namespace VK.Blocks.Core.Diagnostics;
 
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class VKBlockDiagnosticsAttribute(string blockName) : Attribute

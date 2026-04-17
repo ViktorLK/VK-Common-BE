@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace VK.Blocks.Core.Results;
 
@@ -75,6 +78,26 @@ public class Result : IResult
     public static Result Success() => new(true, Error.None);
 
     /// <summary>
+    /// Creates a successful result with a value.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <param name="value">The value.</param>
+    /// <returns>A successful <see cref="Result{TValue}"/>.</returns>
+    public static Result<TValue> Success<TValue>(TValue value) => new(value, true, Error.None);
+
+    /// <summary>
+    /// Creates a result based on a value.
+    /// By design, this method enforces strict null-safety: if the value is not null, it returns a successful result;
+    /// if the value is null, it intentionally returns a failure result with <see cref="Error.NullValue"/>.
+    /// This guarantees that a successful <see cref="Result{TValue}"/> will never contain a null value.
+    /// </summary>
+    /// <typeparam name="TValue">The type of the value.</typeparam>
+    /// <param name="value">The value to evaluate.</param>
+    /// <returns>A success result if the value is not null; otherwise, a failure result.</returns>
+    public static Result<TValue> Create<TValue>(TValue? value) =>
+        value is not null ? Success(value) : Failure<TValue>(Error.NullValue);
+
+    /// <summary>
     /// Creates a failed result with a specific error.
     /// </summary>
     /// <param name="error">The error.</param>
@@ -87,14 +110,6 @@ public class Result : IResult
     /// <param name="errors">The collection of errors.</param>
     /// <returns>A failed <see cref="Result"/>.</returns>
     public static Result Failure(IEnumerable<Error> errors) => new(false, errors);
-
-    /// <summary>
-    /// Creates a successful result with a value.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="value">The value.</param>
-    /// <returns>A successful <see cref="Result{TValue}"/>.</returns>
-    public static Result<TValue> Success<TValue>(TValue value) => new(value, true, Error.None);
 
     /// <summary>
     /// Creates a failed result with a specific error.
@@ -111,17 +126,5 @@ public class Result : IResult
     /// <param name="errors">The collection of errors.</param>
     /// <returns>A failed <see cref="Result{TValue}"/>.</returns>
     public static Result<TValue> Failure<TValue>(IEnumerable<Error> errors) => new(default, false, errors);
-
-    /// <summary>
-    /// Creates a result based on a value.
-    /// By design, this method enforces strict null-safety: if the value is not null, it returns a successful result;
-    /// if the value is null, it intentionally returns a failure result with <see cref="Error.NullValue"/>.
-    /// This guarantees that a successful <see cref="Result{TValue}"/> will never contain a null value.
-    /// </summary>
-    /// <typeparam name="TValue">The type of the value.</typeparam>
-    /// <param name="value">The value to evaluate.</param>
-    /// <returns>A success result if the value is not null; otherwise, a failure result.</returns>
-    public static Result<TValue> Create<TValue>(TValue? value) =>
-        value is not null ? Success(value) : Failure<TValue>(Error.NullValue);
 }
 

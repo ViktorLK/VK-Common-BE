@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VK.Blocks.Core.Events;
+namespace VK.Blocks.Core.Domain.Events;
 
 /// <summary>
 /// Defines the contract for dispatching domain events to their handlers.
