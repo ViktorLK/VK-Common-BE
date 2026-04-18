@@ -6,26 +6,22 @@
 
 # 核心原则
 
-1. **语言限制**：所有新增的注释、文档、TODO 必须使用 **Professional Technical English**。
-2. **禁止动刀**：严禁修改任何可执行的业务逻辑代码。
-3. **允许范围**：仅限于 `using` 排序、注释补全。
-4. **格式保持**：严格保持原有的缩进风格（Space 或 Tab）。
+1.  **语言限制**：所有新增的注释、文档、TODO 必须使用 **Professional Technical English**。
+2.  **禁止动刀**：严禁修改任何可执行的业务逻辑代码。
+3.  **允许范围**：仅限于 `using` 排序、成员排序、注释補全。
+4.  **格式保持**：严格保持原有的缩進风格（Space 或 Tab）。
+5.  **前置条件**：假设机械性的格式化（Namespace 转换、Using 整理）已由 `dotnet format` 完成。本任务重点在于文档补全和语义改进。
 
 # 检修任务清单
 
-## 1. 结构优化 (Structure)
+## 1. 结构验证与优化 (Structure)
 
-- **Namespace**：若为旧版嵌套格式，请统一转换为 **File-scoped namespace**。
-- **Usings**：
-    - 删除所有 Unused usings。
-    - 按照 `System` -> `Microsoft` -> `第三方库` -> `当前项目项目` 的顺序进行字母升序排列。
+- **Namespace & Usings**: 验证是否已转为 **File-scoped namespace**。若 `dotnet format` 遗留了多余的 Unused usings，请清理。
 - **Member Ordering**:
-    - **禁止使用**：严禁在代码中使用 `#region` 指令。
+    - **严禁使用**：禁止在代码中使用 `#region` 指令。
     - **排序逻辑**：类成员逻辑上必须按照此顺序排列：`Fields`, `Properties`, `Constructors`, `Public Methods`, `Private Methods`。
     - **Access Modifiers**：成员必须按可见性从大到小排列（`public` -> `internal` -> `protected` -> `private`），并且 `static` 成员在普通成员之上。
-- **Formatting & Spacing**：
-    - **空行**：方法之间、属性之间必须保留且仅保留一个空行。消除多余的连续空行。
-    - **大括号风格**：严格执行 Allman 风格。左大括号 `{` 必须另起一行，不允许跟在方法签名的末尾（单行闭包例外）。
+- **Formatting Spacing**: 检查方法/属性之间是否有且仅有一个空行。
 
 ## 2. 文档与注释 (Documentation)
 
@@ -43,12 +39,14 @@
     - 使用 `// PERF:` 标注潜在的分配优化点（如建议使用 ReadOnlySpan）。
     - 使用 `// SAFE:` 当出现了 `!` (null-forgiving operator) 或不可避免的 `default!` 时，必须以此注释说明为什么在该上下文中绝对安全。如果不够安全，将现有注释替换为 `// TODO: Fix potential nullability`。
 
-## 3. 现代语法提示 (Modern C# Advice)
-
-- **Readonly**：如果私有字段只在构造函数中赋值，请在该行上方添加 `// NOTE: Can be made readonly`。
-- **Nullability**：如果发现可能产生 `NullReferenceException` 的地方，添加注释提醒。
-- **Primary Constructors (C# 12)**：如果类只有简单的依赖注入构造函数，不要直接修改代码，但在类声明上方添加 `// SUGGEST: Convert to C# 12 Primary Constructor`。
-- **Expression-bodied Members**：如果属性的 `get` 访问器或整个方法只有区区一行代码，添加 `// SUGGEST: Use expression body (=>)`。
 - **Collection Expressions (C# 12)**：识别出旧的集合初始化（如 `new List<int> { 1 }` 或 `new [] { 1 }`），添加 `// SUGGEST: Use C# 12 collection expression [...]`。
+
+## 4. 監査結果の解決 (Audit Resolution)
+
+- **Input**: `dotnet format --severity info` の実行結果（監査レポート）が提供された場合、それらの指摘を 1 つずつ解決してください。
+- **Action - Fix**: VK.Blocks の規約（Naming, Var, Modern C#）に沿っており、コードの可読性や保守性を向上させる場合は、直接コードを修正してください。
+- **Action - Suppress**: アーキテクチャ上の理由（例：Result Pattern のガードロジック維持）で修正を避けるべき場合は、`[SuppressMessage]` 属性を追加し、`Justification` に理由を Professional English で記述してください。
+- **IDE0130 (Namespace)**: 基本的にフォルダ構造に合わせるべきですが、破壊的変更になる場合は慎重に判断してください。
+- **IDE0008 (var)**: 右辺から型が自明な場合は `var` を許容し、そうでない場合は明示的な型宣言に修正してください。
 
 # 检修任务代码 (Input Code)

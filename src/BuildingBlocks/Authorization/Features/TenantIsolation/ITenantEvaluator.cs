@@ -19,7 +19,7 @@ public interface ITenantEvaluator
     /// <param name="ct">The cancellation token.</param>
     /// <returns>A <see cref="Result{T}"/> where <c>T</c> is <c>bool</c>.</returns>
     ValueTask<Result<bool>> HasSameTenantAsync(
-        ClaimsPrincipal user, 
-        string? targetTenantId = null, 
+        ClaimsPrincipal user,
+        string? targetTenantId = null,
         CancellationToken ct = default);
 }

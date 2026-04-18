@@ -36,7 +36,7 @@ public class Result : IResult
     /// <param name="error">The error associated with the result.</param>
     protected Result(bool isSuccess, Error error)
     {
-        var hasError = error != Error.None;
+        bool hasError = error != Error.None;
         switch (isSuccess, hasError)
         {
             case (true, true):
@@ -56,8 +56,8 @@ public class Result : IResult
     /// <param name="errors">The errors associated with the result.</param>
     protected Result(bool isSuccess, IEnumerable<Error> errors)
     {
-        var errorArray = errors?.ToArray() ?? [];
-        var hasError = errorArray.Any(x => x != Error.None);
+        Error[] errorArray = errors?.ToArray() ?? [];
+        bool hasError = errorArray.Any(x => x != Error.None);
 
         switch (isSuccess, hasError)
         {

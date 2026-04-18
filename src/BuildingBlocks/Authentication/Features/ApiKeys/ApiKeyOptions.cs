@@ -1,3 +1,4 @@
+using System;
 namespace VK.Blocks.Authentication.Features.ApiKeys;
 
 /// <summary>

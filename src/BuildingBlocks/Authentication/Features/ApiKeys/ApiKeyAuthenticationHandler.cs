@@ -1,11 +1,12 @@
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Common;
-using VK.Blocks.Core.Constants;
+using VK.Blocks.Core.Context;
 
 namespace VK.Blocks.Authentication.Features.ApiKeys;
 
@@ -67,3 +68,4 @@ public sealed class ApiKeyAuthenticationHandler(
         return AuthenticationResponseHelper.WriteUnauthorizedResponseAsync(Context, "API key is missing or invalid");
     }
 }
+

@@ -27,7 +27,7 @@ internal sealed class OAuthPolicyConfiguration(IOptions<VKOAuthOptions> oauthOpt
             if (vkOAuthOptions.Providers.TryGetValue(providerName, out var providerOptions) && providerOptions.Enabled)
             {
                 var scheme = providerOptions.SchemeName ?? providerName;
-                
+
                 // Register Individual Provider Policy (e.g., "VK.Group.GitHub")
                 options.AddPolicy($"{AuthenticationConstants.GroupPolicyPrefix}{providerName}", policy =>
                 {

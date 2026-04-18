@@ -20,7 +20,7 @@ public static class StopwatchExtensions
 
         // Rule 6: Support distributed tracing by enriching the current activity with process metadata.
         // This ensures that even without explicit logging, the trace contains performance and success indicators.
-        var activity = Activity.Current;
+        Activity? activity = Activity.Current;
         if (activity is null)
         {
             return;

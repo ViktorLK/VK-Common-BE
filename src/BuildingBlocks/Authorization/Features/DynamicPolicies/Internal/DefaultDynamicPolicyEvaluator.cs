@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authorization.Common;
-using VK.Blocks.Authorization.Diagnostics;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Features.DynamicPolicies.Internal;

@@ -20,8 +20,8 @@ public interface IWorkingHoursEvaluator
     /// <param name="ct">The cancellation token.</param>
     /// <returns>A <see cref="Result{T}"/> where <c>T</c> is <c>bool</c>.</returns>
     ValueTask<Result<bool>> IsWithinWorkingHoursAsync(
-        ClaimsPrincipal user, 
-        TimeOnly start, 
-        TimeOnly end, 
+        ClaimsPrincipal user,
+        TimeOnly start,
+        TimeOnly end,
         CancellationToken ct = default);
 }

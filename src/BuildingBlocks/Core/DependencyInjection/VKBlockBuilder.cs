@@ -11,3 +11,7 @@ public sealed class VKBlockBuilder<TMarker>(IServiceCollection services) : IVKBl
     /// <inheritdoc />
     public IServiceCollection Services { get; } = services;
 }
+
+
+
+

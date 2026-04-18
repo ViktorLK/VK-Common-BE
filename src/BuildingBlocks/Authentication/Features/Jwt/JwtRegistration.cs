@@ -27,7 +27,7 @@ public static class JwtRegistration
     {
         // 1. Options Registration
         var jwtOptions = services.AddVKBlockOptions<JwtOptions>(jwtSection);
-        
+
         // Custom validators MUST use TryAddEnumerable to prevent being blocked by the built-in validators registered in AddVKBlockOptions.
         services.TryAddEnumerableSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
 
@@ -74,3 +74,5 @@ public static class JwtRegistration
         };
     }
 }
+
+

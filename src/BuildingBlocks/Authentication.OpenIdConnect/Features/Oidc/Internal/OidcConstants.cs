@@ -1,5 +1,5 @@
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
 
@@ -61,7 +61,7 @@ internal static class OidcConstants
     internal const string ClaimSub = JwtRegisteredClaimNames.Sub;
     internal const string ClaimEmail = JwtRegisteredClaimNames.Email;
     internal const string ClaimName = JwtRegisteredClaimNames.Name;
- 
+
     internal const string ClaimTfp = "tfp";
     internal const string ClaimAcr = JwtRegisteredClaimNames.Acr;
     internal const string ClaimEmails = "emails";

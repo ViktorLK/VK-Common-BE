@@ -90,31 +90,76 @@ builder.Services
 
 ### 2. AppSettings の設定構成
 
-`appsettings.json` にて、必要な OpenID Connect オプションを構成します。`Enabled` フラグにより、機能全体のオン/オフを制御可能です。
+`VKBlocks:Authentication` セクションにて構成します。`OidcBlock` は、`Standard` プロバイダーに対しては SG メタデータに依存しない確定的なポリシー登録を提供します。
 
 ```json
 {
-  "Authentication": {
-    "Enabled": true,
-    "DefaultScheme": "Bearer",
-    "OAuth": {
+  "VKBlocks": {
+    "Authentication": {
       "Enabled": true,
-      "Providers": {
-        "AzureB2C": {
-          "Enabled": true,
-          "SchemeName": "AzureB2C",
-          "Authority": "https://tenant.b2clogin.com/tenant.onmicrosoft.com/B2C_1_POLICY/v2.0/",
-          "ClientId": "your-client-id",
-          "ClientSecret": "your-client-secret",
-          "CallbackPath": "/signin-oidc-b2c",
-          "ResponseType": "code",
-          "Scopes": ["openid", "profile", "offline_access"]
+      "DefaultScheme": "Bearer",
+      "OAuth": {
+        "Enabled": true,
+        "Providers": {
+          "Standard": {
+            "Enabled": true,
+            "Authority": "https://your-identity-provider.com",
+            "ClientId": "your-client-id",
+            "ClientSecret": "your-client-secret",
+            "CallbackPath": "/signin-oidc"
+          },
+          "Google": {
+            "Enabled": true,
+            "Authority": "https://accounts.google.com",
+            "ClientId": "google-client-id",
+            "ClientSecret": "google-secret",
+            "CallbackPath": "/signin-google"
+          },
+          "EntraExternal": {
+            "Enabled": true,
+            "SchemeName": "EntraID",
+            "Authority": "https://login.microsoftonline.com/{tenant-id}/v2.0",
+            "ClientId": "entra-client-id",
+            "ClientSecret": "entra-secret",
+            "CallbackPath": "/signin-entra-external"
+          },
+          "AzureB2C": {
+            "Enabled": true,
+            "SchemeName": "AzureB2C",
+            "Authority": "https://tenant.b2clogin.com/...",
+            "ClientId": "azure-client-id",
+            "ClientSecret": "azure-secret",
+            "CallbackPath": "/signin-oidc-b2c"
+          }
         }
       }
     }
   }
 }
 ```
+
+### 3. 個別認可ポリシーの使用
+
+モジュールは各プロバイダーに対して `VK.Group.{ProviderName}` 形式のポリシーを自動的に登録します。
+
+```csharp
+// Google プロバイダーで認証されたユーザーのみ許可
+[Authorize(Policy = "VK.Group.Google")]
+public IActionResult SecureGoogleOnly() => Ok();
+```
+
+---
+
+## 🏗️ 実装済みマッパー (Available Mappers)
+
+現在、以下のプロバイダーに対して最適化されたクレームマッピングを提供しています：
+
+| プロバイダー名 | マッパー名 | 特徴 |
+| :--- | :--- | :--- |
+| **Standard** | `StandardOidcClaimsMapper` | 汎用 OIDC 準拠IdP（Keycloak 等） |
+| **Google** | `GoogleOidcClaimsMapper` | Google 特有のプロフィール情報に対応 |
+| **EntraExternal** | `EntraExternalOidcClaimsMapper` | Microsoft Entra ID (External ID) の `oid`, `tid` に対応 |
+| **AzureB2C** | `AzureB2COidcClaimsMapper` | B2C の `tfp` (User Flow) や複数メールアドレスに対応 |
 
 ---
 

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;

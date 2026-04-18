@@ -1,6 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Authentication.Abstractions;
+using VK.Blocks.Authentication.Contracts;
 using VK.Blocks.Authentication.Features.ApiKeys.Persistence;
 using VK.Blocks.Authentication.Features.Jwt.Persistence;
 using VK.Blocks.Authentication.Features.OAuth;
@@ -58,3 +58,6 @@ public static class AuthenticationBuilderExtensions
         return builder;
     }
 }
+
+
+

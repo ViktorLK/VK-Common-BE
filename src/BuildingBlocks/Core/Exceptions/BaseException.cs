@@ -18,7 +18,8 @@ public abstract class BaseException(
     string code,
     string message,
     int statusCode = 400,
-    bool isPublic = true) : Exception(message)
+    bool isPublic = true,
+    Exception? innerException = null) : Exception(message, innerException)
 {
     private readonly Dictionary<string, object?> _extensions = [];
 

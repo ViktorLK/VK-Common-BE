@@ -1,8 +1,8 @@
+using System;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.Jwt.Metadata;
-using VK.Blocks.Core.Constants;
+using VK.Blocks.Core.Context;
 
 namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 
@@ -48,3 +48,4 @@ public static class JwtValidationFactory
         return parameters;
     }
 }
+

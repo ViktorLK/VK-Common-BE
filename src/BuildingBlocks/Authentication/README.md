@@ -166,6 +166,36 @@ Authentication/
 - **RFC 7807 エラーレスポンス**: `TraceId` 付き構造化エラーによる運用時のインシデント調査効率化
 - **Source Generated Logging**: `[LoggerMessage]` によるゼロアロケーションログ生成
 
+### 🛡️ カスタムクレーム拡張 (Custom Claims Enrichment)
+
+`VK.Blocks.Authentication` は、認証成功後に独自のビジネスロジック（DBからの追加属性取得など）を実行し、`ClaimsPrincipal` を動的に拡張するパイプラインを提供します。
+
+#### 1. IVKClaimsProvider の実装
+`GetUserClaimsAsync` を実装し、追加したいクレームを返します。このクラスは Scoped サービスとして解決されるため、データベース (`DbContext`) 等に安全にアクセスできます。
+
+```csharp
+public sealed class MyDatabaseClaimsProvider(IMyRepository repository) : IVKClaimsProvider
+{
+    public async ValueTask<IEnumerable<Claim>> GetUserClaimsAsync(string userId, CancellationToken ct = default)
+    {
+        var user = await repository.GetByIdAsync(userId, ct);
+        return [new Claim("organization_id", user.OrgId)];
+    }
+}
+```
+
+#### 2. プロバイダーの登録
+`AddVKAuthenticationBlock` の後に、`TryAddClaimsProvider` を使って登録します。
+
+```csharp
+builder.Services.AddVKAuthenticationBlock(builder.Configuration)
+    .TryAddClaimsProvider<MyDatabaseClaimsProvider>();
+```
+
+> [!TIP]
+> **なぜ IClaimsTransformation を直接実装しないのか？**
+> ASP.NET Core 標準の `IClaimsTransformation` はリクエスト中に何度も呼ばれる可能性があり、DBアクセスを含む重い処理を記述するには不向きです。VK.Blocks では `VKClaimsTransformer` が内部で一度だけ実行されるように管理し、複数の Provider を連鎖 (Pipeline) させることで、安全かつクリーンな拡張を実現しています。
+
 ### ♻️ Self-Adaptive InMemory Cleanup
 
 - `IInMemoryCacheCleanup` インターフェースによる統一的なクリーンアップ契約
@@ -238,56 +268,40 @@ internal sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
 
 ```json
 {
-    "Authentication": {
-        "Enabled": true,
-        "DefaultScheme": "Bearer",
-        "InMemoryCleanupIntervalMinutes": 10,
-        "Jwt": {
+    "VKBlocks": {
+        "Authentication": {
             "Enabled": true,
-            "AuthMode": "Symmetric",
-            "SecretKey": "your-256-bit-secret-key-here...",
-            "Issuer": "VK.Blocks",
-            "Audience": "VK.API",
-            "SchemeName": "Bearer"
-        },
-        "ApiKey": {
-            "Enabled": true,
-            "HeaderName": "X-Api-Key",
-            "MinLength": 32,
-            "EnableRateLimiting": true,
-            "RateLimitPerMinute": 60,
-            "RateLimitWindowSeconds": 60
-        },
-        "OAuth": {
-            "Enabled": true,
-            "Providers": {
-                "GitHub": {
-                    "Enabled": true,
-                    "Authority": "https://github.com",
-                    "ClientId": "your-client-id",
-                    "ClientSecret": "your-client-secret",
-                    "CallbackPath": "/signin-github",
-                    "ResponseType": "code",
-                    "GetClaimsFromUserInfoEndpoint": true,
-                    "Scopes": ["user:email"]
-                },
-                "AzureB2C": {
-                    "Enabled": true,
-                    "Authority": "https://{your-tenant}.b2clogin.com/{your-tenant}.onmicrosoft.com/{b2c-user-flow}/v2.0",
-                    "ClientId": "{client-id}",
-                    "ClientSecret": "{client-secret}",
-                    "CallbackPath": "/signin-azureb2c",
-                    "ResponseType": "code",
-                    "Scopes": ["openid", "profile"]
-                },
-                "EntraExternal": {
-                    "Enabled": true,
-                    "Authority": "https://{your-tenant}.ciamlogin.com/",
-                    "ClientId": "{client-id}",
-                    "ClientSecret": "{client-secret}",
-                    "CallbackPath": "/signin-entra",
-                    "ResponseType": "code",
-                    "Scopes": ["openid", "profile", "email"]
+            "DefaultScheme": "Bearer",
+            "InMemoryCleanupIntervalMinutes": 10,
+            "Jwt": {
+                "Enabled": true,
+                "AuthMode": "Symmetric",
+                "SecretKey": "your-256-bit-secret-key-here...",
+                "Issuer": "VK.Blocks",
+                "Audience": "VK.API",
+                "SchemeName": "Bearer"
+            },
+            "ApiKey": {
+                "Enabled": true,
+                "HeaderName": "X-Api-Key",
+                "MinLength": 32,
+                "EnableRateLimiting": true,
+                "RateLimitPerMinute": 60,
+                "RateLimitWindowSeconds": 60
+            },
+            "OAuth": {
+                "Enabled": true,
+                "Providers": {
+                    "GitHub": {
+                        "Enabled": true,
+                        "Authority": "https://github.com",
+                        "ClientId": "your-client-id",
+                        "ClientSecret": "your-client-secret",
+                        "CallbackPath": "/signin-github",
+                        "ResponseType": "code",
+                        "GetClaimsFromUserInfoEndpoint": true,
+                        "Scopes": ["user:email"]
+                    }
                 }
             }
         }

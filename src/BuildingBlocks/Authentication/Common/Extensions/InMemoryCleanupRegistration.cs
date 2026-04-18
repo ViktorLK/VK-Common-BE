@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -33,11 +34,15 @@ internal static class InMemoryCleanupRegistration
         // 2. Register the service interface as a factory resolving the concrete implementation
         services.TryAdd(ServiceDescriptor.Describe(typeof(TService), sp => sp.GetRequiredService<TImplementation>(), lifetime));
 
-        // 3. Register the cleanup interface as a factory resolving the concrete implementation
-        // Note: We use TryAddEnumerable to ensure that each implementation is only registered once.
-        services.TryAddEnumerable(ServiceDescriptor.Describe(typeof(IInMemoryCacheCleanup), sp => sp.GetRequiredService<TImplementation>(), lifetime));
+        // 3. Register the cleanup interface as the concrete implementation itself.
+        // By and using the implementation type directly (instead of a lambda), TryAddEnumerable
+        // can correctly detect duplicates (Rule 13). Since TImplementation is already registered
+        // as itself, the DI container will resolve the same instance.
+        services.TryAddEnumerable(ServiceDescriptor.Describe(typeof(IInMemoryCacheCleanup), typeof(TImplementation), lifetime));
 
         // 4. Ensure the background service is registered once
         services.TryAddEnumerableSingleton<IHostedService, InMemoryCleanupBackgroundService>();
     }
 }
+
+

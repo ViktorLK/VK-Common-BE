@@ -19,8 +19,8 @@ public interface IMinimumRankEvaluator
     /// <param name="ct">The cancellation token.</param>
     /// <returns>A <see cref="Result{T}"/> where <c>T</c> is <c>bool</c>.</returns>
     ValueTask<Result<bool>> HasMinimumRankAsync(
-        ClaimsPrincipal user, 
-        int minimumRank, 
+        ClaimsPrincipal user,
+        int minimumRank,
         System.Type? enumType = null,
         CancellationToken ct = default);
 }

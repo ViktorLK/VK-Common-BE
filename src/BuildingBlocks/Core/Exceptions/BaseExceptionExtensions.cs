@@ -1,4 +1,3 @@
-using System;
 namespace VK.Blocks.Core.Exceptions;
 
 /// <summary>

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authorization.Common;
-using VK.Blocks.Authorization.Diagnostics;
 using VK.Blocks.Authorization.Features.Permissions.Internal;
 using VK.Blocks.Core.Results;
 

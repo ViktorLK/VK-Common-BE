@@ -1,8 +1,9 @@
-using Microsoft.AspNetCore.Authorization;
+using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Contracts;
 using VK.Blocks.Authorization.Diagnostics;
 using VK.Blocks.Authorization.Features.DynamicPolicies;
 using VK.Blocks.Authorization.Features.InternalNetwork;
@@ -12,10 +13,9 @@ using VK.Blocks.Authorization.Features.Roles;
 using VK.Blocks.Authorization.Features.TenantIsolation;
 using VK.Blocks.Authorization.Features.WorkingHours;
 using VK.Blocks.Authorization.Generated;
-using VK.Blocks.Core.Abstractions;
 using VK.Blocks.Core.DependencyInjection;
-using VK.Blocks.Core.Diagnostics;
-using VK.Blocks.Core.Internal;
+using VK.Blocks.Core.Security;
+using VK.Blocks.Core.Utilities.State;
 
 namespace VK.Blocks.Authorization.DependencyInjection;
 
@@ -26,73 +26,90 @@ public static class AuthorizationBlockExtensions
 {
     /// <summary>
     /// Adds VK authorization services to the specified <see cref="IServiceCollection"/>.
+    /// [WRAPPER] pattern for IConfiguration-based registration.
     /// </summary>
-    /// <param name="services">The service collection to add services to.</param>
-    /// <param name="configuration">Current application configuration for binding authorization options.</param>
-    /// <returns>A <see cref="IVKBlockBuilder{TMarker}"/> to chain further block configurations.</returns>
     public static IVKBlockBuilder<AuthorizationBlock> AddVKAuthorizationBlock(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        // 0. Idempotency & Prerequisite Check
+        return services.AddVKAuthorizationBlockInternal(() => services.AddVKBlockOptions<VKAuthorizationOptions>(configuration));
+    }
+
+    /// <summary>
+    /// Adds VK authorization services to the specified <see cref="IServiceCollection"/> using a setup action.
+    /// </summary>
+    public static IVKBlockBuilder<AuthorizationBlock> AddVKAuthorizationBlock(
+        this IServiceCollection services,
+        Action<VKAuthorizationOptions>? configure = null)
+    {
+        return services.AddVKAuthorizationBlockInternal(() => services.AddVKBlockOptions(configure));
+    }
+
+    /// <summary>
+    /// Template method for authorization registration lifecycle.
+    /// Following Rule 13: Check-Self, Check-Prerequisite, Options, Mark-Self.
+    /// </summary>
+    private static IVKBlockBuilder<AuthorizationBlock> AddVKAuthorizationBlockInternal(
+        this IServiceCollection services,
+        Func<VKAuthorizationOptions> registerOptionsFunc)
+    {
+        // 1. Check for self-registration
         if (services.IsVKBlockRegistered<AuthorizationBlock>())
         {
             return new VKBlockBuilder<AuthorizationBlock>(services);
         }
 
-        if (!services.IsVKBlockRegistered<CoreBlock>())
-        {
-            throw new InvalidOperationException(
-                string.Format(CoreConstants.MissingCoreRegistrationMessage, typeof(AuthorizationBlock).Assembly.GetName().Name));
-        }
+        // 2. Validate prerequisites
+        services.EnsureVKCoreBlockRegistered<AuthorizationBlock>();
 
-        // 1. Options Registration (Eager-bind, Singleton, DataAnnotations, ValidateOnStart)
-        var options = services.AddVKBlockOptions<VKAuthorizationOptions>(configuration);
+        // 3. Register options
+        var options = registerOptionsFunc();
 
-        // Initialize builder early to use registration helpers
+        // 4. Initialize builder
         var builder = new VKBlockBuilder<AuthorizationBlock>(services);
 
-        // NOTE: Must use TryAddEnumerableSingleton here because AddVKBlockOptions registers its own IValidateOptions.
-        // TryAddSingleton would be blocked by the existing registration.
+        // 5. Register common infrastructure
         builder.TryAddEnumerableSingleton<AuthorizationBlock, IValidateOptions<VKAuthorizationOptions>, VKAuthorizationOptionsValidator>();
+        services.TryAddEnumerableSingleton<ISecurityMetadataProvider, AuthorizationMetadataProvider>();
 
+        // 6. Register self-marker (Commit)
+        services.AddVKBlockMarker<AuthorizationBlock>();
+
+        // 7. Check for feature-activation and register features
         if (!options.Enabled)
         {
             return builder;
         }
 
-        // 2. Foundation & Prerequisites
+        return services.AddAuthorizationFeatures(builder);
+    }
+
+
+    private static IVKBlockBuilder<AuthorizationBlock> AddAuthorizationFeatures(
+        this IServiceCollection services,
+        IVKBlockBuilder<AuthorizationBlock> builder)
+    {
+        // Foundation & Prerequisites
         services.TryAddSingleton<ISyncStateStore, NoOpSyncStateStore>();
 
-        // 3. Feature: Dynamic Policies
+        // Features (Vertical Slices)
         services.AddDynamicPoliciesFeature();
-
-        // 4. Feature: Roles
         services.AddRolesFeature();
-
-        // 5. Feature: Multi-Tenancy
         services.AddTenantIsolationFeature();
-
-        // 6. Feature: Network & Infrastructure
         services.AddInternalNetworkFeature();
-
-        // 7. Feature: Permissions
         services.AddPermissionsFeature();
-
-        // 8. Feature: Ranks & Working Hours
         services.AddMinimumRankFeature();
         services.AddWorkingHoursFeature();
 
-        // 9. Source Generated Components
-        // Auto-register generated IAuthorizationHandler and IVKAuthorizationHandler implementations
+        // Source Generated Components
         services.AddGeneratedAuthorizationHandlers();
 
-        // Register the security metadata provider for web discovery
-        services.TryAddEnumerableSingleton<ISecurityMetadataProvider, AuthorizationMetadataProvider>();
-
-        // 10. Mark-Self (Success Commit)
-        services.AddVKBlockMarker<AuthorizationBlock>();
-
-        return new VKBlockBuilder<AuthorizationBlock>(services);
+        return builder;
     }
 }
+
+
+
+
+
+

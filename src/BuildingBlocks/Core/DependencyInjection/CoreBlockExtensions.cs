@@ -2,9 +2,11 @@ using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.Core.Abstractions;
-using VK.Blocks.Core.Abstractions.Internal;
-using VK.Blocks.Core.Internal;
+using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Context.Internal;
+using VK.Blocks.Core.Contracts;
+using VK.Blocks.Core.Utilities.Guids;
+using VK.Blocks.Core.Utilities.Json;
 
 namespace VK.Blocks.Core.DependencyInjection;
 
@@ -17,7 +19,7 @@ public static class CoreBlockExtensions
     /// Adds the core building block services and marker.
     /// This should be called before other building blocks are registered.
     /// </summary>
-    public static IServiceCollection AddVKCoreBlock(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddVKCoreBlock(this IServiceCollection services, IConfiguration _)
     {
         // 0. Idempotency Check
         if (services.IsVKBlockRegistered<CoreBlock>())
@@ -35,3 +37,7 @@ public static class CoreBlockExtensions
         return services.AddVKBlockMarker<CoreBlock>();
     }
 }
+
+
+
+

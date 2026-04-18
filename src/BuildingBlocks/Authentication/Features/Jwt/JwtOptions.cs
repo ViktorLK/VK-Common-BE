@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using VK.Blocks.Authentication.Features.Jwt.Metadata;
-using VK.Blocks.Core.Attributes;
 
 namespace VK.Blocks.Authentication.Features.Jwt;
 

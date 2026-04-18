@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using VK.Blocks.Authentication.Generated;
-using VK.Blocks.Authentication.OpenIdConnect.DependencyInjection;
-using VK.Blocks.Core.Diagnostics;
+using VK.Blocks.Authentication.OpenIdConnect.Contracts;
+using VK.Blocks.Core.Security;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
 
@@ -29,3 +32,6 @@ public sealed class OidcMetadataProvider : ISecurityMetadataProvider
         });
     }
 }
+
+
+

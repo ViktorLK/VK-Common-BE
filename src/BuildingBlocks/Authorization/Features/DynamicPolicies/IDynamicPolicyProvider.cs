@@ -18,7 +18,7 @@ public interface IDynamicPolicyProvider
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A result containing the attribute value if found.</returns>
     ValueTask<Result<string?>> GetAttributeValueAsync(
-        ClaimsPrincipal user, 
-        string attributeName, 
+        ClaimsPrincipal user,
+        string attributeName,
         CancellationToken cancellationToken = default);
 }

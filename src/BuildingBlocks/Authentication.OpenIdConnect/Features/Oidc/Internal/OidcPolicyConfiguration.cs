@@ -27,7 +27,7 @@ internal sealed class OidcPolicyConfiguration(IOptions<VKOAuthOptions> oauthOpti
             if (vkOAuthOptions.Providers.TryGetValue(providerName, out var providerOptions) && providerOptions.Enabled)
             {
                 var scheme = providerOptions.SchemeName ?? providerName;
-                
+
                 // Register Individual Provider Policy (e.g., "VK.Group.Google")
                 options.AddPolicy($"{AuthenticationConstants.GroupPolicyPrefix}{providerName}", policy =>
                 {

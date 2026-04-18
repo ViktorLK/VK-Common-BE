@@ -1,11 +1,15 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Authentication.Common;
 using VK.Blocks.Authentication.Diagnostics.Models;
 using VK.Blocks.Authentication.Generated;
-using VK.Blocks.Core.Attributes;
+using VK.Blocks.Core.Diagnostics;
 
 namespace VK.Blocks.Authentication.Diagnostics;
 
@@ -190,3 +194,6 @@ public static partial class AuthenticationDiagnostics
         });
     }
 }
+
+
+
