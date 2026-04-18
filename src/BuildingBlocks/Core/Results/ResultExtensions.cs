@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 namespace VK.Blocks.Core.Results;
 
 /// <summary>
@@ -120,7 +123,7 @@ public static class ResultExtensions
         this Task<Result<TIn>> resultTask,
         Func<TIn, Task<Result<TOut>>> func)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result<TIn> result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure<TOut>(result.Errors);
@@ -141,7 +144,7 @@ public static class ResultExtensions
         this Task<Result> resultTask,
         Func<Task<Result<TOut>>> func)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure<TOut>(result.Errors);
@@ -180,7 +183,7 @@ public static class ResultExtensions
         this Task<Result> resultTask,
         Func<Task<Result>> func)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return result;
@@ -221,7 +224,7 @@ public static class ResultExtensions
         this Task<Result<TIn>> resultTask,
         Func<TIn, Task<Result>> func)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result<TIn> result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure(result.Errors);
@@ -306,7 +309,7 @@ public static class ResultExtensions
         this Task<Result<TIn>> resultTask,
         Func<TIn, Task<TOut>> func)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result<TIn> result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure<TOut>(result.Errors);
@@ -327,7 +330,7 @@ public static class ResultExtensions
         this Task<Result> resultTask,
         Func<Task<TOut>> func)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return Result.Failure<TOut>(result.Errors);
@@ -400,7 +403,7 @@ public static class ResultExtensions
     /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the original result.</returns>
     public static async Task<Result<T>> TapAsync<T>(this Task<Result<T>> resultTask, Func<T, Task> func)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result<T> result = await resultTask.ConfigureAwait(false);
         if (result.IsSuccess)
         {
             await func(result.Value!).ConfigureAwait(false);
@@ -435,7 +438,7 @@ public static class ResultExtensions
     /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the original result.</returns>
     public static async Task<Result> TapAsync(this Task<Result> resultTask, Func<Task> func)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result result = await resultTask.ConfigureAwait(false);
         if (result.IsSuccess)
         {
             await func().ConfigureAwait(false);
@@ -502,7 +505,7 @@ public static class ResultExtensions
         Func<T, Task<bool>> predicate,
         Error error)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result<T> result = await resultTask.ConfigureAwait(false);
         if (result.IsFailure)
         {
             return result;
@@ -575,7 +578,7 @@ public static class ResultExtensions
         Func<TIn, Task<TOut>> onSuccess,
         Func<Error[], Task<TOut>> onFailure)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result<TIn> result = await resultTask.ConfigureAwait(false);
         return result.IsSuccess ? await onSuccess(result.Value!).ConfigureAwait(false) : await onFailure(result.Errors).ConfigureAwait(false);
     }
 
@@ -608,7 +611,7 @@ public static class ResultExtensions
         Func<Task<TOut>> onSuccess,
         Func<Error[], Task<TOut>> onFailure)
     {
-        var result = await resultTask.ConfigureAwait(false);
+        Result result = await resultTask.ConfigureAwait(false);
         return result.IsSuccess ? await onSuccess().ConfigureAwait(false) : await onFailure(result.Errors).ConfigureAwait(false);
     }
 }

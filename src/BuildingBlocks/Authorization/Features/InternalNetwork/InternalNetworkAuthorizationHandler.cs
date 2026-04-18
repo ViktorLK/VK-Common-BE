@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authorization.Common;
 using VK.Blocks.Authorization.DependencyInjection;
-using VK.Blocks.Authorization.Diagnostics;
 using VK.Blocks.Authorization.Features.InternalNetwork.Internal;
 using VK.Blocks.Core.Results;
 
@@ -107,7 +106,9 @@ public sealed class InternalNetworkAuthorizationHandler(
         }
 
         if (!IPAddress.TryParse(span[..slashIndex], out var network) ||
-            !int.TryParse(span[(slashIndex + 1)..], out var prefixLength))
+            !int.TryParse(span[(slashIndex + 1)..], out var prefixLength) ||
+            prefixLength < 0 ||
+            prefixLength > (network.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? 32 : 128))
         {
             return false;
         }

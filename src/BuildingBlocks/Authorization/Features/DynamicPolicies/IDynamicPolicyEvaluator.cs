@@ -18,7 +18,7 @@ public interface IDynamicPolicyEvaluator
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A <see cref="Result{T}"/> containing true if and only if the requirement is met.</returns>
     ValueTask<Result<bool>> EvaluateAsync(
-        ClaimsPrincipal user, 
-        DynamicRequirement requirement, 
+        ClaimsPrincipal user,
+        DynamicRequirement requirement,
         CancellationToken cancellationToken = default);
 }

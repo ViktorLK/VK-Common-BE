@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Features.OAuth.Internal;
 

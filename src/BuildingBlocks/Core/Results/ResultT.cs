@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
@@ -7,6 +9,7 @@ namespace VK.Blocks.Core.Results;
 /// Represents the result of an operation with a value.
 /// </summary>
 /// <typeparam name="TValue">The type of the value.</typeparam>
+[SuppressMessage("Style", "IDE0032:Use auto property", Justification = "Manual backing field is required to enforce Result pattern guard logic in the getter.")]
 public sealed class Result<TValue> : Result
 {
     private readonly TValue? _value;

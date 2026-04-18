@@ -1,11 +1,11 @@
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using VK.Blocks.Authorization.Contracts;
 using VK.Blocks.Authorization.Generated;
-using VK.Blocks.Authorization.Diagnostics.Models;
-using VK.Blocks.Authorization.DependencyInjection;
-using VK.Blocks.Authorization.Diagnostics;
-using VK.Blocks.Core.Diagnostics;
+using VK.Blocks.Core.Security;
 
 namespace VK.Blocks.Authorization.Diagnostics;
 
@@ -42,3 +42,6 @@ public sealed class AuthorizationMetadataProvider : ISecurityMetadataProvider
         };
     }
 }
+
+
+

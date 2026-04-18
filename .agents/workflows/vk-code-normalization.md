@@ -10,30 +10,40 @@ Apply the strict coding guidelines defined in `prompts/CodeReview/CodeNormalizat
 
 1. **Identify the Target**:
     - Determine the **absolute path of the directory or file** to be normalized based on user input.
-    - If the target is unclear, ask the user: `"Which directory (or file) would you like me to normalize?"`
 
-2. **Load Rules**:
-    - Read the `prompts/CodeReview/CodeNormalization.md` file to fully understand the code normalization rules (Namespace, Usings, Regions, Documentation, etc.).
+2. **Mechanical Cleanup & Audit (Stage 1)**:
+    - Run standard `dotnet format` to handle unambiguous namespaces, usings, and spacing.
+    - NEW: Run `dotnet format style --verify-no-changes --severity info` to generate a quality report.
+    - // turbo
+    ```powershell
+    $targetPath = "<absolute_path_to_target>"
+    $projects = Get-ChildItem -Path $targetPath -Filter *.csproj -Recurse | Where-Object { $_.FullName -notmatch "\\obj\\" }
+    if ($projects.Count -eq 0) { $projects = Get-ChildItem -Path (Split-Path $targetPath) -Filter *.csproj }
 
-3. **Enumerate and Read Files**:
-    - If the target is a directory, recursively enumerate all `.cs` files within it and read their contents.
-    - If the target is a single file, read its content.
+    foreach ($project in $projects) {
+        Write-Host "--- Stage 1: Auto-Fix ---" -ForegroundColor Cyan
+        dotnet format $project.FullName style
+        dotnet format $project.FullName whitespace
+        
+        Write-Host "--- Stage 2: Quality Audit (Info Severity) ---" -ForegroundColor Yellow
+        # Capture the output for the agent to review
+        dotnet format $project.FullName style --verify-no-changes --severity info
+    }
+    ```
 
-4. **Apply Code Modifications (Direct AI Editing)**:
-    - For each file read, modify the code strictly according to the **rules in `CodeNormalization.md`** AND the **`always_on` architectural rules**.
-    - Specific expected modifications include (but are not limited to):
-        - Converting `namespace` declarations to **File-scoped namespaces**.
-        - Sorting `using` directives (System -> Microsoft -> Third-party -> Current Project) and removing unused ones.
-        - Structuring class members with proper `#region` tags (`Fields`, `Constructors`, `Properties`, `Public Methods`, `Private Methods`) in the exact specified order.
-        - Adding missing XML documentation (`/// <summary>`) for all public/internal members.
+3. **Load AI Context**:
+    - Read `prompts/CodeReview/CodeNormalization.md` to understand semantic normalization rules.
+    - Use the **Audit Output** from Stage 1.5 as input for Stage 2.
+
+4. **Apply Semantic Normalization (Stage 2 - AI)**:
+    - For each file, apply the **Documentation** and **Modern C# Advice** rules from the prompt.
+    - **Member Ordering**: Ensure logical ordering (Fields -> Props -> Ctor -> Methods).
+    - **XML Docs**: Add missing `/// <summary>` and `<inheritdoc />`.
+    - **Region Prohibition**: **STRICTLY PROHIBITED**. Remove any existing `#region` tags.
 
 5. **Save and Report**:
-    - **Overwrite** the original files with the modified code.
-    - Report the results to the user using the following format:
-    - Report the results to the user using the following format:
-        - ✅ [Filename]: Brief summary of applied changes (e.g., "Added regions, sorted usings, converted namespace").
-        - If a file required no changes, report it as `Skipped`.
-    - **Actionable Summary**: Create a Markdown file named `normalization-report.md` (save it using your Artifact tool) that aggregates a clear list of all `// TODO`, `// FIX`, `// PERF`, and `// SUGGEST` comments that were added or discovered during the run. Group them by filename. This creates a persistent action plan for the user rather than cluttering the chat.
+    - Overwrite files with modified code.
+    - **Normalization Report**: Create `normalization-report.md` (Artifact) aggregating all `// TODO`, `// FIX`, `// PERF`, and `// SUGGEST` comments.
 
 6. **Verify Build**:
     - Make sure to run `dotnet build` against the modified project or solution to guarantee that your non-invasive formatting / comments did not accidentally break compilation.

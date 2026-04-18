@@ -1,7 +1,7 @@
 using System;
 
 using VK.Blocks.Authorization.Abstractions;
- 
+
 namespace VK.Blocks.Authorization.Features.DynamicPolicies.Metadata;
 
 /// <summary>

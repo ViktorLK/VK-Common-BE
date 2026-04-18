@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Claims;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authentication.Abstractions;
-using VK.Blocks.Authentication.DependencyInjection;
+using VK.Blocks.Authentication.Contracts;
 using VK.Blocks.Authentication.Features.OAuth;
 using VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
 

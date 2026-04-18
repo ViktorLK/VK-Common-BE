@@ -1,7 +1,7 @@
 using VK.Blocks.Authentication.Features.ApiKeys;
 using VK.Blocks.Authentication.Features.Jwt;
 using VK.Blocks.Authentication.Features.OAuth;
-using VK.Blocks.Core.Abstractions;
+using VK.Blocks.Core.DependencyInjection;
 
 namespace VK.Blocks.Authentication.DependencyInjection;
 
@@ -61,3 +61,6 @@ public sealed class VKAuthenticationOptions : IVKBlockOptions
     /// </summary>
     public VKOAuthOptions OAuth { get; set; } = new();
 }
+
+
+

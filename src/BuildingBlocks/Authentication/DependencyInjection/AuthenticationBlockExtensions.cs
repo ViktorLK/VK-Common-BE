@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -5,13 +6,14 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Common;
+using VK.Blocks.Authentication.Contracts;
 using VK.Blocks.Authentication.Diagnostics;
 using VK.Blocks.Authentication.Features.ApiKeys;
 using VK.Blocks.Authentication.Features.Jwt;
 using VK.Blocks.Authentication.Features.OAuth;
 using VK.Blocks.Authentication.Generated;
 using VK.Blocks.Core.DependencyInjection;
-using VK.Blocks.Core.Diagnostics;
+using VK.Blocks.Core.Security;
 
 namespace VK.Blocks.Authentication.DependencyInjection;
 
@@ -25,61 +27,49 @@ public static class AuthenticationBlockExtensions
     /// </summary>
     public static IVKBlockBuilder<AuthenticationBlock> AddVKAuthenticationBlock(this IServiceCollection services, IConfiguration configuration)
     {
-        // 0. Idempotency & Prerequisite Check
+        // Prerequisites & Idempotency Check
         if (services.IsVKBlockRegistered<AuthenticationBlock>())
         {
             return new VKBlockBuilder<AuthenticationBlock>(services);
         }
 
-        if (!services.IsVKBlockRegistered<CoreBlock>())
-        {
-            throw new InvalidOperationException(
-                string.Format(CoreConstants.MissingCoreRegistrationMessage, typeof(AuthenticationBlock).Assembly.GetName().Name));
-        }
+        // 2. Validate prerequisites
+        services.EnsureVKCoreBlockRegistered<AuthenticationBlock>();
 
+        // Options Registration
         var authOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(configuration);
         var authSection = configuration.GetSection(VKAuthenticationOptions.SectionName);
-        
-        // Initialize builder earlier to use idempotent registration helpers
-        var builder = new VKBlockBuilder<AuthenticationBlock>(services);
 
+        var builder = new VKBlockBuilder<AuthenticationBlock>(services);
         builder.TryAddEnumerableSingleton<AuthenticationBlock, IValidateOptions<VKAuthenticationOptions>, VKAuthenticationOptionsValidator>();
 
-        // Skip configuration of authentication schemes and handlers if the block is globally disabled.
-        // NOTE: We register root block options before this check to ensure metadata is available.
+        // Success Commit (Marker)
+        // Mark as initialized early to allow dependent blocks (like OIDC) to proceed
+        // even if the core features are disabled in configuration.
+        services.AddVKBlockMarker<AuthenticationBlock>();
+
+        // Static Diagnostic Metadata
+        services.TryAddEnumerableSingleton<ISecurityMetadataProvider, AuthenticationMetadataProvider>();
+
+        // Feature Activation Check
         if (!authOptions.Enabled)
         {
             return builder;
         }
 
-        // 2. Core Authentication Setup
+        // Core Infrastructure
+        services.TryAddTransient<IClaimsTransformation, VKClaimsTransformer>();
+
         var authBuilder = services.AddCoreAuthenticationFramework(authOptions);
 
-        // 3. Feature Configuration (Delegated to Vertical Slices)
-        // Each feature handles its own options registration, internal services, and scheme registration.
-        // Rule 13: We use the returned options instances for conditional logic to avoid redundant ServiceProvider builds.
+        // Feature Registration (Vertical Slices)
         var jwtOptions = services.AddJwtFeature(authSection.GetSection(VKAuthenticationOptions.JwtSection), authBuilder);
         var apiKeyOptions = services.AddApiKeysFeature(authSection.GetSection(VKAuthenticationOptions.ApiKeySection), authBuilder);
         var vkOAuthOptions = services.AddOAuthFeature(authSection.GetSection(VKAuthenticationOptions.OAuthSection));
 
-        // 4. Semantic Authorization Policies
-        // We define high-level policies that combine multiple authentication strategies.
+        // Group Authorization & Auto-Discovery
         services.AddSemanticAuthorizationPolicies(jwtOptions, apiKeyOptions, vkOAuthOptions);
-
-        // 5. Core Authentication Setup Completion
-        // We ensure our transformer is registered LAST to ensure it takes precedence over
-        // any defaults (like NoopClaimsTransformation) registered by framework extensions.
-        services.TryAddTransient<IClaimsTransformation, VKClaimsTransformer>();
-
-        // 6. Discovery & Auto-Registration
-        // We register any IVKClaimsProvider implementations discovered by the source generator.
         services.AddGeneratedClaimsProviders();
-
-        // Register the security metadata provider for web discovery
-        services.TryAddEnumerableSingleton<ISecurityMetadataProvider, AuthenticationMetadataProvider>();
-
-        // 7. Mark-Self (Success Commit)
-        services.AddVKBlockMarker<AuthenticationBlock>();
 
         return builder;
     }
@@ -186,3 +176,9 @@ public static class AuthenticationBlockExtensions
         });
     }
 }
+
+
+
+
+
+

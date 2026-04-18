@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Core.Results;
 

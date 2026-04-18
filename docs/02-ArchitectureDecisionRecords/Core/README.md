@@ -36,5 +36,13 @@
 
 ---
 
-**Last Updated**: 2026-04-08  
-**Total ADRs**: 4
+#### [ADR-006: Establishing Granular Capability-Based Structure and Namespace Alignment in Core](./adr-006-restructuring-core-module-into-semantic-pillars.md)
+
+**Status**: ✅ Accepted  
+**概要**: 大雑把な「5つの柱」への集約案を却下し、厳密な機能・責務単位での高解像度なアプローチ（12のCapabilityエリア）とフォルダ・Namespaceの1対1対応を採用。  
+**キーワード**: Refactoring, Capability Boundaries, Explicit Namespaces, Anti-Utility-Bucket
+
+---
+
+**Last Updated**: 2026-04-17  
+**Total ADRs**: 5

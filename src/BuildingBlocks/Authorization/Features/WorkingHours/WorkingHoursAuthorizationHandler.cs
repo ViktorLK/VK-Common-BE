@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authorization.Common;
 using VK.Blocks.Authorization.DependencyInjection;
-using VK.Blocks.Authorization.Diagnostics;
 using VK.Blocks.Authorization.Features.WorkingHours.Internal;
 using VK.Blocks.Core.Results;
 
@@ -34,6 +33,11 @@ public sealed class WorkingHoursAuthorizationHandler(
         AuthorizationHandlerContext context,
         WorkingHoursRequirement requirement)
     {
+        if (context.User.Identity?.IsAuthenticated != true)
+        {
+            return;
+        }
+
         var result = await IsWithinWorkingHoursAsync(
                 context.User,
                 requirement.Start,

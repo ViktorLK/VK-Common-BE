@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using System.Security.Claims;
 using VK.Blocks.Authentication.Abstractions;
-using VK.Blocks.Authentication.Features.OAuth.Metadata;
 using VK.Blocks.Authentication.Features.OAuth.Internal;
-using VK.Blocks.Core.Constants;
+using VK.Blocks.Authentication.Features.OAuth.Metadata;
+using VK.Blocks.Core.Context;
 
 namespace VK.Blocks.Authentication.Features.OAuth.Mappers;
 
@@ -33,3 +34,4 @@ public sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
         }
     }
 }
+

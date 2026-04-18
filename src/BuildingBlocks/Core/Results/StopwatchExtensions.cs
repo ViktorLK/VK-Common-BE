@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Core.Results;
 
@@ -18,9 +17,25 @@ public static class StopwatchExtensions
     public static void RecordProcess(this Stopwatch sw, string actionName, IResult result)
     {
         sw.Stop();
-        
-        // FUTURE: This base implementation can be extended to hook into 
-        // global ActivitySource or Meter if VK.Blocks.Core gets OTel primitives.
-        // For now, it ensures the stopwatch is stopped and serves as a standardized hook.
+
+        // Rule 6: Support distributed tracing by enriching the current activity with process metadata.
+        // This ensures that even without explicit logging, the trace contains performance and success indicators.
+        Activity? activity = Activity.Current;
+        if (activity is null)
+        {
+            return;
+        }
+
+        // Record process-specific metrics as activity tags
+        activity.SetTag("vk.process.name", actionName);
+        activity.SetTag("vk.process.duration_ms", sw.ElapsedMilliseconds);
+        activity.SetTag("vk.process.success", result.IsSuccess);
+
+        // Enrich failure details if the process did not complete successfully
+        if (result.IsFailure)
+        {
+            activity.SetTag("vk.process.error_code", result.FirstError.Code);
+            activity.SetTag("vk.process.error_type", result.FirstError.Type.ToString());
+        }
     }
 }

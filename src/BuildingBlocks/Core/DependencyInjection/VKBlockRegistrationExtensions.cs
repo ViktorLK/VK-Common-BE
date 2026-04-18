@@ -1,7 +1,9 @@
+using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.Core.Abstractions;
+using Microsoft.Extensions.Options;
+using VK.Blocks.Core.Contracts;
 
 namespace VK.Blocks.Core.DependencyInjection;
 
@@ -10,6 +12,38 @@ namespace VK.Blocks.Core.DependencyInjection;
 /// </summary>
 public static class VKBlockRegistrationExtensions
 {
+    /// <summary>
+    /// Ensures that a required building block is registered before the current block.
+    /// Following Rule 13 (Check-Prerequisite).
+    /// </summary>
+    /// <typeparam name="TRequired">The marker type of the required block.</typeparam>
+    /// <typeparam name="TDependent">The marker type of the dependent block.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <exception cref="InvalidOperationException">Thrown if the required block is not registered.</exception>
+    public static void EnsureVKBlockRegistered<TRequired, TDependent>(this IServiceCollection services)
+        where TRequired : class, IVKBlock
+        where TDependent : class, IVKBlock
+    {
+        if (services.IsVKBlockRegistered<TRequired>())
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            string.Format(CoreConstants.MissingBlockDependencyMessage, TRequired.BlockName, TDependent.BlockName));
+    }
+
+    /// <summary>
+    /// Shorthand to ensure that the VK.Blocks.Core module is registered.
+    /// </summary>
+    /// <typeparam name="TBlock">The marker type of the dependent building block.</typeparam>
+    /// <param name="services">The service collection.</param>
+    public static void EnsureVKCoreBlockRegistered<TBlock>(this IServiceCollection services)
+        where TBlock : class, IVKBlock
+    {
+        services.EnsureVKBlockRegistered<CoreBlock, TBlock>();
+    }
+
     /// <summary>
     /// [WRAPPER] Adds and configures a building block's options by automatically resolving the section
     /// name via <see cref="IVKBlockOptions.SectionName"/>.
@@ -100,15 +134,15 @@ public static class VKBlockRegistrationExtensions
     /// </remarks>
     /// <typeparam name="TOptions">The type of options to configure.</typeparam>
     /// <param name="services">The service collection.</param>
-    /// <param name="configure">Delegate to configure the options.</param>
+    /// <param name="configure">Optional delegate to configure the options. If null, default values will be used.</param>
     /// <returns>The configured options instance.</returns>
     public static TOptions AddVKBlockOptions<TOptions>(
         this IServiceCollection services,
-        Action<TOptions> configure)
+        Action<TOptions>? configure = null)
         where TOptions : class, new()
     {
         var options = new TOptions();
-        configure(options);
+        configure?.Invoke(options);
 
         // [IDEMPOTENCY CHECK]
         if (services.IsVKBlockRegistered<TOptions>())
@@ -117,10 +151,14 @@ public static class VKBlockRegistrationExtensions
         }
 
         // Standard Options registration + Validation
-        services.AddOptions<TOptions>()
-            .Configure(configure)
+        OptionsBuilder<TOptions> builder = services.AddOptions<TOptions>()
             .ValidateDataAnnotations()
             .ValidateOnStart();
+
+        if (configure is not null)
+        {
+            builder.Configure(configure);
+        }
 
         // Singleton registration
         services.TryAddSingleton(options);

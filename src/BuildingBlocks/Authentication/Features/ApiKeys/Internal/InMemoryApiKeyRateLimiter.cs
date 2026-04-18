@@ -1,4 +1,8 @@
+using System;
 using System.Collections.Concurrent;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using VK.Blocks.Authentication.Common;
 using VK.Blocks.Authentication.Features.ApiKeys.Persistence;
 
@@ -33,7 +37,7 @@ public sealed class InMemoryApiKeyRateLimiter(TimeProvider timeProvider) : IApiK
 
         var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
         var state = _cache.GetOrAdd(keyId, _ => new RateLimitState());
-        
+
         lock (state)
         {
             state.LastTouchedAt = now;
@@ -69,7 +73,7 @@ public sealed class InMemoryApiKeyRateLimiter(TimeProvider timeProvider) : IApiK
             var now = timeProvider.GetUtcNow().ToUnixTimeSeconds();
             // Remove keys that haven't been seen for more than an hour to prevent memory leaks
             var expiredKeys = _cache
-                .Where(kvp => kvp.Value.LastTouchedAt < now - 3600) 
+                .Where(kvp => kvp.Value.LastTouchedAt < now - 3600)
                 .Select(kvp => kvp.Key)
                 .ToList();
 

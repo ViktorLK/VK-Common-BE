@@ -20,7 +20,7 @@ public interface IPermissionEvaluator
     /// <param name="ct">The cancellation token.</param>
     /// <returns>A <see cref="Result{T}"/> where <c>T</c> is <c>bool</c>.</returns>
     ValueTask<Result<bool>> HasPermissionAsync(
-        ClaimsPrincipal user, 
-        string permission, 
+        ClaimsPrincipal user,
+        string permission,
         CancellationToken ct = default);
 }

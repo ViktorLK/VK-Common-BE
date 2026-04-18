@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +9,7 @@ using VK.Blocks.Authorization.Common;
 using VK.Blocks.Authorization.Diagnostics.Models;
 using VK.Blocks.Authorization.Features.Permissions;
 using VK.Blocks.Authorization.Generated;
-using VK.Blocks.Core.Attributes;
+using VK.Blocks.Core.Diagnostics;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authorization.Diagnostics;
@@ -135,3 +135,6 @@ public static partial class AuthorizationDiagnostics
             new KeyValuePair<string, object?>(AuthorizationDiagnosticsConstants.TagDecision, isAllowed ? "Allowed" : "Denied"));
     }
 }
+
+
+

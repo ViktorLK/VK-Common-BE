@@ -10,7 +10,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>

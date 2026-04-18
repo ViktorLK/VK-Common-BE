@@ -1,10 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Authorization.Common;
+using VK.Blocks.Authorization.Contracts;
 using VK.Blocks.Authorization.Features.DynamicPolicies;
 using VK.Blocks.Authorization.Features.InternalNetwork;
 using VK.Blocks.Authorization.Features.MinimumRank;
@@ -14,8 +11,8 @@ using VK.Blocks.Authorization.Features.Permissions.Persistence;
 using VK.Blocks.Authorization.Features.Roles;
 using VK.Blocks.Authorization.Features.TenantIsolation;
 using VK.Blocks.Authorization.Features.WorkingHours;
-using VK.Blocks.Core.Abstractions;
 using VK.Blocks.Core.DependencyInjection;
+using VK.Blocks.Core.Utilities.State;
 
 namespace VK.Blocks.Authorization.DependencyInjection;
 
@@ -214,3 +211,6 @@ public static class AuthorizationBuilderExtensions
 
     #endregion
 }
+
+
+

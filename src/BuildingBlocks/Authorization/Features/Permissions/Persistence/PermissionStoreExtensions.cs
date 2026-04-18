@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Authorization.Features.Permissions.Metadata;
-using VK.Blocks.Core.Abstractions;
 using VK.Blocks.Core.Results;
+using VK.Blocks.Core.Utilities.State;
 
 namespace VK.Blocks.Authorization.Features.Permissions.Persistence;
 
@@ -47,3 +47,4 @@ public static class PermissionStoreExtensions
         return await stateStore.UpdateHashAsync(SyncKey, currentHash, ct).ConfigureAwait(false);
     }
 }
+

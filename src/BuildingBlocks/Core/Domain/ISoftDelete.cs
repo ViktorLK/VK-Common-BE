@@ -1,0 +1,19 @@
+using System;
+namespace VK.Blocks.Core.Domain;
+
+/// <summary>
+/// Defines the contract for entities that support soft deletion.
+/// </summary>
+public interface ISoftDelete
+{
+    /// <summary>
+    /// Gets or sets a value indicating whether the entity is deleted.
+    /// </summary>
+    bool IsDeleted { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time when the entity was deleted (UTC).
+    /// </summary>
+    DateTimeOffset? DeletedAt { get; set; }
+}
+

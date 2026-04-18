@@ -1,12 +1,16 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authentication.Common.Extensions;
 using VK.Blocks.Authentication.Diagnostics;
-using VK.Blocks.Core.Constants;
+using VK.Blocks.Core.Context;
 
 namespace VK.Blocks.Authentication.Abstractions;
 
@@ -44,7 +48,7 @@ public sealed class VKClaimsTransformer(
         }
 
         using var scope = scopeFactory.CreateScope();
-        var claimsProviders = scope.ServiceProvider.GetServices<IVKClaimsProvider>().ToList();
+        var claimsProviders = (scope.ServiceProvider.GetService<IEnumerable<IVKClaimsProvider>>() ?? []).ToList();
 
         if (claimsProviders.Count > 0)
         {
@@ -98,3 +102,4 @@ public sealed class VKClaimsTransformer(
         return principal;
     }
 }
+

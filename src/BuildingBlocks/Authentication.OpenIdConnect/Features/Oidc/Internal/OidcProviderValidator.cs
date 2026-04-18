@@ -32,7 +32,7 @@ public sealed class OidcProviderValidator(
 
         // Log successful registration ONCE during first resolution
         logger.LogOidcProviderRegistered(name, provider.Authority, OidcConstants.StartupTraceId);
-        
+
         return ValidateOptionsResult.Success;
     }
 }

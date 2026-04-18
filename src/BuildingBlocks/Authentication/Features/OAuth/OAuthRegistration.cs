@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Features.OAuth.Internal;
 using VK.Blocks.Authentication.Generated;
@@ -40,3 +39,5 @@ public static class OAuthRegistration
         return vkOAuthOptions;
     }
 }
+
+

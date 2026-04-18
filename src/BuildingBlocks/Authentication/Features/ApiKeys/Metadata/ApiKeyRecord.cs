@@ -1,4 +1,6 @@
-using VK.Blocks.Core.Primitives;
+using System;
+using System.Collections.Generic;
+using VK.Blocks.Core.Domain;
 
 namespace VK.Blocks.Authentication.Features.ApiKeys.Metadata;
 

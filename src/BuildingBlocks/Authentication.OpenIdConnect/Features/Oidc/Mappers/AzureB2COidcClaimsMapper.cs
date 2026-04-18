@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using System.Security.Claims;
-using VK.Blocks.Core.Constants;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.OAuth.Mappers;
 using VK.Blocks.Authentication.Features.OAuth.Metadata;
 using VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
+using VK.Blocks.Core.Context;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Mappers;
 
@@ -33,3 +34,4 @@ public sealed class AzureB2COidcClaimsMapper : OAuthClaimsMapperBase
         }
     }
 }
+

@@ -25,7 +25,7 @@ public sealed class DefaultRoleProvider(IOptions<VKAuthorizationOptions> options
         // We check for the specific role claim type from options
         // Also supports user.IsInRole as a fallback or if it's the standard claim
         var hasRole = user.HasClaim(_options.RoleClaimType, role) || user.IsInRole(role);
-        
+
         return ValueTask.FromResult(Result.Success(hasRole));
     }
 }

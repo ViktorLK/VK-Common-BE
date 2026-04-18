@@ -1,3 +1,5 @@
+using VK.Blocks.Authentication.Contracts;
+
 namespace VK.Blocks.Authentication.Diagnostics;
 
 /// <summary>
@@ -8,7 +10,7 @@ internal static class AuthenticationDiagnosticsConstants
     /// <summary>
     /// The diagnostic source name for the Authentication block.
     /// </summary>
-    public const string SourceName = "VK.Blocks.Authentication";
+    public const string SourceName = "VK.Blocks." + AuthenticationBlock.Identifier;
 
     /// <summary>
     /// Counter name for tracking authentication requests.

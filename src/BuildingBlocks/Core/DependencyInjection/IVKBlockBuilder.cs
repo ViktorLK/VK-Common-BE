@@ -13,3 +13,6 @@ public interface IVKBlockBuilder<out TMarker>
     /// </summary>
     IServiceCollection Services { get; }
 }
+
+
+

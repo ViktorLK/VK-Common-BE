@@ -60,8 +60,12 @@ insert_final_newline = true
 #### .NET Coding Conventions ####
 
 # Organize usings
-dotnet_sort_system_directives_first = true
-dotnet_separate_import_directive_groups = false
+dotnet_sort_system_directives_first = true:suggestion
+dotnet_separate_import_directive_groups = true:suggestion
+dotnet_style_organize_usings = true:suggestion
+
+# Namespace preferences
+csharp_style_namespace_declarations = file_scoped:warning
 
 # this. preferences
 dotnet_style_qualification_for_field = false:suggestion
@@ -80,8 +84,8 @@ dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent
 
 # Modifier preferences
-dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
-dotnet_style_readonly_field = true:suggestion
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+dotnet_style_readonly_field = true:warning
 
 # Expression-level preferences
 dotnet_style_object_initializer = true:suggestion
@@ -99,9 +103,9 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 #### C# Coding Conventions ####
 
 # var preferences
-csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_for_built_in_types = false:suggestion
 csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = true:suggestion
+csharp_style_var_elsewhere = false:suggestion
 
 # Expression-bodied members
 csharp_style_expression_bodied_methods = false:silent
@@ -223,3 +227,29 @@ dotnet_naming_style.begins_with_underscore.required_prefix = _
 dotnet_naming_style.begins_with_underscore.required_suffix =
 dotnet_naming_style.begins_with_underscore.word_separator =
 dotnet_naming_style.begins_with_underscore.capitalization = camel_case
+
+[*.{cs,vb}]
+dotnet_diagnostic.IDE0005.severity = warning
+
+# 到達不能コード
+dotnet_diagnostic.CS0162.severity = warning
+
+# 非同期メソッドに await がない
+dotnet_diagnostic.CS1998.severity = warning
+
+# null 許容参照型の警告を error/warning に
+dotnet_diagnostic.CS8600.severity = warning
+dotnet_diagnostic.CS8602.severity = warning
+dotnet_diagnostic.CS8603.severity = warning
+dotnet_diagnostic.CS8604.severity = warning
+
+# primary constructor の推奨
+dotnet_diagnostic.IDE0290.severity = suggestion
+
+# collection expression の推奨（C# 12）
+dotnet_diagnostic.IDE0300.severity = suggestion
+dotnet_diagnostic.IDE0301.severity = suggestion
+
+[*.cs]
+# Nullable の警告を統一
+dotnet_diagnostic.CS8629.severity = warning
