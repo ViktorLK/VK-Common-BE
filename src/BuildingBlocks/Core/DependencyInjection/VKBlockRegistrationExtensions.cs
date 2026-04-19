@@ -21,8 +21,8 @@ public static class VKBlockRegistrationExtensions
     /// <param name="services">The service collection.</param>
     /// <exception cref="InvalidOperationException">Thrown if the required block is not registered.</exception>
     public static void EnsureVKBlockRegistered<TRequired, TDependent>(this IServiceCollection services)
-        where TRequired : class, IVKBlock
-        where TDependent : class, IVKBlock
+        where TRequired : class, IVKBlockMarker
+        where TDependent : class, IVKBlockMarker
     {
         if (services.IsVKBlockRegistered<TRequired>())
         {
@@ -30,7 +30,7 @@ public static class VKBlockRegistrationExtensions
         }
 
         throw new InvalidOperationException(
-            string.Format(CoreConstants.MissingBlockDependencyMessage, TRequired.BlockName, TDependent.BlockName));
+            string.Format(CoreConstants.MissingBlockDependencyMessage, TRequired.Identifier, TDependent.Identifier));
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public static class VKBlockRegistrationExtensions
     /// <typeparam name="TBlock">The marker type of the dependent building block.</typeparam>
     /// <param name="services">The service collection.</param>
     public static void EnsureVKCoreBlockRegistered<TBlock>(this IServiceCollection services)
-        where TBlock : class, IVKBlock
+        where TBlock : class, IVKBlockMarker
     {
         services.EnsureVKBlockRegistered<CoreBlock, TBlock>();
     }
@@ -176,6 +176,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> WithScoped<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -193,6 +194,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> WithSingleton<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -210,6 +212,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> WithTransient<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -227,6 +230,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> TryAddEnumerableScoped<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -244,6 +248,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> TryAddEnumerableSingleton<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -261,6 +266,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> TryAddEnumerableTransient<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {

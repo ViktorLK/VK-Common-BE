@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using VK.Blocks.Authentication.Abstractions;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 using VK.Blocks.Core.Results;
 
 namespace VK.Blocks.Authentication.Common.Extensions;
@@ -20,7 +20,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetUserId(this ClaimsPrincipal? principal)
     {
         return principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-               ?? principal?.FindFirst(VKClaimTypes.UserId)?.Value;
+               ?? principal?.FindFirst(VKClaimConstants.UserId)?.Value;
     }
 
     /// <summary>
@@ -30,7 +30,7 @@ public static class ClaimsPrincipalExtensions
     /// <returns>The JTI if found; otherwise, null.</returns>
     public static string? GetJti(this ClaimsPrincipal? principal)
     {
-        return principal?.FindFirst(VKClaimTypes.Jti)?.Value;
+        return principal?.FindFirst(VKClaimConstants.Jti)?.Value;
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public static class ClaimsPrincipalExtensions
     public static string? GetUsername(this ClaimsPrincipal? principal)
     {
         return principal?.FindFirst(ClaimTypes.Name)?.Value
-               ?? principal?.FindFirst(VKClaimTypes.PreferredUsername)?.Value;
+               ?? principal?.FindFirst(VKClaimConstants.PreferredUsername)?.Value;
     }
 
     /// <summary>
@@ -61,8 +61,8 @@ public static class ClaimsPrincipalExtensions
     /// <returns>The tenant identifier if found; otherwise, null.</returns>
     public static string? GetTenantId(this ClaimsPrincipal? principal)
     {
-        return principal?.FindFirst(VKClaimTypes.TenantId)?.Value
-               ?? principal?.FindFirst(VKClaimTypes.AzureTenantId)?.Value;
+        return principal?.FindFirst(VKClaimConstants.TenantId)?.Value
+               ?? principal?.FindFirst(VKClaimConstants.AzureTenantId)?.Value;
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public static class ClaimsPrincipalExtensions
             displayName = string.IsNullOrWhiteSpace(displayName) ? surname : $"{displayName} {surname}";
         }
 
-        return displayName ?? principal?.FindFirst(VKClaimTypes.Name)?.Value;
+        return displayName ?? principal?.FindFirst(VKClaimConstants.Name)?.Value;
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public static class ClaimsPrincipalExtensions
     {
         // Concatenate standard role claims and VK-specific role claims.
         return principal?.FindAll(ClaimTypes.Role)
-            .Concat(principal?.FindAll(VKClaimTypes.Role) ?? [])
+            .Concat(principal?.FindAll(VKClaimConstants.Role) ?? [])
             .Select(c => c.Value)
             .Distinct()
             .ToArray() ?? [];

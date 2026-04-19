@@ -1,4 +1,5 @@
 using VK.Blocks.Authentication.OpenIdConnect.Contracts;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
 
@@ -7,8 +8,10 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
 /// </summary>
 internal static class OidcDiagnosticsConstants
 {
-    /// <summary>The source name for activity and metrics.</summary>
-    public const string SourceName = "VK.Blocks." + OidcBlock.Identifier;
+    /// <summary>
+    /// The diagnostic source name for the OIDC block.
+    /// </summary>
+    public static readonly string SourceName = OidcBlock.ActivitySourceName;
 
     /// <summary>The name of the authentication requests counter.</summary>
     public const string AuthRequestCounterName = "vk.auth.oidc.requests";

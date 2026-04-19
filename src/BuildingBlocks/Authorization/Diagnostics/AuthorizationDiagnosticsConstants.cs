@@ -1,4 +1,5 @@
 using VK.Blocks.Authorization.Contracts;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authorization.Diagnostics;
 
@@ -14,7 +15,7 @@ internal static class AuthorizationDiagnosticsConstants
     /// <summary>
     /// The diagnostic source name for the Authorization block.
     /// </summary>
-    public const string SourceName = "VK.Blocks." + AuthorizationBlock.Identifier;
+    public static readonly string SourceName = AuthorizationBlock.ActivitySourceName;
 
     #endregion
 

@@ -17,8 +17,17 @@ public static class VKBlockServiceExtensions
     /// <returns><c>true</c> if the block is registered; otherwise, <c>false</c>.</returns>
     public static bool IsVKBlockRegistered<TMarker>(
         this IServiceCollection services)
-        where TMarker : class
+        where TMarker : class, IVKBlockMarker
         => services.Any(d => d.ServiceType == typeof(TMarker));
+
+    /// <summary>
+    /// Checks if a specific service or options type is already registered.
+    /// This is a generic variant that does not require the IVKBlockMarker constraint.
+    /// </summary>
+    internal static bool IsVKServiceRegistered<TService>(
+        this IServiceCollection services)
+        where TService : class
+        => services.Any(d => d.ServiceType == typeof(TService));
 
     /// <summary>
     /// Registers a marker in the service collection to indicate that a building block has been initialized.
@@ -28,7 +37,7 @@ public static class VKBlockServiceExtensions
     /// <returns>The same service collection for chaining.</returns>
     public static IServiceCollection AddVKBlockMarker<TMarker>(
         this IServiceCollection services)
-        where TMarker : class
+        where TMarker : class, IVKBlockMarker
     {
         services.TryAddSingleton<TMarker>();
         return services;

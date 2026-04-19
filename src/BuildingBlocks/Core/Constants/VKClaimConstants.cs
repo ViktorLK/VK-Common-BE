@@ -1,9 +1,9 @@
-namespace VK.Blocks.Core.Context;
+namespace VK.Blocks.Core.Constants;
 
 /// <summary>
 /// Standardized claim types used across VK system.
 /// </summary>
-public static class VKClaimTypes
+public static class VKClaimConstants
 {
     /// <summary>
     /// The claim type for the tenant identifier.
@@ -105,6 +105,3 @@ public static class VKClaimTypes
     /// </summary>
     public const string Jti = "jti";
 }
-
-
-
