@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Security.Claims;
 using VK.Blocks.Authentication.Abstractions;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Features.OAuth.Mappers;
 
@@ -13,8 +13,8 @@ public abstract class OAuthClaimsMapperBase : IOAuthClaimsMapper
     /// <inheritdoc />
     public virtual IEnumerable<Claim> MapToClaims(ExternalIdentity userInfo)
     {
-        yield return new Claim(VKClaimTypes.UserId, userInfo.ProviderId);
-        yield return new Claim(VKClaimTypes.AuthType, userInfo.Provider);
+        yield return new Claim(VKClaimConstants.UserId, userInfo.ProviderId);
+        yield return new Claim(VKClaimConstants.AuthType, userInfo.Provider);
 
         // Return optional claims only if they are present in the user info.
         if (!string.IsNullOrEmpty(userInfo.Email))
@@ -24,7 +24,7 @@ public abstract class OAuthClaimsMapperBase : IOAuthClaimsMapper
 
         if (!string.IsNullOrEmpty(userInfo.Name))
         {
-            yield return new Claim(VKClaimTypes.Name, userInfo.Name);
+            yield return new Claim(VKClaimConstants.Name, userInfo.Name);
         }
     }
 }

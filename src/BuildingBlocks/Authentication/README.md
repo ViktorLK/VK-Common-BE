@@ -107,7 +107,7 @@ flowchart TB
 
 ```
 Authentication/
-├── Abstractions/             # 共有ドメインモデル (AuthenticatedUser, ExternalIdentity, VKClaimTypes)
+├── Abstractions/             # 共有ドメインモデル (AuthenticatedUser, ExternalIdentity)
 ├── Common/                   # 横断的関心事 (Constants, AuthGroups, InMemoryCleanup, ResponseHelper)
 │   └── Extensions/           # ClaimsPrincipal 拡張メソッド
 ├── DependencyInjection/      # Module-level DI 登録 (AuthenticationBlock, Options)

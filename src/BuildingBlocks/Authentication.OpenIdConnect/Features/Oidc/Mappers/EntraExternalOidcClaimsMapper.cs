@@ -4,7 +4,7 @@ using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.OAuth.Mappers;
 using VK.Blocks.Authentication.Features.OAuth.Metadata;
 using VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Mappers;
 
@@ -25,13 +25,13 @@ public sealed class EntraExternalOidcClaimsMapper : OAuthClaimsMapperBase
         // CIAM / Entra External often uses 'oid' for the unique object identifier
         if (userInfo.Claims.TryGetValue("oid", out var oid))
         {
-            yield return new Claim(VKClaimTypes.ExternalId, oid);
+            yield return new Claim(VKClaimConstants.ExternalId, oid);
         }
 
         // Handle tenant identifier if present (tid)
         if (userInfo.Claims.TryGetValue("tid", out var tid))
         {
-            yield return new Claim(VKClaimTypes.TenantId, tid);
+            yield return new Claim(VKClaimConstants.TenantId, tid);
         }
     }
 }

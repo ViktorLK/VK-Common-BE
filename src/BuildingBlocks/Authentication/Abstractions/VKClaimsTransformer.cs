@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Authentication.Common.Extensions;
 using VK.Blocks.Authentication.Diagnostics;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Abstractions;
 
@@ -32,7 +32,7 @@ public sealed class VKClaimsTransformer(
         }
 
         // 1. Check for the marker claim to ensure idempotency.
-        if (principal.HasClaim(c => c.Type == VKClaimTypes.ClaimsTransformed))
+        if (principal.HasClaim(c => c.Type == VKClaimConstants.ClaimsTransformed))
         {
             return principal;
         }
@@ -76,7 +76,7 @@ public sealed class VKClaimsTransformer(
                     newIdentity.AddClaims(allDynamicClaims);
 
                     // 4. Mark the identity as transformed.
-                    newIdentity.AddClaim(new Claim(VKClaimTypes.ClaimsTransformed, "true"));
+                    newIdentity.AddClaim(new Claim(VKClaimConstants.ClaimsTransformed, "true"));
 
                     var durationMs = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
                     AuthenticationDiagnostics.RecordClaimsTransformation(durationMs, applied: true);

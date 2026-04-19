@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using VK.Blocks.Authentication.OpenIdConnect.Contracts;
 using VK.Blocks.Core.Diagnostics;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
@@ -8,7 +9,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics;
 /// Centralized Diagnostics definition for the VK.Blocks.Authentication.OpenIdConnect building block.
 /// The Source Generator automatically emits the ActivitySource and Meter fields for this class.
 /// </summary>
-[VKBlockDiagnostics(OidcDiagnosticsConstants.SourceName)]
+[VKBlockDiagnostics<OidcBlock>]
 internal static partial class OidcDiagnostics
 {
     private static readonly Counter<long> _authenticationRequests;
