@@ -9,4 +9,10 @@ public static class VKBlocksConstants
     /// The standard prefix used for all diagnostic sources, metrics, and meters.
     /// </summary>
     public const string VKBlocksPrefix = "VK.Blocks.";
+
+    /// <summary>
+    /// The standard prefix used for configuration sections in appsettings.json.
+    /// </summary>
+    public const string VKBlocksConfigPrefix = "VKBlocks:";
+
 }

@@ -1,5 +1,4 @@
 using VK.Blocks.Core.Contracts;
-using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Core.Diagnostics;
 
@@ -12,7 +11,7 @@ internal static class CoreDiagnosticsConstants
     /// <summary>
     /// The diagnostic source name for the Core block.
     /// </summary>
-    public static readonly string SourceName = CoreBlock.ActivitySourceName;
+    public static readonly string SourceName = CoreBlock.Instance.ActivitySourceName;
 
     // Currently no Core-specific metrics or tags defined.
     // Placeholders for standard tag keys if needed globally.

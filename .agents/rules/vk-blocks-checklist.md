@@ -50,6 +50,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
     - ✅/❌ Required Keyword → [actual finding]
     - ✅/❌ Error Constant → [actual finding]
     - ✅/❌ Modern C# Idioms → [actual finding]
+    - ✅/❌ Format → .editorconfig compliance (e.g. explicit types vs var)
       **When applicable** (only report items relevant to the code being changed):
     - ✅/❌ TenantId → (DB/query code) [actual finding]
     - ✅/❌ NoTracking → (DB read queries) [actual finding]

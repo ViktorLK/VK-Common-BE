@@ -35,6 +35,13 @@
 **キーワード**: Synchronization, Abstraction, Idempotency, No-Op Fallback
 
 ---
+#### [ADR-005: Use Static Abstract Interface for Configuration Section Resolution](./adr-005-use-static-abstract-interface-for-configuration-section-resolution.md)
+
+**Status**: ✅ Accepted  
+**概要**: `IVKBlockOptions` に `static abstract SectionName` を導入し、リフレクションなしでの構成セクション自動解決を実現。  
+**キーワード**: Static Abstract, Configuration, Zero-Reflection
+
+---
 
 #### [ADR-006: Establishing Granular Capability-Based Structure and Namespace Alignment in Core](./adr-006-restructuring-core-module-into-semantic-pillars.md)
 
@@ -44,5 +51,18 @@
 
 ---
 
-**Last Updated**: 2026-04-17  
-**Total ADRs**: 5
+#### [ADR-007: Unified BuildingBlock Identification and Source-Generated Zero-Reflection Validation](./adr-007-unified-buildingblock-identification-and-source-generated-zero-reflection-validation.md)
+
+**Status**: ✅ Accepted  
+**概要**: プロパティを `IVKBlockMarker` に集約し、Source Generator による `Instance` シングルトン注入を導入。再帰的な依存関係検証をリフレクションなしで高速化。  
+**キーワード**: Source Generator, Singleton Pattern, Zero-Reflection, Dependency Tree
+#### [ADR-008: Robust BuildingBlock Dependency Validation through Pre-order Traversal and Cycle Detection](./adr-008-robust-building-block-dependency-validation.md)
+
+**Status**: ✅ Accepted  
+**概要**: 親の検証を先行させる Pre-order 走査と、`HashSet` による循環参照検知を導入。依存関係エラーの特定を容易にし、`StackOverflow` を防止。  
+**キーワード**: Pre-order Traversal, Circular Dependency, Cycle Detection
+
+---
+
+**Last Updated**: 2026-04-20  
+**Total ADRs**: 8
