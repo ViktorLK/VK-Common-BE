@@ -1,9 +1,11 @@
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using VK.Blocks.Generators.Authorization.Internal;
 using VK.Blocks.Generators.Extensions;
+using VK.Blocks.Generators.Utilities;
 
 namespace VK.Blocks.Generators.Authorization;
 
@@ -22,7 +24,10 @@ public sealed class AuthorizationHandlersGenerator : IIncrementalGenerator
                 transform: GetHandlerInfoForSourceGen)
             .WhereNotNull();
 
-        context.RegisterSourceOutput(handlers.Collect(), (spc, collectedHandlers) => Execute(spc, collectedHandlers));
+        var assemblyName = context.CompilationProvider.Select(static (c, _) => c.AssemblyName);
+        var combined = handlers.Collect().Combine(assemblyName);
+
+        context.RegisterSourceOutput(combined, (spc, pair) => Execute(spc, pair.Left, pair.Right, this.GetType()));
     }
 
     private static bool IsLikelyHandlerClass(SyntaxNode node, System.Threading.CancellationToken _)
@@ -94,8 +99,14 @@ public sealed class AuthorizationHandlersGenerator : IIncrementalGenerator
         return null;
     }
 
-    private static void Execute(SourceProductionContext context, System.Collections.Immutable.ImmutableArray<HandlerInfo> handlers)
+    private static void Execute(SourceProductionContext context, System.Collections.Immutable.ImmutableArray<HandlerInfo> handlers, string? assemblyName, Type generatorType)
     {
+        // Guard against execution in unrelated assemblies
+        if (!VKBlockGeneratorGuard.ShouldExecute(generatorType, assemblyName))
+        {
+            return;
+        }
+
         if (handlers.IsDefaultOrEmpty)
         {
             return;
@@ -151,6 +162,4 @@ public sealed class AuthorizationHandlersGenerator : IIncrementalGenerator
 
         context.AddSource("GeneratedAuthorizationServiceCollectionExtensions.g.cs", Microsoft.CodeAnalysis.Text.SourceText.From(sb.ToString(), Encoding.UTF8));
     }
-
-    private sealed record HandlerInfo(string ImplementationName, bool IsPermissionEvaluator);
 }

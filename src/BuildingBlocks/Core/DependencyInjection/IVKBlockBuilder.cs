@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace VK.Blocks.Core.DependencyInjection;
@@ -12,7 +13,9 @@ public interface IVKBlockBuilder<out TMarker>
     /// Gets the service collection.
     /// </summary>
     IServiceCollection Services { get; }
+
+    /// <summary>
+    /// Gets the root configuration.
+    /// </summary>
+    IConfiguration Configuration { get; }
 }
-
-
-

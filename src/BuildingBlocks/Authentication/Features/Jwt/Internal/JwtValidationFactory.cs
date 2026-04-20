@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using VK.Blocks.Authentication.Features.Jwt.Metadata;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Features.Jwt.Internal;
 
@@ -36,8 +36,8 @@ public static class JwtValidationFactory
             ClockSkew = TimeSpan.FromSeconds(options.ClockSkewSeconds),
 
             // Identity Mapping (VK Standards)
-            NameClaimType = VKClaimTypes.Name,
-            RoleClaimType = VKClaimTypes.Role
+            NameClaimType = VKClaimConstants.Name,
+            RoleClaimType = VKClaimConstants.Role
         };
 
         if (options.AuthMode == JwtAuthMode.Symmetric)

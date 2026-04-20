@@ -21,8 +21,8 @@ public static class VKBlockRegistrationExtensions
     /// <param name="services">The service collection.</param>
     /// <exception cref="InvalidOperationException">Thrown if the required block is not registered.</exception>
     public static void EnsureVKBlockRegistered<TRequired, TDependent>(this IServiceCollection services)
-        where TRequired : class, IVKBlock
-        where TDependent : class, IVKBlock
+        where TRequired : class, IVKBlockMarker, IVKBlockMarkerProvider<TRequired>
+        where TDependent : class, IVKBlockMarker, IVKBlockMarkerProvider<TDependent>
     {
         if (services.IsVKBlockRegistered<TRequired>())
         {
@@ -30,7 +30,7 @@ public static class VKBlockRegistrationExtensions
         }
 
         throw new InvalidOperationException(
-            string.Format(CoreConstants.MissingBlockDependencyMessage, TRequired.BlockName, TDependent.BlockName));
+            string.Format(CoreConstants.MissingBlockDependencyMessage, TRequired.Instance.Identifier, TDependent.Instance.Identifier));
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public static class VKBlockRegistrationExtensions
     /// <typeparam name="TBlock">The marker type of the dependent building block.</typeparam>
     /// <param name="services">The service collection.</param>
     public static void EnsureVKCoreBlockRegistered<TBlock>(this IServiceCollection services)
-        where TBlock : class, IVKBlock
+        where TBlock : class, IVKBlockMarker, IVKBlockMarkerProvider<TBlock>
     {
         services.EnsureVKBlockRegistered<CoreBlock, TBlock>();
     }
@@ -99,16 +99,16 @@ public static class VKBlockRegistrationExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="section">The configuration section to bind from.</param>
     /// <returns>The eagerly-binded options instance.</returns>
-    public static TOptions AddVKBlockOptions<TOptions>(
+    internal static TOptions AddVKBlockOptions<TOptions>(
         this IServiceCollection services,
         IConfigurationSection section)
-        where TOptions : class, new()
+        where TOptions : class, IVKBlockOptions, new()
     {
         var options = new TOptions();
         section.Bind(options);
 
         // [IDEMPOTENCY CHECK]
-        if (services.IsVKBlockRegistered<TOptions>())
+        if (services.IsVKServiceRegistered<TOptions>())
         {
             return options;
         }
@@ -139,13 +139,13 @@ public static class VKBlockRegistrationExtensions
     public static TOptions AddVKBlockOptions<TOptions>(
         this IServiceCollection services,
         Action<TOptions>? configure = null)
-        where TOptions : class, new()
+        where TOptions : class, IVKBlockOptions, new()
     {
         var options = new TOptions();
         configure?.Invoke(options);
 
         // [IDEMPOTENCY CHECK]
-        if (services.IsVKBlockRegistered<TOptions>())
+        if (services.IsVKServiceRegistered<TOptions>())
         {
             return options;
         }
@@ -167,6 +167,23 @@ public static class VKBlockRegistrationExtensions
     }
 
     /// <summary>
+    /// Adds and configures a specific feature option using the building block's root configuration context.
+    /// Relies on the absolute path provided by <see cref="IVKBlockOptions.SectionName"/>.
+    /// </summary>
+    /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
+    /// <typeparam name="TOptions">The type of options to configure.</typeparam>
+    /// <param name="builder">The building block builder instance.</param>
+    /// <returns>The builder instance for chaining.</returns>
+    public static IVKBlockBuilder<TMarker> AddFeatureOptions<TMarker, TOptions>(
+        this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
+        where TOptions : class, IVKBlockOptions, new()
+    {
+        builder.Services.AddVKBlockOptions<TOptions>(builder.Configuration);
+        return builder;
+    }
+
+    /// <summary>
     /// Overrides a scoped service registration within the building block.
     /// </summary>
     /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
@@ -176,6 +193,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> WithScoped<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -193,6 +211,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> WithSingleton<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -210,6 +229,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> WithTransient<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -227,6 +247,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> TryAddEnumerableScoped<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -244,6 +265,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> TryAddEnumerableSingleton<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {
@@ -261,6 +283,7 @@ public static class VKBlockRegistrationExtensions
     /// <returns>The builder instance for chaining.</returns>
     public static IVKBlockBuilder<TMarker> TryAddEnumerableTransient<TMarker, TService, TImplementation>(
         this IVKBlockBuilder<TMarker> builder)
+        where TMarker : class, IVKBlockMarker
         where TService : class
         where TImplementation : class, TService
     {

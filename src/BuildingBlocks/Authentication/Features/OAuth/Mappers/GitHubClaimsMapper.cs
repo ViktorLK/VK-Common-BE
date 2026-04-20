@@ -3,7 +3,7 @@ using System.Security.Claims;
 using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.OAuth.Internal;
 using VK.Blocks.Authentication.Features.OAuth.Metadata;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Features.OAuth.Mappers;
 
@@ -24,13 +24,13 @@ public sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
 
         if (userInfo.Claims.TryGetValue("avatar_url", out var avatarUrl))
         {
-            yield return new Claim(VKClaimTypes.AvatarUrl, avatarUrl);
+            yield return new Claim(VKClaimConstants.AvatarUrl, avatarUrl);
         }
 
         if (userInfo.Claims.TryGetValue("html_url", out var htmlUrl) ||
             userInfo.Claims.TryGetValue("url", out htmlUrl))
         {
-            yield return new Claim(VKClaimTypes.ProfileUrl, htmlUrl);
+            yield return new Claim(VKClaimConstants.ProfileUrl, htmlUrl);
         }
     }
 }

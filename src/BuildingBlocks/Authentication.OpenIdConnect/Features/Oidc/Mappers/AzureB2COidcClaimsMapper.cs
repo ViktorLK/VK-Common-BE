@@ -4,7 +4,7 @@ using VK.Blocks.Authentication.Abstractions;
 using VK.Blocks.Authentication.Features.OAuth.Mappers;
 using VK.Blocks.Authentication.Features.OAuth.Metadata;
 using VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Internal;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Features.Oidc.Mappers;
 
@@ -25,7 +25,7 @@ public sealed class AzureB2COidcClaimsMapper : OAuthClaimsMapperBase
         if (userInfo.Claims.TryGetValue(OidcConstants.ClaimTfp, out var tfp) ||
             userInfo.Claims.TryGetValue(OidcConstants.ClaimAcr, out tfp))
         {
-            yield return new Claim(VKClaimTypes.TrustFrameworkPolicy, tfp);
+            yield return new Claim(VKClaimConstants.TrustFrameworkPolicy, tfp);
         }
 
         if (string.IsNullOrEmpty(userInfo.Email) && userInfo.Claims.TryGetValue(OidcConstants.ClaimEmails, out var emails))

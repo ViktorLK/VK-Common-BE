@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Common;
-using VK.Blocks.Core.Context;
+using VK.Blocks.Core.Constants;
 
 namespace VK.Blocks.Authentication.Features.ApiKeys;
 
@@ -40,19 +40,19 @@ public sealed class ApiKeyAuthenticationHandler(
 
         // SUGGEST: Use C# 12 collection expression []
         List<Claim> claims = [
-            new(VKClaimTypes.UserId,   context.OwnerId),
-            new(VKClaimTypes.KeyId,    context.KeyId.ToString()),
-            new(VKClaimTypes.AuthType, Options.AuthType),
+            new(VKClaimConstants.UserId,   context.OwnerId),
+            new(VKClaimConstants.KeyId,    context.KeyId.ToString()),
+            new(VKClaimConstants.AuthType, Options.AuthType),
         ];
 
         if (context.TenantId is not null)
         {
-            claims.Add(new Claim(VKClaimTypes.TenantId, context.TenantId));
+            claims.Add(new Claim(VKClaimConstants.TenantId, context.TenantId));
         }
 
         foreach (var scope in context.Scopes)
         {
-            claims.Add(new Claim(VKClaimTypes.Scope, scope));
+            claims.Add(new Claim(VKClaimConstants.Scope, scope));
         }
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

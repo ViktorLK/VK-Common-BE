@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Authentication.Common;
+using VK.Blocks.Authentication.Contracts;
 using VK.Blocks.Authentication.Diagnostics.Models;
 using VK.Blocks.Authentication.Generated;
 using VK.Blocks.Core.Diagnostics;
@@ -17,7 +18,7 @@ namespace VK.Blocks.Authentication.Diagnostics;
 /// Centralized Diagnostics definition for the VK.Blocks.Authentication building block.
 /// The Source Generator automatically emits the ActivitySource and Meter fields for this class.
 /// </summary>
-[VKBlockDiagnostics(AuthenticationDiagnosticsConstants.SourceName)]
+[VKBlockDiagnostics<AuthenticationBlock>]
 public static partial class AuthenticationDiagnostics
 {
     // ActivitySource and Meter are generated automatically into a partial class.
