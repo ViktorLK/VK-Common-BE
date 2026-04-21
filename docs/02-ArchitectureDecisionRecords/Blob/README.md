@@ -4,7 +4,7 @@
 
 ## 📚 ADR 一覧
 
-#### [ADR-001: Standardizing on Azure Blob Storage API for Portability and Unified Development](./adr-001-optimizing-blob-storage-architecture-for-portability-and-security.md)
+#### [ADR-001: Standardizing on Azure Blob Storage API for Portability and Unified Development](/docs/02-ArchitectureDecisionRecords/Blob/adr-001-optimizing-blob-storage-architecture-for-portability-and-security.md)
 
 **Status**: ✅ Accepted  
 **概要**: Local FileSystem 実装を削除し、開発環境を含むすべての環境で Azure Blob API (Azurite) に一本化する決定。Singleton クライアント、Rule 14 遵守を含む。  
@@ -12,13 +12,13 @@
 
 ---
 
-#### [ADR-002: Decoupling Blob Abstractions from Azure Storage Implementation](./adr-002-decoupling-blob-abstractions-from-azure-storage-implementation.md)
+#### [ADR-002: Decoupling Blob Abstractions from Azure Storage Implementation](/docs/02-ArchitectureDecisionRecords/Blob/adr-002-decoupling-blob-abstractions-from-azure-storage-implementation.md)
 
 **Status**: ✅ Accepted  
 **概要**: インターフェース（抽象）と Azure SDK（実装）を別プロジェクトに分離し、依存関係の伝播を防止する決定。  
 **キーワード**: Dependency Inversion, Clean Abstractions, Zero Transient Dependencies
 
-#### [ADR-003: Adoption of Pure Infrastructure Model and Decoupling from Core Context](./adr-003-pure-infrastructure--core-context-.md)
+#### [ADR-003: Adoption of Pure Infrastructure Model and Decoupling from Core Context](/docs/02-ArchitectureDecisionRecords/Blob/adr-003-pure-infrastructure--core-context-.md)
 
 **Status**: ✅ Accepted  
 **概要**: IUserContext や IDateTime への依存を排除し、ライブラリをビジネスコンテキストから分離。汎用性と再利用性を向上。  
@@ -26,7 +26,7 @@
 
 ---
 
-#### [ADR-004: Integration of Standard Observability Patterns using VKBlockDiagnostics](./adr-004-standardized-observability-integration.md)
+#### [ADR-004: Integration of Standard Observability Patterns using VKBlockDiagnostics](/docs/02-ArchitectureDecisionRecords/Blob/adr-004-standardized-observability-integration.md)
 
 **Status**: ✅ Accepted  
 **概要**: [VKBlockDiagnostics] ソースジェネレーターを活用し、分散トレーシング（Tracing）とメトリクス（Metrics）を標準計装。  

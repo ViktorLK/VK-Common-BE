@@ -8,11 +8,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.Authentication.Common.Extensions;
-using VK.Blocks.Authentication.Diagnostics;
-using VK.Blocks.Core.Constants;
+using VK.Blocks.Authentication.Diagnostics.Internal;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.Authentication.Abstractions;
+namespace VK.Blocks.Authentication;
 
 /// <summary>
 /// Intercepts the ClaimsPrincipal after authentication to enrich it with permissions, tenant IDs, etc.
@@ -102,4 +101,11 @@ public sealed class VKClaimsTransformer(
         return principal;
     }
 }
+
+
+
+
+
+
+
 

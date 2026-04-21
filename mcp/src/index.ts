@@ -299,6 +299,157 @@ Ensure you test:
   }
 );
 
+// Register tool for generating Building Block Boilerplate
+server.tool(
+  "draft_building_block",
+  "Generates standard VK.Blocks boilerplate for a new building block library. Returns a prompt with file content and instructions.",
+  {
+    blockName: z.string().describe("The name of the building block (e.g. 'Logging', 'Caching')."),
+    category: z.string().optional().describe("The category of the block (e.g. 'Web', 'Infrastructure'). Used for configuration path."),
+    dependencies: z.array(z.string()).optional().describe("List of block identifiers this block depends on. Defaults to ['Core']."),
+  },
+  async ({ blockName, category, dependencies }) => {
+    try {
+      const blockIdentifier = blockName;
+      const deps = dependencies ?? ["Core"];
+      const depsArray = deps.map(d => `${d}Block.Instance`).join(", ");
+      const configPath = category ? `${category}:${blockName}` : blockName;
+
+      const prompt = `
+[MCP Tool: draft_building_block]
+You are acting as a senior .NET framework architect.
+
+Your task is to initialize the \`${blockName}\` BuildingBlock following the **VK.Blocks Blueprint**.
+Execute ALL steps below to create a consistent, industrial-grade library.
+
+### STEP 1: Directory Structure
+Create the following layout in \`src/BuildingBlocks/${blockName}/\`:
+- \`Abstractions/\`
+- \`Contracts/\`
+- \`DependencyInjection/Internal/\`
+- \`Diagnostics/Internal/\`
+- \`Features/Internal/\`
+
+### STEP 2: The Marker (Contract)
+File: \`src/BuildingBlocks/${blockName}/Contracts/${blockIdentifier}Block.cs\`
+\`\`\`csharp
+using VK.Blocks.Core.Constants;
+using VK.Blocks.Core.Contracts;
+using VK.Blocks.Core.DependencyInjection;
+
+namespace VK.Blocks.${blockIdentifier}.Contracts;
+
+public sealed partial class ${blockIdentifier}Block : IVKBlockMarker
+{
+    private ${blockIdentifier}Block() { }
+    public static ${blockIdentifier}Block Instance { get; } = new();
+
+    public string Identifier => "${blockIdentifier}";
+    public string Version => "1.0.0";
+    public IReadOnlyList<IVKBlockMarker> Dependencies => [${depsArray}];
+    public string ActivitySourceName => VKBlocksConstants.VKBlocksPrefix + Identifier;
+    public string MeterName => VKBlocksConstants.VKBlocksPrefix + Identifier;
+}
+\`\`\`
+
+### STEP 3: Configuration Options
+File: \`src/BuildingBlocks/${blockName}/DependencyInjection/VK${blockIdentifier}Options.cs\`
+\`\`\`csharp
+using VK.Blocks.Core.Constants;
+using VK.Blocks.Core.DependencyInjection;
+
+namespace VK.Blocks.${blockIdentifier};
+
+public sealed record VK${blockIdentifier}Options : IVKBlockOptions
+{
+    public static string SectionName => VKBlocksConstants.VKBlocksConfigPrefix + "${configPath}";
+    public bool Enabled { get; init; } = false;
+}
+\`\`\`
+
+### STEP 4: Public Entry Point (Wrapper)
+File: \`src/BuildingBlocks/${blockName}/DependencyInjection/VK${blockIdentifier}BlockExtensions.cs\`
+\`\`\`csharp
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.${blockIdentifier}.DependencyInjection.Internal;
+
+namespace VK.Blocks.${blockIdentifier};
+
+public static class VK${blockIdentifier}BlockExtensions
+{
+    public static IVK${blockIdentifier}Builder Add${blockIdentifier}Block(this IServiceCollection services, IConfiguration configuration)
+        => ${blockIdentifier}BlockRegistration.Register(services, configuration);
+}
+\`\`\`
+
+### STEP 5: Registration Logic (Internal Core)
+File: \`src/BuildingBlocks/${blockName}/DependencyInjection/Internal/${blockIdentifier}BlockRegistration.cs\`
+\`\`\`csharp
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using VK.Blocks.${blockIdentifier}.Contracts;
+using VK.Blocks.Core.DependencyInjection;
+
+namespace VK.Blocks.${blockIdentifier}.DependencyInjection.Internal;
+
+internal static class ${blockIdentifier}BlockRegistration
+{
+    internal static IVK${blockIdentifier}Builder Register(IServiceCollection services, IConfiguration configuration)
+    {
+        // 1. Check-Self
+        if (services.IsVKBlockRegistered<${blockIdentifier}Block>())
+        {
+            return new ${blockIdentifier}BlockBuilder(services, configuration);
+        }
+
+        // 2. Check-Prerequisite
+        services.EnsureVKCoreBlockRegistered<${blockIdentifier}Block>();
+
+        // 3. Options Registration
+        VK${blockIdentifier}Options options = services.AddVKBlockOptions<VK${blockIdentifier}Options>(configuration);
+
+        // 4. Mark-Self (Crucial: Before feature gate)
+        services.AddVKBlockMarker<${blockIdentifier}Block>();
+
+        // 5. Options Validation
+        services.TryAddEnumerableSingleton<IValidateOptions<VK${blockIdentifier}Options>, ${blockIdentifier}OptionsValidator>();
+
+        // 6. Feature Toggle
+        if (!options.Enabled)
+        {
+            return new ${blockIdentifier}BlockBuilder(services, configuration);
+        }
+
+        // 7. Core Services
+        // [Implement internal services here]
+
+        return new ${blockIdentifier}BlockBuilder(services, configuration);
+    }
+}
+\`\`\`
+
+### STEP 6: Support Classes (Internal)
+Create \`${blockIdentifier}BlockBuilder.cs\` and \`${blockIdentifier}OptionsValidator.cs\` in the \`Internal/\` folder.
+
+Follow Rule 16-20 strictly. Do NOT skip any file or step.
+`.trim();
+
+      return {
+        content: [{ type: "text", text: prompt }],
+      };
+
+    } catch (error: any) {
+      return {
+        content: [{ type: "text", text: `[Error] Failed to generate boilerplate: ${error.message}` }],
+        isError: true,
+      };
+    }
+  }
+);
+
 /**
  * Recursively walks a directory and returns an array of files.
  */

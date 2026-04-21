@@ -40,7 +40,9 @@ JWT (自己発行 / OIDC)、API Key、OAuth の 3 つの認証戦略を `appsett
 
 ```csharp
 builder.Services.AddVKAuthenticationBlock(builder.Configuration)
-    .AddDiscoveryOAuth(builder.Configuration); // 構成駆動で OIDC プロバイダーを自動検証・登録
+    .AddVKJwt()              // JWT 認証を有効化
+    .AddVKApiKeys()           // API Key 認証を有効化
+    .AddVKOAuth();           // OAuth 認証を有効化
 ```
 
 詳細は [/src/BuildingBlocks/Authentication.OpenIdConnect/README.md](/src/BuildingBlocks/Authentication.OpenIdConnect/README.md) を参照してください。
@@ -152,9 +154,9 @@ Authentication/
 ```csharp
 [JwtAuthorize]           // JWT 認証のみ許可
 [ApiKeyAuthorize]        // API Key 認証のみ許可
-[AuthGroup(AuthGroups.User)]     // JWT + OAuth を許可 (人間ユーザー)
-[AuthGroup(AuthGroups.Service)]  // API Key + JWT を許可 (M2M 通信)
-[AuthGroup(AuthGroups.Internal)] // API Key のみ許可 (内部管理)
+[AuthGroup(AuthPolicies.GroupUser)]     // JWT + OAuth を許可 (人間ユーザー)
+[AuthGroup(AuthPolicies.GroupService)]  // API Key + JWT を許可 (M2M 通信)
+[AuthGroup(AuthPolicies.GroupInternal)] // API Key のみ許可 (内部管理)
 [Authorize(Policy = "VK.Group.GitHub")] // 特定のプロバイダー（GitHub等）による認証のみ許可
 ```
 
@@ -320,10 +322,12 @@ internal sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
 ```csharp
 builder.Services
     .AddVKAuthenticationBlock(builder.Configuration)
-    // .AddDiscoveryOAuth(builder.Configuration)             // ※ OIDC拡張パッケージ導入時のみ利用可能
-    .TryAddClaimsProvider<MyCustomClaimsProvider>()       // カスタム Claims エンリッチメント
+    .AddVKJwt()                                        // JWT (Bearer) 認証の有効化
+    .AddVKApiKeys()                                     // API Key 認証の有効化
+    .AddVKOAuth()                                      // OAuth 認証の有効化
+    .TryAddClaimsProvider<MyCustomClaimsProvider>()      // カスタム Claims エンリッチメント
     .WithApiKeyRevocationProvider<RedisRevocationProvider>() // Redis ベース失効管理
-    .TryAddOAuthMapper<GoogleClaimsMapper>("Google");      // (任意) 特定のプロバイダーに対するマッパーの手動上書き・追加
+    .TryAddOAuthMapper<GoogleClaimsMapper>("Google");    // (任意) 特定のプロバイダーに対するマッパーの手動上書き・追加
 ```
 
 > [!NOTE]

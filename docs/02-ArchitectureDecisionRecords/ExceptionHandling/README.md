@@ -26,18 +26,25 @@
 **概要**: 全てのAPIエラー形式を RFC 7807 (ProblemDetails) 標準に統一し、デバッグトレース用の `TraceId` と国際化用の `ErrorCode` を拡張属性として必須化しました。  
 **キーワード**: RFC 7807, ProblemDetails, Error Handling, Observability
 
+#### [ADR-004: Exception Handling Architecture Normalization](./adr-004-exception-handling-architecture-normalization.md)
+
+**Status**: ✅ Accepted  
+**概要**: Rule 14 (Organization) および Rule 6 (Observability) への適合を目的とした、フォルダ構成の垂直スライス化とメトリクス計装の導入について記録。  
+**キーワード**: Rule 14, Observability, Metrics, Vertical Slice
+
 ---
 
 ## 🎯 ADR の読み方ガイド
 
 ### アーキテクチャとセキュア設計の理解用
-1. **ADR-003**: なぜエラーの形式がこのJSONオブジェクトとして返されるのか、ログ（TraceId）とどう連携しているのかを理解したいクライアント・フロントエンド開発者向け。
-2. **ADR-002**: ドメイン固有の例外や外部システムの特殊な例外が追加された際に、どのように共通基盤へ自作例外ハンドラを組み込むのかを理解したいバックエンド開発者向け。
-3. **ADR-001**: 共通ライブラリを設計する際、DI コンテナへの拡張メソッドの提供はどうあるべきか（IXXXBuilderパターン）について設計方針を学ぶアーキテクト向け。
+1. **ADR-004**: ビルディングブロックを VK.Blocks 標準に適合させるための「正規化（Normalization）」の手順と、観測性の設計方針を理解したいエンジニア向け。
+2. **ADR-003**: なぜエラーの形式がこのJSONオブジェクトとして返されるのか、ログ（TraceId）とどう連携しているのかを理解したいクライアント・フロントエンド開発者向け。
+3. **ADR-002**: ドメイン固有の例外や外部システムの特殊な例外が追加された際に、どのように共通基盤へ自作例外ハンドラを組み込むのかを理解したいバックエンド開発者向け。
+4. **ADR-001**: 共通ライブラリを設計する際、DI コンテナへの拡張メソッドの提供はどうあるべきか（IXXXBuilderパターン）について設計方針を学ぶアーキテクト向け。
 
 ## 🔗 関連ドキュメント
 
 - `ExceptionHandling_20260316.md` (アーキテクチャ監査レポート)
 
-**Last Updated**: 2026-03-17
-**Total ADRs**: 3
+**Last Updated**: 2026-04-18
+**Total ADRs**: 4

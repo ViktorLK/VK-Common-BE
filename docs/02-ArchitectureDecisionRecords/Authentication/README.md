@@ -60,6 +60,12 @@
 **概要**: 認証ライブラリをデフォルト無効（Enabled: false）のオプトイン方式へ移行し、IValidateOptions と TryAddEnumerable を用いた厳格かつべき等なバリデーション構成を標準化する  
 **キーワード**: Explicit Opt-in, Fail-Fast, Idempotency, Validation Patterns
 
+#### [ADR-019: Decoupling Authentication and Authorization via Dependency Inversion](./adr-019-decoupling-authentication-and-authorization-via-dependency-inversion.md)
+
+**Status**: ✅ Accepted  
+**概要**: Authentication ブロックから認可ライブラリへの直接依存を排除し、`ISemanticSchemeProvider` を介した依存性の逆転 (Dependency Inversion) によって認証と認可を疎結合化する  
+**キーワード**: Dependency Inversion, Decoupling, Semantic Policies, Pure Module
+
 ---
 
 ### Standards & Compliance (標準とコンプライアンス)
@@ -133,5 +139,5 @@
 
 ---
 
-**Last Updated**: 2026-04-11  
-**Total ADRs**: 18
+**Last Updated**: 2026-04-20  
+**Total ADRs**: 19

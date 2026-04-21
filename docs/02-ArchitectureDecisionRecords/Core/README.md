@@ -62,7 +62,13 @@
 **概要**: 親の検証を先行させる Pre-order 走査と、`HashSet` による循環参照検知を導入。依存関係エラーの特定を容易にし、`StackOverflow` を防止。  
 **キーワード**: Pre-order Traversal, Circular Dependency, Cycle Detection
 
+#### [ADR-009: Standardization of Building Block Naming and Structural Conventions](./adr-009-standardization-of-building-block-naming-and-structural-conventions.md)
+
+**Status**: ✅ Accepted  
+**概要**: 公開 API への `VK` プレフィックス付与と第1層階層への配置、および内部実装からのプレフィックス除去と `Internal/` フォルダへの隠蔽を全モジュール共通の標準規約として定義。  
+**キーワード**: Naming Convention, Project Structure, Encapsulation, VK Prefix
+
 ---
 
-**Last Updated**: 2026-04-20  
-**Total ADRs**: 8
+**Last Updated**: 2026-04-21  
+**Total ADRs**: 9

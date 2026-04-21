@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VK.Blocks.Authentication.Abstractions;
+namespace VK.Blocks.Authentication;
 
 /// <summary>
 /// Defines a provider for retrieving user claims dynamically (e.g., from a database).
@@ -19,3 +19,7 @@ public interface IVKClaimsProvider
     /// <returns>A collection of claims to append to the authenticated user's identity.</returns>
     ValueTask<IEnumerable<Claim>> GetUserClaimsAsync(string userId, CancellationToken cancellationToken = default);
 }
+
+
+
+

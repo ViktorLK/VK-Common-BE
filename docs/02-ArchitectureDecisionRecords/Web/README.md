@@ -1,4 +1,4 @@
-﻿# Architecture Decision Records (ADR) - Web Index
+# Architecture Decision Records (ADR) - Web Index
 
 このディレクトリには、VK.Blocks.Web モジュールの主要な設計決定を記録した ADR が含まれています。
 
@@ -6,7 +6,7 @@
 
 ### Core Design (コア設計)
 
-#### [ADR-001: Result Monad と Railway-Oriented Programming](./adr-001-result-monad-rop.md)
+#### [ADR-001: Result Monad と Railway-Oriented Programming](/docs/02-ArchitectureDecisionRecords/Web/adr-001-result-monad-rop.md)
 
 **Status**: ✅ Accepted
 **概要**: 例外ベースの制御フローに代わり、Result Monad + ROP パターンで型安全なエラーハンドリングを実現。`Bind`, `Map`, `Tap`, `Ensure`, `Match` の5演算子を実装。
@@ -16,7 +16,7 @@
 
 ### Performance Optimization (性能最適化)
 
-#### [ADR-002: Expression Tree コンパイルキャッシュ](./adr-002-expression-tree-caching.md)
+#### [ADR-002: Expression Tree コンパイルキャッシュ](/docs/02-ArchitectureDecisionRecords/Web/adr-002-expression-tree-caching.md)
 
 **Status**: ✅ Accepted
 **概要**: `ValidationFailureCache` で `Lazy<T>` + `ConcurrentDictionary` + `Expression.Compile()` を使用し、リフレクションコストを排除。
@@ -27,7 +27,7 @@
 
 ### Design Patterns (設計パターン)
 
-#### [ADR-003: CorrelationId の Strategy パターン抽象化](./adr-003-correlation-id-strategy.md)
+#### [ADR-003: CorrelationId の Strategy パターン抽象化](/docs/02-ArchitectureDecisionRecords/Web/adr-003-correlation-id-strategy.md)
 
 **Status**: ✅ Accepted
 **概要**: `ICorrelationIdProvider` + `CorrelationIdOptions` で ID 生成戦略を DI で差し替え可能に設計。ヘッダー > TraceId > GUID の優先順位を設定で制御。

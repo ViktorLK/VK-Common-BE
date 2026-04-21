@@ -4,7 +4,7 @@
 
 ## 📚 ADR 一覧
 
-#### [ADR-001: Eliminate BuildServiceProvider Anti-pattern in DI Configuration](./adr-001-eliminate-buildserviceprovider-anti-pattern-in-di-configuration.md)
+#### [ADR-001: Eliminate BuildServiceProvider Anti-pattern in DI Configuration](/docs/02-ArchitectureDecisionRecords/Observability.Serilog/adr-001-eliminate-buildserviceprovider-anti-pattern-in-di-configuration.md)
 
 **Status**: 📝 Draft  
 **概要**: DIコンテナの構築フェーズにおける不要なシングルトン複製やメモリリークを防ぐため、`BuildServiceProvider()` の呼び出しを排除し、ファクトリパターンによる設定方針に移行する設計決定。  
@@ -12,7 +12,7 @@
 
 ---
 
-#### [ADR-002: Adopt ISinkConfigurator Pattern with Static Abstract Members](./adr-002-adopt-isinkconfigurator-pattern-with-static-abstract-members.md)
+#### [ADR-002: Adopt ISinkConfigurator Pattern with Static Abstract Members](/docs/02-ArchitectureDecisionRecords/Observability.Serilog/adr-002-adopt-isinkconfigurator-pattern-with-static-abstract-members.md)
 
 **Status**: 📝 Draft  
 **概要**: 中央集権的な拡張メソッドの肥大化を防ぎ、将来のログ出力先（Sink）追加に柔軟に対応するため、C# 12の`static abstract`インターフェースメンバーを用いた型安全なプラグインアーキテクチャを導入する設計決定。  
@@ -20,7 +20,7 @@
 
 ---
 
-#### [ADR-003: Implement Partial-Match Lazy-Evaluated PII Masking Strategy](./adr-003-implement-partial-match-lazy-evaluated-pii-masking-strategy.md)
+#### [ADR-003: Implement Partial-Match Lazy-Evaluated PII Masking Strategy](/docs/02-ArchitectureDecisionRecords/Observability.Serilog/adr-003-implement-partial-match-lazy-evaluated-pii-masking-strategy.md)
 
 **Status**: 📝 Draft  
 **概要**: ログを通じた機密情報（PII）の漏洩を防ぐため、完全一致ではなく部分一致（OrdinalIgnoreCase）を採用し、かつマスキング不要時の不要なメモリアロケーションを防ぐ遅延評価（Lazy Evaluation）を実装する設計決定。  
@@ -38,7 +38,7 @@
 
 ## 🔗 関連ドキュメント
 
-- [Architecture Audit Report (2026-03-15)](../../04-AuditReports/Observability.Serilog/Observability.Serilog_20260315.md)
+- [Architecture Audit Report (2026-03-15)](/docs/04-AuditReports/Observability.Serilog/Observability.Serilog_20260315.md)
 
 ---
 

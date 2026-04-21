@@ -6,7 +6,7 @@
 
 ### Core Architecture (コアアーキテクチャ)
 
-#### [ADR-001: Separation of Concerns: Core Observability vs. OpenTelemetry Integration](./adr-001-separation-of-concerns-core-observability-vs-opentelemetry.md)
+#### [ADR-001: Separation of Concerns: Core Observability vs. OpenTelemetry Integration](/docs/02-ArchitectureDecisionRecords/Observability/adr-001-separation-of-concerns-core-observability-vs-opentelemetry.md)
 
 **Status**: ✅ Accepted  
 **概要**: オブザーバビリティの標準API（`System.Diagnostics`）と送信用SDK（`OpenTelemetry`）のプロジェクトを物理的に分離し、コア層からインフラへの依存を排除するアーキテクチャ  
@@ -16,7 +16,7 @@
 
 ### Component Lifecycle & Dependency Injection (ライフサイクルとDI管理)
 
-#### [ADR-002: Do Not Register Static ActivitySource/Meter in DI Container](./adr-002-do-not-register-static-activitysourcemeter-in-di-container.md)
+#### [ADR-002: Do Not Register Static ActivitySource/Meter in DI Container](/docs/02-ArchitectureDecisionRecords/Observability/adr-002-do-not-register-static-activitysourcemeter-in-di-container.md)
 
 **Status**: ✅ Accepted  
 **概要**: `ActivitySource` と `Meter` は `static` フィールドとして直接アクセスさせ、寿命管理のミスマッチやパフォーマンスオーバーヘッドを防ぐためDIコンテナには登録しない  
@@ -25,7 +25,7 @@
 
 ---
 
-#### [ADR-003: Adopt Wildcard Telemetry Registration and Remove Common Diagnostic Class](./adr-003-adopt-wildcard-telemetry-registration.md)
+#### [ADR-003: Adopt Wildcard Telemetry Registration and Remove Common Diagnostic Class](/docs/02-ArchitectureDecisionRecords/Observability/adr-003-adopt-wildcard-telemetry-registration.md)
 
 **Status**: ✅ Accepted  
 **概要**: 共通の `Diagnostic` クラスを廃止し、OpenTelemetry の監視登録をワイルドカード（`"VK.Blocks.*"`）で行うことで、各モジュールの自律的なテレメトリ発行（ゼロコンフィグレーション）を実現  
@@ -35,7 +35,7 @@
 
 ### Data Propagation & Error Handling (データ伝播とエラーハンドリング)
 
-#### [ADR-004: Automatic Trace Context Propagation Bridge (Result to Activity)](./adr-004-automatic-trace-context-propagation-bridge.md)
+#### [ADR-004: Automatic Trace Context Propagation Bridge (Result to Activity)](/docs/02-ArchitectureDecisionRecords/Observability/adr-004-automatic-trace-context-propagation-bridge.md)
 
 **Status**: ✅ Accepted  
 **概要**: `Result<T>` パターンで返されたビジネスロジックのエラー情報を、自動的に `Activity`（Span）のタグやイベントとしてマッピングするブリッジ拡張メソッドを導入  
@@ -45,7 +45,7 @@
 
 ### Security & Privacy Compliance (セキュリティとプライバシー保護)
 
-#### [ADR-005: Protection of PII (Personally Identifiable Information) in Telemetry](./adr-005-protection-of-pii-in-telemetry.md)
+#### [ADR-005: Protection of PII (Personally Identifiable Information) in Telemetry](/docs/02-ArchitectureDecisionRecords/Observability/adr-005-protection-of-pii-in-telemetry.md)
 
 **Status**: ✅ Accepted  
 **概要**: トレースのユーザーメタデータ収集において、ユーザー名などの個人情報（PII）はデフォルトで無効（`false`）とし、設定による明示的なオプトインを要求するSecure by Default設計  
