@@ -43,10 +43,3 @@ internal sealed class JwtTokenRevocationService(IVKJwtRevocationProvider revocat
         }
     }
 }
-
-
-
-
-
-
-

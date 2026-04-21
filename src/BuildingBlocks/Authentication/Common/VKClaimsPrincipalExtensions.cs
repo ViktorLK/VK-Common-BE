@@ -158,9 +158,3 @@ public static class VKClaimsPrincipalExtensions
         return VKResult.Success(user);
     }
 }
-
-
-
-
-
-

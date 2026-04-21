@@ -33,7 +33,3 @@ internal static class AuthenticationResponseHelper
         return context.Response.WriteAsJsonAsync(problemDetails, options: null, contentType: VKAuthenticationConstants.ProblemJsonContentType);
     }
 }
-
-
-
-

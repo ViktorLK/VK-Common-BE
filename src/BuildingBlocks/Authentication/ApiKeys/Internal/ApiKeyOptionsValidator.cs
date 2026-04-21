@@ -46,9 +46,3 @@ internal sealed class ApiKeyOptionsValidator : IValidateOptions<VKApiKeyOptions>
         return ValidateOptionsResult.Success;
     }
 }
-
-
-
-
-
-

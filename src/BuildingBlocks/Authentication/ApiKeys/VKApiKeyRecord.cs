@@ -37,7 +37,3 @@ public sealed record VKApiKeyRecord : IVKMultiTenant
     /// </summary>
     public IReadOnlyList<string> Scopes { get; init; } = [];
 }
-
-
-
-

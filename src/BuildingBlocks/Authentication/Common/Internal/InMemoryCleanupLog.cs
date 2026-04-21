@@ -74,8 +74,3 @@ internal static partial class InMemoryCleanupLog
         Message = "In-Memory Cleanup Service: Stopping.")]
     public static partial void LogServiceStopping(this ILogger logger);
 }
-
-
-
-
-

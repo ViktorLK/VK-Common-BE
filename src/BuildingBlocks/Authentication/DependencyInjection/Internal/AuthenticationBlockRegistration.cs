@@ -72,9 +72,3 @@ internal static class AuthenticationBlockRegistration
         });
     }
 }
-
-
-
-
-
-

@@ -47,9 +47,3 @@ public static class VKJwtErrors
     /// </summary>
     public static readonly VKError AudienceInvalid = new("Auth.AudienceInvalid", "The token audience is invalid.", VKErrorType.Unauthorized);
 }
-
-
-
-
-
-

@@ -20,9 +20,3 @@ internal static class OAuthConstants
     /// </summary>
     public const string AuthorityRequired = "OAuth provider '{0}' is enabled but missing Authority.";
 }
-
-
-
-
-
-

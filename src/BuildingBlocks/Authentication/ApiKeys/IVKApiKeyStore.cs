@@ -27,7 +27,3 @@ public interface IVKApiKeyStore
     /// <returns>A task that represents the asynchronous update operation.</returns>
     ValueTask UpdateLastUsedAtAsync(Guid keyId, DateTimeOffset usedAt, CancellationToken ct = default);
 }
-
-
-
-

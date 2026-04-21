@@ -47,12 +47,3 @@ internal static class JwtValidationFactory
         return parameters;
     }
 }
-
-
-
-
-
-
-
-
-

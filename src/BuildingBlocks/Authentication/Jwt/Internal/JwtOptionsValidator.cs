@@ -62,9 +62,3 @@ internal sealed class JwtOptionsValidator : IValidateOptions<VKJwtOptions>
         return ValidateOptionsResult.Success;
     }
 }
-
-
-
-
-
-

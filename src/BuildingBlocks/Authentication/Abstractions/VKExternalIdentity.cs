@@ -38,7 +38,3 @@ public sealed record VKExternalIdentity
     /// </summary>
     public IReadOnlyDictionary<string, string> Claims { get; init; } = new Dictionary<string, string>();
 }
-
-
-
-

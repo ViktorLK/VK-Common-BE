@@ -42,7 +42,3 @@ public sealed record VKAuthenticatedUser
     /// </summary>
     public IReadOnlyDictionary<string, string> Claims { get; init; } = new Dictionary<string, string>();
 }
-
-
-
-

@@ -11,7 +11,3 @@ namespace VK.Blocks.Authentication;
 /// </remarks>
 /// <param name="groupName">The full policy name of the authentication group (e.g., VKAuthPolicies.GroupUser).</param>
 public sealed class AuthGroupAttribute(string groupName) : AuthorizeAttribute(groupName);
-
-
-
-

@@ -19,7 +19,3 @@ public interface IVKApiKeyRateLimiter
     /// <returns>True if the request is allowed; False if the rate limit has been exceeded.</returns>
     ValueTask<bool> IsAllowedAsync(Guid keyId, int limit, int windowSeconds, CancellationToken ct = default);
 }
-
-
-
-

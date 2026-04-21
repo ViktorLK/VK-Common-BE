@@ -86,9 +86,3 @@ internal static partial class ApiKeyLog
         Message = "Failed to update LastUsedAt for KeyId: {KeyId}")]
     public static partial void LogLastUsedUpdateFailed(this ILogger logger, Exception ex, string keyId);
 }
-
-
-
-
-
-

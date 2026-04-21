@@ -45,10 +45,3 @@ internal static class InMemoryCleanupRegistration
         services.TryAddEnumerableSingleton<IHostedService, InMemoryCleanupBackgroundService>();
     }
 }
-
-
-
-
-
-
-

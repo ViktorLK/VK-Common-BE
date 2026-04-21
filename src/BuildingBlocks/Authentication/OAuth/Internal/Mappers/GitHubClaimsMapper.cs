@@ -32,10 +32,3 @@ internal sealed class GitHubClaimsMapper : VKOAuthClaimsMapperBase
         }
     }
 }
-
-
-
-
-
-
-

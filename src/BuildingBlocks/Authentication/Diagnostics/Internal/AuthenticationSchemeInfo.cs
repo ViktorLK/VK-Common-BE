@@ -25,7 +25,3 @@ internal sealed record AuthenticationSchemeInfo
     /// </summary>
     public bool IsDefault { get; init; }
 }
-
-
-
-

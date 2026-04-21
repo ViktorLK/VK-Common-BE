@@ -23,8 +23,3 @@ public sealed record VKOAuthOptions : IVKBlockOptions
     /// </summary>
     public Dictionary<string, VKOAuthProviderOptions> Providers { get; init; } = [];
 }
-
-
-
-
-

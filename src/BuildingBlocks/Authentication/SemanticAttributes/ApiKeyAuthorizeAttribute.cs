@@ -7,7 +7,3 @@ namespace VK.Blocks.Authentication;
 /// Automatically applies the <see cref="VKAuthenticationConstants.ApiKeyPolicy"/>.
 /// </summary>
 public sealed class ApiKeyAuthorizeAttribute() : AuthorizeAttribute(VKAuthenticationConstants.ApiKeyPolicy);
-
-
-
-

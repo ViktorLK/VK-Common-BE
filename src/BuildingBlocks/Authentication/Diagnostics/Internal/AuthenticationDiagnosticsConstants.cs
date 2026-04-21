@@ -155,10 +155,3 @@ internal static class AuthenticationDiagnosticsConstants
     /// </summary>
     public const string TypeApiKey = "apikey";
 }
-
-
-
-
-
-
-

@@ -27,11 +27,3 @@ internal sealed class OAuthSemanticSchemeProvider(IOptionsMonitor<VKOAuthOptions
 
     public IEnumerable<string> GetInternalSchemes() => [];
 }
-
-
-
-
-
-
-
-

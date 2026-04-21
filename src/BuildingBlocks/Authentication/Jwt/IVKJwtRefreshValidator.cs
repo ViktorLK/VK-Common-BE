@@ -20,7 +20,3 @@ public interface IVKJwtRefreshValidator
     /// <returns>A result containing true if validation passes, or an error if a replay/compromise is detected.</returns>
     ValueTask<VKResult<bool>> ValidateTokenRotationAsync(string tokenJti, string familyId, CancellationToken ct = default);
 }
-
-
-
-

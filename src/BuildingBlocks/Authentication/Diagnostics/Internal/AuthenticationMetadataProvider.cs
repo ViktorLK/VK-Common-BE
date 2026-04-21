@@ -39,11 +39,3 @@ internal sealed class AuthenticationMetadataProvider : IVKSecurityMetadataProvid
         };
     }
 }
-
-
-
-
-
-
-
-

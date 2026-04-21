@@ -27,9 +27,3 @@ public abstract class VKOAuthClaimsMapperBase : IVKOAuthClaimsMapper
         }
     }
 }
-
-
-
-
-
-

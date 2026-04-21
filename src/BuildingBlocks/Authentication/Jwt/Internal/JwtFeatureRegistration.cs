@@ -63,9 +63,3 @@ internal static class JwtFeatureRegistration
         return builder;
     }
 }
-
-
-
-
-
-

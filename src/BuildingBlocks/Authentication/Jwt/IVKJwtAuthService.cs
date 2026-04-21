@@ -26,7 +26,3 @@ public interface IVKJwtAuthService
     /// <returns>A result indicating whether the principal is still valid.</returns>
     Task<VKResult> ValidateRevocationAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default);
 }
-
-
-
-

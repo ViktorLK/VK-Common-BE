@@ -29,11 +29,3 @@ internal sealed class ApiKeySemanticSchemeProvider(IOptionsMonitor<VKApiKeyOptio
         }
     }
 }
-
-
-
-
-
-
-
-

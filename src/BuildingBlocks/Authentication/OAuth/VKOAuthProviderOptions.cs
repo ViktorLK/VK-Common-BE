@@ -55,7 +55,3 @@ public sealed record VKOAuthProviderOptions
     /// </summary>
     public bool GetClaimsFromUserInfoEndpoint { get; init; }
 }
-
-
-
-

@@ -47,10 +47,3 @@ internal sealed class OAuthOptionsValidator : IValidateOptions<VKOAuthOptions>
         return ValidateOptionsResult.Success;
     }
 }
-
-
-
-
-
-
-

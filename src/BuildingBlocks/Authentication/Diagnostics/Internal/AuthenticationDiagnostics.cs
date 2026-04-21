@@ -200,11 +200,3 @@ internal static partial class AuthenticationDiagnostics
         });
     }
 }
-
-
-
-
-
-
-
-

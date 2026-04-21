@@ -24,7 +24,3 @@ public sealed class OAuthProviderAttribute : Attribute
     /// </summary>
     public string ProviderName { get; }
 }
-
-
-
-

@@ -20,7 +20,3 @@ public sealed class AuthGroupMetadataAttribute(string groupName) : Attribute
     /// </summary>
     public string GroupName { get; } = groupName;
 }
-
-
-
-

@@ -90,10 +90,3 @@ internal static class JwtConstants
     /// </summary>
     public const string DefaultUnauthorizedDetail = "You are not authorized or the token is invalid.";
 }
-
-
-
-
-
-
-

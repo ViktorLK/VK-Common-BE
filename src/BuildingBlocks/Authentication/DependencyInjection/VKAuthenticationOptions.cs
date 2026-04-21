@@ -58,11 +58,3 @@ public sealed record VKAuthenticationOptions : IVKBlockOptions
     /// </summary>
     public VKOAuthOptions OAuth { get; init; } = new();
 }
-
-
-
-
-
-
-
-

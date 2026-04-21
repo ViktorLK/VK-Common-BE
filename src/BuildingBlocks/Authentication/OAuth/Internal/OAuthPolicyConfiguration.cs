@@ -37,9 +37,3 @@ internal sealed class OAuthPolicyConfiguration(IOptions<VKOAuthOptions> oauthOpt
         }
     }
 }
-
-
-
-
-
-

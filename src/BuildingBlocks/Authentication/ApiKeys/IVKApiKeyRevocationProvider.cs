@@ -26,7 +26,3 @@ public interface IVKApiKeyRevocationProvider
     /// <returns>A task that represents the asynchronous revocation operation.</returns>
     ValueTask RevokeAsync(string keyId, TimeSpan ttl, CancellationToken ct = default);
 }
-
-
-
-

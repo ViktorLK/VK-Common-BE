@@ -17,9 +17,3 @@ internal sealed class ApiKeyAuthenticationOptions : AuthenticationSchemeOptions
     /// </summary>
     public string AuthType { get; set; } = "ApiKey";
 }
-
-
-
-
-
-

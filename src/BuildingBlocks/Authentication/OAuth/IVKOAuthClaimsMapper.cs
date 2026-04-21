@@ -15,7 +15,3 @@ public interface IVKOAuthClaimsMapper
     /// <returns>An enumerable collection of mapped claims.</returns>
     IEnumerable<Claim> MapToClaims(VKExternalIdentity userInfo);
 }
-
-
-
-

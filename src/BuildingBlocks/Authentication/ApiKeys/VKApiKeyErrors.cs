@@ -37,9 +37,3 @@ public static class VKApiKeyErrors
     /// </summary>
     public static readonly VKError RateLimitExceeded = new("ApiKey.RateLimitExceeded", "Too many requests", VKErrorType.TooManyRequests);
 }
-
-
-
-
-
-

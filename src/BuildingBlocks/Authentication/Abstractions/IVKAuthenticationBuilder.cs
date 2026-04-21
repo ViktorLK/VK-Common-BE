@@ -13,8 +13,3 @@ public interface IVKAuthenticationBuilder : IVKBlockBuilder<AuthenticationBlock>
     /// </summary>
     AuthenticationBuilder AuthBuilder { get; }
 }
-
-
-
-
-

@@ -72,7 +72,3 @@ public static class VKAuthenticationConstants
     /// </summary>
     public const string AtLeastOneStrategyRequired = "Authentication block is enabled, but no authentication strategies (JWT, ApiKey, or OAuth) are enabled. Enable at least one strategy or set 'Authentication:Enabled' to false.";
 }
-
-
-
-

@@ -15,7 +15,3 @@ public enum VKJwtAuthMode
     /// </summary>
     OidcDiscovery = 1
 }
-
-
-
-

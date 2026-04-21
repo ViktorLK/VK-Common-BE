@@ -25,9 +25,3 @@ public sealed partial class AuthenticationBlock : IVKBlockMarker
     /// <inheritdoc />
     public string MeterName => VKBlocksConstants.VKBlocksPrefix + Identifier;
 }
-
-
-
-
-
-

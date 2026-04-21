@@ -24,9 +24,3 @@ internal static partial class ClaimsLog
 
     #endregion
 }
-
-
-
-
-
-

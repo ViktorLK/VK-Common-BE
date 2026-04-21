@@ -38,12 +38,3 @@ public static class VKAuthenticationBlockExtensions
     public static IVKAuthenticationBuilder AddVKApiKeys(this IVKAuthenticationBuilder builder)
         => ApiKeyFeatureRegistration.Register(builder);
 }
-
-
-
-
-
-
-
-
-

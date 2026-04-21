@@ -67,11 +67,3 @@ internal sealed class ApiKeyAuthenticationHandler(
         return AuthenticationResponseHelper.WriteUnauthorizedResponseAsync(Context, "API key is missing or invalid");
     }
 }
-
-
-
-
-
-
-
-

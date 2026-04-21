@@ -101,11 +101,3 @@ public sealed class VKClaimsTransformer(
         return principal;
     }
 }
-
-
-
-
-
-
-
-

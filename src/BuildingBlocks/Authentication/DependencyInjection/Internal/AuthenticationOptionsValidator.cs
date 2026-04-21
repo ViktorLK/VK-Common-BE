@@ -52,7 +52,3 @@ internal sealed class AuthenticationOptionsValidator : IValidateOptions<VKAuthen
         return ValidateOptionsResult.Success;
     }
 }
-
-
-
-

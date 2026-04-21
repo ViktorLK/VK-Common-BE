@@ -16,7 +16,3 @@ internal sealed class AuthenticationBlockBuilder(
     public IConfiguration Configuration { get; } = configuration;
     public FrameworkAuthenticationBuilder AuthBuilder { get; } = authBuilder;
 }
-
-
-
-

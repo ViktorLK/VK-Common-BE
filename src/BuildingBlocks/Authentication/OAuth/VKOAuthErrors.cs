@@ -62,9 +62,3 @@ public static class VKOAuthErrors
     /// </summary>
     public const string MissingCallbackPathTemplate = "OAuth provider '{0}' is missing CallbackPath.";
 }
-
-
-
-
-
-

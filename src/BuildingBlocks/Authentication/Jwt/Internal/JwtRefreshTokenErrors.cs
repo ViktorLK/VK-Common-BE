@@ -27,9 +27,3 @@ internal static class JwtRefreshTokenErrors
     /// </summary>
     public static readonly VKError ServiceUnavailable = new("RefreshToken.ServiceUnavailable", "The refresh token server is currently unavailable.", VKErrorType.Failure);
 }
-
-
-
-
-
-

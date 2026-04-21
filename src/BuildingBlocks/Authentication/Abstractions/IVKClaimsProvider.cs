@@ -19,7 +19,3 @@ public interface IVKClaimsProvider
     /// <returns>A collection of claims to append to the authenticated user's identity.</returns>
     ValueTask<IEnumerable<Claim>> GetUserClaimsAsync(string userId, CancellationToken cancellationToken = default);
 }
-
-
-
-

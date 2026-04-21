@@ -63,9 +63,3 @@ internal static partial class JwtLog
         Message = "Potential refresh token replay attack detected! FamilyId: {FamilyId}, JTI: {Jti}. The token has been reused.")]
     public static partial void LogRefreshTokenReplayDetected(this ILogger logger, string familyId, string jti);
 }
-
-
-
-
-
-

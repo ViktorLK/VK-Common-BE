@@ -31,7 +31,3 @@ public sealed record VKEndpointAuthInfo
     /// </summary>
     public bool IsAnonymous { get; init; }
 }
-
-
-
-

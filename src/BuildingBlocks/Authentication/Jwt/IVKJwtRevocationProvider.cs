@@ -42,7 +42,3 @@ public interface IVKJwtRevocationProvider
     /// <returns>A task that represents the asynchronous revocation operation.</returns>
     ValueTask RevokeUserAsync(string userId, TimeSpan ttl, CancellationToken ct = default);
 }
-
-
-
-

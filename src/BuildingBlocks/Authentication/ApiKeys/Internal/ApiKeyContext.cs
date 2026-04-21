@@ -28,9 +28,3 @@ internal sealed record ApiKeyContext
     /// </summary>
     public IReadOnlyList<string> Scopes { get; init; } = [];
 }
-
-
-
-
-
-

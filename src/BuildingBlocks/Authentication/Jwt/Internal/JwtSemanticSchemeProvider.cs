@@ -29,11 +29,3 @@ internal sealed class JwtSemanticSchemeProvider(IOptionsMonitor<VKJwtOptions> op
 
     public IEnumerable<string> GetInternalSchemes() => [];
 }
-
-
-
-
-
-
-
-
