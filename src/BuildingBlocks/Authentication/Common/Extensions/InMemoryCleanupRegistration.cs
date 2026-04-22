@@ -2,7 +2,8 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using VK.Blocks.Core.DependencyInjection;
+using VK.Blocks.Authentication.Common.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.Common.Extensions;
 
@@ -23,7 +24,7 @@ internal static class InMemoryCleanupRegistration
         where TImplementation : class, TService, IInMemoryCacheCleanup
     {
         // 0. Ensure identity-based idempotency to avoid duplicate factory registrations
-        if (services.IsVKBlockRegistered<TImplementation>())
+        if (services.IsVKServiceRegistered<TImplementation>())
         {
             return;
         }
@@ -44,5 +45,3 @@ internal static class InMemoryCleanupRegistration
         services.TryAddEnumerableSingleton<IHostedService, InMemoryCleanupBackgroundService>();
     }
 }
-
-

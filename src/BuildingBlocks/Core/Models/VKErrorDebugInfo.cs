@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace VK.Blocks.Core.Models;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// A transport-neutral representation of diagnostic debug information.

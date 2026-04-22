@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.Constants;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Global constants for the entire VK.Blocks framework.

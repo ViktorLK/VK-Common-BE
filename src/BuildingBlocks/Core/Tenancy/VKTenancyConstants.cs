@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.Tenancy;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Constants for multi-tenant identification and orchestration.
@@ -22,15 +22,13 @@ public static class VKTenancyConstants
     public static class Errors
     {
         /// <summary>
-        /// Error indicating that the required tenant identifier is missing from the request.
+        /// VKError indicating that the required tenant identifier is missing from the request.
         /// </summary>
         public const string TenantMissing = "Tenancy.TenantMissing";
 
         /// <summary>
-        /// Error indicating that the provided tenant identifier is invalid or not found.
+        /// VKError indicating that the provided tenant identifier is invalid or not found.
         /// </summary>
         public const string TenantInvalid = "Tenancy.TenantInvalid";
     }
 }
-
-

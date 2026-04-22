@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.Core.Exceptions;
 
-namespace VK.Blocks.Core.DependencyInjection;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Defines the instance-level contract for a building block registration marker.
@@ -44,13 +44,14 @@ public interface IVKBlockMarker
     /// Gets the name of the Meter used for metrics.
     /// </summary>
     string MeterName { get; }
+
     /// <summary>
     /// Recursively ensures that all dependencies of this building block are registered.
     /// Following Rule 13 (Check-Prerequisite), this performs a deep-scan of the dependency tree.
     /// </summary>
     /// <param name="services">The service collection to check.</param>
     /// <param name="dependentId">The identifier of the block that requires these dependencies.</param>
-    /// <exception cref="InvalidOperationException">Thrown if any required dependency is not registered.</exception>
+    /// <exception cref="VKDependencyException">Thrown if any required dependency is not registered.</exception>
     void EnsureDependenciesRegistered(IServiceCollection services, string dependentId)
     {
         EnsureCore(this, services, dependentId, []);
@@ -63,14 +64,15 @@ public interface IVKBlockMarker
         {
             return;
         }
+
         foreach (IVKBlockMarker dependency in marker.Dependencies)
         {
             // 2. Check if the direct dependency is registered FIRST (Pre-order) using Identifier
             if (!services.IsVKBlockRegistered(dependency.Identifier))
             {
-                throw new InvalidOperationException(
-                    string.Format(CoreConstants.MissingBlockDependencyMessage, dependency.Identifier, dependentId));
+                throw VKDependencyException.MissingDependency(dependency.Identifier, dependentId);
             }
+
             // 3. Recurse only if the parent is registered
             EnsureCore(dependency, services, marker.Identifier, visited);
         }

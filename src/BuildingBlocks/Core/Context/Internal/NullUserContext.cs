@@ -3,10 +3,10 @@ using System.Collections.Generic;
 namespace VK.Blocks.Core.Context.Internal;
 
 /// <summary>
-/// A neutral, unauthenticated implementation of <see cref="IUserContext"/>.
+/// A neutral, unauthenticated implementation of <see cref="IVKUserContext"/>.
 /// Useful for testing, background tasks, or as a default fallback.
 /// </summary>
-internal sealed class NullUserContext : IUserContext
+internal sealed class NullUserContext : IVKUserContext
 {
     private static readonly IReadOnlyList<string> _emptyRoles = [];
 
@@ -25,4 +25,3 @@ internal sealed class NullUserContext : IUserContext
     /// <inheritdoc />
     public bool IsAuthenticated => false;
 }
-

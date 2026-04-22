@@ -62,7 +62,41 @@
 **概要**: 親の検証を先行させる Pre-order 走査と、`HashSet` による循環参照検知を導入。依存関係エラーの特定を容易にし、`StackOverflow` を防止。  
 **キーワード**: Pre-order Traversal, Circular Dependency, Cycle Detection
 
+#### [ADR-009: Standardization of Building Block Naming and Structural Conventions](./adr-009-standardization-of-building-block-naming-and-structural-conventions.md)
+
+**Status**: ✅ Accepted  
+**概要**: 公開 API への `VK` プレフィックス付与と第1層階層への配置、および内部実装からのプレフィックス除去と `Internal/` フォルダへの隠蔽を全モジュール共通の標準規約として定義。  
+**キーワード**: Naming Convention, Project Structure, Encapsulation, VK Prefix
+
+#### [ADR-010: High-Performance Infrastructure Optimizations in Core Library](./adr-010-high-performance-infrastructure-optimizations-in-core-library.md)
+
+**Status**: ✅ Accepted  
+**概要**: AggressiveInlining の徹底、成功結果のキャッシュ、および InnerCache パターンによる CA1000 警告の根本解決を含む、Core ライブラリの包括的な高速化。  
+**キーワード**: Performance, Inlining, GC Optimization, Static Generic Caching
+
 ---
 
-**Last Updated**: 2026-04-20  
-**Total ADRs**: 8
+#### [ADR-011: Standardized Exception Hierarchy and Fault Modeling](./adr-011-standardized-exception-hierarchy-and-fault-modeling.md)
+
+**Status**: ✅ Accepted  
+**概要**: `VKBaseException` を基底とする例外階層を導入し、エラーコード、ステータスコード、拡張メタデータを標準化。API 境界での RFC 7807 変換を一貫してサポート。  
+**キーワード**: Exception Hierarchy, Fault Modeling, RFC 7807, Extensions
+
+---
+
+#### [ADR-012: Functional Decoupling of Dependency Injection Extensions](./adr-012-functional-decoupling-of-dependency-injection-extensions.md)
+
+**Status**: ✅ Accepted  
+**概要**: DI 拡張メソッドを Registration, Query, Builder の 3 つの責務に分離。複雑な依存関係検証ロジックの保守性を向上し、インテリセンスの利便性を最適化。  
+**キーワード**: Dependency Injection, Separation of Concerns, DX, Builder Pattern
+
+#### [ADR-013: Comprehensive Result Pattern Standardization with VKError](./adr-013-comprehensive-result-pattern-standardization-with-vkerror.md)
+
+**Status**: ✅ Accepted  
+**概要**: `Result` 型を `VKResult` へ刷新し、成功インスタンスのキャッシュによる GC 負荷低減と、`VKError` によるエラー定数管理を標準化。  
+**キーワード**: Result Pattern, VKError, Performance, Standardization
+
+---
+
+**Last Updated**: 2026-04-22  
+**Total ADRs**: 13

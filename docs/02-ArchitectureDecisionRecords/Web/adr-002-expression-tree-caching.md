@@ -182,7 +182,7 @@ public static Func<IEnumerable<Error>, object> GetOrAdd(Type resultType)
 
 ## Related Documents (関連ドキュメント)
 
-- 📄 [ADR-001: Result Monad + ROP](./adr-001-result-monad-rop.md) - Result 型の設計判断
+- 📄 [ADR-001: Result Monad + ROP](/docs/02-ArchitectureDecisionRecords/Web/adr-001-result-monad-rop.md) - Result 型の設計判断
 - 📄 [EFCore ADR-004: Expression Caching](/docs/02-ArchitectureDecisionRecords/EFCore/adr-004-expression-caching.md) - 類似の Expression キャッシュ戦略 (Cursor Pagination)
 - 📖 [Expression Trees (Microsoft Docs)](https://learn.microsoft.com/en-us/dotnet/csharp/advanced-topics/expression-trees/)
 

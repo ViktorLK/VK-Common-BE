@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.Models;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// A transport-neutral representation of a specific error detail, typically used for multi-error validations (e.g. invalid arguments).

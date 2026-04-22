@@ -4,7 +4,7 @@
 
 ## 📚 ADR 一覧
 
-#### [ADR-001: Establish Environment Variable Abstraction for Testability in OpenTelemetry SDK](./adr-001-establish-environment-variable-abstraction-for-testability-in-opentelemetry-sdk.md)
+#### [ADR-001: Establish Environment Variable Abstraction for Testability in OpenTelemetry SDK](/docs/02-ArchitectureDecisionRecords/Observability.OpenTelemetry/adr-001-establish-environment-variable-abstraction-for-testability-in-opentelemetry-sdk.md)
 
 **Status**: ✅ Accepted  
 **概要**: テスト容易性を確保するため、OpenTelemetry におけるクラウドリソース自動検出を行う際に `System.Environment` への直接アクセスを排除し、`IEnvironmentProvider` による抽象化（Dependency Inversion）を導入する設計決定。  
@@ -12,7 +12,7 @@
 
 ---
 
-#### [ADR-002: Adopt Fluent Builder Pattern for SDK Initialization](./adr-002-adopt-fluent-builder-pattern-for-sdk-initialization.md)
+#### [ADR-002: Adopt Fluent Builder Pattern for SDK Initialization](/docs/02-ArchitectureDecisionRecords/Observability.OpenTelemetry/adr-002-adopt-fluent-builder-pattern-for-sdk-initialization.md)
 
 **Status**: 📝 Draft  
 **概要**: OpenTelemetryの初期化設定において、柔軟なオプトイン制御と内部複雑性の隠蔽を実現するため、拡張メソッドによる直接構成からFluent Builderパターン（`VkObservabilityBuilder`）へ移行する設計決定。  
@@ -20,7 +20,7 @@
 
 ---
 
-#### [ADR-003: Implement Custom Cloud Resource Detection Strategy](./adr-003-implement-custom-cloud-resource-detection-strategy.md)
+#### [ADR-003: Implement Custom Cloud Resource Detection Strategy](/docs/02-ArchitectureDecisionRecords/Observability.OpenTelemetry/adr-003-implement-custom-cloud-resource-detection-strategy.md)
 
 **Status**: 📝 Draft  
 **概要**: AzureやKubernetesなど多様な環境間で一貫したリソース属性を付与し、外部パッケージへの依存を減らすため、標準Detectorに頼らず環境変数ベースのカスタムリソース検出機構を導入する設計決定。  
@@ -28,7 +28,7 @@
 
 ---
 
-#### [ADR-004: Enforce ParentBased Sampling as Default Strategy](./adr-004-enforce-parentbased-sampling-as-default-strategy.md)
+#### [ADR-004: Enforce ParentBased Sampling as Default Strategy](/docs/02-ArchitectureDecisionRecords/Observability.OpenTelemetry/adr-004-enforce-parentbased-sampling-as-default-strategy.md)
 
 **Status**: 📝 Draft  
 **概要**: 分散トレーシングにおけるデータ量制御とトレース連続性の両立を図るため、全マイクロサービスで`ParentBasedAlwaysOn`サンプリング戦略を既定の動作として強制する設計決定。  
@@ -47,7 +47,7 @@
 
 ## 🔗 関連ドキュメント
 
-- [Architecture Audit Report (2026-03-12)](../../04-AuditReports/Observability.OpenTelemetry/Observability.OpenTelemetry_20260312.md)
+- [Architecture Audit Report (2026-03-12)](/docs/04-AuditReports/Observability.OpenTelemetry/Observability.OpenTelemetry_20260312.md)
 
 ---
 

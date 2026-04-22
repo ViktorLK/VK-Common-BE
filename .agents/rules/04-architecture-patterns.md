@@ -12,6 +12,7 @@ trigger: always_on
 - **Modern C# Idioms**: Use C# 12+ features (Collection expressions `[]`, Primary constructors) where appropriate. STRICTLY ADHERE to the project's `.editorconfig` for formatting rules (e.g., preference for explicit types over `var` for built-in types).
 - **Pattern Matching**: Prefer `is` and `switch` expressions over `if`/`else` chains and type casting for concise, readable branching.
 - **Null Handling**: Prefer `??` / `??=` / `?.` over explicit null checks. Use `is null` / `is not null` over `== null` to avoid operator overload side-effects and ensure pattern consistency.
+- **Defensive Fluent Guard**: Use `VKGuard.NotNull(x)` for all method/constructor boundaries. Leverage its return value for fluent chaining (e.g., `VKGuard.NotNull(services).AddXxx()`) to enable concise 1-line expression-bodied members while maintaining strict defensive safety.
 - **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
 
 ### Rule 13 — Service Registration Pattern
@@ -29,14 +30,20 @@ trigger: always_on
 
 ### Rule 14 — Structural Organization
 
-#### Folder Layout
+#### Folder Layout & Naming Convention
 
-- **Feature-Driven (Vertical Slice)**: Group related Handlers, Requirements, Attributes, and Models into a single feature folder (e.g. `Features/WorkingHours/`).
-- **NO Type-Driven Folders**: Avoid grouping by technical type (e.g., separating all Handlers from Requirements).
-- **Core Separation**: Only place globally shared abstractions, DI extensions, or cross-cutting constants in root or `Abstractions/` directories.
-- **Naming**: Feature folder names MUST be noun-based and domain-driven.
-  ✅ Features/WorkingHours/
-  ❌ Features/HandleWorkingHours/
+- **Public API Surface**:
+  - **Location**: MUST be placed in first-level domain folders (e.g., `ApiKeys/`, NOT `Features/ApiKeys/`).
+  - **Namespace**: MUST use the library's root namespace (e.g., `namespace VK.Blocks.Authentication;`).
+  - **Naming**: MUST use the **`VK` prefix** for all public types (e.g., `VKApiKeyOptions`, `IVKApiKeyStore`, `VKAuthenticationBlock`, `VKBlockDiagnosticsAttribute`). 
+- **Encapsulated Internals**:
+  - **Location**: MUST be placed in an `Internal/` subfolder (2nd level or deeper).
+  - **Namespace**: MUST use the exact matching folder namespace (e.g., `namespace  VK.Blocks.Authentication.ApiKeys.Internal;`).
+  - **Naming**: MUST **NOT use the `VK` prefix** (e.g., `ApiKeyValidator`, NOT `VKApiKeyValidator`). Internal classification is handled by the namespace and directory structure.
+- **NO Type-Driven Folders**: Avoid grouping by technical type at the root level (e.g., separating all Handlers from Requirements).
+- **Naming**: Folder names MUST be noun-based and domain-driven.
+  ✅ ApiKeys/Internal/
+  ❌ Features/HandleApiKeys/
 
 #### Constant Visibility
 

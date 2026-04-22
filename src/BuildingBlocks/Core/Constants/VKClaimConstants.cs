@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.Constants;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Standardized claim types used across VK system.

@@ -1,6 +1,8 @@
 using System;
 
-namespace VK.Blocks.Core.Diagnostics;
+using VK.Blocks.Core.Constants.Internal;
+
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Lightweight diagnostic attribute for external applications or laboratory projects 
@@ -15,9 +17,9 @@ public sealed class VKAppDiagnosticsAttribute(string appName) : Attribute
     public string AppName { get; } = appName;
 
     /// <summary>
-    /// Gets or sets the application version. Defaults to "1.0.0".
+    /// Gets or sets the application version. Defaults to <see cref="CoreConstants.DefaultVersion"/>.
     /// </summary>
-    public string Version { get; init; } = "1.0.0";
+    public string Version { get; init; } = CoreConstants.DefaultVersion;
 
     /// <summary>
     /// Gets or sets a description for the application's telemetry.

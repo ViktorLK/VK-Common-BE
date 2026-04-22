@@ -1,32 +1,27 @@
-using System;
 using System.Collections.Generic;
-using VK.Blocks.Core.Constants;
-using VK.Blocks.Core.Contracts;
-using VK.Blocks.Core.DependencyInjection;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.Authentication.Contracts;
+namespace VK.Blocks.Authentication;
 
 /// <summary>
 /// A marker type for the VK.Blocks.Authentication building block.
 /// </summary>
-public sealed class AuthenticationBlock : IVKBlockMarker
+public sealed partial class AuthenticationBlock : IVKBlockMarker
 {
-    private const string _identifier = "Authentication";
+    private AuthenticationBlock() { }
 
     /// <inheritdoc />
-    public static string Identifier => _identifier;
+    public string Identifier => "Authentication";
 
     /// <inheritdoc />
-    public static string Version => "0.9.0";
+    public string Version => "0.9.0";
 
     /// <inheritdoc />
-    public static IReadOnlyList<Type> Dependencies => [typeof(CoreBlock)];
+    public IReadOnlyList<IVKBlockMarker> Dependencies => [VKCoreBlock.Instance];
 
     /// <inheritdoc />
-    public static string ActivitySourceName => VKBlocksConstants.VKBlocksPrefix + _identifier;
+    public string ActivitySourceName => VKBlocksConstants.VKBlocksPrefix + Identifier;
 
     /// <inheritdoc />
-    public static string MeterName => VKBlocksConstants.VKBlocksPrefix + _identifier;
+    public string MeterName => VKBlocksConstants.VKBlocksPrefix + Identifier;
 }
-
-

@@ -1,0 +1,31 @@
+using System.Collections.Generic;
+using Microsoft.Extensions.Options;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.Authentication.Jwt.Internal;
+
+/// <summary>
+/// Publishes JWT authentication schemes for semantic group policies.
+/// </summary>
+internal sealed class JwtSemanticSchemeProvider(IOptionsMonitor<VKJwtOptions> options) : IVKSemanticSchemeProvider
+{
+    public IEnumerable<string> GetUserSchemes()
+    {
+        var jwt = options.CurrentValue;
+        if (jwt.IsFeatureActivated())
+        {
+            yield return jwt.SchemeName;
+        }
+    }
+
+    public IEnumerable<string> GetServiceSchemes()
+    {
+        var jwt = options.CurrentValue;
+        if (jwt.IsFeatureActivated())
+        {
+            yield return jwt.SchemeName;
+        }
+    }
+
+    public IEnumerable<string> GetInternalSchemes() => [];
+}

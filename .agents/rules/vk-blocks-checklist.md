@@ -30,10 +30,18 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
 
 ### [Architecture & Design Patterns](/.agents/rules/04-architecture-patterns.md)
 
-- **Rule 12 — Modern C# Semantics**: Seal classes by default; use immutable records and collection expressions.
+- **Rule 12 — Modern C# Semantics**: Seal classes by default; use immutable records, collection expressions, and **VKGuard fluent validation**.
 - **Rule 13 — Service Registration**: Use Marker types, `IsVKBlockRegistered`, and `AddVKBlockMarker`.
 - **Rule 14 — Structural Organization**: Vertical slice feature folders; one file per type; scoped constants.
 - **Rule 15 — Configuration Pattern**: Mandatory `IVKBlockOptions` with zero-reflection section resolution.
+
+### [Library Blueprint (New)](/.agents/rules/05-block-blueprint.md)
+
+- **Rule 16 — Standard Folder Structure**: Mandatory directory layout for all modules.
+- **Rule 17 — Marker Pattern**: Required `IVKBlockMarker` implementation in `Contracts/`.
+- **Rule 18 — Idempotent DI**: Strict execution order in `AddVKXxxBlock`.
+- **Rule 19 — Diagnostics Blueprint**: Mandatory `[VKBlockDiagnostics]` and `LoggerMessage`.
+- **Rule 20 — Options Lifecycle**: `IVKBlockOptions` naming and lifecycle rules.
 
 ---
 
@@ -42,11 +50,21 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
 - **Code**: Production-ready C# 12+ only.
 - **Error Constants**: Define errors as `static readonly` fields on a dedicated `Errors` class per domain.
 - **Audit Checklist Protocol**: Before ending ANY code response, you MUST explicitly verify each item.
-  **Always check**:
+
+  **[Phase A: Initialization Audit]** (For New Block/Module creation):
+    > [!TIP]
+    > Use the MCP tool `draft_building_block` to generate the standard boilerplate matching Rules 16-20.
+    - [ ] Folder Structure matching Rule 16?
+    - [ ] `IVKBlockMarker` implemented and in `Contracts/`?
+    - [ ] DI pattern follows Rule 18 execution order?
+    - [ ] `IVKBlockOptions` provided with correct `SectionName`?
+    - [ ] diagnostics configured with `[VKBlockDiagnostics]`?
+
+  **[Phase B: Development Audit]** (Always check):
     - ✅/❌ Result<T> → [actual finding]
     - ✅/❌ Async → CancellationToken, ValueTask hot-path
     - ✅/❌ ConfigureAwait → .ConfigureAwait(false) on ALL awaits (library code)
-    - ✅/❌ No Null → [actual finding]
+    - ✅/❌ No Null → [actual finding] (Mandatory: `VKGuard.NotNull` fluent pattern)
     - ✅/❌ Required Keyword → [actual finding]
     - ✅/❌ Error Constant → [actual finding]
     - ✅/❌ Modern C# Idioms → [actual finding]

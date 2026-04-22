@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.DependencyInjection;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Defines the base contract for building block configuration options.
@@ -19,6 +19,3 @@ public interface IVKBlockOptions
     /// </summary>
     static abstract string SectionName { get; }
 }
-
-
-

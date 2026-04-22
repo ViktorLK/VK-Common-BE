@@ -198,7 +198,7 @@ dotnet_naming_symbols.interface.required_modifiers =
 
 dotnet_naming_symbols.private_or_internal_field.applicable_kinds = field
 dotnet_naming_symbols.private_or_internal_field.applicable_accessibilities = internal, private, private_protected
-dotnet_naming_symbols.private_or_internal_field.required_modifiers = 
+dotnet_naming_symbols.private_or_internal_field.required_modifiers =
 
 dotnet_naming_symbols.constants.applicable_kinds = field
 dotnet_naming_symbols.constants.applicable_accessibilities = *
@@ -244,12 +244,34 @@ dotnet_diagnostic.CS8603.severity = warning
 dotnet_diagnostic.CS8604.severity = warning
 
 # primary constructor の推奨
-dotnet_diagnostic.IDE0290.severity = suggestion
+dotnet_diagnostic.IDE0290.severity = none
 
 # collection expression の推奨（C# 12）
 dotnet_diagnostic.IDE0300.severity = suggestion
 dotnet_diagnostic.IDE0301.severity = suggestion
 
+# VK.Blocks: Architecture & Performance
+dotnet_diagnostic.CA1848.severity = warning # Use LoggerMessage delegates
+dotnet_diagnostic.CA1852.severity = warning # Seal internal types
+dotnet_diagnostic.CA2000.severity = warning # Dispose objects before losing scope
+dotnet_diagnostic.CA1063.severity = warning # Implement IDisposable correctly
+dotnet_diagnostic.CA1000.severity = warning # Do not declare static members on generic types
+dotnet_diagnostic.CA1860.severity = warning # Prefer Count/Length over Any()
+dotnet_diagnostic.CA1859.severity = warning # Use concrete types when possible for performance
+
+# VK.Blocks: Code Style & Cleanup
+dotnet_diagnostic.IDE0040.severity = warning # Add accessibility modifiers
+dotnet_diagnostic.IDE0051.severity = warning # Remove unused private members
+dotnet_diagnostic.IDE0060.severity = warning # Remove unused parameters
+dotnet_diagnostic.CA1416.severity = none    # Validate platform compatibility (noisy)
+dotnet_diagnostic.IDE0073.severity = none    # Require file header (noisy)
+
 [*.cs]
 # Nullable の警告を統一
 dotnet_diagnostic.CS8629.severity = warning
+
+[*.cs]
+dotnet_diagnostic.IDE0130.severity = warning
+
+[src/BuildingBlocks/*/*/*.cs]
+dotnet_diagnostic.IDE0130.severity = none
