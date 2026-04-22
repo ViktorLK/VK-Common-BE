@@ -3,15 +3,67 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using VK.Blocks.Core.Contracts;
+using VK.Blocks.Core.DependencyInjection.Internal;
+using VK.Blocks.Core.Exceptions;
 
-namespace VK.Blocks.Core.DependencyInjection;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Core extension methods for setting up building block services in an <see cref="IServiceCollection"/>.
+/// These methods handle the registration and configuration of blocks and their options.
 /// </summary>
 public static class VKBlockRegistrationExtensions
 {
+    /// <summary>
+    /// Registers a marker in the service collection to indicate that a building block has been initialized.
+    /// Following Rule 13 (Mark-Self).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Architecture: Multi-Layered Identity & Validation</b><br/>
+    /// This method implements a three-tier safety pattern to ensure building block integrity:
+    /// <list type="number">
+    /// <item><b>Recursive Validation:</b> Ensures that all prerequisite blocks are already registered.</item>
+    /// <item><b>Logical Identity:</b> Prevents different classes from claiming the same logical Identifier (e.g., "Authentication").</item>
+    /// <item><b>Typed Contract:</b> Provides zero-reflection, type-safe access to block metadata via DI.</item>
+    /// </list>
+    /// </para>
+    /// </remarks>
+    /// <typeparam name="TMarker">The marker type representing the building block.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The same service collection for chaining.</returns>
+    /// <exception cref="VKDependencyException">Thrown if a required dependency is missing.</exception>
+    public static IServiceCollection AddVKBlockMarker<TMarker>(
+        this IServiceCollection services)
+        where TMarker : class, IVKBlockMarker, IVKBlockMarkerProvider<TMarker>
+    {
+        VKGuard.NotNull(services);
+
+        // 1. [Rule 13: Check-Prerequisite] — Idempotency & Recursive Validation
+        // This is the "Fail-Fast" gate. Calling the generic IsVKBlockRegistered<TMarker> ensures:
+        //   A) Idempotency: If the block (by ID) is already there, we return early.
+        //   B) Safety: It recursively walks the dependency tree (IVKBlockMarker.Dependencies)
+        //      and throws VKDependencyException if any parent block is missing.
+        if (services.IsVKBlockRegistered<TMarker>())
+        {
+            return services;
+        }
+
+        // 2. [Rule 13: Mark-Self] — Logical Identity Registration
+        // We register a string-based identifier marker. This protects the system against 
+        // "Logical Collisions" where two different classes might try to use the same ID.
+        // This marker is internal and used by the infrastructure for untyped dependency checks.
+        services.AddSingleton(new BlockRuntimeMarker(TMarker.Instance.Identifier));
+
+        // 3. [Identity Registration] — Concrete Type Access
+        // We register the concrete TMarker singleton instance.
+        // RATIONALE: This allows developers to inject the specific block class (e.g., VKAuthenticationBlock)
+        // to access metadata (Version, ActivitySourceName) with ZERO reflection and full type safety.
+        services.TryAddSingleton<TMarker>((TMarker)TMarker.Instance);
+
+        return services;
+    }
+
     /// <summary>
     /// Ensures that a required building block is registered before the current block.
     /// Following Rule 13 (Check-Prerequisite).
@@ -19,18 +71,17 @@ public static class VKBlockRegistrationExtensions
     /// <typeparam name="TRequired">The marker type of the required block.</typeparam>
     /// <typeparam name="TDependent">The marker type of the dependent block.</typeparam>
     /// <param name="services">The service collection.</param>
-    /// <exception cref="InvalidOperationException">Thrown if the required block is not registered.</exception>
+    /// <exception cref="VKDependencyException">Thrown if the required block is not registered.</exception>
     public static void EnsureVKBlockRegistered<TRequired, TDependent>(this IServiceCollection services)
         where TRequired : class, IVKBlockMarker, IVKBlockMarkerProvider<TRequired>
         where TDependent : class, IVKBlockMarker, IVKBlockMarkerProvider<TDependent>
     {
-        if (services.IsVKBlockRegistered<TRequired>())
+        if (VKGuard.NotNull(services).IsVKBlockRegistered(TRequired.Instance.Identifier))
         {
             return;
         }
 
-        throw new InvalidOperationException(
-            string.Format(CoreConstants.MissingBlockDependencyMessage, TRequired.Instance.Identifier, TDependent.Instance.Identifier));
+        throw VKDependencyException.MissingDependency(TRequired.Instance.Identifier, TDependent.Instance.Identifier);
     }
 
     /// <summary>
@@ -38,11 +89,9 @@ public static class VKBlockRegistrationExtensions
     /// </summary>
     /// <typeparam name="TBlock">The marker type of the dependent building block.</typeparam>
     /// <param name="services">The service collection.</param>
-    public static void EnsureVKCoreBlockRegistered<TBlock>(this IServiceCollection services)
+    public static void EnsureCoreBlockRegistered<TBlock>(this IServiceCollection services)
         where TBlock : class, IVKBlockMarker, IVKBlockMarkerProvider<TBlock>
-    {
-        services.EnsureVKBlockRegistered<CoreBlock, TBlock>();
-    }
+        => VKGuard.NotNull(services).EnsureVKBlockRegistered<VKCoreBlock, TBlock>();
 
     /// <summary>
     /// [WRAPPER] Adds and configures a building block's options by automatically resolving the section
@@ -67,9 +116,7 @@ public static class VKBlockRegistrationExtensions
         this IServiceCollection services,
         IConfiguration configuration)
         where TOptions : class, IVKBlockOptions, new()
-    {
-        return services.AddVKBlockOptions<TOptions>(configuration.GetSection(TOptions.SectionName));
-    }
+        => VKGuard.NotNull(services).AddVKBlockOptions<TOptions>(VKGuard.NotNull(configuration).GetSection(TOptions.SectionName));
 
     /// <summary>
     /// [CORE IMPLEMENTATION] Adds and configures options using an explicit configuration section.
@@ -88,39 +135,40 @@ public static class VKBlockRegistrationExtensions
     /// 1. <b>Synchronous Access:</b> Building blocks often need options <i>during</i> the <c>ConfigureServices</c> phase.<br/>
     /// 2. <b>Validation & Performance:</b> Manual <c>Any()</c> checks prevent redundant <c>IStartupValidator</c> registrations.
     /// </para>
-    /// <para>
-    /// <b>PRIORITY 3: CRITICAL VALIDATION WARNING</b><br/>
-    /// This method registers internal validation (Data Annotations).
-    /// <b>Custom validators MUST use <c>TryAddEnumerable</c></b>.
-    /// Using standard <c>TryAddSingleton</c> will cause custom validators to be skipped.
-    /// </para>
     /// </remarks>
     /// <typeparam name="TOptions">The type of options to configure.</typeparam>
     /// <param name="services">The service collection.</param>
     /// <param name="section">The configuration section to bind from.</param>
     /// <returns>The eagerly-binded options instance.</returns>
+    /// <exception cref="VKDependencyException">Thrown if the options type is already registered but no instance is available.</exception>
     internal static TOptions AddVKBlockOptions<TOptions>(
         this IServiceCollection services,
         IConfigurationSection section)
         where TOptions : class, IVKBlockOptions, new()
     {
+        VKGuard.NotNull(services);
+        VKGuard.NotNull(section);
+
+        // [IDEMPOTENCY CHECK] — Avoid unnecessary Bind and DI registration when already registered
+        if (services.IsVKServiceRegistered<TOptions>())
+        {
+            // Retrieve the already registered singleton instance to avoid re-binding
+            return services.GetVKServiceInstance<TOptions>()
+                   ?? throw VKDependencyException.DualRegistrationMissing(typeof(TOptions).Name);
+        }
+
         var options = new TOptions();
         section.Bind(options);
 
-        // [IDEMPOTENCY CHECK]
-        if (services.IsVKServiceRegistered<TOptions>())
-        {
-            return options;
-        }
+        // 1. Singleton registration for direct injection & library-internal synchronous access
+        // Registering this early ensures that IsVKServiceRegistered returns true for subsequent calls.
+        services.TryAddSingleton(options);
 
-        // Standard Options registration + Validation
+        // 2. Standard Options registration + Validation infrastructure
         services.AddOptions<TOptions>()
             .Bind(section)
             .ValidateDataAnnotations()
             .ValidateOnStart();
-
-        // Singleton registration for direct injection & library-internal synchronous access
-        services.TryAddSingleton(options);
 
         return options;
     }
@@ -136,203 +184,43 @@ public static class VKBlockRegistrationExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="configure">Optional delegate to configure the options. If null, default values will be used.</param>
     /// <returns>The configured options instance.</returns>
+    /// <exception cref="VKDependencyException">Thrown if the options type is already registered but no instance is available.</exception>
     public static TOptions AddVKBlockOptions<TOptions>(
         this IServiceCollection services,
         Action<TOptions>? configure = null)
         where TOptions : class, IVKBlockOptions, new()
     {
+        VKGuard.NotNull(services);
+
+        // [IDEMPOTENCY CHECK] — Avoid unnecessary configure and DI registration when already registered
+        if (services.IsVKServiceRegistered<TOptions>())
+        {
+            // Retrieve the already registered singleton instance
+            return services.GetVKServiceInstance<TOptions>()
+                   ?? throw VKDependencyException.DualRegistrationMissing(typeof(TOptions).Name);
+        }
+
+        // To support synchronous return, we MUST create and configure the instance now.
         var options = new TOptions();
         configure?.Invoke(options);
 
-        // [IDEMPOTENCY CHECK]
-        if (services.IsVKServiceRegistered<TOptions>())
-        {
-            return options;
-        }
+        // 1. Singleton registration (the instance we just configured manually)
+        // Registering this early ensures that IsVKServiceRegistered returns true for subsequent calls.
+        services.TryAddSingleton(options);
 
-        // Standard Options registration + Validation
+        // 2. Standard Options registration + Validation infrastructure
         OptionsBuilder<TOptions> builder = services.AddOptions<TOptions>()
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         if (configure is not null)
         {
+            // [UNIFIED HANDLING] We register the configure delegate in the IOptions pipeline.
+            // Note: Since IOptions<T> typically creates a NEW instance, this delegate will run once
+            // for that new instance, ensuring consistency between the Singleton and IOptions.Value.
             builder.Configure(configure);
         }
 
-        // Singleton registration
-        services.TryAddSingleton(options);
-
         return options;
-    }
-
-    /// <summary>
-    /// Adds and configures a specific feature option using the building block's root configuration context.
-    /// Relies on the absolute path provided by <see cref="IVKBlockOptions.SectionName"/>.
-    /// </summary>
-    /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
-    /// <typeparam name="TOptions">The type of options to configure.</typeparam>
-    /// <param name="builder">The building block builder instance.</param>
-    /// <returns>The builder instance for chaining.</returns>
-    public static IVKBlockBuilder<TMarker> AddFeatureOptions<TMarker, TOptions>(
-        this IVKBlockBuilder<TMarker> builder)
-        where TMarker : class, IVKBlockMarker
-        where TOptions : class, IVKBlockOptions, new()
-    {
-        builder.Services.AddVKBlockOptions<TOptions>(builder.Configuration);
-        return builder;
-    }
-
-    /// <summary>
-    /// Overrides a scoped service registration within the building block.
-    /// </summary>
-    /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="builder">The building block builder instance.</param>
-    /// <returns>The builder instance for chaining.</returns>
-    public static IVKBlockBuilder<TMarker> WithScoped<TMarker, TService, TImplementation>(
-        this IVKBlockBuilder<TMarker> builder)
-        where TMarker : class, IVKBlockMarker
-        where TService : class
-        where TImplementation : class, TService
-    {
-        builder.Services.Replace(ServiceDescriptor.Scoped<TService, TImplementation>());
-        return builder;
-    }
-
-    /// <summary>
-    /// Overrides a singleton service registration within the building block.
-    /// </summary>
-    /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="builder">The building block builder instance.</param>
-    /// <returns>The builder instance for chaining.</returns>
-    public static IVKBlockBuilder<TMarker> WithSingleton<TMarker, TService, TImplementation>(
-        this IVKBlockBuilder<TMarker> builder)
-        where TMarker : class, IVKBlockMarker
-        where TService : class
-        where TImplementation : class, TService
-    {
-        builder.Services.Replace(ServiceDescriptor.Singleton<TService, TImplementation>());
-        return builder;
-    }
-
-    /// <summary>
-    /// Overrides a transient service registration within the building block.
-    /// </summary>
-    /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="builder">The building block builder instance.</param>
-    /// <returns>The builder instance for chaining.</returns>
-    public static IVKBlockBuilder<TMarker> WithTransient<TMarker, TService, TImplementation>(
-        this IVKBlockBuilder<TMarker> builder)
-        where TMarker : class, IVKBlockMarker
-        where TService : class
-        where TImplementation : class, TService
-    {
-        builder.Services.Replace(ServiceDescriptor.Transient<TService, TImplementation>());
-        return builder;
-    }
-
-    /// <summary>
-    /// Try to add an enumerable scoped service registration (idempotent addition).
-    /// </summary>
-    /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="builder">The building block builder instance.</param>
-    /// <returns>The builder instance for chaining.</returns>
-    public static IVKBlockBuilder<TMarker> TryAddEnumerableScoped<TMarker, TService, TImplementation>(
-        this IVKBlockBuilder<TMarker> builder)
-        where TMarker : class, IVKBlockMarker
-        where TService : class
-        where TImplementation : class, TService
-    {
-        builder.Services.TryAddEnumerable(ServiceDescriptor.Scoped<TService, TImplementation>());
-        return builder;
-    }
-
-    /// <summary>
-    /// Try to add an enumerable singleton service registration (idempotent addition).
-    /// </summary>
-    /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="builder">The building block builder instance.</param>
-    /// <returns>The builder instance for chaining.</returns>
-    public static IVKBlockBuilder<TMarker> TryAddEnumerableSingleton<TMarker, TService, TImplementation>(
-        this IVKBlockBuilder<TMarker> builder)
-        where TMarker : class, IVKBlockMarker
-        where TService : class
-        where TImplementation : class, TService
-    {
-        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<TService, TImplementation>());
-        return builder;
-    }
-
-    /// <summary>
-    /// Try to add an enumerable transient service registration (idempotent addition).
-    /// </summary>
-    /// <typeparam name="TMarker">The marker type for the building block.</typeparam>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="builder">The building block builder instance.</param>
-    /// <returns>The builder instance for chaining.</returns>
-    public static IVKBlockBuilder<TMarker> TryAddEnumerableTransient<TMarker, TService, TImplementation>(
-        this IVKBlockBuilder<TMarker> builder)
-        where TMarker : class, IVKBlockMarker
-        where TService : class
-        where TImplementation : class, TService
-    {
-        builder.Services.TryAddEnumerable(ServiceDescriptor.Transient<TService, TImplementation>());
-        return builder;
-    }
-
-    /// <summary>
-    /// Try to add an enumerable scoped service registration (idempotent addition).
-    /// </summary>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="services">The service collection instance.</param>
-    /// <returns>The service collection instance for chaining.</returns>
-    public static IServiceCollection TryAddEnumerableScoped<TService, TImplementation>(this IServiceCollection services)
-        where TService : class
-        where TImplementation : class, TService
-    {
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<TService, TImplementation>());
-        return services;
-    }
-
-    /// <summary>
-    /// Try to add an enumerable singleton service registration (idempotent addition).
-    /// </summary>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="services">The service collection instance.</param>
-    /// <returns>The service collection instance for chaining.</returns>
-    public static IServiceCollection TryAddEnumerableSingleton<TService, TImplementation>(this IServiceCollection services)
-        where TService : class
-        where TImplementation : class, TService
-    {
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<TService, TImplementation>());
-        return services;
-    }
-
-    /// <summary>
-    /// Try to add an enumerable transient service registration (idempotent addition).
-    /// </summary>
-    /// <typeparam name="TService">The service type or interface to register.</typeparam>
-    /// <typeparam name="TImplementation">The implementation type of the service.</typeparam>
-    /// <param name="services">The service collection instance.</param>
-    /// <returns>The service collection instance for chaining.</returns>
-    public static IServiceCollection TryAddEnumerableTransient<TService, TImplementation>(this IServiceCollection services)
-        where TService : class
-        where TImplementation : class, TService
-    {
-        services.TryAddEnumerable(ServiceDescriptor.Transient<TService, TImplementation>());
-        return services;
     }
 }

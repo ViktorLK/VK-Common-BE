@@ -10,7 +10,7 @@ namespace VK.Blocks.Core.Security.Internal;
 /// Optimized for high-performance log masking and data redaction.
 /// </summary>
 /// <typeparam name="T">The type to cache property metadata for.</typeparam>
-public sealed class PropertySecurityCache<T>
+internal sealed class PropertySecurityCache<T>
 {
     private static readonly FrozenDictionary<string, SecurityLevel> _propertySecurityLevels;
 
@@ -21,11 +21,11 @@ public sealed class PropertySecurityCache<T>
 
         foreach (PropertyInfo prop in properties)
         {
-            if (prop.GetCustomAttribute<RedactedAttribute>() is not null)
+            if (prop.GetCustomAttribute<VKRedactedAttribute>() is not null)
             {
                 dict[prop.Name] = SecurityLevel.Redacted;
             }
-            else if (prop.GetCustomAttribute<SensitiveDataAttribute>() is not null)
+            else if (prop.GetCustomAttribute<VKSensitiveDataAttribute>() is not null)
             {
                 dict[prop.Name] = SecurityLevel.Sensitive;
             }
@@ -56,20 +56,3 @@ public sealed class PropertySecurityCache<T>
     /// </summary>
     public static IEnumerable<string> SensitivePropertyNames => _propertySecurityLevels.Keys;
 }
-
-/// <summary>
-/// Defines the security level of a data property.
-/// </summary>
-public enum SecurityLevel
-{
-    /// <summary>No special security handling required.</summary>
-    None = 0,
-
-    /// <summary>Contains sensitive data (PII) that should be masked (e.g., ***).</summary>
-    Sensitive = 1,
-
-    /// <summary>Contains highly sensitive data that should be fully redacted (hidden).</summary>
-    Redacted = 2
-}
-
-

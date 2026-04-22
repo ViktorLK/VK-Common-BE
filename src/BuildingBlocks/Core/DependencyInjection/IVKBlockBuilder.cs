@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace VK.Blocks.Core.DependencyInjection;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// A generic builder for VK.Blocks modules to enable Fluent API configurations.

@@ -1,10 +1,10 @@
 ---
-description: Enforce strict VK.Blocks whitespace standards (no leading blank lines, single trailing newline, UTF-8 without BOM, CRLF) using PowerShell.
+description: Enforce strict VK.Blocks whitespace standards (no leading blank lines, single trailing newline, UTF-8 without BOM, CRLF) using PowerShell on a specified target path.
 ---
 
 ## Goal
 
-Normalize all C# source files to adhere to strict physical boundary and encoding standards. This process is 100% safe as it only targets the start/end of the file and the encoding format, without modifying code content or string literals.
+Normalize C# source files within a specified directory or file to adhere to strict physical boundary and encoding standards.
 - **Rule 1**: No leading blank lines at the beginning of the file.
 - **Rule 2**: Exactly one trailing newline at the end of the file.
 - **Rule 3**: Force CRLF line endings.
@@ -12,36 +12,42 @@ Normalize all C# source files to adhere to strict physical boundary and encoding
 
 ## Steps
 
-1. **Execute Ultra-Safe Normalization**:
+1. **Identify the Target**:
+    - Determine the **absolute path of the directory or file** to be normalized based on user input (default: `src`).
+
+2. **Execute Ultra-Safe Normalization**:
     - // turbo
     ```powershell
-    # Define UTF8 Encoding without BOM
+    # Configuration
+    $targetPath = "<absolute_path_to_target>"
     $Utf8NoBom = New-Object System.Text.UTF8Encoding $false
 
-    # Scan for all C# files in the src directory
-    Get-ChildItem -Path src -Recurse -Filter *.cs | ForEach-Object {
+    # Resolve items (handle single file or directory)
+    $items = if (Test-Path $targetPath -PathType Leaf) { 
+        Get-Item $targetPath 
+    } else { 
+        Get-ChildItem -Path $targetPath -Recurse -Filter *.cs 
+    }
+
+    $items | ForEach-Object {
         $filePath = $_.FullName
+        if ($_.Extension -ne ".cs") { return } # Safety check
+
         $content = Get-Content $filePath -Raw
-        
-        # Skip empty files
         if ([string]::IsNullOrWhiteSpace($content)) { return }
 
-        # Step 1: Trim only leading and trailing blank lines/spaces (Rule 1 & 2)
-        # This is safe because it doesn't affect internal string literals
+        # Step 1: Trim only leading and trailing blank lines/spaces
         $normalized = $content.Trim()
 
-        # Step 2: Unify newlines to CRLF (Rule 3)
-        # This treats line endings globally but preserves all visible characters
+        # Step 2: Unify newlines to CRLF
         $normalized = $normalized -replace "\r\n", "`n"
         $normalized = $normalized -replace "`n", "`r`n"
 
-        # Step 3: Append exactly one trailing CRLF (Rule 2)
+        # Step 3: Append exactly one trailing CRLF
         $normalized = $normalized + "`r`n"
 
-        # Check for change or BOM presence (Rule 4)
+        # Step 4: Check for change or BOM presence
         $needsUpdate = $content -ne $normalized
-        
-        # Check if the file currently has a BOM
         $bytes = [System.IO.File]::ReadAllBytes($filePath)
         if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
             $needsUpdate = $true
@@ -54,6 +60,6 @@ Normalize all C# source files to adhere to strict physical boundary and encoding
     }
     ```
 
-2. **Verification**:
+3. **Verification**:
     - Report the total number of normalized files.
     - Confirm that target files start with code, end with a single newline, and have no BOM.

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using VK.Blocks.Core.Results;
 
-namespace VK.Blocks.Core.Models;
+
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// A transport-neutral representation of an error response, providing a standard error envelope
@@ -13,7 +13,7 @@ public sealed record VKErrorResponse
     /// <summary>
     /// Gets or sets the high-level category of the error.
     /// </summary>
-    public ErrorType Type { get; init; } = ErrorType.Failure;
+    public VKErrorType Type { get; init; } = VKErrorType.Failure;
 
     /// <summary>
     /// Gets or sets the unique error code defined by the domain (e.g., "User.NotFound").
@@ -45,4 +45,3 @@ public sealed record VKErrorResponse
     /// </summary>
     public IReadOnlyList<VKErrorDetail>? Errors { get; init; }
 }
-

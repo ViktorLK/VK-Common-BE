@@ -30,7 +30,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
 
 ### [Architecture & Design Patterns](/.agents/rules/04-architecture-patterns.md)
 
-- **Rule 12 — Modern C# Semantics**: Seal classes by default; use immutable records and collection expressions.
+- **Rule 12 — Modern C# Semantics**: Seal classes by default; use immutable records, collection expressions, and **VKGuard fluent validation**.
 - **Rule 13 — Service Registration**: Use Marker types, `IsVKBlockRegistered`, and `AddVKBlockMarker`.
 - **Rule 14 — Structural Organization**: Vertical slice feature folders; one file per type; scoped constants.
 - **Rule 15 — Configuration Pattern**: Mandatory `IVKBlockOptions` with zero-reflection section resolution.
@@ -64,7 +64,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
     - ✅/❌ Result<T> → [actual finding]
     - ✅/❌ Async → CancellationToken, ValueTask hot-path
     - ✅/❌ ConfigureAwait → .ConfigureAwait(false) on ALL awaits (library code)
-    - ✅/❌ No Null → [actual finding]
+    - ✅/❌ No Null → [actual finding] (Mandatory: `VKGuard.NotNull` fluent pattern)
     - ✅/❌ Required Keyword → [actual finding]
     - ✅/❌ Error Constant → [actual finding]
     - ✅/❌ Modern C# Idioms → [actual finding]

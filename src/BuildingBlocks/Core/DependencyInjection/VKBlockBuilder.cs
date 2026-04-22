@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace VK.Blocks.Core.DependencyInjection;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Default implementation of the <see cref="IVKBlockBuilder{TMarker}"/> interface.
@@ -15,7 +15,3 @@ public sealed class VKBlockBuilder<TMarker>(IServiceCollection services, IConfig
     /// <inheritdoc />
     public IConfiguration Configuration { get; } = configuration;
 }
-
-
-
-

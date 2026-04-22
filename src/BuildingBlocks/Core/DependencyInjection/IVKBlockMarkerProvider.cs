@@ -1,4 +1,4 @@
-namespace VK.Blocks.Core.DependencyInjection;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Defines a provider for a building block marker instance via a static abstract member.

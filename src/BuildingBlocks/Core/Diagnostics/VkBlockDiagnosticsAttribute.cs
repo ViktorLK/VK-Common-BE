@@ -1,7 +1,7 @@
 using System;
-using VK.Blocks.Core.DependencyInjection;
 
-namespace VK.Blocks.Core.Diagnostics;
+
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Type-safe attribute to automatically generate ActivitySource and Meter for a building block.
