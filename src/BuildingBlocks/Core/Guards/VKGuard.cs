@@ -158,11 +158,26 @@ public static class VKGuard
         }
     }
 
-    private static bool HasElements(IEnumerable value) => value switch
+    private static bool HasElements(IEnumerable value)
     {
-        ICollection collection => collection.Count > 0,
-        _ => value.GetEnumerator().MoveNext()
-    };
+        if (value is ICollection collection)
+        {
+            return collection.Count > 0;
+        }
+
+        IEnumerator enumerator = value.GetEnumerator();
+        try
+        {
+            return enumerator.MoveNext();
+        }
+        finally
+        {
+            if (enumerator is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+    }
 
     [DoesNotReturn]
     private static void ThrowCollectionEmpty(string? paramName) =>

@@ -6,7 +6,7 @@ namespace VK.Blocks.Core;
 /// Represents the result of a cursor-based pagination operation.
 /// </summary>
 /// <typeparam name="T">The type of the elements in the page.</typeparam>
-public sealed class VKCursorPagedResult<T>
+public sealed record VKCursorPagedResult<T>
 {
     /// <summary>
     /// Gets the collection of items in the current page.

@@ -1,4 +1,5 @@
 using System;
+
 namespace VK.Blocks.Core;
 
 /// <summary>
@@ -11,6 +12,10 @@ public abstract class VKEntity<TId> where TId : notnull
     /// <summary>
     /// Gets the entity's unique identifier.
     /// </summary>
+    /// <remarks>
+    /// Initialized with default! to support ORM parameterless constructor requirements (Rule 12 Exception).
+    /// Guaranteed to be non-null after hydration or explicit constructor initialization.
+    /// </remarks>
     public TId Id { get; init; } = default!;
 
     /// <summary>

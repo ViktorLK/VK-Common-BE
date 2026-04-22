@@ -6,8 +6,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="VK.Blocks.Core.UnitTests" />
-    <InternalsVisibleTo Include="VK.Blocks.Authentication.UnitTests" />
-    <InternalsVisibleTo Include="VK.Blocks.Authorization.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>

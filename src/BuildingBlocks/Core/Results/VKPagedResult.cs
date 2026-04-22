@@ -1,13 +1,13 @@
-namespace VK.Blocks.Core;
-
 using System.Collections;
 using System.Collections.Generic;
+
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Represents the result of an offset-based pagination operation.
 /// </summary>
 /// <typeparam name="T">The type of the elements in the page.</typeparam>
-public sealed class VKPagedResult<T> : IVKPagedResult
+public sealed record VKPagedResult<T> : IVKPagedResult
 {
     /// <inheritdoc/>
     IEnumerable IVKPagedResult.Items => Items;

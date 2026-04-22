@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-
 namespace VK.Blocks.Core;
 
 /// <summary>
@@ -33,7 +32,7 @@ public sealed record VKErrorResponse
     /// <summary>
     /// Gets or sets extension members or additional metadata for the error.
     /// </summary>
-    public IDictionary<string, object?> Metadata { get; init; } = new Dictionary<string, object?>();
+    public IReadOnlyDictionary<string, object?> Metadata { get; init; } = new Dictionary<string, object?>();
 
     /// <summary>
     /// Gets or sets diagnostic debug information.

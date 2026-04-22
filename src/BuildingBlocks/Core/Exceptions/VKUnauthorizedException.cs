@@ -15,6 +15,3 @@ public sealed class VKUnauthorizedException : VKBaseException
     {
     }
 }
-
-// Separate file would be better but I'll follow one file per type if I can. 
-// Wait, Rule 14: One file, one type. I should split them.

@@ -1,6 +1,6 @@
-namespace VK.Blocks.Core;
-
 using System.Collections;
+
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Defines a non-generic contract for paged results to allow covariant handling.

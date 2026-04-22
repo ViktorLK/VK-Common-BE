@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Base class for value objects  Eimmutable, structurally-equal domain concepts
+/// Base class for value objects — immutable, structurally-equal domain concepts
 /// with no identity of their own (e.g., Money, Address, DateRange).
 /// </summary>
 public abstract class VKValueObject : IEquatable<VKValueObject>
@@ -22,7 +22,18 @@ public abstract class VKValueObject : IEquatable<VKValueObject>
             return false;
         }
 
-        return GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
+        using IEnumerator<object?> left = GetEqualityComponents().GetEnumerator();
+        using IEnumerator<object?> right = other.GetEqualityComponents().GetEnumerator();
+
+        while (left.MoveNext())
+        {
+            if (!right.MoveNext() || !Equals(left.Current, right.Current))
+            {
+                return false;
+            }
+        }
+
+        return !right.MoveNext();
     }
 
     /// <inheritdoc />
@@ -30,9 +41,17 @@ public abstract class VKValueObject : IEquatable<VKValueObject>
         other is not null && Equals((object)other);
 
     /// <inheritdoc />
-    public override int GetHashCode() =>
-        GetEqualityComponents()
-            .Aggregate(0, (hash, component) => HashCode.Combine(hash, component));
+    public override int GetHashCode()
+    {
+        HashCode hashCode = default;
+
+        foreach (object? component in GetEqualityComponents())
+        {
+            hashCode.Add(component);
+        }
+
+        return hashCode.ToHashCode();
+    }
 
     /// <summary>
     /// Compares two <see cref="VKValueObject"/> instances for equality.

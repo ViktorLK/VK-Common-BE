@@ -9,6 +9,16 @@
 
 ## 📦 現在の主要実装
 
+### 🧱 [VK.Blocks.Core](/src/BuildingBlocks/Core/README.md)
+
+すべての BuildingBlock モジュールの**基盤レイヤー（Foundation Layer）**です。
+DI 登録パイプライン（マーカーパターン・再帰的依存解決・冪等二重登録）、Result Pattern（Railway-Oriented Programming）、VKGuard（Fluent ガード節）、ドメインプリミティブ（Entity / ValueObject / AggregateRoot）、OpenTelemetry 診断基盤など、フレームワーク全体のクロスカッティング・コンサーンを一元的に提供します。
+ゼロリフレクション設計と `stackalloc` / `HashCode` 構造体によるアロケーションフリー実装により、エンタープライズ品質のパフォーマンスを実現しています。
+
+👉 **[詳細な設計思想とドキュメントはこちら](/src/BuildingBlocks/Core/README.md)**
+
+---
+
 ### 🔐 [VK.Blocks.Authentication](/src/BuildingBlocks/Authentication/README.md)
 
 構成駆動型 (Configuration-Driven) の**マルチ戦略認証基盤**です。
