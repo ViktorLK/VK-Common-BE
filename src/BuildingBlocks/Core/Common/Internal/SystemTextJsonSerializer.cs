@@ -2,7 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace VK.Blocks.Core.Json.Internal;
+namespace VK.Blocks.Core.Common.Internal;
 
 /// <summary>
 /// A default implementation of <see cref="IVKJsonSerializer"/> using <see cref="System.Text.Json"/>.

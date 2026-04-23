@@ -11,7 +11,6 @@ namespace VK.Blocks.Core;
 /// <typeparam name="TValue">The type of the value.</typeparam>
 public sealed class VKResult<TValue> : VKResult
 {
-    private readonly TValue? _value;
 
     /// <inheritdoc />
     [MemberNotNullWhen(true, nameof(Value))]
@@ -28,7 +27,7 @@ public sealed class VKResult<TValue> : VKResult
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when accessed on a failure result, or if a success result unexpectedly contains a null value.</exception>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public TValue? Value => IsSuccess ? (_value ?? VKResult<TValue>.ThrowNullSuccess()) : VKResult<TValue>.ThrowFailureAccess();
+    public TValue? Value => IsSuccess ? (field ?? VKResult<TValue>.ThrowNullSuccess()) : VKResult<TValue>.ThrowFailureAccess();
 
     [DoesNotReturn]
     private static TValue ThrowNullSuccess() =>
@@ -47,7 +46,7 @@ public sealed class VKResult<TValue> : VKResult
     internal VKResult(TValue? value, bool isSuccess, VKError error)
         : base(isSuccess, error)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>
@@ -59,7 +58,7 @@ public sealed class VKResult<TValue> : VKResult
     internal VKResult(TValue? value, bool isSuccess, IEnumerable<VKError> errors)
         : base(isSuccess, errors)
     {
-        _value = value;
+        Value = value;
     }
 
     /// <summary>

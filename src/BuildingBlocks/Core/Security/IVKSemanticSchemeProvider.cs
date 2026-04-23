@@ -23,4 +23,10 @@ public interface IVKSemanticSchemeProvider
     /// Gets schemes that should be included in the 'Internal' group policy.
     /// </summary>
     IEnumerable<string> GetInternalSchemes();
+
+    /// <summary>
+    /// Gets schemes that should be included in a specific named policy (e.g. VK.Jwt).
+    /// </summary>
+    /// <param name="policyName">The name of the policy.</param>
+    IEnumerable<string> GetSchemesForPolicy(string policyName);
 }

@@ -31,9 +31,9 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
 ### [Architecture & Design Patterns](/.agents/rules/04-architecture-patterns.md)
 
 - **Rule 12 — Modern C# Semantics**: Seal classes by default; use immutable records, collection expressions, and **VKGuard fluent validation**.
-- **Rule 13 — Service Registration**: Use Marker types, `IsVKBlockRegistered`, and `AddVKBlockMarker`.
-- **Rule 14 — Structural Organization**: Vertical slice feature folders; one file per type; scoped constants.
-- **Rule 15 — Configuration Pattern**: Mandatory `IVKBlockOptions` with zero-reflection section resolution.
+- **Rule 13 — Service Registration**: Check-Self & Prerequisite (`IsVKBlockRegistered<T>`) → Options → Mark-Self → Feature Toggle → Core Services (`TryAdd` only). See Rule 18 for full sequence.
+- **Rule 14 — Structural Organization**: Depth-based visibility (Level 1 = public/root namespace, Level 2+ = internal); VK prefix for public types; one file per type.
+- **Rule 15 — Configuration Pattern**: Mandatory `IVKBlockOptions`; SectionName = `VKBlocksConstants.VKBlocksConfigPrefix + "{ModuleName}"`. Idempotent Dual-Registration (IOptions + Singleton). Wrapper delegates to internal Core logic.
 
 ### [Library Blueprint (New)](/.agents/rules/05-block-blueprint.md)
 
@@ -55,7 +55,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
     > [!TIP]
     > Use the MCP tool `draft_building_block` to generate the standard boilerplate matching Rules 16-20.
     - [ ] Folder Structure matching Rule 16?
-    - [ ] `IVKBlockMarker` implemented and in `Contracts/`?
+    - [ ] `IVKBlockMarker` implemented and in the module's root directory?
     - [ ] DI pattern follows Rule 18 execution order?
     - [ ] `IVKBlockOptions` provided with correct `SectionName`?
     - [ ] diagnostics configured with `[VKBlockDiagnostics]`?
@@ -68,10 +68,13 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
     - ✅/❌ Required Keyword → [actual finding]
     - ✅/❌ Error Constant → [actual finding]
     - ✅/❌ Modern C# Idioms → [actual finding]
+    - ✅/❌ Sealed → (class declarations) [actual finding]
     - ✅/❌ Format → .editorconfig compliance (e.g. explicit types vs var)
+    - ✅/❌ Visibility & Naming → (Rule 14: public/internal boundaries, VK prefix) [actual finding]
+    - ✅/❌ Test Coverage → (Rule 9: Happy/Unhappy/Tenant/Failure paths) [actual finding]
       **When applicable** (only report items relevant to the code being changed):
-    - ✅/❌ TenantId → (DB/query code) [actual finding]
-    - ✅/❌ NoTracking → (DB read queries) [actual finding]
+    - ✅/❌ TenantId & PII → (Rule 7: DB query code & log masking) [actual finding]
+    - ✅/❌ DB Performance → (Rule 4: AsNoTracking, No loop queries, Pagination) [actual finding]
     - ✅/❌ Polly → (external HTTP/SDK calls) [actual finding]
     - ✅/❌ Observability → (logging/metrics code) [actual finding]
     - ✅/❌ Service Marker → (DI registration using IsVKBlockRegistered/AddVKBlockMarker) [actual finding]

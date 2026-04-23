@@ -162,6 +162,26 @@ public static class VKResultExtensions
     /// Binds the result of an asynchronous function to the result of the previous operation (void VKResult).
     /// If the previous result is a failure, the function is not executed and the failure is propagated.
     /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The asynchronous function to execute if the result is successful.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="VKResult{TOut}"/>.</returns>
+    public static async Task<VKResult<TOut>> BindAsync<TOut>(
+        this VKResult result,
+        Func<Task<VKResult<TOut>>> func)
+    {
+        if (result.IsFailure)
+        {
+            return VKResult.Failure<TOut>(result.Errors);
+        }
+
+        return await func().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Binds the result of an asynchronous function to the result of the previous operation (void VKResult).
+    /// If the previous result is a failure, the function is not executed and the failure is propagated.
+    /// </summary>
     /// <param name="result">The input result.</param>
     /// <param name="func">The asynchronous function to execute if the result is successful.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="VKResult"/>.</returns>
@@ -346,6 +366,25 @@ public static class VKResultExtensions
         return VKResult.Success(await func().ConfigureAwait(false));
     }
 
+    /// <summary>
+    /// Maps a successful void VKResult to a new value using the specified asynchronous function.
+    /// If the result is a failure, the function is not executed and the failure is propagated.
+    /// </summary>
+    /// <typeparam name="TOut">The type of the output value.</typeparam>
+    /// <param name="result">The input result.</param>
+    /// <param name="func">The asynchronous mapping function.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing the <see cref="VKResult{TOut}"/>.</returns>
+    public static async Task<VKResult<TOut>> MapAsync<TOut>(
+        this VKResult result,
+        Func<Task<TOut>> func)
+    {
+        if (result.IsFailure)
+        {
+            return VKResult.Failure<TOut>(result.Errors);
+        }
+
+        return VKResult.Success(await func().ConfigureAwait(false));
+    }
 
     /// <summary>
     /// Executes an action if the result is successful, without changing the result.

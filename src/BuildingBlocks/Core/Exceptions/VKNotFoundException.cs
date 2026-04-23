@@ -1,6 +1,6 @@
 using System;
 
-namespace VK.Blocks.Core.Exceptions;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Exception thrown when a requested resource or entity is not found.
@@ -13,12 +13,12 @@ public sealed class VKNotFoundException : VKBaseException
     /// <summary>
     /// Gets the type of the entity that was not found.
     /// </summary>
-    public string? EntityType => Extensions.TryGetValue(nameof(EntityType), out var val) ? val as string : null;
+    public string? EntityType => Extensions.TryGetValue(nameof(EntityType), out object? val) ? val as string : null;
 
     /// <summary>
     /// Gets the identifier of the entity that was not found.
     /// </summary>
-    public string? EntityId => Extensions.TryGetValue(nameof(EntityId), out var val) ? val as string : null;
+    public string? EntityId => Extensions.TryGetValue(nameof(EntityId), out object? val) ? val as string : null;
 
     public VKNotFoundException(string message, Exception? innerException = null)
         : base(DefaultCode, message, statusCode: 404, isPublic: true, innerException: innerException)

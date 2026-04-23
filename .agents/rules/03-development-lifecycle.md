@@ -14,7 +14,7 @@ trigger: always_on
     - ✅ Permission / tenant isolation failure
     - ✅ Infrastructure failure mapped to Result.Failure
 - **Naming**: Test class: `{TargetClass}Tests.cs`. Test method: `{Method}_{Scenario}_{ExpectedResult}` (e.g. `Handle_WhenUserNotFound_ReturnsNotFoundError`).
-- **Project**: Test project naming: `{ProjectName}.Tests`.
+- **Project**: Test project naming: `{ProjectName}.UnitTests` or `{ProjectName}.IntegrationTests`.
 
 ### Rule 10 — Code Generation
 

@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core.DependencyInjection.Internal;
-using VK.Blocks.Core.Exceptions;
 
 namespace VK.Blocks.Core;
 
@@ -50,7 +49,7 @@ public static class VKBlockRegistrationExtensions
         }
 
         // 2. [Rule 13: Mark-Self] — Logical Identity Registration
-        // We register a string-based identifier marker. This protects the system against 
+        // We register a string-based identifier marker. This protects the system against
         // "Logical Collisions" where two different classes might try to use the same ID.
         // This marker is internal and used by the infrastructure for untyped dependency checks.
         services.AddSingleton(new BlockRuntimeMarker(TMarker.Instance.Identifier));

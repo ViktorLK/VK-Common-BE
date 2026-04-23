@@ -4,23 +4,23 @@ using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 
-namespace VK.Blocks.Core.Reflection.Internal;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// A comparer that evaluates the equality of two expression trees.
 /// </summary>
 /// <remarks>
-/// This is a simplified version of the ExpressionEqualityComparer, optimized for 
+/// This is a simplified version of the ExpressionEqualityComparer, optimized for
 /// common repository usage such as property selectors and simple predicates.
 /// </remarks>
-internal sealed class ExpressionEqualityComparer : IEqualityComparer<Expression?>
+public sealed class VKExpressionEqualityComparer : IEqualityComparer<Expression?>
 {
     /// <summary>
     /// Gets the singleton instance of the comparer.
     /// </summary>
-    public static ExpressionEqualityComparer Instance { get; } = new();
+    public static VKExpressionEqualityComparer Instance { get; } = new();
 
-    private ExpressionEqualityComparer()
+    private VKExpressionEqualityComparer()
     {
     }
 

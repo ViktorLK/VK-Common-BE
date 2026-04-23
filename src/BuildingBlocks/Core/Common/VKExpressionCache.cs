@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
-using VK.Blocks.Core.Reflection.Internal;
 
 namespace VK.Blocks.Core;
 
@@ -46,6 +45,6 @@ public sealed class VKExpressionCache
     {
         // A separate ConcurrentDictionary instance is created per type combination by the runtime.
         internal static readonly ConcurrentDictionary<Expression<Func<TIn, TOut>>, Func<TIn, TOut>> Storage
-            = new(ExpressionEqualityComparer.Instance);
+            = new(VKExpressionEqualityComparer.Instance);
     }
 }

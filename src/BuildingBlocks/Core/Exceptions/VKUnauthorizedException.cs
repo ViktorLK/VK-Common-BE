@@ -1,6 +1,6 @@
 using System;
 
-namespace VK.Blocks.Core.Exceptions;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Exception thrown when a user is not authenticated.

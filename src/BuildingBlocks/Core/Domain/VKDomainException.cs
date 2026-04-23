@@ -1,6 +1,5 @@
 using System;
 
-
 namespace VK.Blocks.Core;
 
 /// <summary>

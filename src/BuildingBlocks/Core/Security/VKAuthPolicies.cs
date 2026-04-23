@@ -30,4 +30,9 @@ public static class VKAuthPolicies
     /// Individual policy for API key-based authentication.
     /// </summary>
     public const string ApiKey = "VK.ApiKey";
+
+    /// <summary>
+    /// Individual policy for OAuth-based authentication.
+    /// </summary>
+    public const string OAuth = "VK.OAuth";
 }

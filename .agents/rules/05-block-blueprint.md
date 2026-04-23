@@ -1,11 +1,20 @@
+---
+trigger: always_on
+---
+
 # VK.Blocks: Building Block Blueprint (Refined)
+
+> **Note**: This file provides the concrete blueprint and implementation templates for the architectural principles defined in `04-architecture-patterns.md` (specifically Rules 13-15).
 
 ### Rule 16 — Standard Folder Structure
 
 Every new BuildingBlock MUST follow this vertical slice directory layout:
-- `Abstractions/`: Internal interfaces and core logic abstractions.
-- `Common/`: Shared utilities or internal constants.
-- `Contracts/`: **Public** marker types (`XxxBlock`). MUST NOT contain logic.
+- `VK{ModuleName}Block.cs`: **Public** marker type placed directly in the module's root directory.
+- `Abstractions/`: Shared interfaces and core logic abstractions.
+    - `Internal/`: Encapsulated implementations for shared abstractions (if any).
+- `Common/`: Shared utilities, constants, or cross-cutting models.
+    - `Internal/`: Encapsulated implementations for shared utilities (if any).
+- `Contracts/`: Cross-boundary public contracts (e.g., Integration Events, external DTOs).
 - `DependencyInjection/`: 
     - `VK{ModuleName}BlockExtensions.cs`: **Public entry point** (Wrapper).
     - `VK{ModuleName}Options.cs`: **Public configuration** (Sealed Record).
@@ -16,12 +25,14 @@ Every new BuildingBlock MUST follow this vertical slice directory layout:
 - `Diagnostics/`: 
     - `DiagnosticsConstants.cs`: Semantic tokens.
     - `Internal/`: `[LoggerMessage]` and `[VKBlockDiagnostics]` classes.
-- `Features/`: Vertical slices (e.g., `ApiKeys/`, `Jwt/`).
+
+- `{FeatureName}/`: First-level domain folders for vertical slices (e.g., `ApiKeys/`, `Jwt/`). **MUST NOT** be wrapped in a `Features/` folder.
+    - `Internal/`: Encapsulated implementations (Handlers, Validators, feature-specific `[LoggerMessage]` classes, etc).
 
 ### Rule 17 — The Marker Pattern (IVKBlockMarker)
 
-Each module MUST have a sealed partial class implementing `IVKBlockMarker` in `Contracts/`:
-- **Namespace**: `VK.Blocks.{ModuleName}.Contracts`.
+Each module MUST have a sealed partial class implementing `IVKBlockMarker` placed in the module's root directory:
+- **Namespace**: `VK.Blocks.{ModuleName}` (library root namespace, per Rule 14 — public API surface).
 - **Identifier**: Match the module name (e.g., "Authentication").
 - **Activity/Meter**: Use `VKBlocksConstants.VKBlocksPrefix + Identifier`.
 
@@ -41,14 +52,13 @@ public static class VK{ModuleName}BlockExtensions
 
 #### 18.2 Internal Core (Registration Sequence)
 The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow this exact order:
-1.  **Check-Self**: `if (services.IsVKBlockRegistered<{ModuleName}Block>()) return builder;`
-2.  **Check-Prerequisite**: `services.EnsureVKCoreBlockRegistered<{ModuleName}Block>();`
-3.  **Options Registration**: `var options = services.AddVKBlockOptions<VK{ModuleName}Options>(configuration);`
-4.  **Mark-Self**: `services.AddVKBlockMarker<{ModuleName}Block>();` (MUST be called BEFORE early exit).
-5.  **Options Validation**: `services.TryAddEnumerableSingleton<IValidateOptions<VK{ModuleName}Options>, {ModuleName}OptionsValidator>();`
-6.  **Diagnostics/Static Metadata**: Register ActivitySource/Meter/SecurityMetadata.
-7.  **Feature Toggle**: `if (!options.Enabled) return builder;`
-8.  **Core Services**: Register the actual feature logic.
+1.  **Check-Self & Prerequisite**: `if (services.IsVKBlockRegistered<{ModuleName}Block>()) return builder;` (This smart check automatically validates dependencies).
+2.  **Options Registration**: `var options = services.AddVKBlockOptions<VK{ModuleName}Options>(configuration);`
+3.  **Mark-Self**: `services.AddVKBlockMarker<{ModuleName}Block>();` (MUST be called BEFORE early exit).
+4.  **Options Validation**: `services.TryAddEnumerableSingleton<IValidateOptions<VK{ModuleName}Options>, {ModuleName}OptionsValidator>();`
+5.  **Diagnostics/Static Metadata**: Register ActivitySource/Meter/SecurityMetadata.
+6.  **Feature Toggle**: `if (!options.Enabled) return builder;`
+7.  **Core Services**: Register the actual feature logic.
 
 ### Rule 19 — Diagnostics Blueprint
 
@@ -60,5 +70,6 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 
 - **Immutability**: MUST be a `sealed record` with `init` properties.
 - **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions`).
-- **SectionName**: Use `VKBlocksConstants.VKBlocksConfigPrefix + "{ModuleName}"`.
+- **Interface**: MUST implement `IVKBlockOptions` (as required by Rule 15).
+- **SectionName**: Formatted according to Rule 15.
 - **Validation**: MUST have a corresponding `IValidateOptions` implementation.

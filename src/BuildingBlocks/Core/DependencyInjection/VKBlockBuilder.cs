@@ -7,7 +7,7 @@ namespace VK.Blocks.Core;
 /// Default implementation of the <see cref="IVKBlockBuilder{TMarker}"/> interface.
 /// </summary>
 /// <typeparam name="TMarker">A marker type representing the specific building block (implements IVKBlockMarker).</typeparam>
-public sealed class VKBlockBuilder<TMarker>(IServiceCollection services, IConfiguration configuration) : IVKBlockBuilder<TMarker>
+public class VKBlockBuilder<TMarker>(IServiceCollection services, IConfiguration configuration) : IVKBlockBuilder<TMarker>
 {
     /// <inheritdoc />
     public IServiceCollection Services { get; } = services;

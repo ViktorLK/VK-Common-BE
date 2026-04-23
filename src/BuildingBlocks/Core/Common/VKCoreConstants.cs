@@ -1,9 +1,9 @@
-namespace VK.Blocks.Core.Constants.Internal;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Internal constants used across the Core library for shared defaults and technical details.
 /// </summary>
-internal static class CoreConstants
+internal static class VKCoreConstants
 {
     /// <summary>
     /// The default version used for diagnostics and metadata when not specified.

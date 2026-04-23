@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace VK.Blocks.Core.Context.Internal;
+namespace VK.Blocks.Core.Common.Internal;
 
 /// <summary>
 /// A neutral, unauthenticated implementation of <see cref="IVKUserContext"/>.

@@ -1,6 +1,6 @@
 using System;
 
-namespace VK.Blocks.Core.Guids.Internal;
+namespace VK.Blocks.Core.Common.Internal;
 
 /// <summary>
 /// A default implementation of <see cref="IVKGuidGenerator"/> using <see cref="Guid.NewGuid()"/>.

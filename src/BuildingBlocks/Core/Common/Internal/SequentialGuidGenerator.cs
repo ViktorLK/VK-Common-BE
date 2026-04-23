@@ -2,7 +2,7 @@ using System;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 
-namespace VK.Blocks.Core.Guids.Internal;
+namespace VK.Blocks.Core.Common.Internal;
 
 /// <summary>
 /// A database-friendly implementation of <see cref="IVKGuidGenerator"/> that produces

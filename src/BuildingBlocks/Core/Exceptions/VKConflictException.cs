@@ -1,6 +1,6 @@
 using System;
 
-namespace VK.Blocks.Core.Exceptions;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Exception thrown when a resource conflict occurs (e.g., duplicate entry or concurrency failure).
@@ -13,7 +13,7 @@ public sealed class VKConflictException : VKBaseException
     /// <summary>
     /// Gets the reason for the conflict.
     /// </summary>
-    public string? Reason => Extensions.TryGetValue(nameof(Reason), out var val) ? val as string : null;
+    public string? Reason => Extensions.TryGetValue(nameof(Reason), out object? val) ? val as string : null;
 
     public VKConflictException(string message, Exception? innerException = null)
         : base(DefaultCode, message, statusCode: 409, isPublic: true, innerException: innerException)

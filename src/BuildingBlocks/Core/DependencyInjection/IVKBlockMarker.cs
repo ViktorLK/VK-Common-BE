@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
-using VK.Blocks.Core.Exceptions;
 
 namespace VK.Blocks.Core;
 
@@ -54,10 +53,10 @@ public interface IVKBlockMarker
     /// <exception cref="VKDependencyException">Thrown if any required dependency is not registered.</exception>
     void EnsureDependenciesRegistered(IServiceCollection services, string dependentId)
     {
-        EnsureCore(this, services, dependentId, []);
+        EnsureDependenciesRecursive(this, services, dependentId, []);
     }
 
-    private static void EnsureCore(IVKBlockMarker marker, IServiceCollection services, string dependentId, HashSet<string> visited)
+    private static void EnsureDependenciesRecursive(IVKBlockMarker marker, IServiceCollection services, string dependentId, HashSet<string> visited)
     {
         // 1. Protection against circular dependencies
         if (!visited.Add(marker.Identifier))
@@ -74,7 +73,7 @@ public interface IVKBlockMarker
             }
 
             // 3. Recurse only if the parent is registered
-            EnsureCore(dependency, services, marker.Identifier, visited);
+            EnsureDependenciesRecursive(dependency, services, marker.Identifier, visited);
         }
     }
 }
