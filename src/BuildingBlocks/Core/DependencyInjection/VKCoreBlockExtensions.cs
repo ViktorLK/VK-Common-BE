@@ -2,9 +2,7 @@ using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.Core.Context.Internal;
-using VK.Blocks.Core.Guids.Internal;
-using VK.Blocks.Core.Json.Internal;
+using VK.Blocks.Core.Common.Internal;
 
 namespace VK.Blocks.Core;
 

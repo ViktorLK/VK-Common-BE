@@ -88,3 +88,6 @@ npm-debug.log*
 
 # Project Artifacts
 artifacts/
+
+# Local workspace
+.local/

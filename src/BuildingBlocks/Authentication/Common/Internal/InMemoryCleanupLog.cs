@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Authentication.Common.Internal;
@@ -6,6 +7,7 @@ namespace VK.Blocks.Authentication.Common.Internal;
 /// <summary>
 /// Source-generated logger for In-Memory cleanup events.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static partial class InMemoryCleanupLog
 {
     /// <summary>

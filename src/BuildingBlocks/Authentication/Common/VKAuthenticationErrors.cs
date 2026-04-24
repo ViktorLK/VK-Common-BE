@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication;
@@ -5,6 +6,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Globally shared errors for the authentication module.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static error definitions and constant error descriptors.")]
 public static class VKAuthenticationErrors
 {
     /// <summary>

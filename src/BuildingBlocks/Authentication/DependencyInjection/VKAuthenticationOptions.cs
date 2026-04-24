@@ -10,7 +10,7 @@ public sealed record VKAuthenticationOptions : IVKBlockOptions
     /// <summary>
     /// The configuration section name for authentication options.
     /// </summary>
-    public static string SectionName => VKBlocksConstants.VKBlocksConfigPrefix + "Authentication";
+    public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:Authentication";
 
     /// <summary>
     /// The configuration section name for JWT options within the authentication block.

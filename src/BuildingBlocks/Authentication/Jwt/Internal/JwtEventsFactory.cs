@@ -6,7 +6,6 @@ using Microsoft.IdentityModel.Tokens;
 using VK.Blocks.Authentication.Common.Internal;
 using VK.Blocks.Core;
 
-
 namespace VK.Blocks.Authentication.Jwt.Internal;
 
 /// <summary>

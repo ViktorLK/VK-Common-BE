@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>VK.Blocks.Core</RootNamespace>
+    <AssemblyName>VK.Blocks.Core</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

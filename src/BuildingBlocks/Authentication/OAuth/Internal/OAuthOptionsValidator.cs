@@ -21,7 +21,7 @@ internal sealed class OAuthOptionsValidator : IValidateOptions<VKOAuthOptions>
             return ValidateOptionsResult.Fail(VKOAuthErrors.MissingProviders);
         }
 
-        foreach (var (providerName, provider) in options.Providers.Where(p => p.Value.Enabled))
+        foreach ((string providerName, VKOAuthProviderOptions provider) in options.Providers.Where(p => p.Value.Enabled))
         {
             if (string.IsNullOrWhiteSpace(provider.ClientId))
             {

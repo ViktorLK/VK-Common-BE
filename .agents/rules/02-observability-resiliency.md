@@ -13,7 +13,7 @@ trigger: always_on
 - **Structured Templates**: USE structured log templates with placeholders: `"{Id}"`, `"{TenantId}"`. NO string interpolation.
 - **TraceId**: `TraceId` is MANDATORY in all log entries and error responses.
 - **Exception Context**: Exceptions MUST be logged with full context before mapping to `Result<T>`.
-- **Location**: Define SG loggers within their respective **Feature folder** (e.g. `ApiKeys/ApiKeyLog.cs`) or an `Internal/` sub-folder if the feature is complex. Only place globally shared or infrastructure-level loggers in a root `Diagnostics/` folder.
+- **Location**: Feature-specific loggers MUST be placed in `{FeatureName}/Internal/` (e.g. `Permissions/Internal/PermissionsLog.cs`). Only globally shared or infrastructure-level loggers belong in `Diagnostics/Internal/`.
 
 #### Metrics & Tracing
 

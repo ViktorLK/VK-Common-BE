@@ -94,9 +94,9 @@ flowchart TB
 
     subgraph Policy ["Authorization"]
         Enrich --> PolicyEval{"Semantic Policy<br/>Evaluation"}
-        PolicyEval -->|"[JwtAuthorize]"| Allow["✅ Authorized"]
-        PolicyEval -->|"[ApiKeyAuthorize]"| Allow
-        PolicyEval -->|"[AuthGroup(User)]"| Allow
+        PolicyEval -->|"[VKJwtAuthorize]"| Allow["✅ Authorized"]
+        PolicyEval -->|"[VKApiKeyAuthorize]"| Allow
+        PolicyEval -->|"[VKAuthGroup(User)]"| Allow
         PolicyEval -->|"Unauthorized"| Deny["❌ RFC 7807<br/>ProblemDetails"]
     end
 
@@ -141,7 +141,7 @@ Authentication/
 
 ### 🌐 OAuth クレームマッピング
 
-- **Source Generator 駆動の自動登録**: `[OAuthProvider]` 属性によるリフレクション不使用のマッパー登録
+- **Source Generator 駆動の自動登録**: `[VKOAuthProvider]` 属性によるリフレクション不使用のマッパー登録
 - **個別認可ポリシーの自動生成**: 各プロバイダーに対し、`VK.Group.{ProviderName}` (例: `VK.Group.GitHub`) という名称の認可ポリシーが自動登録されます。
 - **コンパイル時ディスカバリ**: `OAuthProviderMetadata` を利用した動的なポリシー構成 (`IConfigureOptions<AuthorizationOptions>`) により、DI 登録ロジックの肥大化を防止
 - **Template Method パターン**: `OAuthClaimsMapperBase` を継承することで、プロバイダー固有のマッピングを最小限のコードで実装
@@ -152,11 +152,11 @@ Authentication/
 マジックストリングを排除し、型安全な認証指定を実現：
 
 ```csharp
-[JwtAuthorize]           // JWT 認証のみ許可
-[ApiKeyAuthorize]        // API Key 認証のみ許可
-[AuthGroup(AuthPolicies.GroupUser)]     // JWT + OAuth を許可 (人間ユーザー)
-[AuthGroup(AuthPolicies.GroupService)]  // API Key + JWT を許可 (M2M 通信)
-[AuthGroup(AuthPolicies.GroupInternal)] // API Key のみ許可 (内部管理)
+[VKJwtAuthorize]           // JWT 認証のみ許可
+[VKApiKeyAuthorize]        // API Key 認証のみ許可
+[VKAuthGroup(AuthPolicies.GroupUser)]     // JWT + OAuth を許可 (人間ユーザー)
+[VKAuthGroup(AuthPolicies.GroupService)]  // API Key + JWT を許可 (M2M 通信)
+[VKAuthGroup(AuthPolicies.GroupInternal)] // API Key のみ許可 (内部管理)
 [Authorize(Policy = "VK.Group.GitHub")] // 特定のプロバイダー（GitHub等）による認証のみ許可
 ```
 
@@ -208,7 +208,7 @@ builder.Services.AddVKAuthenticationBlock(builder.Configuration)
 
 本モジュールは `VK.Blocks.Generators` の **`OAuthProviderMapperGenerator`** と連携し、以下のコードをコンパイル時に自動生成します：
 
-- **Keyed DI 自動登録**: `[OAuthProvider("GitHub")]` 属性が付与されたすべての `IOAuthClaimsMapper` 実装を検出し、`AddKeyedScoped` による DI 登録コードを生成（リフレクション不使用）
+- **Keyed DI 自動登録**: `[VKOAuthProvider("GitHub")]` 属性が付与されたすべての `IOAuthClaimsMapper` 実装を検出し、`AddKeyedScoped` による DI 登録コードを生成（リフレクション不使用）
 - **重複検出**: 同一プロバイダー名に対して複数のマッパーが検出された場合、`VK0001` コンパイラ警告を発行
 - **プロバイダーメタデータ生成**: `VKOAuthGeneratedMetadata.AllProviders` として、登録済みプロバイダー名のコンパイル時リストを生成。`IConfigureOptions<AuthorizationOptions>` による動的ポリシー構成はこのメタデータを消費
 
@@ -219,7 +219,7 @@ builder.Services.AddVKAuthenticationBlock(builder.Configuration)
 
 ```csharp
 // 1. マッパーの実装に属性を付与するだけ
-[OAuthProvider("GitHub")]
+[VKOAuthProvider("GitHub")]
 internal sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
 {
     protected override Result<IEnumerable<Claim>> MapClaims(ExternalIdentity identity)
@@ -244,7 +244,7 @@ internal sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
 | **Microsoft.AspNetCore.Authentication.JwtBearer** | JWT Bearer トークン検証                                               |
 | **System.TimeProvider**                           | テスト容易性のための時刻抽象化                                        |
 | **OpenTelemetry**                                 | 分散トレース (`ActivitySource`) + メトリクス (`Meter`)                |
-| **Source Generator**                              | `[LoggerMessage]` SG, `[VKBlockDiagnostics]` SG, `[OAuthProvider]` SG |
+| **Source Generator**                              | `[LoggerMessage]` SG, `[VKBlockDiagnostics]` SG, `[VKOAuthProvider]` SG |
 | **ConcurrentDictionary / ConcurrentQueue**        | スレッドセーフ InMemory ストア                                        |
 | **IOptions / IOptionsMonitor**                    | 構成管理 + ホットリロード                                             |
 | **VK.Blocks.Core**                                | Result Pattern, DI Builder, Block Options                             |
@@ -315,7 +315,7 @@ internal sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
 > **Microsoft Identity Platforms (B2C / CIAM) 利用時の注意点**
 >
 > - **Azure AD B2C**: `Authority` には必ず `p=B2C_1_xxx` (User Flow) を含むか、上記のように V2.0 エンドポイントを正しく構成してください。
-> - **Claim Mapping**: マイクロソフト固有の `oid` や `tfp` といった Claim は、このモジュールの `[OAuthProvider]` スキーム（`AzureB2COidcClaimsMapper`等）によって自動的に共通セマンティクスへ変換介入されます。
+> - **Claim Mapping**: マイクロソフト固有の `oid` や `tfp` といった Claim は、このモジュールの `[VKOAuthProvider]` スキーム（`AzureB2COidcClaimsMapper`等）によって自動的に共通セマンティクスへ変換介入されます。
 
 ### 3. DI 登録
 

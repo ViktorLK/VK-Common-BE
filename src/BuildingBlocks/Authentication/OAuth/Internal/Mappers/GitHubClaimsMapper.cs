@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Security.Claims;
-
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.OAuth.Internal.Mappers;
@@ -8,7 +7,7 @@ namespace VK.Blocks.Authentication.OAuth.Internal.Mappers;
 /// <summary>
 /// Implements claims mapping for GitHub OAuth providers.
 /// </summary>
-[OAuthProvider(OAuthConstants.GitHub)]
+[VKOAuthProvider(OAuthConstants.GitHub)]
 internal sealed class GitHubClaimsMapper : VKOAuthClaimsMapperBase
 {
     /// <inheritdoc />

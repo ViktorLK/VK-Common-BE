@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace VK.Blocks.Authentication;
 
 /// <summary>
 /// Represents descriptive metadata for an authenticated endpoint.
 /// This model is populated by the source generator to provide a view of the authentication requirements.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Pure data record with no business logic, populated by source generators.")]
 public sealed record VKEndpointAuthInfo
 {
     /// <summary>

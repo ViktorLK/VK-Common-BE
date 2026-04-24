@@ -26,4 +26,22 @@ internal sealed class OAuthSemanticSchemeProvider(IOptionsMonitor<VKOAuthOptions
     public IEnumerable<string> GetServiceSchemes() => [];
 
     public IEnumerable<string> GetInternalSchemes() => [];
+
+    public IEnumerable<string> GetSchemesForPolicy(string policyName)
+    {
+        if (policyName != VKAuthPolicies.OAuth)
+        {
+            return [];
+        }
+
+        VKOAuthOptions oauthOptions = options.CurrentValue;
+        if (!oauthOptions.Enabled)
+        {
+            return [];
+        }
+
+        return oauthOptions.Providers
+            .Where(p => p.Value.Enabled)
+            .Select(p => p.Value.SchemeName ?? p.Key);
+    }
 }

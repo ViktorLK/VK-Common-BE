@@ -18,6 +18,7 @@ public static class VKClaimsPrincipalExtensions
     public static string? GetUserId(this ClaimsPrincipal? principal)
     {
         return principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+               ?? principal?.FindFirst("sub")?.Value
                ?? principal?.FindFirst(VKClaimConstants.UserId)?.Value;
     }
 
@@ -38,6 +39,8 @@ public static class VKClaimsPrincipalExtensions
     /// <returns>The JTI if found; otherwise, null.</returns>
     public static VKAuthenticatedUser? GetVKAuthenticatedUser(this ClaimsPrincipal principal)
     {
+        VKGuard.NotNull(principal);
+
         var userId = principal.FindFirst(VKClaimConstants.UserId)?.Value;
         if (string.IsNullOrEmpty(userId))
         {

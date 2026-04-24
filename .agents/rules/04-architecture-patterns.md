@@ -18,11 +18,13 @@ trigger: always_on
 ### Rule 13 — Service Registration Pattern
 
 - Each BuildingBlock module MUST define a dedicated marker type (e.g. `public sealed class AuthenticationBlock;`).
-- Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Actual Registration, Mark-Self"** pattern:
-    1.  Check for self-registration via `IsVKBlockRegistered<OwnBlock>()` and return early if true.
-    2.  Validate prerequisites using `IsVKBlockRegistered<BaseBlock>()` and throw `InvalidOperationException` if missing.
-    3.  Perform actual service registration using idempotent patterns (see below).
-    4.  Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` immediately after options registration, but BEFORE any early returns related to feature-toggle (`Enabled`) checks. This ensures the block is recognized for dependency resolution.
+- Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Options/Mark-Self, Feature Toggle, Core Services"** pattern:
+    1.  **Check-Self & Check-Prerequisite**: Check for self-registration and validate dependencies recursively via `IsVKBlockRegistered<OwnBlock>()`. Return early if true. This "Smart Check" ensures that both idempotency and prerequisite safety (e.g. Core block existence) are handled in a single call.
+    2.  **Options Registration**: Register configuration options (`AddVKBlockOptions<T>`).
+    3.  **Mark-Self**: Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` immediately after options registration, but BEFORE any early returns related to feature-toggle (`Enabled`) checks. This ensures the block is recognized for dependency resolution.
+    4.  **Feature Toggle**: Return early if the feature is disabled (`!options.Enabled`).
+    5.  **Core Services**: Perform actual service registration using idempotent `TryAdd` patterns.
+- For the complete 8-step implementation sequence (including Options Validation and Diagnostics registration), refer to **Rule 18** in `05-block-blueprint.md`.
 - ALL idempotency checks (including `TOptions` registration) MUST use the semantic `IsVKBlockRegistered<T>()` helper instead of manual `Any()` checks.
 - Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`).
 - Direct `AddSingleton`/`AddScoped`/`AddTransient` is PROHIBITED within building block extensions.
@@ -30,18 +32,18 @@ trigger: always_on
 
 ### Rule 14 — Structural Organization
 
-#### Folder Layout & Naming Convention
+#### Depth-Based Visibility & Naming Convention
 
-- **Public API Surface**:
-  - **Location**: MUST be placed in first-level domain folders (e.g., `ApiKeys/`, NOT `Features/ApiKeys/`).
-  - **Namespace**: MUST use the library's root namespace (e.g., `namespace VK.Blocks.Authentication;`).
-  - **Naming**: MUST use the **`VK` prefix** for all public types (e.g., `VKApiKeyOptions`, `IVKApiKeyStore`, `VKAuthenticationBlock`, `VKBlockDiagnosticsAttribute`). 
-- **Encapsulated Internals**:
-  - **Location**: MUST be placed in an `Internal/` subfolder (2nd level or deeper).
-  - **Namespace**: MUST use the exact matching folder namespace (e.g., `namespace  VK.Blocks.Authentication.ApiKeys.Internal;`).
-  - **Naming**: MUST **NOT use the `VK` prefix** (e.g., `ApiKeyValidator`, NOT `VKApiKeyValidator`). Internal classification is handled by the namespace and directory structure.
+- **Level 1 (Public API Surface)**:
+  - **Location**: Any `.cs` file in a first-level folder (e.g., `ApiKeys/`) MUST be declared as `public`.
+  - **Namespace**: MUST use the library's flat root namespace (e.g., `namespace VK.Blocks.Authentication;`).
+  - **Naming**: MUST use the **`VK` prefix** for all public types (e.g., `VKApiKeyOptions`, `IVKApiKeyStore`) to prevent naming collisions in the flattened namespace.
+- **Level 2+ (Encapsulated Internals)**:
+  - **Location**: Any `.cs` file in a second-level or deeper folder (e.g., `ApiKeys/Internal/`, `ApiKeys/Persistence/`) MUST be declared as `internal`.
+  - **Namespace**: MUST use the exact matching folder namespace (e.g., `namespace VK.Blocks.Authentication.ApiKeys.Internal;`).
+  - **Naming**: MUST **NOT use the `VK` prefix** (e.g., `ApiKeyValidator`, NOT `VKApiKeyValidator`). Internal classification is handled by the namespace and directory depth.
 - **NO Type-Driven Folders**: Avoid grouping by technical type at the root level (e.g., separating all Handlers from Requirements).
-- **Naming**: Folder names MUST be noun-based and domain-driven.
+- **Folder Naming**: Folder names MUST be noun-based and domain-driven.
   ✅ ApiKeys/Internal/
   ❌ Features/HandleApiKeys/
 
@@ -65,6 +67,6 @@ trigger: always_on
 
 - ALL building block Options classes MUST implement `IVKBlockOptions` to support the zero-reflection pattern.
 - Configuration sections MUST be resolved using the standardized `AddVKBlockOptions<TOptions>(configuration)` primary wrapper.
-- Section names MUST follow the `VKBlocks:Category:Feature` hierarchy (e.g., `VKBlocks:Web:Cors`).
+- Section names MUST follow the `VKBlocksConstants.VKBlocksConfigPrefix + "{ModuleName}"` format (e.g., `VKBlocks:Authentication`).
 - The **Idempotent Dual-Registration Pattern** (IOptions + Singleton) MUST be maintained to allow building blocks synchronous access to their options during startup.
-- **Wrapper vs Core**: Modular registration MUST use the `[WRAPPER]` pattern receiving `IConfiguration` to delegate to the `[CORE]` implementation receiving `IConfigurationSection`.
+- **Wrapper vs Core**: Modular registration MUST use the public `[WRAPPER]` pattern receiving `IConfiguration` to delegate to the internal `[CORE]` registration logic.

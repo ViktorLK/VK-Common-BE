@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -15,8 +14,17 @@ internal static class JwtFeatureRegistration
 {
     internal static IVKAuthenticationBuilder Register(IVKAuthenticationBuilder builder)
     {
-        // 1. Options Registration
-        builder.AddFeatureOptions<AuthenticationBlock, VKJwtOptions>();
+        // 1. Check-Self (Rule 13 & 18.2)
+        if (builder.Services.IsVKBlockRegistered<JwtFeature>())
+        {
+            return builder;
+        }
+
+        // 2. Options Registration
+        VKJwtOptions jwtOptions = builder.Services.AddVKBlockOptions<VKJwtOptions>(builder.Configuration);
+
+        // 3. Mark-Self (Rule 13)
+        builder.Services.AddVKBlockMarker<JwtFeature>();
 
         // Safety check: skip if parent block is disabled
         if (builder.AuthBuilder is null)
@@ -24,7 +32,6 @@ internal static class JwtFeatureRegistration
             return builder;
         }
 
-        VKJwtOptions jwtOptions = builder.Configuration.GetSection(VKJwtOptions.SectionName).Get<VKJwtOptions>() ?? new VKJwtOptions();
         IServiceCollection services = builder.Services;
         AuthenticationBuilder authBuilder = builder.AuthBuilder;
 

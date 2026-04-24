@@ -1,14 +1,17 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace VK.Blocks.Authentication.Diagnostics.Internal;
 
 /// <summary>
 /// Internal constants for the Authentication diagnostics feature.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static constants for diagnostics and telemetry tagging.")]
 internal static class AuthenticationDiagnosticsConstants
 {
     /// <summary>
     /// The diagnostic source name for the Authentication block.
     /// </summary>
-    public static readonly string SourceName = AuthenticationBlock.Instance.ActivitySourceName;
+    public static readonly string SourceName = VKAuthenticationBlock.Instance.ActivitySourceName;
 
     /// <summary>
     /// Counter name for tracking authentication requests.

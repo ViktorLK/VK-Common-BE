@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,10 +11,11 @@ namespace VK.Blocks.Authentication.Diagnostics.Internal;
 /// <summary>
 /// Provides authentication-specific security metadata.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Infrastructure boilerplate for security topology and diagnostics metadata.")]
 internal sealed class AuthenticationMetadataProvider : IVKSecurityMetadataProvider
 {
     /// <inheritdoc />
-    public string Module => nameof(AuthenticationBlock);
+    public string Module => nameof(VKAuthenticationBlock);
 
     /// <inheritdoc />
     public async ValueTask<VKSecurityTopology> GetSecurityTopologyAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)

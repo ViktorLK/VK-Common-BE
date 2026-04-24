@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Base class for value objects — immutable, structurally-equal domain concepts
+/// Base class for value objects 窶・immutable, structurally-equal domain concepts
 /// with no identity of their own (e.g., Money, Address, DateRange).
 /// </summary>
 public abstract class VKValueObject : IEquatable<VKValueObject>

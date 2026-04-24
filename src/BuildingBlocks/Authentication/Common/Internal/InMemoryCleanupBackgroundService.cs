@@ -25,11 +25,9 @@ internal sealed class InMemoryCleanupBackgroundService(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // 1. Initial Scan: If no in-memory providers are active, stop the service immediately to save resources.
-        using (var initialScope = serviceProvider.CreateScope())
+        using (IServiceScope initialScope = serviceProvider.CreateScope())
         {
-            var activeProviders = cleanupProviders
-                .Where(p => ReferenceEquals(initialScope.ServiceProvider.GetService(p.AssociatedServiceType), p))
-                .ToList();
+            List<IInMemoryCacheCleanup> activeProviders = [.. cleanupProviders.Where(p => ReferenceEquals(initialScope.ServiceProvider.GetService(p.AssociatedServiceType), p))];
 
             _activeProvidersCount = activeProviders.Count;
 
@@ -51,15 +49,15 @@ internal sealed class InMemoryCleanupBackgroundService(
 
                 logger.LogEvaluatingCleanup(_activeProvidersCount);
 
-                using var scope = serviceProvider.CreateScope();
+                using IServiceScope scope = serviceProvider.CreateScope();
 
-                foreach (var provider in cleanupProviders)
+                foreach (IInMemoryCacheCleanup provider in cleanupProviders)
                 {
                     try
                     {
                         // Self-Adaptive Strategy: Only clean up if this in-memory instance is the active service in the container.
                         // If it has been replaced (e.g. by Redis), we skip it to avoid "ghost cleanup" noise.
-                        var activeService = scope.ServiceProvider.GetService(provider.AssociatedServiceType);
+                        object? activeService = scope.ServiceProvider.GetService(provider.AssociatedServiceType);
 
                         if (ReferenceEquals(activeService, provider))
                         {
