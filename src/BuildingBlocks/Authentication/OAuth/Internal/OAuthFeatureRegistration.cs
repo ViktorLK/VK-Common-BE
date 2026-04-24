@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Generated;
@@ -14,8 +13,17 @@ internal static class OAuthFeatureRegistration
 {
     internal static IVKAuthenticationBuilder Register(IVKAuthenticationBuilder builder)
     {
-        // 1. Options Registration
-        builder.AddFeatureOptions<AuthenticationBlock, VKOAuthOptions>();
+        // 1. Check-Self (Rule 13 & 18.2)
+        if (builder.Services.IsVKBlockRegistered<OAuthFeature>())
+        {
+            return builder;
+        }
+
+        // 2. Options Registration
+        VKOAuthOptions oauthOptions = builder.Services.AddVKBlockOptions<VKOAuthOptions>(builder.Configuration);
+
+        // 3. Mark-Self (Rule 13)
+        builder.Services.AddVKBlockMarker<OAuthFeature>();
 
         // Safety check: skip if parent block is disabled
         if (builder.AuthBuilder is null)
@@ -23,7 +31,6 @@ internal static class OAuthFeatureRegistration
             return builder;
         }
 
-        VKOAuthOptions oauthOptions = builder.Configuration.GetSection(VKOAuthOptions.SectionName).Get<VKOAuthOptions>() ?? new VKOAuthOptions();
         IServiceCollection services = builder.Services;
 
         // Custom validators MUST use TryAddEnumerable to prevent being blocked by the built-in validators registered in AddVKBlockOptions.

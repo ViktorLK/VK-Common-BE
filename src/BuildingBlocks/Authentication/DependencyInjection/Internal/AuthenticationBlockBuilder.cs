@@ -1,6 +1,7 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using FrameworkAuthenticationBuilder = Microsoft.AspNetCore.Authentication.AuthenticationBuilder;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.DependencyInjection.Internal;
 
@@ -10,9 +11,8 @@ namespace VK.Blocks.Authentication.DependencyInjection.Internal;
 internal sealed class AuthenticationBlockBuilder(
     IServiceCollection services,
     IConfiguration configuration,
-    FrameworkAuthenticationBuilder authBuilder) : IVKAuthenticationBuilder
+    AuthenticationBuilder authBuilder)
+    : VKBlockBuilder<VKAuthenticationBlock>(services, configuration), IVKAuthenticationBuilder
 {
-    public IServiceCollection Services { get; } = services;
-    public IConfiguration Configuration { get; } = configuration;
-    public FrameworkAuthenticationBuilder AuthBuilder { get; } = authBuilder;
+    public AuthenticationBuilder AuthBuilder { get; } = authBuilder;
 }

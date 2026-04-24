@@ -28,4 +28,13 @@ internal sealed class JwtSemanticSchemeProvider(IOptionsMonitor<VKJwtOptions> op
     }
 
     public IEnumerable<string> GetInternalSchemes() => [];
+
+    public IEnumerable<string> GetSchemesForPolicy(string policyName)
+    {
+        var jwt = options.CurrentValue;
+        if (policyName == VKAuthPolicies.Jwt && jwt.IsFeatureActivated())
+        {
+            yield return jwt.SchemeName;
+        }
+    }
 }

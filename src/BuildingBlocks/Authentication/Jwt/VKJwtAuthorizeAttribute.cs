@@ -6,4 +6,4 @@ namespace VK.Blocks.Authentication;
 /// Specialized authorization attribute for JWT-based authentication.
 /// Automatically applies the <see cref="VKAuthenticationConstants.JwtPolicy"/>.
 /// </summary>
-public sealed class JwtAuthorizeAttribute() : AuthorizeAttribute(VKAuthenticationConstants.JwtPolicy);
+public sealed class VKJwtAuthorizeAttribute() : AuthorizeAttribute(VKAuthenticationConstants.JwtPolicy);

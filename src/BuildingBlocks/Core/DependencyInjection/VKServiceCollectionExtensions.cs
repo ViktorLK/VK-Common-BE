@@ -53,4 +53,64 @@ public static class VKServiceCollectionExtensions
         VKGuard.NotNull(services).TryAddEnumerable(ServiceDescriptor.Transient<TService, TImplementation>());
         return services;
     }
+
+    /// <summary>
+    /// Try to add a scoped service registration that forwards to another registered service type (Instance Sharing).
+    /// </summary>
+    /// <typeparam name="TService">The service type or interface to register.</typeparam>
+    /// <typeparam name="TImplementation">The existing implementation type to forward to.</typeparam>
+    /// <param name="services">The service collection instance.</param>
+    /// <returns>The service collection instance for chaining.</returns>
+    public static IServiceCollection TryAddScopedForwarding<TService, TImplementation>(this IServiceCollection services)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        VKGuard.NotNull(services).TryAddScoped<TService>(sp => sp.GetRequiredService<TImplementation>());
+        return services;
+    }
+
+    /// <summary>
+    /// Try to add a singleton service registration that forwards to another registered service type (Instance Sharing).
+    /// </summary>
+    /// <typeparam name="TService">The service type or interface to register.</typeparam>
+    /// <typeparam name="TImplementation">The existing implementation type to forward to.</typeparam>
+    /// <param name="services">The service collection instance.</param>
+    /// <returns>The service collection instance for chaining.</returns>
+    public static IServiceCollection TryAddSingletonForwarding<TService, TImplementation>(this IServiceCollection services)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        VKGuard.NotNull(services).TryAddSingleton<TService>(sp => sp.GetRequiredService<TImplementation>());
+        return services;
+    }
+
+    /// <summary>
+    /// Try to add an enumerable scoped service registration that forwards to another registered service type (Instance Sharing).
+    /// </summary>
+    /// <typeparam name="TService">The service type or interface to register.</typeparam>
+    /// <typeparam name="TImplementation">The existing implementation type to forward to.</typeparam>
+    /// <param name="services">The service collection instance.</param>
+    /// <returns>The service collection instance for chaining.</returns>
+    public static IServiceCollection TryAddEnumerableScopedForwarding<TService, TImplementation>(this IServiceCollection services)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        VKGuard.NotNull(services).TryAddEnumerable(ServiceDescriptor.Scoped<TService, TImplementation>(sp => sp.GetRequiredService<TImplementation>()));
+        return services;
+    }
+
+    /// <summary>
+    /// Try to add an enumerable singleton service registration that forwards to another registered service type (Instance Sharing).
+    /// </summary>
+    /// <typeparam name="TService">The service type or interface to register.</typeparam>
+    /// <typeparam name="TImplementation">The existing implementation type to forward to.</typeparam>
+    /// <param name="services">The service collection instance.</param>
+    /// <returns>The service collection instance for chaining.</returns>
+    public static IServiceCollection TryAddEnumerableSingletonForwarding<TService, TImplementation>(this IServiceCollection services)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        VKGuard.NotNull(services).TryAddEnumerable(ServiceDescriptor.Singleton<TService, TImplementation>(sp => sp.GetRequiredService<TImplementation>()));
+        return services;
+    }
 }

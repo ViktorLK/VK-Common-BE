@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using VK.Blocks.Authentication.Common.Internal;
 using VK.Blocks.Core;
 
@@ -23,12 +24,12 @@ internal sealed class ApiKeyAuthenticationHandler(
     /// <inheritdoc />
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (!Request.Headers.TryGetValue(Options.HeaderName, out var rawApiKey))
+        if (!Request.Headers.TryGetValue(Options.HeaderName, out StringValues rawApiKey))
         {
             return AuthenticateResult.NoResult();
         }
 
-        var result = await validator.ValidateAsync(rawApiKey!, Context.RequestAborted).ConfigureAwait(false);
+        VKResult<ApiKeyContext> result = await validator.ValidateAsync(rawApiKey!, Context.RequestAborted).ConfigureAwait(false);
 
         // Check if the validation failed
         if (result.IsFailure)
@@ -36,7 +37,7 @@ internal sealed class ApiKeyAuthenticationHandler(
             return AuthenticateResult.Fail(result.FirstError.Description);
         }
 
-        var context = result.Value;
+        ApiKeyContext context = result.Value;
 
         List<Claim> claims = [
             new(VKClaimConstants.UserId,   context.OwnerId),
@@ -49,7 +50,7 @@ internal sealed class ApiKeyAuthenticationHandler(
             claims.Add(new Claim(VKClaimConstants.TenantId, context.TenantId));
         }
 
-        foreach (var scope in context.Scopes)
+        foreach (string scope in context.Scopes)
         {
             claims.Add(new Claim(VKClaimConstants.Scope, scope));
         }

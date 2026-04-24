@@ -28,4 +28,13 @@ internal sealed class ApiKeySemanticSchemeProvider(IOptionsMonitor<VKApiKeyOptio
             yield return apiKeyOptions.SchemeName;
         }
     }
+
+    public IEnumerable<string> GetSchemesForPolicy(string policyName)
+    {
+        VKApiKeyOptions apiKeyOptions = options.CurrentValue;
+        if (policyName == VKAuthPolicies.ApiKey && apiKeyOptions.Enabled)
+        {
+            yield return apiKeyOptions.SchemeName;
+        }
+    }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Authentication.Diagnostics.Internal;
@@ -6,10 +7,9 @@ namespace VK.Blocks.Authentication.Diagnostics.Internal;
 /// <summary>
 /// Source-generated logger for Claims transformation events.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static partial class ClaimsLog
 {
-    #region Logger Messages
-
     /// <summary>
     /// Logs an error that occurred during claims transformation for a specific user.
     /// </summary>
@@ -21,6 +21,4 @@ internal static partial class ClaimsLog
         Level = LogLevel.Error,
         Message = "VKError occurring during claims transformation for UserId: {UserId}")]
     public static partial void LogClaimsTransformationError(this ILogger logger, Exception ex, string? userId);
-
-    #endregion
 }

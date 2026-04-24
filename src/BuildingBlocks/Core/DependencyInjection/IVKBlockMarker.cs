@@ -20,7 +20,12 @@ namespace VK.Blocks.Core;
 public interface IVKBlockMarker
 {
     /// <summary>
-    /// Gets the unique identifier for the building block (e.g., "Caching").
+    /// Gets the canonical short name of the building block (e.g., "Authorization").
+    /// </summary>
+    string Name { get; }
+
+    /// <summary>
+    /// Gets the unique identifier for the building block (e.g., "VK.Blocks.Authorization").
     /// </summary>
     string Identifier { get; }
 

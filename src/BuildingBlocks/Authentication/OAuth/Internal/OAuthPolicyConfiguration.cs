@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Generated;
@@ -8,6 +9,7 @@ namespace VK.Blocks.Authentication.OAuth.Internal;
 /// Automatically configures individual authorization policies for discovered OAuth providers.
 /// Enables fine-grained authorization like [Authorize(Policy = "VK.Group.GitHub")].
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Boilerplate dependency injection and authorization policy configuration.")]
 internal sealed class OAuthPolicyConfiguration(IOptions<VKOAuthOptions> oauthOptions) : IConfigureOptions<AuthorizationOptions>
 {
     /// <inheritdoc />

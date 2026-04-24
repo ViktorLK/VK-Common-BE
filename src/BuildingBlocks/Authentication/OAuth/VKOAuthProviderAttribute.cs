@@ -7,13 +7,13 @@ namespace VK.Blocks.Authentication;
 /// Used for dynamic registration during application startup.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-public sealed class OAuthProviderAttribute : Attribute
+public sealed class VKOAuthProviderAttribute : Attribute
 {
     /// <summary>
-    /// Initializes a new instance of the <see cref="OAuthProviderAttribute"/> class.
+    /// Initializes a new instance of the <see cref="VKOAuthProviderAttribute"/> class.
     /// </summary>
     /// <param name="providerName">The name of the OAuth provider (e.g., "Google", "GitHub").</param>
-    public OAuthProviderAttribute(string providerName)
+    public VKOAuthProviderAttribute(string providerName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerName);
         ProviderName = providerName;

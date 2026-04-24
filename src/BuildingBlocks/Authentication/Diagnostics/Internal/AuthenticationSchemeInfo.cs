@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace VK.Blocks.Authentication.Diagnostics.Internal;
 
 /// <summary>
 /// Provides detailed diagnostic information about an authentication scheme.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Pure data record with no business logic, used for diagnostic reporting.")]
 internal sealed record AuthenticationSchemeInfo
 {
     /// <summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Authentication.ApiKeys.Internal;
@@ -6,6 +7,7 @@ namespace VK.Blocks.Authentication.ApiKeys.Internal;
 /// <summary>
 /// Source-generated logger for API Key related events.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Generated boilerplate by LoggerMessage source generator")]
 internal static partial class ApiKeyLog
 {
     /// <summary>

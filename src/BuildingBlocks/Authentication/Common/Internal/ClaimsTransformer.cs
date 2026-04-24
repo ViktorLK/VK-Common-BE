@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -11,16 +11,16 @@ using Microsoft.Extensions.Logging;
 using VK.Blocks.Authentication.Diagnostics.Internal;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Authentication;
+namespace VK.Blocks.Authentication.Common.Internal;
 
 /// <summary>
 /// Intercepts the ClaimsPrincipal after authentication to enrich it with permissions, tenant IDs, etc.
 /// It uses <see cref="IVKClaimsProvider"/> if registered in the DI container.
 /// </summary>
-public sealed class VKClaimsTransformer(
+internal sealed class ClaimsTransformer(
     IServiceScopeFactory scopeFactory,
     IHttpContextAccessor httpContextAccessor,
-    ILogger<VKClaimsTransformer> logger) : IClaimsTransformation
+    ILogger<ClaimsTransformer> logger) : IClaimsTransformation
 {
     /// <inheritdoc />
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -36,30 +36,30 @@ public sealed class VKClaimsTransformer(
             return principal;
         }
 
-        using var activity = AuthenticationDiagnostics.StartClaimsTransformation();
-        var startTime = Stopwatch.GetTimestamp();
+        using Activity? activity = AuthenticationDiagnostics.StartClaimsTransformation();
+        long startTime = Stopwatch.GetTimestamp();
 
-        var userId = principal.GetUserId();
+        string? userId = principal.GetUserId();
 
         if (string.IsNullOrEmpty(userId))
         {
             return principal;
         }
 
-        using var scope = scopeFactory.CreateScope();
-        var claimsProviders = (scope.ServiceProvider.GetService<IEnumerable<IVKClaimsProvider>>() ?? []).ToList();
+        using IServiceScope scope = scopeFactory.CreateScope();
+        List<IVKClaimsProvider> claimsProviders = [.. (scope.ServiceProvider.GetService<IEnumerable<IVKClaimsProvider>>() ?? [])];
 
         if (claimsProviders.Count > 0)
         {
             try
             {
                 // 2. Restore CancellationToken propagation via IHttpContextAccessor (Rule 3).
-                var cancellationToken = httpContextAccessor.HttpContext?.RequestAborted ?? default;
+                CancellationToken cancellationToken = httpContextAccessor.HttpContext?.RequestAborted ?? default;
 
                 List<Claim> allDynamicClaims = [];
-                foreach (var provider in claimsProviders)
+                foreach (IVKClaimsProvider provider in claimsProviders)
                 {
-                    var claims = await provider.GetUserClaimsAsync(userId, cancellationToken).ConfigureAwait(false);
+                    IEnumerable<Claim> claims = await provider.GetUserClaimsAsync(userId, cancellationToken).ConfigureAwait(false);
                     if (claims is not null)
                     {
                         allDynamicClaims.AddRange(claims);
@@ -69,7 +69,7 @@ public sealed class VKClaimsTransformer(
                 if (allDynamicClaims.Count > 0)
                 {
                     // 3. Clone the principal to keep the original immutable as per best practices.
-                    var clone = principal.Clone();
+                    ClaimsPrincipal clone = principal.Clone();
                     var newIdentity = (ClaimsIdentity)clone.Identity!;
 
                     newIdentity.AddClaims(allDynamicClaims);
@@ -77,7 +77,7 @@ public sealed class VKClaimsTransformer(
                     // 4. Mark the identity as transformed.
                     newIdentity.AddClaim(new Claim(VKClaimConstants.ClaimsTransformed, "true"));
 
-                    var durationMs = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
+                    double durationMs = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
                     AuthenticationDiagnostics.RecordClaimsTransformation(durationMs, applied: true);
                     activity?.SetTag(AuthenticationDiagnosticsConstants.TagClaimsTransformed, true);
 
@@ -95,7 +95,7 @@ public sealed class VKClaimsTransformer(
             }
         }
 
-        var finalDurationMs = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
+        double finalDurationMs = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
         AuthenticationDiagnostics.RecordClaimsTransformation(finalDurationMs, applied: false);
 
         return principal;

@@ -15,7 +15,7 @@ namespace VK.Blocks.Authentication.Diagnostics.Internal;
 /// Centralized Diagnostics definition for the VK.Blocks.Authentication building block.
 /// The Source Generator automatically emits the ActivitySource and Meter fields for this class.
 /// </summary>
-[BlockDiagnostics<AuthenticationBlock>]
+[VKBlockDiagnostics<VKAuthenticationBlock>]
 internal static partial class AuthenticationDiagnostics
 {
     // ActivitySource and Meter are generated automatically into a partial class.

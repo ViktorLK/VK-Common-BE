@@ -1,8 +1,10 @@
+using System;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authentication.Common.Internal;
 using VK.Blocks.Authentication.Diagnostics.Internal;
 using VK.Blocks.Authentication.Generated;
 using VK.Blocks.Core;
@@ -14,23 +16,27 @@ namespace VK.Blocks.Authentication.DependencyInjection.Internal;
 /// </summary>
 internal static class AuthenticationBlockRegistration
 {
-    internal static IVKAuthenticationBuilder Register(IServiceCollection services, IConfiguration configuration)
+    internal static IVKAuthenticationBuilder Register(
+        IServiceCollection services,
+        IConfiguration configuration,
+        Action<VKAuthenticationOptions>? configure = null)
     {
-        // 1. Prerequisites & Idempotency Check
-        if (services.IsVKBlockRegistered<AuthenticationBlock>())
+        // 1. Prerequisites & Idempotency Check (Smart Check)
+        // Rule 13: This handles both self-idempotency and recursive dependency validation.
+        if (services.IsVKBlockRegistered<VKAuthenticationBlock>())
         {
             return new AuthenticationBlockBuilder(services, configuration, null!);
         }
 
-        services.EnsureVKCoreBlockRegistered<AuthenticationBlock>();
-
         // 2. Options Registration
         // Rule 15: Bind options before marker registration
-        VKAuthenticationOptions vkAuthOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(configuration);
+        VKAuthenticationOptions vkAuthOptions = configure is null
+            ? services.AddVKBlockOptions<VKAuthenticationOptions>(configuration)
+            : services.AddVKBlockOptions(configure);
 
         // 3. Success Commit (Marker)
         // Rule 13: Register marker immediately after options but before feature-gate early return
-        services.AddVKBlockMarker<AuthenticationBlock>();
+        services.AddVKBlockMarker<VKAuthenticationBlock>();
 
         // 4. Options Validation (Mandatory for config safety)
         services.TryAddEnumerableSingleton<IValidateOptions<VKAuthenticationOptions>, AuthenticationOptionsValidator>();
@@ -46,7 +52,7 @@ internal static class AuthenticationBlockRegistration
 
         // 7. Core Infrastructure
         // Must register BEFORE framework to win over NoopClaimsTransformation in AddAuthentication()
-        services.TryAddTransient<IClaimsTransformation, VKClaimsTransformer>();
+        services.TryAddTransient<IClaimsTransformation, ClaimsTransformer>();
 
         // 8. Framework Integration
         // This registers AddAuthentication and sets up the builder properly

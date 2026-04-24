@@ -6,7 +6,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Defines a builder for configuring authentication services within the VK.Blocks framework.
 /// </summary>
-public interface IVKAuthenticationBuilder : IVKBlockBuilder<AuthenticationBlock>
+public interface IVKAuthenticationBuilder : IVKBlockBuilder<VKAuthenticationBlock>
 {
     /// <summary>
     /// Gets the underlying ASP.NET Core authentication builder.
