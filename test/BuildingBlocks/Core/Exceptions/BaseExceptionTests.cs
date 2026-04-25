@@ -1,50 +1,50 @@
-using FluentAssertions;
-using VK.Blocks.Core.Exceptions;
-
 namespace VK.Blocks.Core.UnitTests.Exceptions;
 
-public class TestException : BaseException
+public class VKBaseExceptionTests
 {
-    public TestException(string code, string message, int statusCode = 400, bool isPublic = true)
-        : base(code, message, statusCode, isPublic)
+    private sealed class TestException(
+        string code,
+        string message,
+        int statusCode = 400,
+        bool isPublic = true) : VKBaseException(code, message, statusCode, isPublic)
     {
-    }
-}
-
-public class BaseExceptionTests
-{
-    [Fact]
-    public void Constructor_ValidArguments_SetsPropertiesCorrectly()
-    {
-        // Arrange
-        var code = "TEST_CODE";
-        var message = "Test exception message";
-        var statusCode = 500;
-        var isPublic = false;
-
-        // Act
-        var ex = new TestException(code, message, statusCode, isPublic);
-
-        // Assert
-        ex.Code.Should().Be(code);
-        ex.Message.Should().Be(message);
-        ex.StatusCode.Should().Be(statusCode);
-        ex.IsPublic.Should().Be(isPublic);
-        ex.Extensions.Should().BeEmpty();
+        public void AddMetadata(string key, object? value) => SetExtension(key, value);
     }
 
     [Fact]
-    public void Constructor_NullCode_ThrowsArgumentNullException()
+    public void Constructor_SetsProperties()
     {
-        // Arrange
-        string code = null!;
-        var message = "Test exception message";
-
         // Act
-        Action act = () => new TestException(code, message);
+        var ex = new TestException("Auth.Failed", "Login failed", 401, false);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>()
-           .WithParameterName("code");
+        ex.Code.Should().Be("Auth.Failed");
+        ex.Message.Should().Be("Login failed");
+        ex.StatusCode.Should().Be(401);
+        ex.IsPublic.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Constructor_WithNullCode_ThrowsArgumentNullException()
+    {
+        // Act
+        Action act = () => new TestException(null!, "Message");
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("code");
+    }
+
+    [Fact]
+    public void SetExtension_AddsMetadata()
+    {
+        // Arrange
+        var ex = new TestException("Test", "Msg");
+
+        // Act
+        ex.AddMetadata("TenantId", "123");
+
+        // Assert
+        ex.Extensions.Should().ContainKey("TenantId")
+            .WhoseValue.Should().Be("123");
     }
 }
