@@ -18,7 +18,7 @@ internal static partial class JwtLog
         EventId = 2101,
         Level = LogLevel.Error,
         Message = "JWT Validation options are not configured properly.")]
-    public static partial void LogOptionsNotConfigured(this ILogger logger);
+    internal static partial void LogOptionsNotConfigured(this ILogger logger);
 
     /// <summary>
     /// Logs a message indicating that authentication failed for a token.
@@ -30,7 +30,7 @@ internal static partial class JwtLog
         EventId = 2102,
         Level = LogLevel.Warning,
         Message = "Failed to authenticate token. Reason: {ErrorCode}")]
-    public static partial void LogAuthenticationFailed(this ILogger logger, Exception? ex, string errorCode);
+    internal static partial void LogAuthenticationFailed(this ILogger logger, Exception? ex, string errorCode);
 
     /// <summary>
     /// Logs a message indicating an unexpected error during JWT authentication.
@@ -41,7 +41,7 @@ internal static partial class JwtLog
         EventId = 2103,
         Level = LogLevel.Warning,
         Message = "Unexpected error occurring during JWT authentication.")]
-    public static partial void LogUnexpectedAuthenticationError(this ILogger logger, Exception ex);
+    internal static partial void LogUnexpectedAuthenticationError(this ILogger logger, Exception ex);
 
     /// <summary>
     /// Logs a message indicating an invalid refresh token validation request.
@@ -51,7 +51,7 @@ internal static partial class JwtLog
         EventId = 2111,
         Level = LogLevel.Warning,
         Message = "Invalid refresh token validation request: JTI or FamilyId is missing.")]
-    public static partial void LogInvalidRefreshTokenRequest(this ILogger logger);
+    internal static partial void LogInvalidRefreshTokenRequest(this ILogger logger);
 
     /// <summary>
     /// Logs a message indicating a potential refresh token replay attack.
@@ -63,5 +63,5 @@ internal static partial class JwtLog
         EventId = 2112,
         Level = LogLevel.Warning,
         Message = "Potential refresh token replay attack detected! FamilyId: {FamilyId}, JTI: {Jti}. The token has been reused.")]
-    public static partial void LogRefreshTokenReplayDetected(this ILogger logger, string familyId, string jti);
+    internal static partial void LogRefreshTokenReplayDetected(this ILogger logger, string familyId, string jti);
 }

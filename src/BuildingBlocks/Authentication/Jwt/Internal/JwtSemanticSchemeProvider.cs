@@ -7,11 +7,11 @@ namespace VK.Blocks.Authentication.Jwt.Internal;
 /// <summary>
 /// Publishes JWT authentication schemes for semantic group policies.
 /// </summary>
-internal sealed class JwtSemanticSchemeProvider(IOptionsMonitor<VKJwtOptions> options) : IVKSemanticSchemeProvider
+internal sealed class JwtSemanticSchemeProvider(IOptions<VKJwtOptions> options) : IVKSemanticSchemeProvider
 {
     public IEnumerable<string> GetUserSchemes()
     {
-        var jwt = options.CurrentValue;
+        var jwt = options.Value;
         if (jwt.IsFeatureActivated())
         {
             yield return jwt.SchemeName;
@@ -20,7 +20,7 @@ internal sealed class JwtSemanticSchemeProvider(IOptionsMonitor<VKJwtOptions> op
 
     public IEnumerable<string> GetServiceSchemes()
     {
-        var jwt = options.CurrentValue;
+        var jwt = options.Value;
         if (jwt.IsFeatureActivated())
         {
             yield return jwt.SchemeName;
@@ -31,7 +31,7 @@ internal sealed class JwtSemanticSchemeProvider(IOptionsMonitor<VKJwtOptions> op
 
     public IEnumerable<string> GetSchemesForPolicy(string policyName)
     {
-        var jwt = options.CurrentValue;
+        var jwt = options.Value;
         if (policyName == VKAuthPolicies.Jwt && jwt.IsFeatureActivated())
         {
             yield return jwt.SchemeName;

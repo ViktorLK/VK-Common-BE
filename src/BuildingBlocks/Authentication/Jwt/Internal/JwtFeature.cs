@@ -2,5 +2,5 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.Jwt.Internal;
 
-[VKFeatureMarker("Jwt", typeof(VKAuthenticationBlock))]
+[VKFeatureMarker(JwtConstants.FeatureName, typeof(VKAuthenticationBlock))]
 internal sealed partial class JwtFeature;

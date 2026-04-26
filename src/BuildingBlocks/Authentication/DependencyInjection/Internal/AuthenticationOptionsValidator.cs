@@ -27,28 +27,6 @@ internal sealed class AuthenticationOptionsValidator : IValidateOptions<VKAuthen
             return ValidateOptionsResult.Fail(VKAuthenticationConstants.MinCleanupIntervalId);
         }
 
-        // 2. Validate Strategy Consistency
-        if (options.Jwt.Enabled && string.IsNullOrWhiteSpace(options.Jwt.SchemeName))
-        {
-            return ValidateOptionsResult.Fail(string.Format(VKAuthenticationConstants.JwtValidationFailedTemplate, options.Jwt.SchemeName));
-        }
-
-        if (options.OAuth.Enabled && string.IsNullOrWhiteSpace(VKOAuthOptions.SectionName))
-        {
-            return ValidateOptionsResult.Fail(string.Format(VKAuthenticationConstants.OAuthValidationFailedTemplate, VKOAuthOptions.SectionName));
-        }
-
-        if (options.ApiKey.Enabled && string.IsNullOrWhiteSpace(options.ApiKey.HeaderName))
-        {
-            return ValidateOptionsResult.Fail(string.Format(VKAuthenticationConstants.ApiKeyValidationFailedTemplate, options.ApiKey.HeaderName));
-        }
-
-        // 3. Overall validation (at least one strategy should be enabled if the block is enabled)
-        if (!options.Jwt.Enabled && !options.ApiKey.Enabled && !options.OAuth.Enabled)
-        {
-            return ValidateOptionsResult.Fail(VKAuthenticationConstants.AtLeastOneStrategyRequired);
-        }
-
         return ValidateOptionsResult.Success;
     }
 }

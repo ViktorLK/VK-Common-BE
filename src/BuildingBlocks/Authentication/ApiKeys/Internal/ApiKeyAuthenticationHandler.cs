@@ -65,6 +65,6 @@ internal sealed class ApiKeyAuthenticationHandler(
     /// <inheritdoc />
     protected override Task HandleChallengeAsync(AuthenticationProperties properties)
     {
-        return AuthenticationResponseHelper.WriteUnauthorizedResponseAsync(Context, "API key is missing or invalid");
+        return AuthenticationResponseHelper.WriteUnauthorizedResponseAsync(Context, ApiKeyConstants.UnauthorizedMessage);
     }
 }

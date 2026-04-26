@@ -38,11 +38,31 @@ JWT (自己発行 / OIDC)、API Key、OAuth の 3 つの認証戦略を `appsett
 
 ### 導入例
 
+#### 基本的な登録
+`appsettings.json` の設定に基づき、必要な機能を有効化します。
+
 ```csharp
 builder.Services.AddVKAuthenticationBlock(builder.Configuration)
-    .AddVKJwt()              // JWT 認証を有効化
-    .AddVKApiKeys()           // API Key 認証を有効化
-    .AddVKOAuth();           // OAuth 認証を有効化
+    .AddVKJwt()              // JWT 認証を有効化 (VKBlocks:Authentication:Jwt セクション)
+    .AddVKApiKeys()           // API Key 認証を有効化 (VKBlocks:Authentication:ApiKeys セクション)
+    .AddVKOAuth();           // OAuth 認証を有効化 (VKBlocks:Authentication:OAuth セクション)
+```
+
+#### コードによる構成のカスタマイズ (ADR-016)
+不変レコード (`record`) と `with` 式を利用して、設定ファイルの内容をコード上で型安全に上書きできます。
+
+```csharp
+builder.Services.AddVKAuthenticationBlock(builder.Configuration)
+    .AddVKJwt(options => options with 
+    { 
+        Issuer = "https://custom-issuer.com",
+        ExpiryMinutes = 120 
+    })
+    .AddVKApiKeys(options => options with 
+    { 
+        HeaderName = "X-CUSTOM-API-KEY",
+        EnableRateLimiting = true 
+    });
 ```
 
 詳細は [/src/BuildingBlocks/Authentication.OpenIdConnect/README.md](/src/BuildingBlocks/Authentication.OpenIdConnect/README.md) を参照してください。
@@ -359,7 +379,8 @@ services.TryAddEnumerableSingleton<IValidateOptions<MyOptions>, MyValidator>();
 
 | 機能                             | 概要                                                  |
 | -------------------------------- | ----------------------------------------------------- |
-| **Auth Scheme Hot-Reload**       | IOptionsMonitor による認証スキーム (JWT/API Key 等) のリアルタイム構成更新 |
+| **Immutable Configuration**      | ADR-016 に基づく不変 Options (init) による高効率な構成管理 |
+| **Auth Scheme Support**          | 標準的な認証スキーム (JWT/API Key 等) のシームレスな統合 |
 | **Dynamic Session Revocation**   | 全デバイスログアウト / セッション単位のリモート無効化 |
 | **Scoped API Keys**              | リソース単位のアクセス制御 (PoLP)                     |
 | **Multi-Tenant Auth Isolation**  | テナントごとの OIDC プロバイダー動的切り替え          |

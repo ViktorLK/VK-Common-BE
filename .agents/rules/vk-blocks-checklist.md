@@ -81,6 +81,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
     - ✅/❌ Service Marker → (DI registration using IsVKBlockRegistered/AddVKBlockMarker) [actual finding]
     - ✅/❌ Idempotent Options → (DI registration using IVKBlockOptions standard) [actual finding]
     - ✅/❌ Hierarchical Config → (Rule 21: Args vs Options priority) [actual finding]
+    - ✅/❌ Immutable Config → (ADR-016: Func transformation instead of Action) [actual finding]
     - ✅/❌ Span, stackalloc & ArrayPool → (string parsing / buffer management)
 
 - **Language**: Code, comments, and commit messages in English. Explanations and ADR in **Professional Japanese**.

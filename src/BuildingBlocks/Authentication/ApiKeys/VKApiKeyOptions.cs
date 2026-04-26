@@ -1,4 +1,5 @@
 using System;
+using VK.Blocks.Authentication.ApiKeys.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication;
@@ -11,7 +12,7 @@ public sealed record VKApiKeyOptions : IVKBlockOptions
     /// <summary>
     /// The configuration section name for ApiKey options.
     /// </summary>
-    public static string SectionName => VKAuthenticationOptions.SectionName + ":" + VKAuthenticationOptions.ApiKeySection;
+    public static string SectionName => $"{VKAuthenticationOptions.SectionName}:{VKAuthenticationOptions.ApiKeySection}";
 
     /// <summary>
     /// Gets or sets a value indicating whether API key authentication is enabled.
@@ -23,13 +24,13 @@ public sealed record VKApiKeyOptions : IVKBlockOptions
     /// Gets or sets the authentication scheme name.
     /// Defaults to "ApiKey".
     /// </summary>
-    public string SchemeName { get; init; } = "ApiKey";
+    public string SchemeName { get; init; } = ApiKeyConstants.DefaultAuthType;
 
     /// <summary>
     /// Gets or sets the header name used to pass the API key.
     /// Defaults to "X-Api-Key".
     /// </summary>
-    public string HeaderName { get; init; } = "X-Api-Key";
+    public string HeaderName { get; init; } = ApiKeyConstants.DefaultHeaderName;
 
     /// <summary>
     /// Gets or sets the minimum required length for a raw API key.

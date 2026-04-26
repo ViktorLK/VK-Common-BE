@@ -74,7 +74,8 @@ trigger: always_on
 ### Rule 15 — Configuration Pattern (Zero-Reflection)
 
 - ALL building block Options classes MUST implement `IVKBlockOptions` to support the zero-reflection pattern.
-- Configuration sections MUST be resolved using the standardized `AddVKBlockOptions<TOptions>(configuration)` primary wrapper.
+- Configuration sections MUST be resolved using the standardized `AddVKBlockOptions<TOptions>(configuration, transform)` primary wrapper.
+- **Functional Transformation (ADR-016)**: To support immutable `init` properties and `record` types, all configuration delegates MUST use the **`Func<T, T>`** pattern instead of `Action<T>`. This allows the use of `with` expressions for non-destructive mutation: `services.AddVKBlockOptions<T>(config, options => options with { Prop = value })`.
 - Section names MUST follow the `VKBlocksConstants.VKBlocksConfigPrefix + "{ModuleName}"` format (e.g., `VKBlocks:Authentication`).
 - The **Idempotent Dual-Registration Pattern** (IOptions + Singleton) MUST be maintained to allow building blocks synchronous access to their options during startup.
 - **Wrapper vs Core**: Modular registration MUST use the public `[WRAPPER]` pattern receiving `IConfiguration` to delegate to the internal `[CORE]` registration logic.

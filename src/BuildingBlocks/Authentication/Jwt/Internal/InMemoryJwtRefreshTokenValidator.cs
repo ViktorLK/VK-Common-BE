@@ -16,7 +16,7 @@ namespace VK.Blocks.Authentication.Jwt.Internal;
 /// using <see cref="ConcurrentDictionary{TKey,TValue}"/>.
 /// </summary>
 internal sealed class InMemoryJwtRefreshTokenValidator(
-    IOptionsMonitor<VKJwtOptions> options,
+    IOptions<VKJwtOptions> options,
     TimeProvider timeProvider,
     ILogger<InMemoryJwtRefreshTokenValidator> logger) : IVKJwtRefreshValidator, IInMemoryCacheCleanup, IAsyncDisposable
 {
@@ -59,7 +59,7 @@ internal sealed class InMemoryJwtRefreshTokenValidator(
         }
 
         // Cache the consumed JTI.
-        int ttlDays = options.CurrentValue.RefreshTokenLifetimeDays;
+        int ttlDays = options.Value.RefreshTokenLifetimeDays;
         DateTimeOffset newExpiration = timeProvider.GetUtcNow().AddDays(ttlDays);
 
         _consumedJtis.AddOrUpdate(cacheKey, newExpiration, (_, _) => newExpiration);

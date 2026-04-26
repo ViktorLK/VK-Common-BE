@@ -19,7 +19,7 @@ internal sealed class ApiKeyValidator(
     IVKApiKeyStore apiKeyStore,
     IVKApiKeyRevocationProvider revocationProvider,
     IVKApiKeyRateLimiter rateLimiter,
-    IOptionsMonitor<VKApiKeyOptions> options,
+    IOptions<VKApiKeyOptions> options,
     TimeProvider timeProvider,
     ILogger<ApiKeyValidator> logger)
 {
@@ -35,7 +35,7 @@ internal sealed class ApiKeyValidator(
     {
         using Activity? activity = AuthenticationDiagnostics.StartApiKeyValidation();
 
-        VKApiKeyOptions settings = options.CurrentValue;
+        VKApiKeyOptions settings = options.Value;
 
         // Enforce input presence and minimum length
         if (string.IsNullOrWhiteSpace(rawApiKey) || rawApiKey.Length < settings.MinLength)

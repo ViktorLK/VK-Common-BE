@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -12,7 +13,9 @@ namespace VK.Blocks.Authentication.Jwt.Internal;
 /// </summary>
 internal static class JwtFeatureRegistration
 {
-    internal static IVKAuthenticationBuilder Register(IVKAuthenticationBuilder builder)
+    internal static IVKAuthenticationBuilder Register(
+        IVKAuthenticationBuilder builder,
+        Func<VKJwtOptions, VKJwtOptions>? transform = null)
     {
         // 1. Check-Self (Rule 13 & 18.2)
         if (builder.Services.IsVKBlockRegistered<JwtFeature>())
@@ -21,7 +24,8 @@ internal static class JwtFeatureRegistration
         }
 
         // 2. Options Registration
-        VKJwtOptions jwtOptions = builder.Services.AddVKBlockOptions<VKJwtOptions>(builder.Configuration);
+        // ADR-016: Functional transformation from configuration section
+        VKJwtOptions jwtOptions = builder.Services.AddVKBlockOptions<VKJwtOptions>(builder.Configuration, transform);
 
         // 3. Mark-Self (Rule 13)
         builder.Services.AddVKBlockMarker<JwtFeature>();

@@ -15,7 +15,7 @@ internal static class JwtValidationFactory
     /// </summary>
     /// <param name="options">The JWT options.</param>
     /// <returns>Configured <see cref="TokenValidationParameters"/>.</returns>
-    public static TokenValidationParameters Create(VKJwtOptions options)
+    internal static TokenValidationParameters Create(VKJwtOptions options)
     {
         var parameters = new TokenValidationParameters
         {

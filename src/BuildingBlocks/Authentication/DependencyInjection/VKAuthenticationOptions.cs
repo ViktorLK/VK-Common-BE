@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication;
@@ -28,33 +29,17 @@ public sealed record VKAuthenticationOptions : IVKBlockOptions
     public const string OAuthSection = "OAuth";
 
     /// <summary>
-    /// Gets or sets a value indicating whether authentication is enabled.
+    /// Gets a value indicating whether the authentication block is enabled.
     /// </summary>
     public bool Enabled { get; init; } = false;
 
     /// <summary>
     /// Gets or sets the default authentication scheme.
     /// </summary>
-    public string DefaultScheme { get; init; } = "Bearer";
+    public string DefaultScheme { get; init; } = JwtBearerDefaults.AuthenticationScheme;
 
     /// <summary>
-    /// Gets or sets the interval in minutes for periodic in-memory cache cleanup.
-    /// Default is 10 minutes.
+    /// Gets or sets the interval for cleaning up the in-memory token cache.
     /// </summary>
-    public int InMemoryCleanupIntervalMinutes { get; init; } = 10;
-
-    /// <summary>
-    /// Gets or sets the configuration options for JWT tokens.
-    /// </summary>
-    public VKJwtOptions Jwt { get; init; } = new();
-
-    /// <summary>
-    /// Gets or sets the configuration options for API Keys.
-    /// </summary>
-    public VKApiKeyOptions ApiKey { get; init; } = new();
-
-    /// <summary>
-    /// Gets or sets the configuration options for OAuth providers.
-    /// </summary>
-    public VKOAuthOptions OAuth { get; init; } = new();
+    public int InMemoryCleanupIntervalMinutes { get; init; } = 15;
 }

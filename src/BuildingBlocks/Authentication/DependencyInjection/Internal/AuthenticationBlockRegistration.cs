@@ -19,7 +19,7 @@ internal static class AuthenticationBlockRegistration
     internal static IVKAuthenticationBuilder Register(
         IServiceCollection services,
         IConfiguration configuration,
-        Action<VKAuthenticationOptions>? configure = null)
+        Func<VKAuthenticationOptions, VKAuthenticationOptions>? configure = null)
     {
         // 1. Prerequisites & Idempotency Check (Smart Check)
         // Rule 13: This handles both self-idempotency and recursive dependency validation.
@@ -30,9 +30,8 @@ internal static class AuthenticationBlockRegistration
 
         // 2. Options Registration
         // Rule 15: Bind options before marker registration
-        VKAuthenticationOptions vkAuthOptions = configure is null
-            ? services.AddVKBlockOptions<VKAuthenticationOptions>(configuration)
-            : services.AddVKBlockOptions(configure);
+        // ADR-016: Use functional transformation to support immutable options
+        VKAuthenticationOptions vkAuthOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(configuration, configure);
 
         // 3. Success Commit (Marker)
         // Rule 13: Register marker immediately after options but before feature-gate early return

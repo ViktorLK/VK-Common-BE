@@ -11,7 +11,7 @@ public sealed record VKJwtOptions : IVKBlockOptions
     /// <summary>
     /// The configuration section name for Jwt options.
     /// </summary>
-    public static string SectionName => VKAuthenticationOptions.SectionName + ":" + VKAuthenticationOptions.JwtSection;
+    public static string SectionName => $"{VKAuthenticationOptions.SectionName}:{VKAuthenticationOptions.JwtSection}";
 
     /// <summary>
     /// Gets or sets a value indicating whether JWT validation is enabled.

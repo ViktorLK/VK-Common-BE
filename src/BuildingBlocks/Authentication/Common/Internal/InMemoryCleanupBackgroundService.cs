@@ -16,7 +16,7 @@ namespace VK.Blocks.Authentication.Common.Internal;
 internal sealed class InMemoryCleanupBackgroundService(
     IServiceProvider serviceProvider,
     IEnumerable<IInMemoryCacheCleanup> cleanupProviders,
-    IOptionsMonitor<VKAuthenticationOptions> options,
+    IOptions<VKAuthenticationOptions> options,
     ILogger<InMemoryCleanupBackgroundService> logger) : BackgroundService
 {
     private int _activeProvidersCount;
@@ -44,7 +44,7 @@ internal sealed class InMemoryCleanupBackgroundService(
         {
             try
             {
-                var interval = TimeSpan.FromMinutes(options.CurrentValue.InMemoryCleanupIntervalMinutes);
+                var interval = TimeSpan.FromMinutes(options.Value.InMemoryCleanupIntervalMinutes);
                 await Task.Delay(interval, stoppingToken).ConfigureAwait(false);
 
                 logger.LogEvaluatingCleanup(_activeProvidersCount);

@@ -68,6 +68,7 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 ### Rule 20 — Options Architecture
 
 - **Immutability**: MUST be a `sealed record` with `init` properties.
+- **Functional Transformation (ADR-016)**: ANY code-based configuration MUST use the **`Func<T, T> transform`** pattern (instead of `Action<T>`) to support immutability via `with` expressions.
 - **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions`).
 - **Interface**: MUST implement `IVKBlockOptions` (as required by Rule 15).
 - **SectionName**: Formatted according to Rule 15.

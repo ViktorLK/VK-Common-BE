@@ -20,5 +20,5 @@ internal static partial class ClaimsLog
         EventId = 2201,
         Level = LogLevel.Error,
         Message = "VKError occurring during claims transformation for UserId: {UserId}")]
-    public static partial void LogClaimsTransformationError(this ILogger logger, Exception ex, string? userId);
+    internal static partial void LogClaimsTransformationError(this ILogger logger, Exception ex, string? userId);
 }
