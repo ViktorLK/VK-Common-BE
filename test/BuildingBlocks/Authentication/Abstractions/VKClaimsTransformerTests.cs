@@ -1,40 +1,43 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using VK.Blocks.Authentication.Abstractions;
-using VK.Blocks.Authentication.Common.Extensions;
-
+using VK.Blocks.Authentication.Common.Internal;
+using VK.Blocks.Core;
 namespace VK.Blocks.Authentication.UnitTests.Abstractions;
 
 public sealed class VKClaimsTransformerTests
 {
     private readonly Mock<IServiceScopeFactory> _scopeFactoryMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-    private readonly Mock<ILogger<VKClaimsTransformer>> _loggerMock;
+    private readonly Mock<ILogger<ClaimsTransformer>> _loggerMock;
     private readonly Mock<IVKClaimsProvider> _claimsProviderMock;
     private readonly Mock<IServiceScope> _scopeMock;
     private readonly Mock<IServiceProvider> _serviceProviderMock;
-    private readonly VKClaimsTransformer _transformer;
+    private readonly ClaimsTransformer _transformer;
 
     public VKClaimsTransformerTests()
     {
         _scopeFactoryMock = new Mock<IServiceScopeFactory>();
         _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        _loggerMock = new Mock<ILogger<VKClaimsTransformer>>();
+        _loggerMock = new Mock<ILogger<ClaimsTransformer>>();
         _claimsProviderMock = new Mock<IVKClaimsProvider>();
         _scopeMock = new Mock<IServiceScope>();
         _serviceProviderMock = new Mock<IServiceProvider>();
 
         _scopeFactoryMock.Setup(x => x.CreateScope()).Returns(_scopeMock.Object);
         _scopeMock.Setup(x => x.ServiceProvider).Returns(_serviceProviderMock.Object);
-        
+
         _loggerMock.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        
-        _transformer = new VKClaimsTransformer(
+
+        _transformer = new ClaimsTransformer(
             _scopeFactoryMock.Object,
             _httpContextAccessorMock.Object,
             _loggerMock.Object);
@@ -60,7 +63,7 @@ public sealed class VKClaimsTransformerTests
     {
         // Arrange
         var identity = new ClaimsIdentity("Test");
-        identity.AddClaim(new Claim(VKClaimTypes.ClaimsTransformed, "true"));
+        identity.AddClaim(new Claim(VKClaimConstants.ClaimsTransformed, "true"));
         var principal = new ClaimsPrincipal(identity);
 
         // Act
@@ -94,7 +97,7 @@ public sealed class VKClaimsTransformerTests
         identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, "user-123"));
         var principal = new ClaimsPrincipal(identity);
 
-        _serviceProviderMock.Setup(x => x.GetService(typeof(IVKClaimsProvider))).Returns((object?)null);
+        _serviceProviderMock.Setup(x => x.GetService(typeof(IEnumerable<IVKClaimsProvider>))).Returns(Enumerable.Empty<IVKClaimsProvider>());
 
         // Act
         var result = await _transformer.TransformAsync(principal);
@@ -113,7 +116,8 @@ public sealed class VKClaimsTransformerTests
         var principal = new ClaimsPrincipal(identity);
 
         var extraClaims = new List<Claim> { new Claim("Permission", "Read") };
-        _serviceProviderMock.Setup(x => x.GetService(typeof(IVKClaimsProvider))).Returns(_claimsProviderMock.Object);
+        _serviceProviderMock.Setup(x => x.GetService(typeof(IEnumerable<IVKClaimsProvider>)))
+            .Returns(new[] { _claimsProviderMock.Object });
         _claimsProviderMock.Setup(x => x.GetUserClaimsAsync("user-123", It.IsAny<CancellationToken>()))
             .ReturnsAsync(extraClaims);
 
@@ -123,7 +127,7 @@ public sealed class VKClaimsTransformerTests
         // Assert
         result.Should().NotBeSameAs(principal);
         result.HasClaim("Permission", "Read").Should().BeTrue();
-        result.HasClaim(VKClaimTypes.ClaimsTransformed, "true").Should().BeTrue();
+        result.HasClaim(VKClaimConstants.ClaimsTransformed, "true").Should().BeTrue();
     }
 
     [Fact]
@@ -138,8 +142,9 @@ public sealed class VKClaimsTransformerTests
         var context = new DefaultHttpContext { RequestAborted = cts.Token };
         _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(context);
 
-        _serviceProviderMock.Setup(x => x.GetService(typeof(IVKClaimsProvider))).Returns(_claimsProviderMock.Object);
-        
+        _serviceProviderMock.Setup(x => x.GetService(typeof(IEnumerable<IVKClaimsProvider>)))
+            .Returns(new[] { _claimsProviderMock.Object });
+
         // Act
         await _transformer.TransformAsync(principal);
 
@@ -155,16 +160,17 @@ public sealed class VKClaimsTransformerTests
         identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, "user-123"));
         var principal = new ClaimsPrincipal(identity);
 
-        _serviceProviderMock.Setup(x => x.GetService(typeof(IVKClaimsProvider))).Returns(_claimsProviderMock.Object);
+        _serviceProviderMock.Setup(x => x.GetService(typeof(IEnumerable<IVKClaimsProvider>)))
+            .Returns(new[] { _claimsProviderMock.Object });
         _claimsProviderMock.Setup(x => x.GetUserClaimsAsync("user-123", It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("DB Error"));
+            .ThrowsAsync(new Exception("DB VKError"));
 
         // Act
         var result = await _transformer.TransformAsync(principal);
 
         // Assert
         result.Should().BeSameAs(principal);
-        
+
         // Verify logger was called
         _loggerMock.Verify(
             x => x.Log(

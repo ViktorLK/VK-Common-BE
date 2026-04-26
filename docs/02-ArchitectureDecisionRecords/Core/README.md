@@ -96,7 +96,29 @@
 **概要**: `Result` 型を `VKResult` へ刷新し、成功インスタンスのキャッシュによる GC 負荷低減と、`VKError` によるエラー定数管理を標準化。  
 **キーワード**: Result Pattern, VKError, Performance, Standardization
 
+#### [ADR-014: Adoption of Hierarchical Configuration Pattern for Dynamic Call Behaviors](/docs/02-ArchitectureDecisionRecords/Core/adr-014-adoption-of-hierarchical-configuration-pattern-for-dynamic-call-behaviors.md)
+
+**Status**: ✅ Accepted  
+**概要**: 静的な構成（Options）と動的な上書き（ExecutionSettings）をマージする「階層的構成パターン」を全ビルドブロックの標準ルールとして採用する。  
+**キーワード**: Hierarchical Configuration, Dynamic Overrides, Default Priority
+
 ---
 
-**Last Updated**: 2026-04-22  
-**Total ADRs**: 13
+#### [ADR-015: Adopt Vertical Slices and Mandatory Core Abstractions in Building Blocks](./adr-015-adopt-vertical-slices-and-mandatory-core-abstractions-in-building-blocks.md)
+
+**Status**: ✅ Accepted  
+**概要**: 技術レイヤーベースのフォルダ構成を廃止し、ドメイン駆動の垂直スライスを採用。非決定論的 API（Guid, DateTime）の直接使用を禁止し、Core 抽象の利用を義務化。  
+**キーワード**: Vertical Slices, Deterministic Logic, Rule 5.1, Rule 16
+
+---
+
+#### [ADR-016: Functional Options Transformation for Immutable Building Blocks](./adr-016-functional-options-transformation-for-immutable-building-blocks.md)
+
+**Status**: ✅ Accepted  
+**概要**: .NET 標準の `Action<T>` による変異型構成を廃止し、`Func<T, T>` と `with` 式を用いた関数型変換を導入。Options の不変性とコードによる柔軟な構成を両立させる。  
+**キーワード**: Immutability, Record, Functional Transformation
+
+---
+
+**Last Updated**: 2026-04-25  
+**Total ADRs**: 16

@@ -13,10 +13,10 @@ namespace VK.Blocks.Authentication.ApiKeys.Internal;
 /// Suitable for single-instance deployments.
 /// </summary>
 internal sealed class InMemoryApiKeyRateLimiter(
-    IOptionsMonitor<VKApiKeyOptions> options,
+    IOptions<VKApiKeyOptions> options,
     TimeProvider timeProvider) : IVKApiKeyRateLimiter, IInMemoryCacheCleanup, IAsyncDisposable
 {
-    private readonly VKApiKeyOptions _options = options.CurrentValue;
+    private readonly VKApiKeyOptions _options = options.Value;
     private readonly ConcurrentDictionary<Guid, RateLimitState> _cache = new();
     private readonly ConcurrentDictionary<string, byte> _recentKeys = new();
     private readonly object _cleanupLock = new();

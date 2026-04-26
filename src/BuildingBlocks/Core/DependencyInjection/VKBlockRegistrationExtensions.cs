@@ -173,52 +173,71 @@ public static class VKBlockRegistrationExtensions
     }
 
     /// <summary>
-    /// [DELEGATE VARIANT] Adds and configures options using a manual configuration delegate.
+    /// [FUNCTIONAL VARIANT] Adds and configures a building block's options using a transformation function.
+    /// Following ADR-016: Supports immutable options (init) via 'with' expressions.
     /// </summary>
     /// <remarks>
-    /// Follows the same <c>Idempotent Dual-Registration Pattern</c> as the section-based implementation.
-    /// Useful for code-first or unit-testing scenarios.
+    /// <para>
+    /// <b>PRIORITY 1: Zero-Reflection Resolution</b><br/>
+    /// This method leverages C# 11 Static Abstract Members (<see cref="IVKBlockOptions.SectionName"/>)
+    /// to resolve the configuration section at compile-time without reflection.
+    /// </para>
+    /// <para>
+    /// <b>PRIORITY 2: Idempotent Dual-Registration Pattern</b><br/>
+    /// Performs a "double registration" of the options while ensuring idempotency:
+    /// <list type="number">
+    /// <item>Standard <c>IOptions&lt;T&gt;</c> for DI compatibility (via <see cref="OptionsWrapper{T}"/>).</item>
+    /// <item>Direct <c>Singleton</c> for immediate synchronous access within building blocks during startup.</item>
+    /// </list>
+    /// </para>
     /// </remarks>
     /// <typeparam name="TOptions">The type of options to configure.</typeparam>
     /// <param name="services">The service collection.</param>
-    /// <param name="configure">Optional delegate to configure the options. If null, default values will be used.</param>
-    /// <returns>The configured options instance.</returns>
+    /// <param name="configuration">The root configuration.</param>
+    /// <param name="transform">Optional transformation function to modify the options using 'with' expressions.</param>
+    /// <returns>The final configured options instance.</returns>
     /// <exception cref="VKDependencyException">Thrown if the options type is already registered but no instance is available.</exception>
     public static TOptions AddVKBlockOptions<TOptions>(
         this IServiceCollection services,
-        Action<TOptions>? configure = null)
+        IConfiguration configuration,
+        Func<TOptions, TOptions>? transform = null)
         where TOptions : class, IVKBlockOptions, new()
     {
         VKGuard.NotNull(services);
+        VKGuard.NotNull(configuration);
 
-        // [IDEMPOTENCY CHECK] — Avoid unnecessary configure and DI registration when already registered
+        // [IDEMPOTENCY CHECK] — Avoid unnecessary Bind and DI registration when already registered
         if (services.IsVKServiceRegistered<TOptions>())
         {
-            // Retrieve the already registered singleton instance
+            // Retrieve the already registered singleton instance to avoid re-binding
             return services.GetVKServiceInstance<TOptions>()
                    ?? throw VKDependencyException.DualRegistrationMissing(typeof(TOptions).Name);
         }
 
-        // To support synchronous return, we MUST create and configure the instance now.
-        var options = new TOptions();
-        configure?.Invoke(options);
+        // A. BINDING OPTIMIZATION
+        // Following .NET 10 best practices, use .Get<T>() which is more friendly to records and init properties
+        // as it handles the instantiation process via the Binder.
+        var options = configuration.GetSection(TOptions.SectionName).Get<TOptions>()
+                      ?? new TOptions();
 
-        // 1. Singleton registration (the instance we just configured manually)
+        if (transform != null)
+        {
+            // ADR-016: Functional transformation using 'with' expression
+            options = transform(options);
+        }
+
+        // 1. Singleton registration for direct injection & library-internal synchronous access
         // Registering this early ensures that IsVKServiceRegistered returns true for subsequent calls.
         services.TryAddSingleton(options);
 
-        // 2. Standard Options registration + Validation infrastructure
-        OptionsBuilder<TOptions> builder = services.AddOptions<TOptions>()
+        // 2. Standard Options registration (Sync IOptions<T> with the Singleton instance)
+        // ADR-016: Since the instance is immutable, we must provide it directly to the Options system.
+        services.TryAddSingleton<IOptions<TOptions>>(new OptionsWrapper<TOptions>(options));
+
+        // 3. Validation infrastructure (Still needed for startup check)
+        services.AddOptions<TOptions>()
             .ValidateDataAnnotations()
             .ValidateOnStart();
-
-        if (configure is not null)
-        {
-            // [UNIFIED HANDLING] We register the configure delegate in the IOptions pipeline.
-            // Note: Since IOptions<T> typically creates a NEW instance, this delegate will run once
-            // for that new instance, ensuring consistency between the Singleton and IOptions.Value.
-            builder.Configure(configure);
-        }
 
         return options;
     }

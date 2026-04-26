@@ -18,10 +18,11 @@ namespace VK.Blocks.Authentication.Jwt.Internal;
 /// Uses the modern <see cref="JsonWebTokenHandler"/> for high-performance validation.
 /// </summary>
 internal sealed class JwtAuthenticationService(
-    IOptionsMonitor<VKJwtOptions> options,
+    IOptions<VKJwtOptions> options,
     ILogger<JwtAuthenticationService> logger,
     IVKJwtRevocationProvider revocationProvider) : IVKJwtAuthService
 {
+    private readonly VKJwtOptions _options = options.Value;
     private readonly JsonWebTokenHandler _tokenHandler = new();
     private readonly Dictionary<string, bool> _revocationCache = [];
 
@@ -38,7 +39,7 @@ internal sealed class JwtAuthenticationService(
 
         try
         {
-            VKJwtOptions jwtOptions = options.CurrentValue;
+            VKJwtOptions jwtOptions = _options;
 
             if (string.IsNullOrEmpty(jwtOptions.SecretKey))
             {

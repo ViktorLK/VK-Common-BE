@@ -37,14 +37,14 @@ internal sealed class PropertySecurityCache<T>
     /// <summary>
     /// Gets a value indicating whether the type has any security-sensitive properties.
     /// </summary>
-    public static bool HasSensitiveProperties => _propertySecurityLevels.Count > 0;
+    internal static bool HasSensitiveProperties => _propertySecurityLevels.Count > 0;
 
     /// <summary>
     /// Gets the security level for a specific property.
     /// </summary>
     /// <param name="propertyName">Name of the property.</param>
     /// <returns>The security level.</returns>
-    public static SecurityLevel GetLevel(string propertyName)
+    internal static SecurityLevel GetLevel(string propertyName)
     {
         return _propertySecurityLevels.TryGetValue(propertyName, out SecurityLevel level)
             ? level
@@ -54,5 +54,5 @@ internal sealed class PropertySecurityCache<T>
     /// <summary>
     /// Gets all properties that require masking or redaction.
     /// </summary>
-    public static IEnumerable<string> SensitivePropertyNames => _propertySecurityLevels.Keys;
+    internal static IEnumerable<string> SensitivePropertyNames => _propertySecurityLevels.Keys;
 }

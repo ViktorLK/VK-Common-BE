@@ -17,29 +17,29 @@ internal sealed class ApiKeyOptionsValidator : IValidateOptions<VKApiKeyOptions>
 
         if (string.IsNullOrWhiteSpace(options.HeaderName))
         {
-            return ValidateOptionsResult.Fail("A valid HeaderName is required for API Key authentication.");
+            return ValidateOptionsResult.Fail(ApiKeyConstants.HeaderNameRequired);
         }
 
         if (string.IsNullOrWhiteSpace(options.SchemeName))
         {
-            return ValidateOptionsResult.Fail("A valid SchemeName is required for API Key authentication.");
+            return ValidateOptionsResult.Fail(ApiKeyConstants.SchemeNameRequired);
         }
 
         if (options.MinLength < 0)
         {
-            return ValidateOptionsResult.Fail("ApiKey:MinLength must be a non-negative integer.");
+            return ValidateOptionsResult.Fail(ApiKeyConstants.MinLengthInvalid);
         }
 
         if (options.EnableRateLimiting)
         {
             if (options.RateLimitPerMinute <= 0)
             {
-                return ValidateOptionsResult.Fail("ApiKey:RateLimitPerMinute must be greater than 0 when EnableRateLimiting is true.");
+                return ValidateOptionsResult.Fail(ApiKeyConstants.RateLimitPerMinuteInvalid);
             }
 
             if (options.RateLimitWindowSeconds <= 0)
             {
-                return ValidateOptionsResult.Fail("ApiKey:RateLimitWindowSeconds must be greater than 0 when EnableRateLimiting is true.");
+                return ValidateOptionsResult.Fail(ApiKeyConstants.RateLimitWindowSecondsInvalid);
             }
         }
 

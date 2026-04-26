@@ -6,14 +6,16 @@ trigger: always_on
 
 > **Note**: This file provides the concrete blueprint and implementation templates for the architectural principles defined in `04-architecture-patterns.md` (specifically Rules 13-15).
 
-### Rule 16 — Standard Folder Structure
+### Rule 16 — Standard Folder Structure (Vertical Slice Priority)
 
-Every new BuildingBlock MUST follow this vertical slice directory layout:
+Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Generic technical folders should be used sparingly as a last resort:
+
+- **`{FeatureName}/` (MANDATORY)**: First-level domain folders for vertical slices (e.g., `ApiKeys/`, `Guids/`). 
+    - MUST contain all logic related to that domain (Interfaces, Handlers, Validators, etc.).
+    - `Internal/`: Encapsulated implementations for the feature. **MUST NOT** be wrapped in a `Features/` folder.
 - `VK{ModuleName}Block.cs`: **Public** marker type placed directly in the module's root directory.
-- `Abstractions/`: Shared interfaces and core logic abstractions.
-    - `Internal/`: Encapsulated implementations for shared abstractions (if any).
-- `Common/`: Shared utilities, constants, or cross-cutting models.
-    - `Internal/`: Encapsulated implementations for shared utilities (if any).
+- `Abstractions/` (OPTIONAL): Use ONLY for top-level contracts shared across multiple features that cannot be assigned to a specific domain.
+- `Common/` (OPTIONAL): Use ONLY for true cross-cutting utilities (e.g., `Utilities/`, `Constants/`).
 - `Contracts/`: Cross-boundary public contracts (e.g., Integration Events, external DTOs).
 - `DependencyInjection/`: 
     - `VK{ModuleName}BlockExtensions.cs`: **Public entry point** (Wrapper).
@@ -25,9 +27,6 @@ Every new BuildingBlock MUST follow this vertical slice directory layout:
 - `Diagnostics/`: 
     - `DiagnosticsConstants.cs`: Semantic tokens.
     - `Internal/`: `[LoggerMessage]` and `[VKBlockDiagnostics]` classes.
-
-- `{FeatureName}/`: First-level domain folders for vertical slices (e.g., `ApiKeys/`, `Jwt/`). **MUST NOT** be wrapped in a `Features/` folder.
-    - `Internal/`: Encapsulated implementations (Handlers, Validators, feature-specific `[LoggerMessage]` classes, etc).
 
 ### Rule 17 — The Marker Pattern (IVKBlockMarker)
 
@@ -69,6 +68,7 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 ### Rule 20 — Options Architecture
 
 - **Immutability**: MUST be a `sealed record` with `init` properties.
+- **Functional Transformation (ADR-016)**: ANY code-based configuration MUST use the **`Func<T, T> transform`** pattern (instead of `Action<T>`) to support immutability via `with` expressions.
 - **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions`).
 - **Interface**: MUST implement `IVKBlockOptions` (as required by Rule 15).
 - **SectionName**: Formatted according to Rule 15.

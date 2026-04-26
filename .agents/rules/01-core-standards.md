@@ -27,6 +27,7 @@ trigger: always_on
 - NO `.Result`, `.Wait()`, or blocking calls.
 - Prefer `ValueTask<T>` over `Task<T>` for interfaces and hot-path methods where synchronous completion is the common case (cache hits, in-memory checks). Avoid `ValueTask` when the operation is always async or may be awaited multiple times.
 - ALL `await` calls within BuildingBlock/library code MUST use `.ConfigureAwait(false)` to prevent synchronization-context deadlocks.
+- **Exception**: DO NOT use `.ConfigureAwait(false)` in Test methods (xUnit). Test code should maintain the synchronization context for stable assertion handling and parallelism management (Rule `xUnit1030`).
 
 ### Rule 4 — Performance
 
@@ -44,3 +45,10 @@ trigger: always_on
 - `IAuditable` fields (CreatedAt / UpdatedAt / CreatedBy) MUST be handled via DbContext Interceptors.
 - `ISoftDelete` MUST be handled via DbContext Interceptors + Global Query Filters.
 - NO manual audit or soft-delete logic in application code.
+
+### Rule 5.1 — Core Abstractions
+
+- **Deterministic Logic**: PROHIBIT direct use of non-deterministic system APIs within BuildingBlocks.
+- **GUIDs**: Use `IVKGuidGenerator` (injected) instead of `Guid.NewGuid()`.
+- **Time**: Use `TimeProvider` (injected) instead of `DateTime.UtcNow` or `DateTimeOffset.Now`.
+- **Serialization**: Use `IVKJsonSerializer` (injected) for all JSON operations to ensure consistent behavior and standard options.

@@ -17,7 +17,7 @@ internal static class JwtEventsFactory
     /// Creates the JWT bearer events mapped to the standard authentication pipeline.
     /// </summary>
     /// <returns>A configured <see cref="JwtBearerEvents"/> instance.</returns>
-    public static JwtBearerEvents CreateEvents()
+    internal static JwtBearerEvents CreateEvents()
     {
         return new JwtBearerEvents
         {

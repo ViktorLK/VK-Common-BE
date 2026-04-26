@@ -12,7 +12,15 @@ trigger: always_on
 - **Modern C# Idioms**: Use C# 12+ features (Collection expressions `[]`, Primary constructors) where appropriate. STRICTLY ADHERE to the project's `.editorconfig` for formatting rules (e.g., preference for explicit types over `var` for built-in types).
 - **Pattern Matching**: Prefer `is` and `switch` expressions over `if`/`else` chains and type casting for concise, readable branching.
 - **Null Handling**: Prefer `??` / `??=` / `?.` over explicit null checks. Use `is null` / `is not null` over `== null` to avoid operator overload side-effects and ensure pattern consistency.
-- **Defensive Fluent Guard**: Use `VKGuard.NotNull(x)` for all method/constructor boundaries. Leverage its return value for fluent chaining (e.g., `VKGuard.NotNull(services).AddXxx()`) to enable concise 1-line expression-bodied members while maintaining strict defensive safety.
+- **Defensive Programming (VKGuard)**: 
+    - **Mandatory Boundary Checks**: ALL method and constructor boundaries MUST use `VKGuard` to enforce preconditions. Manual `if (x == null) throw` patterns are STRICTLY PROHIBITED.
+    - **Specific Guard Selection**: 
+        - Use `VKGuard.NotNull(x)` for reference types.
+        - Use `VKGuard.NotNullOrWhiteSpace(s)` for strings.
+        - Use `VKGuard.NotEmpty(list)` for collections.
+        - Use `VKGuard.NotEmptyGuid(id)` for unique identifiers.
+        - Use `VKGuard.EnumDefined(e)` for enum parameters.
+    - **Fluent Assignment**: Leverage the return value of `VKGuard` for single-line field initialization (e.g., `_service = VKGuard.NotNull(service);`) or expression-bodied members.
 - **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
 
 ### Rule 13 — Service Registration Pattern
@@ -35,13 +43,13 @@ trigger: always_on
 #### Depth-Based Visibility & Naming Convention
 
 - **Level 1 (Public API Surface)**:
-  - **Location**: Any `.cs` file in a first-level folder (e.g., `ApiKeys/`) MUST be declared as `public`.
-  - **Namespace**: MUST use the library's flat root namespace (e.g., `namespace VK.Blocks.Authentication;`).
-  - **Naming**: MUST use the **`VK` prefix** for all public types (e.g., `VKApiKeyOptions`, `IVKApiKeyStore`) to prevent naming collisions in the flattened namespace.
+    - **Location**: Any `.cs` file in a first-level folder (e.g., `ApiKeys/`) MUST be declared as `public`.
+    - **Namespace**: MUST use the library's flat root namespace (e.g., `namespace VK.Blocks.Authentication;`).
+    - **Naming**: MUST use the **`VK` prefix** for all public types (e.g., `VKApiKeyOptions`, `IVKApiKeyStore`) to prevent naming collisions in the flattened namespace.
 - **Level 2+ (Encapsulated Internals)**:
-  - **Location**: Any `.cs` file in a second-level or deeper folder (e.g., `ApiKeys/Internal/`, `ApiKeys/Persistence/`) MUST be declared as `internal`.
-  - **Namespace**: MUST use the exact matching folder namespace (e.g., `namespace VK.Blocks.Authentication.ApiKeys.Internal;`).
-  - **Naming**: MUST **NOT use the `VK` prefix** (e.g., `ApiKeyValidator`, NOT `VKApiKeyValidator`). Internal classification is handled by the namespace and directory depth.
+    - **Location**: Any `.cs` file in a second-level or deeper folder (e.g., `ApiKeys/Internal/`, `ApiKeys/Persistence/`) MUST be declared as `internal`.
+    - **Namespace**: MUST use the exact matching folder namespace (e.g., `namespace VK.Blocks.Authentication.ApiKeys.Internal;`).
+    - **Naming**: MUST **NOT use the `VK` prefix** (e.g., `ApiKeyValidator`, NOT `VKApiKeyValidator`). Internal classification is handled by the namespace and directory depth.
 - **NO Type-Driven Folders**: Avoid grouping by technical type at the root level (e.g., separating all Handlers from Requirements).
 - **Folder Naming**: Folder names MUST be noun-based and domain-driven.
   ✅ ApiKeys/Internal/
@@ -66,7 +74,17 @@ trigger: always_on
 ### Rule 15 — Configuration Pattern (Zero-Reflection)
 
 - ALL building block Options classes MUST implement `IVKBlockOptions` to support the zero-reflection pattern.
-- Configuration sections MUST be resolved using the standardized `AddVKBlockOptions<TOptions>(configuration)` primary wrapper.
+- Configuration sections MUST be resolved using the standardized `AddVKBlockOptions<TOptions>(configuration, transform)` primary wrapper.
+- **Functional Transformation (ADR-016)**: To support immutable `init` properties and `record` types, all configuration delegates MUST use the **`Func<T, T>`** pattern instead of `Action<T>`. This allows the use of `with` expressions for non-destructive mutation: `services.AddVKBlockOptions<T>(config, options => options with { Prop = value })`.
 - Section names MUST follow the `VKBlocksConstants.VKBlocksConfigPrefix + "{ModuleName}"` format (e.g., `VKBlocks:Authentication`).
 - The **Idempotent Dual-Registration Pattern** (IOptions + Singleton) MUST be maintained to allow building blocks synchronous access to their options during startup.
 - **Wrapper vs Core**: Modular registration MUST use the public `[WRAPPER]` pattern receiving `IConfiguration` to delegate to the internal `[CORE]` registration logic.
+
+### Rule 21 — Hierarchical Configuration Pattern (Args Pattern)
+
+- **Pattern**: Any behavioral setting that can change per-request (e.g., Timeout, TTL, Temperature) MUST follow the **"Global Default + Local Override"** pattern.
+- **Components**:
+    - **Global Defaults**: Defined in the module's `IVKBlockOptions` class (e.g., `VKAgentOptions.MaxIterations`).
+    - **Local Overrides**: Defined in a dedicated `XxxArgs` record (e.g., `VKAgentArgs.MaxIterations`) and passed as an optional method argument.
+- **Merging Priority**: The implementation MUST merge these values using the null-coalescing priority: **`args?.Property ?? _options.Property`**.
+- **Naming**: Overriding records MUST be named with the **`Args` suffix** (e.g., `VKChatArgs`, `VKRagArgs`).

@@ -19,7 +19,7 @@ internal static partial class ApiKeyLog
         EventId = 2301,
         Level = LogLevel.Warning,
         Message = "API key is too short. MinLength: {MinLength}")]
-    public static partial void LogApiKeyTooShort(this ILogger logger, int minLength);
+    internal static partial void LogApiKeyTooShort(this ILogger logger, int minLength);
 
     /// <summary>
     /// Logs that an API key was not found in the store.
@@ -30,7 +30,7 @@ internal static partial class ApiKeyLog
         EventId = 2302,
         Level = LogLevel.Warning,
         Message = "API key not found. Hash starting with: {HashPrefix}****")]
-    public static partial void LogApiKeyNotFound(this ILogger logger, string hashPrefix);
+    internal static partial void LogApiKeyNotFound(this ILogger logger, string hashPrefix);
 
     /// <summary>
     /// Logs that a revoked API key was used.
@@ -41,7 +41,7 @@ internal static partial class ApiKeyLog
         EventId = 2311,
         Level = LogLevel.Warning,
         Message = "Revoked API key used. KeyId: {KeyId}")]
-    public static partial void LogRevokedApiKeyUsed(this ILogger logger, string keyId);
+    internal static partial void LogRevokedApiKeyUsed(this ILogger logger, string keyId);
 
     /// <summary>
     /// Logs that an expired API key was used.
@@ -52,7 +52,7 @@ internal static partial class ApiKeyLog
         EventId = 2312,
         Level = LogLevel.Warning,
         Message = "Expired API key used. KeyId: {KeyId}")]
-    public static partial void LogExpiredApiKeyUsed(this ILogger logger, string keyId);
+    internal static partial void LogExpiredApiKeyUsed(this ILogger logger, string keyId);
 
     /// <summary>
     /// Logs that a disabled API key was used.
@@ -63,7 +63,7 @@ internal static partial class ApiKeyLog
         EventId = 2313,
         Level = LogLevel.Warning,
         Message = "Disabled API key used. KeyId: {KeyId}")]
-    public static partial void LogDisabledApiKeyUsed(this ILogger logger, string keyId);
+    internal static partial void LogDisabledApiKeyUsed(this ILogger logger, string keyId);
 
     /// <summary>
     /// Logs that an API key has exceeded its rate limit.
@@ -74,7 +74,7 @@ internal static partial class ApiKeyLog
         EventId = 2321,
         Level = LogLevel.Warning,
         Message = "API key rate limit exceeded. KeyId: {KeyId}")]
-    public static partial void LogRateLimitExceeded(this ILogger logger, string keyId);
+    internal static partial void LogRateLimitExceeded(this ILogger logger, string keyId);
 
     /// <summary>
     /// Logs a failure to update the last used timestamp for an API key.
@@ -86,5 +86,5 @@ internal static partial class ApiKeyLog
         EventId = 2391,
         Level = LogLevel.Warning,
         Message = "Failed to update LastUsedAt for KeyId: {KeyId}")]
-    public static partial void LogLastUsedUpdateFailed(this ILogger logger, Exception ex, string keyId);
+    internal static partial void LogLastUsedUpdateFailed(this ILogger logger, Exception ex, string keyId);
 }

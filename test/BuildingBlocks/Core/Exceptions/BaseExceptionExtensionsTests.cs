@@ -1,9 +1,15 @@
-using FluentAssertions;
-using VK.Blocks.Core.Exceptions;
-
 namespace VK.Blocks.Core.UnitTests.Exceptions;
 
-public class BaseExceptionExtensionsTests
+public class TestException(
+    string code,
+    string message,
+    int statusCode = 400,
+    bool isPublic = true) : VKBaseException(code, message, statusCode, isPublic)
+{
+    public void AddMetadata(string key, object? value) => SetExtension(key, value);
+}
+
+public class VKBaseExceptionExtensionsTests
 {
     [Fact]
     public void WithExtension_ValidKeyAndValue_AddsToExtensionsAndReturnsException()

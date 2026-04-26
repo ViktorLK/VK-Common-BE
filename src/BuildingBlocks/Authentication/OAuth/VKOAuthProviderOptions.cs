@@ -10,7 +10,7 @@ public sealed record VKOAuthProviderOptions
     /// <summary>
     /// Gets or sets a value indicating whether this provider is enabled.
     /// </summary>
-    public bool Enabled { get; init; }
+    public bool Enabled { get; init; } = true;
 
     /// <summary>
     /// Gets or sets the custom authentication scheme name.
@@ -34,9 +34,19 @@ public sealed record VKOAuthProviderOptions
     public required string Authority { get; init; }
 
     /// <summary>
+    /// Gets or sets the metadata address.
+    /// </summary>
+    public string? MetadataAddress { get; init; }
+
+    /// <summary>
     /// Gets or sets the callback path.
     /// </summary>
-    public required string CallbackPath { get; init; }
+    public required string CallbackPath { get; init; } = "/signin-oauth";
+
+    /// <summary>
+    /// Gets or sets the display name.
+    /// </summary>
+    public string? DisplayName { get; init; }
 
     /// <summary>
     /// Gets or sets the requested scopes.
@@ -44,14 +54,19 @@ public sealed record VKOAuthProviderOptions
     public List<string> Scopes { get; init; } = [];
 
     /// <summary>
+    /// Gets or sets a value indicating whether to save tokens.
+    /// </summary>
+    public bool SaveTokens { get; init; } = true;
+
+    /// <summary>
     /// Gets or sets the response type (e.g. "code", "id_token").
     /// Defaults to "code" in OIDC if not specified.
     /// </summary>
-    public string? ResponseType { get; init; }
+    public string? ResponseType { get; init; } = "code";
 
     /// <summary>
     /// Gets or sets a value indicating whether to retrieve additional claims from the user info endpoint.
     /// Necessary for providers that don't include all profile data in the ID Token (e.g. GitHub).
     /// </summary>
-    public bool GetClaimsFromUserInfoEndpoint { get; init; }
+    public bool GetClaimsFromUserInfoEndpoint { get; init; } = true;
 }

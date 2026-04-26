@@ -29,6 +29,7 @@ public sealed class VKResult<TValue> : VKResult
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public TValue? Value => IsSuccess ? (field ?? VKResult<TValue>.ThrowNullSuccess()) : VKResult<TValue>.ThrowFailureAccess();
 
+    [ExcludeFromCodeCoverage(Justification = "Defensive check for theoretically unreachable state")]
     [DoesNotReturn]
     private static TValue ThrowNullSuccess() =>
         throw new InvalidOperationException("Success result contains null value. This should not happen.");

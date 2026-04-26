@@ -2,5 +2,5 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.OAuth.Internal;
 
-[VKFeatureMarker("OAuth", typeof(VKAuthenticationBlock))]
+[VKFeatureMarker(OAuthConstants.FeatureName, typeof(VKAuthenticationBlock))]
 internal sealed partial class OAuthFeature;

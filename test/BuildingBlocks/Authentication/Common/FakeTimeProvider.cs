@@ -1,3 +1,5 @@
+using System;
+
 namespace VK.Blocks.Authentication.UnitTests.Common;
 
 /// <summary>

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -11,7 +12,9 @@ namespace VK.Blocks.Authentication.OAuth.Internal;
 /// </summary>
 internal static class OAuthFeatureRegistration
 {
-    internal static IVKAuthenticationBuilder Register(IVKAuthenticationBuilder builder)
+    internal static IVKAuthenticationBuilder Register(
+        IVKAuthenticationBuilder builder,
+        Func<VKOAuthOptions, VKOAuthOptions>? transform = null)
     {
         // 1. Check-Self (Rule 13 & 18.2)
         if (builder.Services.IsVKBlockRegistered<OAuthFeature>())
@@ -20,7 +23,8 @@ internal static class OAuthFeatureRegistration
         }
 
         // 2. Options Registration
-        VKOAuthOptions oauthOptions = builder.Services.AddVKBlockOptions<VKOAuthOptions>(builder.Configuration);
+        // ADR-016: Functional transformation from configuration section
+        VKOAuthOptions oauthOptions = builder.Services.AddVKBlockOptions<VKOAuthOptions>(builder.Configuration, transform);
 
         // 3. Mark-Self (Rule 13)
         builder.Services.AddVKBlockMarker<OAuthFeature>();

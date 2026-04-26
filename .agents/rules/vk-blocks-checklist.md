@@ -34,6 +34,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
 - **Rule 13 — Service Registration**: Check-Self & Prerequisite (`IsVKBlockRegistered<T>`) → Options → Mark-Self → Feature Toggle → Core Services (`TryAdd` only). See Rule 18 for full sequence.
 - **Rule 14 — Structural Organization**: Depth-based visibility (Level 1 = public/root namespace, Level 2+ = internal); VK prefix for public types; one file per type.
 - **Rule 15 — Configuration Pattern**: Mandatory `IVKBlockOptions`; SectionName = `VKBlocksConstants.VKBlocksConfigPrefix + "{ModuleName}"`. Idempotent Dual-Registration (IOptions + Singleton). Wrapper delegates to internal Core logic.
+- **Rule 21 — Hierarchical Configuration Pattern (Args Pattern)**: "Global Default (Options) + Local Override (Args)" with `args?.Prop ?? options.Prop` priority.
 
 ### [Library Blueprint (New)](/.agents/rules/05-block-blueprint.md)
 
@@ -63,7 +64,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
   **[Phase B: Development Audit]** (Always check):
     - ✅/❌ Result<T> → [actual finding]
     - ✅/❌ Async → CancellationToken, ValueTask hot-path
-    - ✅/❌ ConfigureAwait → .ConfigureAwait(false) on ALL awaits (library code)
+    - ✅/❌ ConfigureAwait → .ConfigureAwait(false) on ALL awaits (Required in library code, PROHIBITED in tests)
     - ✅/❌ No Null → [actual finding] (Mandatory: `VKGuard.NotNull` fluent pattern)
     - ✅/❌ Required Keyword → [actual finding]
     - ✅/❌ Error Constant → [actual finding]
@@ -79,6 +80,8 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
     - ✅/❌ Observability → (logging/metrics code) [actual finding]
     - ✅/❌ Service Marker → (DI registration using IsVKBlockRegistered/AddVKBlockMarker) [actual finding]
     - ✅/❌ Idempotent Options → (DI registration using IVKBlockOptions standard) [actual finding]
+    - ✅/❌ Hierarchical Config → (Rule 21: Args vs Options priority) [actual finding]
+    - ✅/❌ Immutable Config → (ADR-016: Func transformation instead of Action) [actual finding]
     - ✅/❌ Span, stackalloc & ArrayPool → (string parsing / buffer management)
 
 - **Language**: Code, comments, and commit messages in English. Explanations and ADR in **Professional Japanese**.

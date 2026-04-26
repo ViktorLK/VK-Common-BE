@@ -1,8 +1,6 @@
-using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.Core.Common.Internal;
+using VK.Blocks.Core.DependencyInjection.Internal;
 
 namespace VK.Blocks.Core;
 
@@ -16,20 +14,5 @@ public static class VKCoreBlockExtensions
     /// This should be called before other building blocks are registered.
     /// </summary>
     public static IServiceCollection AddVKCoreBlock(this IServiceCollection services, IConfiguration _)
-    {
-        // 0. Idempotency Check
-        if (services.IsVKBlockRegistered<VKCoreBlock>())
-        {
-            return services;
-        }
-
-        // 1. Fundamental services (if any are global)
-        services.TryAddSingleton(TimeProvider.System);
-        services.TryAddSingleton<IVKGuidGenerator, SequentialGuidGenerator>();
-        services.TryAddSingleton<IVKJsonSerializer, SystemTextJsonSerializer>();
-        services.TryAddSingleton<IVKUserContext, NullUserContext>();
-
-        // 2. Mark-Self (Success Commit)
-        return services.AddVKBlockMarker<VKCoreBlock>();
-    }
+        => CoreBlockRegistration.Register(services);
 }

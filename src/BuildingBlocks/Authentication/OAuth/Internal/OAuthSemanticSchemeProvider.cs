@@ -8,11 +8,11 @@ namespace VK.Blocks.Authentication.OAuth.Internal;
 /// <summary>
 /// Publishes OAuth authentication schemes for semantic group policies.
 /// </summary>
-internal sealed class OAuthSemanticSchemeProvider(IOptionsMonitor<VKOAuthOptions> options) : IVKSemanticSchemeProvider
+internal sealed class OAuthSemanticSchemeProvider(IOptions<VKOAuthOptions> options) : IVKSemanticSchemeProvider
 {
     public IEnumerable<string> GetUserSchemes()
     {
-        VKOAuthOptions oauthOptions = options.CurrentValue;
+        VKOAuthOptions oauthOptions = options.Value;
         if (!oauthOptions.Enabled)
         {
             return [];
@@ -34,7 +34,7 @@ internal sealed class OAuthSemanticSchemeProvider(IOptionsMonitor<VKOAuthOptions
             return [];
         }
 
-        VKOAuthOptions oauthOptions = options.CurrentValue;
+        VKOAuthOptions oauthOptions = options.Value;
         if (!oauthOptions.Enabled)
         {
             return [];
