@@ -263,7 +263,7 @@ Total Response Time: 5ms
 [`EfCoreReadRepository.Query.cs:98`](/src/BuildingBlocks/Persistence/EFCore/Repositories/EfCoreReadRepository.Query.cs#L98)
 
 ```csharp
-public async Task<CursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(...)
+public async Task<VKCursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(...)
 {
     // ...
 
@@ -280,7 +280,7 @@ public async Task<CursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(...)
         ? EncodeCursor(nextCursor)
         : null;
 
-    return new CursorPagedResult<TEntity> { ... };
+    return new VKCursorPagedResult<TEntity> { ... };
 }
 ```
 

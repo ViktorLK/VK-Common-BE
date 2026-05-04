@@ -39,7 +39,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
 ### [Library Blueprint (New)](/.agents/rules/05-block-blueprint.md)
 
 - **Rule 16 — Standard Folder Structure**: Mandatory directory layout for all modules.
-- **Rule 17 — Marker Pattern**: Required `IVKBlockMarker` implementation in `Contracts/`.
+- **Rule 17 — Marker Pattern**: Required `[VKBlockMarker]` attribute and `sealed partial class`.
 - **Rule 18 — Idempotent DI**: Strict execution order in `AddVKXxxBlock`.
 - **Rule 19 — Diagnostics Blueprint**: Mandatory `[VKBlockDiagnostics]` and `LoggerMessage`.
 - **Rule 20 — Options Lifecycle**: `IVKBlockOptions` naming and lifecycle rules.
@@ -56,7 +56,7 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
     > [!TIP]
     > Use the MCP tool `draft_building_block` to generate the standard boilerplate matching Rules 16-20.
     - [ ] Folder Structure matching Rule 16?
-    - [ ] `IVKBlockMarker` implemented and in the module's root directory?
+    - [ ] `[VKBlockMarker]` applied to a `sealed partial class` in the root?
     - [ ] DI pattern follows Rule 18 execution order?
     - [ ] `IVKBlockOptions` provided with correct `SectionName`?
     - [ ] diagnostics configured with `[VKBlockDiagnostics]`?

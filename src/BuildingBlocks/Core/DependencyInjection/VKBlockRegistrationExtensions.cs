@@ -95,12 +95,13 @@ public static class VKBlockRegistrationExtensions
     /// <summary>
     /// [WRAPPER] Adds and configures a building block's options by automatically resolving the section
     /// name via <see cref="IVKBlockOptions.SectionName"/>.
+    /// Following ADR-016: Supports immutable options (init) via 'with' expressions.
     /// </summary>
     /// <remarks>
     /// <para>
     /// <b>PRIORITY 1: Zero-Reflection Resolution</b><br/>
     /// This wrapper leverages C# 11 Static Abstract Members to resolve the section name at compile-time/runtime
-    /// without reflection. It internally delegates to the explicit section-based overload.
+    /// without reflection.
     /// </para>
     /// <para>
     /// <b>PRIORITY 2: Idempotent Dual-Registration Pattern</b><br/>
@@ -110,93 +111,8 @@ public static class VKBlockRegistrationExtensions
     /// <typeparam name="TOptions">The type of options to configure.</typeparam>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The root configuration.</param>
-    /// <returns>The options instance bound at registration time.</returns>
-    public static TOptions AddVKBlockOptions<TOptions>(
-        this IServiceCollection services,
-        IConfiguration configuration)
-        where TOptions : class, IVKBlockOptions, new()
-        => VKGuard.NotNull(services).AddVKBlockOptions<TOptions>(VKGuard.NotNull(configuration).GetSection(TOptions.SectionName));
-
-    /// <summary>
-    /// [CORE IMPLEMENTATION] Adds and configures options using an explicit configuration section.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// <b>PRIORITY 1: Idempotent Dual-Registration Pattern</b><br/>
-    /// Performs a "double registration" of the options while ensuring idempotency:
-    /// <list type="number">
-    /// <item>Standard <c>IOptions&lt;T&gt;</c> for DI compatibility and lazy-loading.</item>
-    /// <item>Direct <c>Singleton</c> for immediate synchronous access within building blocks.</item>
-    /// </list>
-    /// </para>
-    /// <para>
-    /// <b>PRIORITY 2: Rationale (Why this exists?)</b><br/>
-    /// 1. <b>Synchronous Access:</b> Building blocks often need options <i>during</i> the <c>ConfigureServices</c> phase.<br/>
-    /// 2. <b>Validation & Performance:</b> Manual <c>Any()</c> checks prevent redundant <c>IStartupValidator</c> registrations.
-    /// </para>
-    /// </remarks>
-    /// <typeparam name="TOptions">The type of options to configure.</typeparam>
-    /// <param name="services">The service collection.</param>
-    /// <param name="section">The configuration section to bind from.</param>
-    /// <returns>The eagerly-binded options instance.</returns>
-    /// <exception cref="VKDependencyException">Thrown if the options type is already registered but no instance is available.</exception>
-    internal static TOptions AddVKBlockOptions<TOptions>(
-        this IServiceCollection services,
-        IConfigurationSection section)
-        where TOptions : class, IVKBlockOptions, new()
-    {
-        VKGuard.NotNull(services);
-        VKGuard.NotNull(section);
-
-        // [IDEMPOTENCY CHECK] — Avoid unnecessary Bind and DI registration when already registered
-        if (services.IsVKServiceRegistered<TOptions>())
-        {
-            // Retrieve the already registered singleton instance to avoid re-binding
-            return services.GetVKServiceInstance<TOptions>()
-                   ?? throw VKDependencyException.DualRegistrationMissing(typeof(TOptions).Name);
-        }
-
-        var options = new TOptions();
-        section.Bind(options);
-
-        // 1. Singleton registration for direct injection & library-internal synchronous access
-        // Registering this early ensures that IsVKServiceRegistered returns true for subsequent calls.
-        services.TryAddSingleton(options);
-
-        // 2. Standard Options registration + Validation infrastructure
-        services.AddOptions<TOptions>()
-            .Bind(section)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        return options;
-    }
-
-    /// <summary>
-    /// [FUNCTIONAL VARIANT] Adds and configures a building block's options using a transformation function.
-    /// Following ADR-016: Supports immutable options (init) via 'with' expressions.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// <b>PRIORITY 1: Zero-Reflection Resolution</b><br/>
-    /// This method leverages C# 11 Static Abstract Members (<see cref="IVKBlockOptions.SectionName"/>)
-    /// to resolve the configuration section at compile-time without reflection.
-    /// </para>
-    /// <para>
-    /// <b>PRIORITY 2: Idempotent Dual-Registration Pattern</b><br/>
-    /// Performs a "double registration" of the options while ensuring idempotency:
-    /// <list type="number">
-    /// <item>Standard <c>IOptions&lt;T&gt;</c> for DI compatibility (via <see cref="OptionsWrapper{T}"/>).</item>
-    /// <item>Direct <c>Singleton</c> for immediate synchronous access within building blocks during startup.</item>
-    /// </list>
-    /// </para>
-    /// </remarks>
-    /// <typeparam name="TOptions">The type of options to configure.</typeparam>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The root configuration.</param>
     /// <param name="transform">Optional transformation function to modify the options using 'with' expressions.</param>
-    /// <returns>The final configured options instance.</returns>
-    /// <exception cref="VKDependencyException">Thrown if the options type is already registered but no instance is available.</exception>
+    /// <returns>The options instance bound at registration time.</returns>
     public static TOptions AddVKBlockOptions<TOptions>(
         this IServiceCollection services,
         IConfiguration configuration,
@@ -241,4 +157,5 @@ public static class VKBlockRegistrationExtensions
 
         return options;
     }
+
 }

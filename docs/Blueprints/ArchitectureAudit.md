@@ -11,13 +11,22 @@
 3.  **链接格式**：输出中包含的文件路径必须始终相对于仓库根目录，以 `/src/` 开头。（例如：`[filename.cs](/src/.../filename.cs)`）
 4.  **输出语言 (Output Language)**: ビジネスIT日本語
 
-# 推荐工作流 (Recommended Workflow)
+# 審査戦略 (Audit Strategy)
 
-- **审计开始时**: 强烈建议运行 `export_codebase_to_markdown` ツールを実行し、対象モジュールの全コードを 1 つの Markdown ファイル（Snapshot）に統合して読み込むことを強く推奨します。これにより、ファイル間をまたぐ依存関係やアーキテクチャの一貫性を Token 効率良く、かつ高精度に分析できます。
+本審査は **Phase 1（構造）→ Phase 2（DI層）→ Phase 3（実装）→ Phase 4（レポート）** の順に実行する。
+
+- **Phase 1-2**: `list_dir` / `grep_search` / `view_file`（DI配下のみ）で完結。Snapshot は不要。
+- **Phase 3**: 実装ファイルが **10 ファイル超** の大規模モジュールのみ、`export_codebase_to_markdown` で Snapshot を作成して分析する。小規模モジュールは `view_file` で直接読み込む。
+
+# 前提条件 (Prerequisites)
+
+- Full Audit の実行前に、対象モジュールに対して **Fast Audit (`vk-audit-fast`)** を完了させること。
+- Fast Audit のスコアと検出事項は、本レポートの「監査サマリー」セクションに引用する。
+- Phase 2 (DI Registration) の検証は `DependencyInjection/` 配下のファイルのみを読み込んで実施する。
 
 # 审计维度 (Audit Dimensions)
 
-请从以下六个维度对代码进行深度扫描：
+请从以下七个维度对代码进行深度扫描：
 
 ## 设计原则 (Design Principles)
 
@@ -46,11 +55,37 @@
 
 - 评估代码是否符合其宣称的企业级模式（如 幂等性、分布式事务、消息队列、缓存、限流、熔断、降级、监控、日志、告警、审计、安全、性能优化、可扩展性、可维护性、可测试性、可观测性）。
 
+## VK.Blocks 固有の準拠度 (VK.Blocks Compliance — Deep)
+
+> Fast Audit では「存在チェック」のみ行った項目を、ここでは「正確性」レベルで精査する。
+
+- **Rule 18 実行順序**: DI 登録の 8 ステップが正しい順序で実装されているか（Check-Self → Options → Mark-Self → Validator → Diagnostics → Toggle → Services）
+- **ADR-016 Func 変換**: Options の configure パラメータが `Func<T,T>` パターンか `Action<T>` か
+- **Error 定数パターン**: `Result.Failure` に渡されるエラーが専用 `Errors` クラスの `static readonly` 定数か、raw string か
+- **CancellationToken 伝播**: async メソッドチェーン全体で `CancellationToken` が途切れず渡されているか
+- **Visibility 整合性**: Level 1 (public) / Level 2+ (internal) の境界が Rule 14 に従っているか
+- **Core 拡張と基盤抽象の徹底活用 (Rule 1, 5.1, 12, 13)**: 車輪の再発明やシステムネイティブ API の直呼びを避け、Core が提供する標準抽象を最大限活用しているかを厳密に審査する。
+    - **[境界防御]**: 手動の `if (x == null)` ではなく `VKGuard` (`NotNull`, `NotEmpty`, `Positive`, `EnumDefined` 等) で完全に保護されているか。
+    - **[非確定的 API]**: `DateTime.UtcNow` → `TimeProvider`、`Guid.NewGuid()` → `IVKGuidGenerator`、`JsonSerializer` → `IVKJsonSerializer` に置換されているか。
+    - **[DI & モジュール化]**: 単純な `AddSingleton` ではなく、`IsVKBlockRegistered` による冪等性確認、`TryAddSingletonForwarding` (Instance Sharing)、`AddVKBlockOptions` などを活用しているか。
+    - **[Result パターン]**: `throw` を避け、`Result<T>` とその流暢な拡張メソッド (`.Map()`, `.Bind()`, `.Match()` 等) で制御フローを構築しているか。
+    - **[DDD と EF Core 連携]**: 独自の基底クラスではなく、`VKEntity`、`VKAggregateRoot`、`VKValueObject` を継承し、自動化用 IF (`IVKAuditable`, `IVKSoftDelete`, `IVKMultiTenantEntity`) を適用しているか。
+    - **[標準例外・マッピング]**: 内部業務例外に `VKDomainException`、オブジェクト変換に `IVKMapper` の標準インターフェースを使用しているか。
+
+## 深度逻辑与状态演进审查 (Deep Logic & State Evolution Audit)
+
+> ⚠️ **警告**：不要仅仅停留在 Linter 级别的合规性检查（如是否使用了 sealed 或 Result<T>）。必须进行真实的控制流推演。
+
+- **执行路径脑内推演 (Mental Execution)**：请不要只看接口签名。选取该模块的核心处理链路（如 Pipeline 的流转），在脑内模拟一次“完整成功”和一次“中途失败”的执行，**检查状态（上下文对象）的修改是否真正传递到了最终的调用方**。
+- **寻找“逻辑死胡同” (Identify Dead Ends)**：扫描整个模块，寻找任何“被声明但从未被读取的配置”、“被计算但最终被丢弃的结果”，或者“被捕获但丢失了关键排查线索的异常”。
+- **防御性逆向思考 (Destructive Thinking)**：假设这个模块目前存在一个会导致核心业务数据丢失、或导致前端拿不到正确报错的严重逻辑漏洞。**请证明这个漏洞在哪里。**
+
 # 出力フォーマット (Output Schema)
 
 ## 📊 監査サマリー (Audit Summary)
 
 - **総合スコア**: 0-100点
+- **Fast Audit スコア**: [Phase 1 の結果を引用: XX/YY (ZZ%)]
 - **対象レイヤー判定**: [例: Application Layer / Command Handler]
 - **総評 (Executive Summary)**: [アーキテクチャの現状に対する、簡潔かつ的確なフィードバック]
 

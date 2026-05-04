@@ -1,4 +1,4 @@
-namespace VK.Blocks.Authorization.Common;
+namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Standardized claim types used specifically for authorization purposes.

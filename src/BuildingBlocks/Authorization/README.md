@@ -21,11 +21,11 @@
 
 | カテゴリ | 採用パターン |
 |---|---|
-| **Design Principles** | Separation of Concerns, Interface Segregation (ISP), Open/Closed (OCP), Dependency Inversion (DIP) |
-| **Architectural Style** | Vertical Slice Architecture (Feature-Driven) |
-| **Architectural Pattern** | BuildingBlock Composition, Provider-Evaluator-Handler Pipeline |
-| **Design Patterns** | Strategy (Provider/Evaluator の差し替え), Template Method (AuthorizationHandler 基盤), Builder (Fluent DI Registration), Marker Interface (Block 登録) |
-| **Enterprise Patterns** | Result Pattern (構造化エラー伝播), Options Validation (Fail-Fast), Source Generator (自動コード生成), OpenTelemetry Observability |
+| **Design Principles** | Separation of Concerns, Interface Segregation (ISP), Open/Closed (OCP), Dependency Inversion (DIP), **Zero-Reflection** |
+| **Architectural Style** | Vertical Slice Architecture (Feature-Driven), **Rule 16-20 Compliance** |
+| **Architectural Pattern** | BuildingBlock Composition, Provider-Evaluator-Handler Pipeline, **Modular Registration** |
+| **Design Patterns** | Strategy (Provider/Evaluator の差し替え), Template Method (AuthorizationHandler 基盤), Builder (Fluent DI Registration), **Marker Interface (IVKBlockMarker)** |
+| **Enterprise Patterns** | Result Pattern (構造化エラー伝播), Options Validation (Fail-Fast), Source Generator (自動コード生成), **Immutable Options (init-only records)** |
 | **Cross-Cutting** | SuperAdmin バイパス, Global Query Filter 連携, ConfigureAwait(false) 徹底 |
 
 ### 認可パイプライン全体像
@@ -50,6 +50,7 @@ flowchart TB
         I["WorkingHoursRequirement"]
         J["InternalNetworkRequirement"]
         K["SameTenantRequirement"]
+        ENT["TenantFeatureRequirement"]
     end
 
     subgraph Handlers["AuthorizationHandler Pipeline"]
@@ -60,22 +61,25 @@ flowchart TB
         P["WorkingHoursAuthorizationHandler"]
         Q["InternalNetworkAuthorizationHandler"]
         R["TenantAuthorizationHandler"]
+        RH["TenantFeatureAuthorizationHandler"]
     end
 
     subgraph Providers["Provider / Evaluator レイヤー"]
         S["IPermissionProvider"]
         T["IRoleProvider"]
-        U["IDynamicPolicyEvaluator"]
+        U["IVKDynamicPoliciesEvaluator"]
         V["IRankProvider"]
         W["IWorkingHoursProvider"]
         X["IIpAddressProvider"]
         Y["IUserTenantProvider"]
+        TF["ITenantFeatureProvider"]
     end
 
     subgraph Infrastructure["横断的関心事"]
         Z["Result&lt;T&gt; パターン"]
         AA["AuthorizationDiagnostics"]
         AB["SuperAdmin バイパス"]
+        AC["IVKBlockMarker (Metadata)"]
     end
 
     A --> B & C & D
@@ -90,6 +94,7 @@ flowchart TB
     I --> P
     J --> Q
     K --> R
+    ENT --> RH
 
     L --> S
     M --> T
@@ -98,38 +103,35 @@ flowchart TB
     P --> W
     Q --> X
     R --> Y
+    RH --> TF
 
-    L & M & N & O & P & Q & R --> Z & AA & AB
+    L & M & N & O & P & Q & R & RH --> Z & AA & AB & AC
 ```
 
 ### フォルダ構成
 
 ```
 Authorization/
-├── Abstractions/                    # 公開契約 (IVKAuthorizationRequirement, AuthorizationOperator)
-├── Common/                          # 共通定数・エラー・拡張メソッド
-│   ├── AuthorizationErrors.cs       # 構造化エラー定数 (Error 型)
-│   ├── AuthorizationExtensions.cs   # Result→Context マッピング、診断記録
-│   ├── VKAuthorizationClaimTypes.cs # 標準クレーム型定義
-│   ├── VKAuthorizationPolicies.cs   # ポリシー名定数
-│   └── VKAuthorizationPolicyFlags.cs # ビットフラグによるポリシー選択
-├── DependencyInjection/             # DI 登録・オプション・バリデーション
-│   ├── AuthorizationBlock.cs        # Block マーカー型
-│   ├── AuthorizationBlockExtensions.cs  # AddVKAuthorizationBlock() エントリポイント
-│   ├── AuthorizationBuilderExtensions.cs # Fluent ビルダー拡張
-│   ├── VKAuthorizationOptions.cs    # ルート設定オプション
-│   └── VKAuthorizationOptionsValidator.cs # Fail-Fast バリデーター
+├── VKAuthorizationBlock.cs          # Public Marker (IVKBlockMarker)
+├── DependencyInjection/             # DI 登録 (Rule 18.2 準拠)
+│   ├── VKAuthorizationExtensions.cs # Public Wrapper (AddVKAuthorizationBlock)
+│   ├── VKAuthorizationOptions.cs    # Public Options (IVKBlockOptions)
+│   └── Internal/
+│       ├── AuthorizationBlockRegistration.cs # 主登録ロジック (8-Step Sequence)
+│       └── AuthorizationOptionsValidator.cs  # オプション検証
 ├── Diagnostics/                     # OpenTelemetry メトリクス・トレース
-│   ├── AuthorizationDiagnostics.cs  # Counter / Histogram / ActivitySource
-│   └── AuthorizationDiagnosticsConstants.cs # メトリクス名・タグキー定数
-└── Features/                        # Vertical Slice 機能群
-    ├── DynamicPolicies/             # 動的ポリシー評価
-    ├── InternalNetwork/             # CIDR ベースネットワーク制御
-    ├── MinimumRank/                 # 職位ランク認可
-    ├── Permissions/                 # パーミッション認可 (All/Any ロジック)
-    ├── Roles/                       # ロールベースアクセス制御
-    ├── TenantIsolation/             # マルチテナント分離
-    └── WorkingHours/                # 勤務時間帯制限
+│   ├── VKAuthorizationDiagnosticsConstants.cs
+│   └── Internal/
+│       ├── AuthorizationDiagnostics.cs
+│       └── AuthorizationMetadataProvider.cs
+├── Roles/                           # ロール認可
+├── Permissions/                     # パーミッション認可
+├── DynamicPolicies/                 # 動的ポリシー (Attribute Evaluator)
+├── Entitlements/                    # テナント機能認可 [NEW]
+├── TenantIsolation/                 # マルチテナント隔離
+├── MinimumRank/                     # 職位ランク制限
+├── WorkingHours/                    # 勤務時間制限
+└── InternalNetwork/                 # ネットワーク制御
 ```
 
 ---
@@ -149,23 +151,24 @@ Authorization/
 - **Provider パターン**: `IRoleProvider` による柔軟なロール解決
 - **IRoleEvaluator**: プログラマティックなロール検証 API
 
-### 🏢 マルチテナント分離 (Tenant Isolation)
+### 🏢 マルチテナント分離 & テナント機能 (Tenant Isolation & Entitlements)
 
 - **SameTenantRequirement**: テナント横断アクセスを防止
 - **StrictTenantIsolation**: 厳密モードでは SuperAdmin もテナント分離を迂回不可
-- **IUserTenantProvider**: カスタムテナント解決ロジックの差し替え対応
+- **Entitlements (New)**: `[VKRequireTenantFeature("X")]` による、テナントの契約プランや有効化機能に基づく認可をサポート
+- **IUserTenantProvider / ITenantFeatureProvider**: カスタムテナント/機能解決ロジックの差し替え対応
 
 ### 📊 職位ランク認可 (Minimum Rank)
 
 - **Enum ベース比較**: `EmployeeRank` 等の enum 値による順序付き認可
 - **数値/文字列パース**: 整数値または enum 名による柔軟なランク解決
-- **IRankProvider**: 外部システムからのランク取得を抽象化
+- **IVKRankProvider**: 外部システムからのランク取得を抽象化
 
 ### ⏰ 勤務時間帯制限 (Working Hours)
 
 - **時間帯ウィンドウ**: `TimeOnly` ベースの勤務時間制限
 - **夜間シフト対応**: 日付をまたぐ overnight window をサポート
-- **IWorkingHoursProvider**: ユーザー/部署単位の動的勤務時間を Provider で解決
+- **IVKWorkingHoursProvider**: ユーザー/部署単位の動的勤務時間を Provider で解決
 - **TimeProvider 注入**: テスト容易性のための `TimeProvider` 差し替え
 
 ### 🌐 内部ネットワーク制御 (Internal Network)
@@ -173,13 +176,13 @@ Authorization/
 - **CIDR ベース制御**: RFC 1918 プライベートレンジによるデフォルト制限
 - **IPv4/IPv6 対応**: IPv4-mapped IPv6 の自動正規化
 - **高性能実装**: `stackalloc` / `Span<T>` によるゼロアロケーション CIDR マッチング
-- **IIpAddressProvider**: プロキシ環境でのリモート IP 解決をカスタマイズ可能
+- **IVKIpAddressProvider**: プロキシ環境でのリモート IP 解決をカスタマイズ可能
 
 ### 🔄 動的ポリシー評価 (Dynamic Policies)
 
 - **`[DynamicAuthorize]` 属性**: 属性名・演算子・値による汎用的な動的認可
 - **IAuthorizationRequirementData**: 文字列ベースのポリシーパーシングを完全排除
-- **IDynamicPolicyEvaluator / IDynamicPolicyProvider**: 動的ロジックの差し替えが可能
+- **IVKDynamicPoliciesEvaluator**: 動的ロジックの差し替えが可能
 
 ### 🛡️ SuperAdmin バイパス
 
@@ -187,7 +190,18 @@ Authorization/
 - `VKAuthorizationOptions.SuperAdminRole` で設定可能
 - `StrictTenantIsolation` フラグでテナント分離のバイパス可否を制御
 
-### 📈 組み込みオブザーバビリティ
+### 🛡️ 認可の指定方式 (Attribute-Driven vs Named Policy)
+ 
+ 本モジュールは、モダンな属性駆動（IAuthorizationRequirementData）と、従来の ASP.NET Core 名前付きポリシーの両方をサポートしています。
+ 
+ | 方式 | 対象機能 | 指定例 | 特徴 |
+ |---|---|---|---|
+ | **属性駆動 (Attribute)** | Permissions, Roles, Dynamic, Entitlements | `[RequireFinanceRead]` | **推奨。** SGにより自動生成。ポリシー文字列を介さず型安全で高性能。 |
+ | **名前付きポリシー (Policy)** | WorkingHours, InternalNetwork, MinimumRank | `[Authorize(Policy = "WorkingHoursOnly")]` | 共通の定型ルールを文字列で一括指定。`AddVKAuthorizationPolicies` で登録が必要。 |
+ 
+ ---
+ 
+ ### 📈 組み込みオブザーバビリティ
 
 - **OpenTelemetry 準拠**: `ActivitySource` / `Meter` による分散トレーシングとメトリクス
 - **Counter**: `authorization.decisions` — 認可判定回数 (Allowed/Denied)
@@ -199,13 +213,15 @@ Authorization/
 
 ```csharp
 services.AddVKAuthorizationBlock(configuration)
-    .WithPermissionProvider<CustomPermissionProvider>()
-    .WithRoleProvider<CustomRoleProvider>()
-    .WithUserTenantProvider<CustomTenantProvider>()
-    .WithRankProvider<CustomRankProvider>()
-    .WithWorkingHoursProvider<CustomWorkingHoursProvider>()
-    .WithIpAddressProvider<CustomIpAddressProvider>()
-    .WithDynamicPolicyEvaluator<CustomDynamicEvaluator>();
+    .AddPermissions(options => options with { Enabled = true }) // Use 'with' for immutable options (ADR-016)
+    .AddRoles(options => options with { RoleClaimType = "custom_role" })
+    .AddWorkingHours(options => options with { WorkStart = new(8, 0) })
+    .AddEntitlements()
+    .AddMinimumRank()
+    .AddInternalNetwork()
+    .AddTenantIsolation()
+    .AddRoleProvider<CustomRoleProvider>();
+ // カスタムプロバイダーの注入
 ```
 
 ### ⚙️ Source Generator 連携 (`VK.Blocks.Generators`)
@@ -222,7 +238,7 @@ services.AddVKAuthorizationBlock(configuration)
 | **`AuthorizationMetadataGenerator`** | コントローラー / アクションメソッドに付与された認可属性を横断的にスキャンし、エンドポイント別の認可トポロジーマップ (`AuthorizationMetadata.Endpoints`) をコンパイル時に生成。FNV-1a ハッシュによる構成変更検知に対応 |
 
 > [!TIP]
-> これらのジェネレーターにより、新しいパーミッションや認可ポリシーの追加は **属性を1つ付与するだけ** で完了します。DI 登録・ハンドラー・メタデータはすべてコンパイル時に自動生成されるため、手動の配管コードは一切不要です。
+> これらのジェネレーターにより、新しいパーミッションや認可ポリシーの追加は **属性を1つ付与するだけ** で完了します。DI 登録・ハンドラー・メタデータはすべてコンパイル時に自動生成されるため、**名前付きポリシーの事前登録 (`AddPolicy`) は一切不要** です。
 
 #### 💡 実装例 (Source Generators の連携)
 
@@ -319,22 +335,53 @@ dotnet build
 // Program.cs or Startup.cs
 services.AddVKCoreBlock();
 
+// VK 認可ブロックと標準機能（ハンドラー・ポリシー等）を一括登録
 services.AddVKAuthorizationBlock(configuration)
-    .WithPermissionProvider<MyPermissionProvider>();
+    .AddDefaultFeatures() // パーミッション、ロール、各ポリシー等を一括有効化
+    .AddPermissionProvider<MyPermissionProvider>();
 ```
 
 ### appsettings.json 設定例
 
 ```json
 {
-  "Authorization": {
-    "Enabled": true,
-    "SuperAdminRole": "SuperAdmin",
-    "StrictTenantIsolation": true,
-    "EnabledPolicies": "All",
-    "WorkStart": "09:00",
-    "WorkEnd": "18:00",
-    "InternalCidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+  "VKBlocks": {
+    "Authorization": {
+      "Enabled": true,
+      "SuperAdminRole": "SuperAdmin",
+      "Permissions": {
+        "Enabled": true,
+        "PermissionClaimType": "permissions"
+      },
+      "Roles": {
+        "Enabled": true,
+        "RoleClaimType": "role"
+      },
+      "TenantIsolation": {
+        "Enabled": true,
+        "StrictTenantIsolation": true,
+        "TenantClaimType": "tenant_id"
+      },
+      "Entitlements": {
+        "Enabled": true
+      },
+      "WorkingHours": {
+        "Enabled": true,
+        "WorkStart": "09:00",
+        "WorkEnd": "18:00"
+      },
+      "InternalNetwork": {
+        "Enabled": true,
+        "InternalCidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1/32"]
+      },
+      "MinimumRank": {
+        "Enabled": true,
+        "RankClaimType": "rank"
+      },
+      "DynamicPolicies": {
+        "Enabled": true
+      }
+    }
   }
 }
 ```

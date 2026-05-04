@@ -25,7 +25,7 @@ trigger: always_on
 
 ### Rule 13 — Service Registration Pattern
 
-- Each BuildingBlock module MUST define a dedicated marker type (e.g. `public sealed class AuthenticationBlock;`).
+- Each BuildingBlock module MUST define a dedicated marker type decorated with `[VKBlockMarker]` (e.g. `[VKBlockMarker] public sealed partial class AuthenticationBlock;`).
 - Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Options/Mark-Self, Feature Toggle, Core Services"** pattern:
     1.  **Check-Self & Check-Prerequisite**: Check for self-registration and validate dependencies recursively via `IsVKBlockRegistered<OwnBlock>()`. Return early if true. This "Smart Check" ensures that both idempotency and prerequisite safety (e.g. Core block existence) are handled in a single call.
     2.  **Options Registration**: Register configuration options (`AddVKBlockOptions<T>`).
