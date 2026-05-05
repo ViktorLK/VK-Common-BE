@@ -13,7 +13,7 @@ Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Gener
 - **`{FeatureName}/` (MANDATORY)**: First-level domain folders for vertical slices (e.g., `ApiKeys/`, `Guids/`). 
     - MUST contain all logic related to that domain (Interfaces, Handlers, Validators, etc.).
     - `Internal/`: Encapsulated implementations for the feature. **MUST NOT** be wrapped in a `Features/` folder.
-- `VK{ModuleName}Block.cs`: **Public** marker type placed directly in the module's root directory.
+- `VK{ModuleName}Block.cs`: **Public** marker type placed directly in the module's root directory. This SHOULD be the only `.cs` file in the root to maintain a clean entry point.
 - `Abstractions/` (OPTIONAL): Use ONLY for top-level contracts shared across multiple features that cannot be assigned to a specific domain.
 - `Common/` (OPTIONAL): Use ONLY for true cross-cutting utilities (e.g., `Utilities/`, `Constants/`).
 - `Contracts/`: Cross-boundary public contracts (e.g., Integration Events, external DTOs).
@@ -28,12 +28,14 @@ Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Gener
     - `DiagnosticsConstants.cs`: Semantic tokens.
     - `Internal/`: `[LoggerMessage]` and `[VKBlockDiagnostics]` classes.
 
-### Rule 17 — The Marker Pattern (IVKBlockMarker)
+### Rule 17 — The Marker Pattern ([VKBlockMarker])
 
-Each module MUST have a sealed partial class implementing `IVKBlockMarker` placed in the module's root directory:
+Each module MUST define a sealed partial class decorated with the `[VKBlockMarker]` attribute, placed in the module's root directory:
+- **Source Generation**: DO NOT manually implement `IVKBlockMarker`. The interface and its properties (BlockName, ActivitySource, etc.) are automatically implemented via Source Generation based on the attribute metadata.
+- **Partial Declaration**: The class MUST be declared as `sealed partial class`.
 - **Namespace**: `VK.Blocks.{ModuleName}` (library root namespace, per Rule 14 — public API surface).
-- **Identifier**: Match the module name (e.g., "Authentication").
-- **Activity/Meter**: Use `VKBlocksConstants.VKBlocksPrefix + Identifier`.
+- **Dependencies**: Explicitly define prerequisite blocks using the `Dependencies` property (e.g., `[VKBlockMarker(Dependencies = [typeof(VKCoreBlock)])]`).
+- **Activity/Meter**: The generated implementation uses `VKBlocksConstants.VKBlocksPrefix + ModuleName`.
 
 ### Rule 18 — Idempotent DI Registration (Wrapper vs Core)
 
@@ -50,6 +52,8 @@ public static class VK{ModuleName}BlockExtensions
 ```
 
 #### 18.2 Internal Core (Registration Sequence)
+**STRICT CONSTRAINT**: The entire registration flow MUST be synchronous. Executing I/O operations (e.g., database calls, network requests) or using blocking async calls (`Task.Wait()`, `.GetAwaiter().GetResult()`) inside DI extensions is STRICTLY PROHIBITED as it leads to startup deadlocks and thread pool starvation.
+
 The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow this exact order:
 1.  **Check-Self & Prerequisite**: `if (services.IsVKBlockRegistered<{ModuleName}Block>()) return builder;` (This smart check automatically validates dependencies).
 2.  **Options Registration**: `var options = services.AddVKBlockOptions<VK{ModuleName}Options>(configuration);`
@@ -57,7 +61,7 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 4.  **Options Validation**: `services.TryAddEnumerableSingleton<IValidateOptions<VK{ModuleName}Options>, {ModuleName}OptionsValidator>();`
 5.  **Diagnostics/Static Metadata**: Register ActivitySource/Meter/SecurityMetadata.
 6.  **Feature Toggle**: `if (!options.Enabled) return builder;`
-7.  **Core Services**: Register the actual feature logic.
+7.  **Core Services**: Register the actual feature logic using idempotent `TryAdd` patterns. PROHIBIT synchronous blocking calls (e.g. `.Result`, `.Wait()`) during service registration to avoid deadlocks during container composition.
 
 ### Rule 19 — Diagnostics Blueprint
 

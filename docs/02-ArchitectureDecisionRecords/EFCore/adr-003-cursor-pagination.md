@@ -312,7 +312,7 @@ Index Seek (Cost: 5)
 [`EfCoreReadRepository.Query.cs:58-121`](/src/BuildingBlocks/Persistence/EFCore/Repositories/EfCoreReadRepository.Query.cs#L58-L121)
 
 ```csharp
-public async Task<CursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(
+public async Task<VKCursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(
     Expression<Func<TEntity, bool>>? predicate,
     Expression<Func<TEntity, TCursor>> cursorSelector,
     TCursor? cursor = default,
@@ -343,7 +343,7 @@ public async Task<CursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(
         ? EncodeCursor(compiledSelector(items[^1]))
         : null;
 
-    return new CursorPagedResult<TEntity> { ... };
+    return new VKCursorPagedResult<TEntity> { ... };
 }
 ```
 

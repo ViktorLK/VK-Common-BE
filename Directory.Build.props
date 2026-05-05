@@ -7,6 +7,7 @@
     <RepositoryUrl>https://github.com/ViktorLK/VK-Common-BE</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
+    <Version>0.9.0</Version>
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -14,6 +15,10 @@
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="Version" />
+  </ItemGroup>
 
   <ItemGroup Condition="$(MSBuildProjectName.StartsWith('VK.Blocks')) and !$(MSBuildProjectFullPath.Contains('Generators'))">
     <ProjectReference Include="$(MSBuildThisFileDirectory)src\BuildingBlocks\Generators\VK.Blocks.Generators.csproj"

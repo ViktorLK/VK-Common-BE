@@ -140,7 +140,7 @@ public class EfCoreReadRepository<TEntity, TCursorSerializer>
 **Approach**: シリアライズ関数を `GetCursorPagedAsync` の引数として渡す。
 
 ```csharp
-public Task<CursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(
+public Task<VKCursorPagedResult<TEntity>> GetCursorPagedAsync<TCursor>(
     ...,
     Func<TCursor, string>? cursorEncoder = null)
 ```

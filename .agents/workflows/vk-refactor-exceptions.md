@@ -25,6 +25,7 @@ Identify legacy exception-throwing patterns (e.g., `throw new Exception`, `throw
 4. **Refactor Methods**:
     - Change the return type of the offending methods from `Task<T>` or `T` to `Task<Result<T>>` or `Result<T>`.
     - Replace `throw new ...` with `return Result.Failure<T>([Domain]Errors.[SpecificError]);`
+    - **Context Retention (Rule 6)**: If the original Exception contained important debugging context, dynamic parameters, or inner exceptions, do NOT discard them. You MUST log them via `[LoggerMessage]` immediately before returning the `Result.Failure`, or attach them to the `Error` metadata if supported, to prevent losing critical troubleshooting context.
     - Replace successful returns like `return data;` with `return Result.Success(data);`
     - Propagate the `Result<T>` change up the call stack to the Handler or Controller/Endpoint level.
 

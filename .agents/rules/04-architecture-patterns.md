@@ -23,20 +23,13 @@ trigger: always_on
     - **Fluent Assignment**: Leverage the return value of `VKGuard` for single-line field initialization (e.g., `_service = VKGuard.NotNull(service);`) or expression-bodied members.
 - **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
 
-### Rule 13 — Service Registration Pattern
+### Rule 13 — Service Registration Policy
 
-- Each BuildingBlock module MUST define a dedicated marker type (e.g. `public sealed class AuthenticationBlock;`).
-- Each registration method MUST implement the **"Check-Self, Check-Prerequisite, Options/Mark-Self, Feature Toggle, Core Services"** pattern:
-    1.  **Check-Self & Check-Prerequisite**: Check for self-registration and validate dependencies recursively via `IsVKBlockRegistered<OwnBlock>()`. Return early if true. This "Smart Check" ensures that both idempotency and prerequisite safety (e.g. Core block existence) are handled in a single call.
-    2.  **Options Registration**: Register configuration options (`AddVKBlockOptions<T>`).
-    3.  **Mark-Self**: Register the self-marker using `services.AddVKBlockMarker<OwnBlock>()` immediately after options registration, but BEFORE any early returns related to feature-toggle (`Enabled`) checks. This ensures the block is recognized for dependency resolution.
-    4.  **Feature Toggle**: Return early if the feature is disabled (`!options.Enabled`).
-    5.  **Core Services**: Perform actual service registration using idempotent `TryAdd` patterns.
-- For the complete 8-step implementation sequence (including Options Validation and Diagnostics registration), refer to **Rule 18** in `05-block-blueprint.md`.
-- ALL idempotency checks (including `TOptions` registration) MUST use the semantic `IsVKBlockRegistered<T>()` helper instead of manual `Any()` checks.
-- Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`).
-- Direct `AddSingleton`/`AddScoped`/`AddTransient` is PROHIBITED within building block extensions.
-- **Exception**: Official framework extensions (e.g. `AddHttpContextAccessor`, `AddLogging`, `AddAuthentication`) that are known to be idempotent are allowed and preferred over manual `TryAdd` registrations.
+- **Idempotency**: All building block registrations MUST be strictly idempotent. Registering the same block multiple times must be safe and have no side effects.
+- **Dependency Validation**: Modules MUST declare and automatically validate their prerequisite blocks (e.g., Core, Infrastructure) before registering themselves.
+- **Marker Types**: Each module MUST use a strongly typed marker (`[VKBlockMarker]`) to track its registration state and dependencies.
+- **Safe Registration**: Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`). Direct `AddSingleton` is PROHIBITED.
+- **Implementation Delegation**: For the exact execution order and implementation sequence of this policy, you MUST strictly follow **Rule 18** in `05-block-blueprint.md`.
 
 ### Rule 14 — Structural Organization
 
@@ -55,6 +48,12 @@ trigger: always_on
   ✅ ApiKeys/Internal/
   ❌ Features/HandleApiKeys/
 
+#### Interface Versioning (Public API)
+
+- **Backward Compatibility**: Once an interface (e.g., `IVK...`) is published as a Level 1 Public API, breaking changes to consumers MUST be avoided.
+- **Default Interface Methods (DIM)**: Use C# 8.0+ Default Interface Methods when adding new functionality to an existing public interface to maintain backward compatibility.
+- **ADR Trigger**: Any unavoidable breaking change to a Level 1 public interface REQUIRES an immediate Architectural Decision Record (ADR) and explicit team approval (Rule 11).
+
 #### Constant Visibility
 
 - **Single File Scope:** Use `private const` within the class.
@@ -71,14 +70,12 @@ trigger: always_on
 - **Navigation**: Extract nested or bundled types into their own files to maintain high cohesive navigation.
 - **Exception**: Private nested types used exclusively within the same class MAY remain in the same file. e.g. private sealed record InternalResult(...)
 
-### Rule 15 — Configuration Pattern (Zero-Reflection)
+### Rule 15 — Configuration Policy (Zero-Reflection)
 
-- ALL building block Options classes MUST implement `IVKBlockOptions` to support the zero-reflection pattern.
-- Configuration sections MUST be resolved using the standardized `AddVKBlockOptions<TOptions>(configuration, transform)` primary wrapper.
-- **Functional Transformation (ADR-016)**: To support immutable `init` properties and `record` types, all configuration delegates MUST use the **`Func<T, T>`** pattern instead of `Action<T>`. This allows the use of `with` expressions for non-destructive mutation: `services.AddVKBlockOptions<T>(config, options => options with { Prop = value })`.
-- Section names MUST follow the `VKBlocksConstants.VKBlocksConfigPrefix + "{ModuleName}"` format (e.g., `VKBlocks:Authentication`).
-- The **Idempotent Dual-Registration Pattern** (IOptions + Singleton) MUST be maintained to allow building blocks synchronous access to their options during startup.
-- **Wrapper vs Core**: Modular registration MUST use the public `[WRAPPER]` pattern receiving `IConfiguration` to delegate to the internal `[CORE]` registration logic.
+- **Strict Contracts**: ALL building block Options classes MUST implement `IVKBlockOptions` to support the zero-reflection pattern.
+- **Immutability**: Configuration objects MUST be immutable after initialization.
+- **Dual-Registration**: The framework MUST maintain an **Idempotent Dual-Registration Pattern** (IOptions + Singleton) to allow synchronous access to options during startup.
+- **Implementation Delegation**: For the exact structure, naming conventions, and validation setup of Options classes, you MUST strictly follow **Rule 20** in `05-block-blueprint.md`.
 
 ### Rule 21 — Hierarchical Configuration Pattern (Args Pattern)
 
