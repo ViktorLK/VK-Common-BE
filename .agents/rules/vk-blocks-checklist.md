@@ -10,9 +10,9 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
 
 ### [Core Standards](/.agents/rules/01-core-standards.md)
 
-- **Rule 1 — Result Pattern**: Mandatory use of `Result<T>` for all application logic; no nulls or raw exceptions.
+- **Rule 1 — Result Pattern**: Mandatory `Result<T>`; no nulls/raw exceptions. Error codes MUST follow `{ModuleName}.{Category}.{Reason}` hierarchy.
 - **Rule 2 — Layer Dependencies**: Strict separation between Application and Infrastructure layers via abstractions.
-- **Rule 3 — Async**: Mandatory use of `async/await`, `CancellationToken`, and `.ConfigureAwait(false)`.
+- **Rule 3 — Async**: Mandatory `async/await` and `.ConfigureAwait(false)`. Enforce test prohibition via `.editorconfig`.
 - **Rule 4 — Performance**: Prohibit database queries in loops; default to `AsNoTracking`; use Span/ArrayPool.
 - **Rule 5 — Automation**: Mandatory use of DbContext Interceptors for Audit and Soft-Delete logic.
 
@@ -31,16 +31,16 @@ This master checklist serves as the entry point for all VK.Blocks architectural 
 ### [Architecture & Design Patterns](/.agents/rules/04-architecture-patterns.md)
 
 - **Rule 12 — Modern C# Semantics**: Seal classes by default; use immutable records, collection expressions, and **VKGuard fluent validation**.
-- **Rule 13 — Service Registration**: Check-Self & Prerequisite (`IsVKBlockRegistered<T>`) → Options → Mark-Self → Feature Toggle → Core Services (`TryAdd` only). See Rule 18 for full sequence.
-- **Rule 14 — Structural Organization**: Depth-based visibility (Level 1 = public/root namespace, Level 2+ = internal); VK prefix for public types; one file per type.
-- **Rule 15 — Configuration Pattern**: Mandatory `IVKBlockOptions`; SectionName = `VKBlocksConstants.VKBlocksConfigPrefix + "{ModuleName}"`. Idempotent Dual-Registration (IOptions + Singleton). Wrapper delegates to internal Core logic.
+- **Rule 13 — Service Registration Policy**: Idempotent registrations, `TryAdd` only. Implementation sequence delegated to Rule 18.
+- **Rule 14 — Structural Organization**: Depth-based visibility (Level 1 vs 2+); Public Interface Versioning (DIM + ADR); VK prefix for public types.
+- **Rule 15 — Configuration Policy**: Mandatory `IVKBlockOptions`. Implementation details delegated to Rule 20.
 - **Rule 21 — Hierarchical Configuration Pattern (Args Pattern)**: "Global Default (Options) + Local Override (Args)" with `args?.Prop ?? options.Prop` priority.
 
 ### [Library Blueprint (New)](/.agents/rules/05-block-blueprint.md)
 
 - **Rule 16 — Standard Folder Structure**: Mandatory directory layout for all modules.
 - **Rule 17 — Marker Pattern**: Required `[VKBlockMarker]` attribute and `sealed partial class`.
-- **Rule 18 — Idempotent DI**: Strict execution order in `AddVKXxxBlock`.
+- **Rule 18 — Idempotent DI**: Strict synchronous execution order in `AddVKXxxBlock`. I/O and blocking async are strictly prohibited.
 - **Rule 19 — Diagnostics Blueprint**: Mandatory `[VKBlockDiagnostics]` and `LoggerMessage`.
 - **Rule 20 — Options Lifecycle**: `IVKBlockOptions` naming and lifecycle rules.
 

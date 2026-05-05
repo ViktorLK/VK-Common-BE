@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -41,7 +40,7 @@ internal sealed class InternalNetworkAuthorizationHandler(
             return;
         }
 
-        var result = await IsInternalNetworkAsync(context.User, allowedCidrs: requirement.AllowedCidrs)
+        var result = await IsInternalNetworkAsync(context.User, new VKInternalNetworkArgs { AllowedCidrs = requirement.AllowedCidrs })
             .ConfigureAwait(false);
 
         context.ApplyResult(requirement, result, this);
@@ -50,11 +49,14 @@ internal sealed class InternalNetworkAuthorizationHandler(
     /// <inheritdoc />
     public ValueTask<VKResult<bool>> IsInternalNetworkAsync(
         ClaimsPrincipal? user = null,
-        IPAddress? remoteIp = null,
-        IReadOnlyList<string>? allowedCidrs = null,
+        VKInternalNetworkArgs? args = null,
         CancellationToken ct = default)
     {
         var userId = user?.Identity?.Name ?? VKBlocksConstants.SystemIdentity;
+
+        // 0. Merge settings (Rule 21)
+        var activeCidrs = args.MergeWith(VKInternalNetworkArgs.Empty).AllowedCidrs.MergeWith(_networkOptions.InternalCidrs);
+        var remoteIp = args.MergeWith(VKInternalNetworkArgs.Empty).RemoteIp;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
         if (user != null && user.IsSuperAdmin(_globalOptions))
@@ -83,7 +85,6 @@ internal sealed class InternalNetworkAuthorizationHandler(
         }
 
         // 3. Match CIDRs
-        var activeCidrs = allowedCidrs ?? _networkOptions.InternalCidrs;
         var isAllowed = activeCidrs?.Any(cidr => IsInCidr(ip, cidr)) == true;
 
         // 4. Trace & Record

@@ -22,16 +22,21 @@ internal sealed class DefaultDynamicPoliciesEvaluator(
     /// <inheritdoc />
     public async ValueTask<VKResult<bool>> EvaluateAsync(
         ClaimsPrincipal user,
-        VKDynamicRequirement requirement,
-        CancellationToken cancellationToken = default)
+        VKDynamicPoliciesArgs? args = null,
+        CancellationToken ct = default)
     {
         VKGuard.NotNull(user);
-        VKGuard.NotNull(requirement);
+        args ??= VKDynamicPoliciesArgs.Empty;
+        var requirement = args.Requirement;
+        if (requirement is null)
+        {
+            return VKResult.Success(false);
+        }
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
         var requirementName = $"{requirement.Attribute} {requirement.Operator} {requirement.Value}";
 
         var sw = Stopwatch.StartNew();
-        var result = await _provider.GetAttributeValueAsync(user, requirement.Attribute, cancellationToken)
+        var result = await _provider.GetAttributeValueAsync(user, requirement.Attribute, ct)
             .ConfigureAwait(false);
 
         if (!result.IsSuccess)

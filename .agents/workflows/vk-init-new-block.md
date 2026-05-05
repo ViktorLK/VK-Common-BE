@@ -32,7 +32,7 @@ Initialize the base directory `src/BuildingBlocks/{ModuleName}/`:
     1.  Check-Self.
     2.  Check-Prerequisite (`EnsureVKCoreBlockRegistered`).
     3.  Add Options.
-    4.  Add Marker (Mark-Self).
+    4.  Add Marker (Mark-Self). **CRITICAL**: The Marker MUST be registered BEFORE the `Enabled` toggle check. Even if the module is disabled, its Marker must exist in the DI container to prevent downstream modules from crashing during dependency scanning.
     5.  Add Validator (`TryAddEnumerableSingleton<IValidateOptions<...>>`).
     6.  Diagnostics/Diagnostics Metadata.
     7.  Toggle Check (`if (!options.Enabled) return builder;`).

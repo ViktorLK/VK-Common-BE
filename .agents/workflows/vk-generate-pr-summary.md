@@ -35,6 +35,10 @@ Read the uncommitted changes (or changes between specific branches) using `git d
     - ✅ **Observability (Rule 6)**: [Did we add proper tracing/structured logs?]
     - (Include only the Rules that are relevant to this PR)
 
+    [IF interfaces or core contracts were modified, inject the following section:]
+    ## ⚠️ 契約変更アラート (Architecture Rules Alert)
+    ⚠️ 契约/インターフェースの変更が検出されました。Rule 11 (ADR Trigger) に基づき、ADRが更新されているか確認してください。
+
     ## 🧪 確認事項 (Testing Done)
 
     - [ ] Unit tests generated and passed

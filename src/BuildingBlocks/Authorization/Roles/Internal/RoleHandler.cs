@@ -33,7 +33,7 @@ internal sealed class RoleHandler(
             return;
         }
 
-        var result = await HasRolesAsync(context.User, requirement.Roles).ConfigureAwait(false);
+        var result = await HasRolesAsync(context.User, new VKRoleArgs { Roles = requirement.Roles }).ConfigureAwait(false);
         context.ApplyResult(requirement, result, this);
     }
 
@@ -43,18 +43,24 @@ internal sealed class RoleHandler(
         string role,
         CancellationToken ct = default)
     {
-        return await HasRolesAsync(user, [role], ct).ConfigureAwait(false);
+        return await HasRolesAsync(user, new VKRoleArgs { Roles = [role] }, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async ValueTask<VKResult<bool>> HasRolesAsync(
         ClaimsPrincipal user,
-        string[] roles,
+        VKRoleArgs? args = null,
         CancellationToken ct = default)
     {
         VKGuard.NotNull(user);
-        VKGuard.NotEmpty(roles);
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
+
+        // 0. Merge settings (Rule 21)
+        var roles = args.MergeWith(VKRoleArgs.Empty).Roles.MergeWith([]);
+        if (roles.Length == 0)
+        {
+            return VKResult.Success(false);
+        }
 
         // 1. SuperAdmin Bypass Logic
         if (user.IsSuperAdmin(_globalOptions))

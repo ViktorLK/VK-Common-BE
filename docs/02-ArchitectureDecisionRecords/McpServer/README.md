@@ -1,0 +1,25 @@
+# Architecture Decision Records (ADR) - McpServer Index
+
+このディレクトリには、VK.Blocks MCP Server ツールセットの主要な設計決定を記録した ADR が含まれています。
+
+## 📚 ADR 一覧
+
+#### [ADR-001: Migration to Native .NET MCP Server Implementation](./adr-001-migration-to-native-.net-mcp-server-implementation.md)
+
+**Status**: ✅ Accepted  
+**概要**: MCP サーバーのコア実装を TypeScript プロトタイプからネイティブ .NET 10 へ移行し、BuildingBlock 資産の直接再利用と開発体験の向上を実現。  
+**キーワード**: .NET Native, Porting, Code Reuse
+
+---
+
+## 🎯 ADR の読み方ガイド
+
+### アーキテクチャとエコシステムの理解用
+1. **ADR-001**: なぜ TypeScript を捨てて .NET へ移行したのか、その技術的背景とトレードオフを理解するために読んでください。
+
+## 🔗 関連ドキュメント
+- [Project Documentation](../../README.md)
+- [BuildingBlock Standards](../../03-Standards/01-core-standards.md)
+
+**Last Updated**: 2026-05-05  
+**Total ADRs**: 1

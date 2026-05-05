@@ -38,8 +38,7 @@ internal sealed class MinimumRankAuthorizationHandler(
 
         var result = await HasMinimumRankAsync(
                 context.User,
-                requirement.MinimumRankValue,
-                requirement.EnumType)
+                new VKMinimumRankArgs { MinimumRank = requirement.MinimumRankValue, EnumType = requirement.EnumType })
             .ConfigureAwait(false);
 
         context.ApplyResult(requirement, result, this);
@@ -48,12 +47,15 @@ internal sealed class MinimumRankAuthorizationHandler(
     /// <inheritdoc />
     public async ValueTask<VKResult<bool>> HasMinimumRankAsync(
         ClaimsPrincipal user,
-        int minimumRank,
-        Type? enumType = null,
+        VKMinimumRankArgs? args = null,
         CancellationToken ct = default)
     {
         VKGuard.NotNull(user);
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
+
+        // 0. Merge settings (Rule 21)
+        var minimumRank = args.MergeWith(VKMinimumRankArgs.Empty).MinimumRank.MergeWith(0);
+        var enumType = args.MergeWith(VKMinimumRankArgs.Empty).EnumType;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
         if (user.IsSuperAdmin(_globalOptions))

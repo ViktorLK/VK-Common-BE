@@ -52,6 +52,8 @@ public static class VK{ModuleName}BlockExtensions
 ```
 
 #### 18.2 Internal Core (Registration Sequence)
+**STRICT CONSTRAINT**: The entire registration flow MUST be synchronous. Executing I/O operations (e.g., database calls, network requests) or using blocking async calls (`Task.Wait()`, `.GetAwaiter().GetResult()`) inside DI extensions is STRICTLY PROHIBITED as it leads to startup deadlocks and thread pool starvation.
+
 The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow this exact order:
 1.  **Check-Self & Prerequisite**: `if (services.IsVKBlockRegistered<{ModuleName}Block>()) return builder;` (This smart check automatically validates dependencies).
 2.  **Options Registration**: `var options = services.AddVKBlockOptions<VK{ModuleName}Options>(configuration);`
@@ -59,7 +61,7 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 4.  **Options Validation**: `services.TryAddEnumerableSingleton<IValidateOptions<VK{ModuleName}Options>, {ModuleName}OptionsValidator>();`
 5.  **Diagnostics/Static Metadata**: Register ActivitySource/Meter/SecurityMetadata.
 6.  **Feature Toggle**: `if (!options.Enabled) return builder;`
-7.  **Core Services**: Register the actual feature logic.
+7.  **Core Services**: Register the actual feature logic using idempotent `TryAdd` patterns. PROHIBIT synchronous blocking calls (e.g. `.Result`, `.Wait()`) during service registration to avoid deadlocks during container composition.
 
 ### Rule 19 — Diagnostics Blueprint
 

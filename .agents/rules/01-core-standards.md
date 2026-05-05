@@ -9,6 +9,7 @@ trigger: always_on
 - Application Layer: RETURN `Result<T>` only. NEVER return null.
 - For void operations, use `Result` (non-generic) or `Result<Unit>`. NEVER return bare `void` or `Task` from Application Layer handlers.
 - NEVER use `Result.Failure("raw string")`. ALWAYS use predefined `Error` constants.
+- **Error Constants Hierarchy**: Define error codes using the `{ModuleName}.{Category}.{Reason}` format (e.g., `Auth.ApiKey.Invalid`). Use a global `VKCoreErrors` class for shared cross-block errors, and an `Internal/Errors.cs` class for block-specific errors to prevent constant sprawl.
 - Infrastructure Layer: exceptions ARE allowed, but MUST be caught at the boundary and mapped to `Result<T>`.
 - Follow RFC 7807 for HTTP error responses.
 - NEVER throw exceptions across layer boundaries.
@@ -27,7 +28,8 @@ trigger: always_on
 - NO `.Result`, `.Wait()`, or blocking calls.
 - Prefer `ValueTask<T>` over `Task<T>` for interfaces and hot-path methods where synchronous completion is the common case (cache hits, in-memory checks). Avoid `ValueTask` when the operation is always async or may be awaited multiple times.
 - ALL `await` calls within BuildingBlock/library code MUST use `.ConfigureAwait(false)` to prevent synchronization-context deadlocks.
-- **Exception**: DO NOT use `.ConfigureAwait(false)` in Test methods (xUnit). Test code should maintain the synchronization context for stable assertion handling and parallelism management (Rule `xUnit1030`).
+- **Exception**: DO NOT use `.ConfigureAwait(false)` in Test methods (xUnit). Test code should maintain the synchronization context for stable assertion handling and parallelism management.
+- **Enforcement**: Configure `.editorconfig` (e.g., `dotnet_diagnostic.xUnit1030.severity = error`) or use custom analyzers to automatically prevent IDE auto-completion from injecting `.ConfigureAwait(false)` into test projects.
 
 ### Rule 4 — Performance
 

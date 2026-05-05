@@ -34,7 +34,7 @@ internal sealed class PermissionHandler(
             return;
         }
 
-        var result = await HasPermissionsAsync(context.User, requirement.Permissions, requirement.Mode).ConfigureAwait(false);
+        var result = await HasPermissionsAsync(context.User, new VKPermissionArgs { Permissions = requirement.Permissions, Mode = requirement.Mode }).ConfigureAwait(false);
         context.ApplyResult(requirement, result, this);
     }
 
@@ -42,18 +42,18 @@ internal sealed class PermissionHandler(
     /// Evaluates multiple permissions based on the specified mode across all registered providers.
     /// </summary>
     /// <param name="user">The user to evaluate.</param>
-    /// <param name="permissions">The collection of permissions to check.</param>
-    /// <param name="mode">The evaluation mode (All/Any).</param>
+    /// <param name="args">The permission arguments.</param>
     /// <param name="ct">The cancellation token.</param>
     /// <returns>A result indicating if the permissions are granted.</returns>
     public async ValueTask<VKResult<bool>> HasPermissionsAsync(
         ClaimsPrincipal user,
-        IEnumerable<string> permissions,
-        VKPermissionEvaluationMode mode,
+        VKPermissionArgs? args = null,
         CancellationToken ct = default)
     {
         VKGuard.NotNull(user);
-        var permissionList = VKGuard.NotNull(permissions).ToList();
+        var permissions = args.MergeWith(VKPermissionArgs.Empty).Permissions.MergeWith([]);
+        var mode = args.MergeWith(VKPermissionArgs.Empty).Mode.MergeWith(VKPermissionEvaluationMode.All);
+        var permissionList = permissions.ToList();
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
@@ -128,12 +128,11 @@ internal sealed class PermissionHandler(
         return finalResult;
     }
 
-    /// <inheritdoc />
     public ValueTask<VKResult<bool>> HasPermissionAsync(
         ClaimsPrincipal user,
         string permission,
         CancellationToken ct = default)
     {
-        return HasPermissionsAsync(user, [permission], VKPermissionEvaluationMode.All, ct);
+        return HasPermissionsAsync(user, new VKPermissionArgs { Permissions = [permission], Mode = VKPermissionEvaluationMode.All }, ct);
     }
 }

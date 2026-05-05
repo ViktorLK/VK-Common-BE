@@ -37,6 +37,12 @@
 **概要**: 認可機能を垂直スライスごとに分割し、Rule 18 に準拠した個別の登録ロジックと Builder による fluent API を提供するアーキテクチャ  
 **キーワード**: Modular Registration, Rule 18, IVKAuthorizationBuilder, Encapsulation
 
+#### [ADR-016: Authorization Block Normalization and Core Protocol Standardization](./adr-016-authorization-block-normalization-and-core-protocol-standardization.md)
+
+**Status**: ✅ Accepted  
+**概要**: 認可ブロックの全機能を Rule 21 に適合させ、ドメインセマンティクスを優先したエバリュエータ設計と Core Protocols 規格を確立  
+**キーワード**: Normalization, Rule 21, Semantic-Priority, Protocols
+
 ---
 
 ### Extensibility & Declarative Design (拡張性と宣言的設計)
@@ -111,19 +117,20 @@
 
 ### アーキテクチャとセキュア設計の理解用
 
-1. **ADR-012**: モジュールの標準ディレクトリ構造 (Blueprint) とマーカーパターンによる自動化の基礎
-2. **ADR-013**: 機能ごとの独立した登録フロー (Rule 18.2) と Builder による拡張性の確保
-3. **ADR-015**: テナントレベルの機能認可 (Entitlements) による多次元のアクセス制御
-4. **ADR-011**: 初期のリファクタリングと命名規則の統一（歴史的経緯）
-5. **ADR-001**: マルチテナントシステムにおける認可境界（Authorization Boundary）の設計思想
-6. **ADR-002**: エンタープライズレベルでの権限ベースアクセス制御（PBAC）におけるポリシーの動的生成アプローチ
-7. **ADR-003**: 宣言的でクリーンなコントローラーを保つための評価器（Evaluator）パターンの実装
-8. **ADR-006**: 最新の .NET 機能を活用した、複雑さを排除した ABAC アーキテクチャの実現
+1. **ADR-016**: 認可ブロックの最新の標準化（Rule 21）と Core Protocols による横断的な規格設計
+2. **ADR-012**: モジュールの標準ディレクトリ構造 (Blueprint) とマーカーパターンによる自動化の基礎
+3. **ADR-013**: 機能ごとの独立した登録フロー (Rule 18.2) と Builder による拡張性の確保
+4. **ADR-015**: テナントレベルの機能認可 (Entitlements) による多次元のアクセス制御
+5. **ADR-011**: 初期のリファクタリングと命名規則の統一（歴史的経緯）
+6. **ADR-001**: マルチテナントシステムにおける認可境界（Authorization Boundary）の設計思想
+7. **ADR-002**: エンタープライズレベルでの権限ベースアクセス制御（PBAC）におけるポリシーの動的生成アプローチ
+8. **ADR-003**: 宣言的でクリーンなコントローラーを保つための評価器（Evaluator）パターンの実装
+9. **ADR-006**: 最新の .NET 機能を活用した、複雑さを排除した ABAC アーキテクチャの実現
 
 ### 開発体験(DX)と自動化の理解用
 
 1. **ADR-014**: マーカーパターンと Source Generator による識別子管理の自動化
-2. **ADR-004**: マジックストリングや手動DI登録の排除によるフェイルセーフの確立と、Source Generator の実践的導入
+2. **ADR-004**: ママジックストリングや手動DI登録の排除によるフェイルセーフの確立と、Source Generator の実践的導入
 3. **ADR-007**: 権限のメタデータ管理と強タイプ属性生成による「コンパイラを味方につける」開発手法
 4. **ADR-009**: 多人数開発における権限の命名競合をシステマティックに防ぐ方法
 5. **ADR-010**: 複雑化したモジュールの保守性を維持するための、垂直スライスの標準化と登録の委譲手法
@@ -140,5 +147,5 @@
 
 ---
 
-**Last Updated**: 2026-04-24  
-**Total ADRs**: 15
+**Last Updated**: 2026-05-05  
+**Total ADRs**: 16

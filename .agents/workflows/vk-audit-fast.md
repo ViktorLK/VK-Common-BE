@@ -70,6 +70,7 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 | I-08 | 5.1 | Core: TimeProvider usage | `DateTime\.(UtcNow\|Now)` | **NOT found** = Pass |
 | I-09 | 5.1 | Core: Guid Generator usage | `Guid\.NewGuid\(\)` | **NOT found** = Pass |
 | I-10 | 5.1 | Core: JSON Serializer usage | `JsonSerializer\.(Serialize\|Deserialize)` | **NOT found** = Pass |
+| I-11 | 2 | Dependency Pollution Check | `using Microsoft\.EntityFrameworkCore;` or `StackExchange\.Redis` | **NOT found** in Application logic (e.g. `Features/`, `Internal/` outside of Persistence/Infrastructure boundaries) |
 
 ## Step 7: Naming & Visibility Checks (Rule 14)
 

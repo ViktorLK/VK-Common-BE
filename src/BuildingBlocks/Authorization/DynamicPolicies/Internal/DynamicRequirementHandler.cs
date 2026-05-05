@@ -21,7 +21,7 @@ internal sealed class DynamicRequirementHandler(
         }
 
         var sw = Stopwatch.StartNew();
-        var result = await evaluator.EvaluateAsync(context.User, requirement, default)
+        var result = await evaluator.EvaluateAsync(context.User, new VKDynamicPoliciesArgs { Requirement = requirement }, default)
             .ConfigureAwait(false);
 
         // 1. Record evaluation metrics (Rule 6 Compliance)

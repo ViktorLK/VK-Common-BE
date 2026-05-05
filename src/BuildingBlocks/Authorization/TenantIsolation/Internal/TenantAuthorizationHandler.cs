@@ -40,7 +40,7 @@ internal sealed class TenantAuthorizationHandler(
         }
 
         var targetTenantId = context.Resource as string;
-        var result = await HasSameTenantAsync(context.User, targetTenantId).ConfigureAwait(false);
+        var result = await HasSameTenantAsync(context.User, new VKTenantIsolationArgs { TargetTenantId = targetTenantId }).ConfigureAwait(false);
 
         context.ApplyResult(requirement, result, this);
     }
@@ -48,11 +48,14 @@ internal sealed class TenantAuthorizationHandler(
     /// <inheritdoc />
     public ValueTask<VKResult<bool>> HasSameTenantAsync(
         ClaimsPrincipal user,
-        string? targetTenantId = null,
+        VKTenantIsolationArgs? args = null,
         CancellationToken ct = default)
     {
         VKGuard.NotNull(user);
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
+
+        // 0. Merge settings (Rule 21)
+        var targetTenantId = args.MergeWith(VKTenantIsolationArgs.Empty).TargetTenantId;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
         if (!_tenantOptions.StrictTenantIsolation && user.IsSuperAdmin(_globalOptions))

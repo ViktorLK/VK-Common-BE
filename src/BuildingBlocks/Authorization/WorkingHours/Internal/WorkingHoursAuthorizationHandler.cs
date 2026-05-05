@@ -43,8 +43,7 @@ internal sealed class WorkingHoursAuthorizationHandler(
 
         var result = await IsWithinWorkingHoursAsync(
                 context.User,
-                requirement.Start,
-                requirement.End)
+                new VKWorkingHoursArgs { Start = requirement.Start, End = requirement.End })
             .ConfigureAwait(false);
 
         context.ApplyResult(requirement, result, this);
@@ -53,17 +52,20 @@ internal sealed class WorkingHoursAuthorizationHandler(
     /// <inheritdoc />
     public async ValueTask<VKResult<bool>> IsWithinWorkingHoursAsync(
         ClaimsPrincipal user,
-        TimeOnly start,
-        TimeOnly end,
+        VKWorkingHoursArgs? args = null,
         CancellationToken ct = default)
     {
         VKGuard.NotNull(user);
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
 
+        // 0. Merge settings (Rule 21)
+        var activeStart = args.MergeWith(VKWorkingHoursArgs.Empty).Start.MergeWith(_workingHoursOptions.WorkStart);
+        var activeEnd = args.MergeWith(VKWorkingHoursArgs.Empty).End.MergeWith(_workingHoursOptions.WorkEnd);
+
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
         if (user.IsSuperAdmin(_globalOptions))
         {
-            _logger.LogAuthorizationSucceeded(userId, TimeOnly.MinValue, start, end, $"{WorkingHoursConstants.FeatureName} (Bypassed)");
+            _logger.LogAuthorizationSucceeded(userId, TimeOnly.MinValue, activeStart, activeEnd, $"{WorkingHoursConstants.FeatureName} (Bypassed)");
             return VKResult.Success(true);
         }
 
@@ -72,8 +74,8 @@ internal sealed class WorkingHoursAuthorizationHandler(
 
         // 2. Resolve dynamic hours via provider
         var dynamicHours = await _workingHoursProvider.GetWorkingHoursAsync(user, ct).ConfigureAwait(false);
-        var activeStart = dynamicHours?.Start ?? start;
-        var activeEnd = dynamicHours?.End ?? end;
+        activeStart = dynamicHours?.Start ?? activeStart;
+        activeEnd = dynamicHours?.End ?? activeEnd;
 
         // 3. Evaluate
         var now = TimeOnly.FromDateTime(_timeProvider.GetLocalNow().DateTime);
