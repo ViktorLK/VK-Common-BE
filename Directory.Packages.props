@@ -76,6 +76,7 @@
   </ItemGroup>
   <!-- ==================== Azure ==================== -->
   <ItemGroup Label="Azure">
+    <PackageVersion Include="Azure.Core" Version="1.50.0" />
     <PackageVersion Include="Azure.Identity" Version="1.17.1" />
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageVersion Include="Azure.Storage.Blobs.Batch" Version="12.21.0" />

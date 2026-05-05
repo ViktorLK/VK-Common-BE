@@ -285,3 +285,8 @@ dotnet_diagnostic.IDE0130.severity = warning
 
 [src/BuildingBlocks/*/*/*.cs]
 dotnet_diagnostic.IDE0130.severity = none
+
+[**/*Tests.cs]
+# xUnit1030: Do not use ConfigureAwait(false) in test methods
+dotnet_diagnostic.xUnit1030.severity = error
+
