@@ -6,6 +6,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using VK.Blocks.Generators.Diagnostics;
 using VK.Blocks.Generators.Extensions;
 
+
+
+
 namespace VK.Blocks.Generators.Observability;
 
 /// <summary>
@@ -15,7 +18,7 @@ namespace VK.Blocks.Generators.Observability;
 public sealed class ObservabilityAnalyzer : DiagnosticAnalyzer
 {
     private const string AuthorizationHandlerInterface = "IAuthorizationHandler";
-    private const string DiagnosableAttribute = "DiagnosableAttribute";
+    private const string VKDiagnosableAttribute = "VKDiagnosableAttribute";
     private const string RecordProcessMethodName = "RecordProcess";
     private const string RecordEvaluationMethodName = "RecordEvaluation";
 
@@ -29,7 +32,7 @@ public sealed class ObservabilityAnalyzer : DiagnosticAnalyzer
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
 
-        // Check classes that implement IAuthorizationHandler or have [Diagnosable] attribute
+        // Check classes that implement IAuthorizationHandler or have [VKDiagnosable] attribute
         context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
     }
 
@@ -42,9 +45,9 @@ public sealed class ObservabilityAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        // Rule: Check classes that implement IAuthorizationHandler OR have [Diagnosable]
+        // Rule: Check classes that implement IAuthorizationHandler OR have [VKDiagnosable]
         var isDiagnosable = namedTypeSymbol.ImplementsInterface(AuthorizationHandlerInterface) ||
-                           namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass?.Name == DiagnosableAttribute);
+                           namedTypeSymbol.GetAttributes().Any(a => a.AttributeClass?.Name == VKDiagnosableAttribute);
 
         if (!isDiagnosable)
         {
@@ -123,5 +126,3 @@ public sealed class ObservabilityAnalyzer : DiagnosticAnalyzer
         return null;
     }
 }
-
-

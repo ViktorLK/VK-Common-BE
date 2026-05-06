@@ -9,6 +9,9 @@ using VK.Blocks.Generators.Authentication.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authentication;
 
 /// <summary>
@@ -20,8 +23,8 @@ public sealed class AuthenticationMetadataGenerator : IIncrementalGenerator
 {
     private const string AuthorizeAttributeName = "AuthorizeAttribute";
     private const string AllowAnonymousAttributeName = "AllowAnonymousAttribute";
-    private const string AuthGroupAttributeName = "AuthGroupAttribute";
-    private const string AuthGroupMetadataAttributeName = VKBlocksConstants.VKBlocksPrefix + "Authentication.Features.SemanticAttributes.Metadata.AuthGroupMetadataAttribute";
+    private const string AuthGroupAttributeName = "VKAuthGroupAttribute";
+    private const string AuthGroupMetadataAttributeName = "VK.Blocks.Authentication.VKAuthGroupMetadataAttribute";
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -167,7 +170,7 @@ public sealed class AuthenticationMetadataGenerator : IIncrementalGenerator
 
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using System.Collections.Generic;");
-        sb.AppendLine("using VK.Blocks.Authentication.Common;");
+        sb.AppendLine("");
         sb.AppendLine();
         sb.AppendLine("namespace VK.Blocks.Authentication.Generated");
         sb.AppendLine("{");
@@ -180,12 +183,12 @@ public sealed class AuthenticationMetadataGenerator : IIncrementalGenerator
         sb.AppendLine($"        public const string MetadataHash = \"{hash}\";");
         sb.AppendLine();
         sb.AppendLine("        /// <summary>Maps endpoint display names to their derived authentication information.</summary>");
-        sb.AppendLine("        public static readonly IReadOnlyDictionary<string, EndpointAuthenticationInfo> Endpoints = new Dictionary<string, EndpointAuthenticationInfo>");
+        sb.AppendLine("        public static readonly IReadOnlyDictionary<string, VKEndpointAuthInfo> Endpoints = new Dictionary<string, VKEndpointAuthInfo>");
         sb.AppendLine("        {");
 
         foreach (var m in mergedMetadata)
         {
-            sb.AppendLine($"        [\"{m.EndpointName}\"] = new EndpointAuthenticationInfo");
+            sb.AppendLine($"        [\"{m.EndpointName}\"] = new VKEndpointAuthInfo");
             sb.AppendLine("        {");
             sb.AppendLine($"            EndpointName = \"{m.EndpointName}\",");
             sb.AppendLine($"            AuthGroup = {(m.AuthGroup != null ? $"\"{m.AuthGroup}\"" : "null")},");

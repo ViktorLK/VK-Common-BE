@@ -6,6 +6,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.DependencyInjection;
 
 /// <summary>
@@ -15,8 +18,8 @@ namespace VK.Blocks.Generators.DependencyInjection;
 [Generator]
 public sealed class VKBlockMarkerGenerator : IIncrementalGenerator
 {
-    private const string TargetInterfaceFullName = VKBlocksConstants.VKBlocksPrefix + "Core.DependencyInjection.IVKBlockMarker";
-    private const string ProviderInterfaceFullName = VKBlocksConstants.VKBlocksPrefix + "Core.DependencyInjection.IVKBlockMarkerProvider";
+    private const string TargetInterfaceFullName = $"{VKBlocksConstants.VKBlocksPrefix}.Core.IVKBlockMarker";
+    private const string ProviderInterfaceFullName = $"{VKBlocksConstants.VKBlocksPrefix}.Core.IVKBlockMarkerProvider";
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -53,6 +56,16 @@ public sealed class VKBlockMarkerGenerator : IIncrementalGenerator
         // Implementation must be a partial class to allow injection
         var isPartial = classDeclaration.Modifiers.Any(m => m.Text == "partial");
 
+        // Skip if it has [VKBlockMarker] or [VKFeatureMarker] as they are handled by VKBlockDiagnosticsGenerator
+        var hasAttribute = symbol.GetAttributes().Any(a =>
+            a.AttributeClass?.ToDisplayString().EndsWith("VKBlockMarkerAttribute") == true ||
+            a.AttributeClass?.ToDisplayString().EndsWith("VKFeatureMarkerAttribute") == true);
+
+        if (hasAttribute)
+        {
+            return null;
+        }
+
         return new BlockTarget(
             Namespace: symbol.ContainingNamespace.ToDisplayString(),
             ClassName: symbol.Name,
@@ -75,7 +88,7 @@ public sealed class VKBlockMarkerGenerator : IIncrementalGenerator
         }
 
         var sb = SourceCodeBuilder.CreateWithHeader();
-        sb.AppendLine("using VK.Blocks.Core.DependencyInjection;");
+        sb.AppendLine("using VK.Blocks.Core;");
         sb.AppendLine();
         sb.AppendLine($"namespace {target.Namespace};");
         sb.AppendLine();
@@ -85,10 +98,27 @@ public sealed class VKBlockMarkerGenerator : IIncrementalGenerator
         sb.AppendLine("    /// Automatically injected singleton instance for recursive dependency validation (Zero-Reflection).");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine($"    public static IVKBlockMarker Instance {{ get; }} = new {target.ClassName}();");
+        sb.AppendLine();
+        sb.AppendLine("    /// <inheritdoc />");
+        sb.AppendLine($"    public string Name => \"{ExtractBlockName(target.ClassName)}\";");
         sb.AppendLine("}");
 
         ctx.AddSource($"{target.ClassName}.Instance.g.cs", sb.ToString());
     }
 
     private sealed record BlockTarget(string Namespace, string ClassName, bool IsPartial);
+
+    private static string ExtractBlockName(string className)
+    {
+        var name = className;
+        if (name.StartsWith("VK"))
+            name = name.Substring(2);
+        if (name.EndsWith("Block"))
+            name = name.Substring(0, name.Length - 5);
+        if (name.EndsWith("Marker"))
+            name = name.Substring(0, name.Length - 6);
+        if (name.EndsWith("Feature"))
+            name = name.Substring(0, name.Length - 7);
+        return name;
+    }
 }

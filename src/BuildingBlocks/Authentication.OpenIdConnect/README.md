@@ -81,11 +81,39 @@ sequenceDiagram
 
 必ずコアブロック (`AuthenticationBlock`) を登録した **後** に登録してください。
 
+#### 基本的な登録
 ```csharp
-// 1. 基盤となる認証ブロックの登録と OIDC 拡張ブロックの登録（連鎖的な Fluent API）
 builder.Services
     .AddVKAuthenticationBlock(builder.Configuration)
-    .AddVKOidcBlock(builder.Configuration); // 依存チェックとappsettings内の全有効プロバイダー動的登録が自動実行されます
+    .AddVKOidcBlock();
+```
+
+#### コードによる構成のカスタマイズ (ADR-016)
+不変レコードの特性を活かし、特定のプロバイダー設定のみをコード上で上書き・追加することが可能です。
+
+```csharp
+builder.Services
+    .AddVKAuthenticationBlock(builder.Configuration)
+    .AddVKOidcBlock(options => options with 
+    {
+        // Global override
+        SaveTokens = true,
+        
+        // Provider-specific override using 'with'
+        Providers = new(options.Providers)
+        {
+            ["Google"] = options.Providers.GetValueOrDefault("Google", new(provider => provider with 
+            { 
+                ClientId = "...", 
+                ClientSecret = "...",
+                Authority = "...",
+                CallbackPath = "/signin-google"
+            })) with 
+            { 
+                Enabled = true 
+            }
+        }
+    });
 ```
 
 ### 2. AppSettings の設定構成
@@ -95,13 +123,11 @@ builder.Services
 ```json
 {
   "VKBlocks": {
-    "Authentication": {
+    "OpenIdConnect": {
       "Enabled": true,
-      "DefaultScheme": "Bearer",
-      "OAuth": {
-        "Enabled": true,
-        "Providers": {
-          "Standard": {
+      "SaveTokens": true,
+      "Providers": {
+        "Standard": {
             "Enabled": true,
             "Authority": "https://your-identity-provider.com",
             "ClientId": "your-client-id",

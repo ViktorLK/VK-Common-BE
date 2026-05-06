@@ -9,6 +9,9 @@ using VK.Blocks.Generators.Authorization.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authorization;
 
 /// <summary>
@@ -70,7 +73,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
         }));
     }
 
-    private static PermissionInfo? GetPermissionFromUsage(GeneratorSyntaxContext context, System.Threading.CancellationToken ct)
+    private static VKPermissionInfo? GetPermissionFromUsage(GeneratorSyntaxContext context, System.Threading.CancellationToken ct)
     {
         var attributeSyntax = (AttributeSyntax)context.Node;
         if (attributeSyntax.ArgumentList is null || attributeSyntax.ArgumentList.Arguments.Count == 0)
@@ -83,13 +86,13 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
             var constantValue = context.SemanticModel.GetConstantValue(argument.Expression, ct);
             if (constantValue.HasValue && constantValue.Value is string val)
             {
-                return new PermissionInfo(val, "Misc", null);
+                return new VKPermissionInfo(val, "Misc", null);
             }
         }
         return null;
     }
 
-    private static IEnumerable<PermissionInfo> GetPermissionsFromDefinition(GeneratorSyntaxContext context, System.Threading.CancellationToken ct)
+    private static IEnumerable<VKPermissionInfo> GetPermissionsFromDefinition(GeneratorSyntaxContext context, System.Threading.CancellationToken ct)
     {
         var typeDeclaration = (TypeDeclarationSyntax)context.Node;
         if (context.SemanticModel.GetDeclaredSymbol(typeDeclaration, ct) is not INamedTypeSymbol typeSymbol)
@@ -139,12 +142,12 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
                     }
                 }
 
-                yield return new PermissionInfo(val, moduleName, field.Name, displayName, description);
+                yield return new VKPermissionInfo(val, moduleName, field.Name, displayName, description);
             }
         }
     }
 
-    private static void Execute(SourceProductionContext context, ImmutableArray<PermissionInfo?> passivePermissions, ImmutableArray<PermissionInfo> activePermissions, string? assemblyName, Type generatorType)
+    private static void Execute(SourceProductionContext context, ImmutableArray<VKPermissionInfo?> passivePermissions, ImmutableArray<VKPermissionInfo> activePermissions, string? assemblyName, Type generatorType)
     {
         // Guard against execution in unrelated assemblies
         if (!VKBlockGeneratorGuard.ShouldExecute(generatorType, assemblyName))
@@ -152,7 +155,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
             return;
         }
 
-        var merged = new Dictionary<string, PermissionInfo>();
+        var merged = new Dictionary<string, VKPermissionInfo>();
 
         // 1. Add definitions first (Source of truth for metadata)
         foreach (var active in activePermissions)
@@ -181,8 +184,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
 
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using System.Collections.Generic;");
-        sb.AppendLine("using VK.Blocks.Authorization.Features.Permissions;");
-        sb.AppendLine("using VK.Blocks.Authorization.Features.Permissions.Metadata;");
+        sb.AppendLine("using VK.Blocks.Authorization;");
         sb.AppendLine();
         sb.AppendLine("namespace VK.Blocks.Authorization.Generated");
         sb.AppendLine("{");
@@ -208,7 +210,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         sb.AppendLine("        /// <summary>A complete list of all permissions defined in the system.</summary>");
-        sb.AppendLine("        public static readonly IReadOnlyList<Permission> All = new List<Permission>");
+        sb.AppendLine("        public static readonly IReadOnlyList<VKPermission> All = new List<VKPermission>");
         sb.AppendLine("        {");
 
         if (uniquePermissions.Count > 0)
@@ -220,7 +222,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
                     ? p.Description
                     : $"{p.DisplayName} | {p.Description}";
 
-                sb.AppendLine($"            new Permission {{ Name = {identifier}, Module = \"{p.Module}\", Description = \"{desc}\" }},");
+                sb.AppendLine($"            new VKPermission {{ Name = {identifier}, Module = \"{p.Module}\", Description = \"{desc}\" }},");
             }
         }
         sb.AppendLine("        }.AsReadOnly();");
@@ -242,7 +244,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
                 sb.AppendLine($"    /// Marks a controller or action as requiring the <c>{p.Value}</c> permission.");
                 sb.AppendLine("    /// </summary>");
                 sb.AppendLine("    [System.AttributeUsage(System.AttributeTargets.Class | System.AttributeTargets.Method, AllowMultiple = true)]");
-                sb.AppendLine($"    public sealed class {attributeName}() : VK.Blocks.Authorization.Features.Permissions.AuthorizePermissionAttribute(\"{p.Value}\");");
+                sb.AppendLine($"    public sealed class {attributeName}() : VK.Blocks.Authorization.VKAuthorizePermissionAttribute(\"{p.Value}\");");
                 sb.AppendLine();
             }
         }
@@ -254,7 +256,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
     /// <summary>
     /// Calculates a stable FNV-1a 64-bit hash as a hex string.
     /// </summary>
-    private static string CalculateDeterministicHash(IEnumerable<PermissionInfo> permissions)
+    private static string CalculateDeterministicHash(IEnumerable<VKPermissionInfo> permissions)
     {
         var hash = 14695981039346656037UL;
         foreach (var p in permissions)
@@ -267,7 +269,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
         return hash.ToString("X16");
     }
 
-    private static string GetPrefixedIdentifier(PermissionInfo p)
+    private static string GetPrefixedIdentifier(VKPermissionInfo p)
     {
         var baseName = p.SuggestedIdentifier ?? GetSafeIdentifier(p.Value);
 

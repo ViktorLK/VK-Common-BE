@@ -21,6 +21,15 @@ internal static class Program
      */
     public static async Task Main(string[] args)
     {
+        // Use a Mutex to prevent double startup
+        using var mutex = new System.Threading.Mutex(true, "Global\\VK.Blocks.McpServer", out var createdNew);
+        if (!createdNew)
+        {
+            // Another instance is already running. 
+            // Exit silently to avoid breaking MCP protocol on stdout.
+            return;
+        }
+
         var builder = Host.CreateApplicationBuilder(args);
 
         // Disable default logging to stdout as it breaks the MCP protocol

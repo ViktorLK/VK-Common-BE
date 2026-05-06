@@ -15,7 +15,7 @@ internal static class JwtFeatureRegistration
 {
     internal static IVKAuthenticationBuilder Register(
         IVKAuthenticationBuilder builder,
-        Func<VKJwtOptions, VKJwtOptions>? transform = null)
+        Func<VKJwtOptions, VKJwtOptions>? configure = null)
     {
         // 1. Check-Self (Rule 13 & 18.2)
         if (builder.Services.IsVKBlockRegistered<JwtFeature>())
@@ -25,7 +25,7 @@ internal static class JwtFeatureRegistration
 
         // 2. Options Registration
         // ADR-016: Functional transformation from configuration section
-        VKJwtOptions jwtOptions = builder.Services.AddVKBlockOptions<VKJwtOptions>(builder.Configuration, transform);
+        VKJwtOptions jwtOptions = builder.Services.AddVKBlockOptions<VKJwtOptions>(builder.Configuration, configure);
 
         // 3. Mark-Self (Rule 13)
         builder.Services.AddVKBlockMarker<JwtFeature>();

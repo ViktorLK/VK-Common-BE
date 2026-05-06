@@ -45,10 +45,10 @@ public static class VKAuthenticationBlockExtensions
     /// </summary>
     public static IVKAuthenticationBuilder AddVKJwt(
         this IVKAuthenticationBuilder builder,
-        Func<VKJwtOptions, VKJwtOptions>? transform = null)
+        Func<VKJwtOptions, VKJwtOptions>? configure = null)
     {
         VKGuard.NotNull(builder);
-        return JwtFeatureRegistration.Register(builder, transform);
+        return JwtFeatureRegistration.Register(builder, configure);
     }
 
     /// <summary>

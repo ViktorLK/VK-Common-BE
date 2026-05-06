@@ -7,6 +7,9 @@ using VK.Blocks.Generators.Authorization.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authorization;
 
 [Generator]
@@ -148,7 +151,7 @@ public sealed class AuthorizationHandlersGenerator : IIncrementalGenerator
 
             if (isEvaluator)
             {
-                sb.AppendLine($"            services.TryAddEnumerable(ServiceDescriptor.Scoped<VK.Blocks.Authorization.Features.Permissions.IPermissionEvaluator, {implName}>());");
+                sb.AppendLine($"            services.TryAddEnumerable(ServiceDescriptor.Scoped<VK.Blocks.Authorization.IVKPermissionEvaluator, {implName}>());");
             }
 
             // Standard AuthorizationHandler registration

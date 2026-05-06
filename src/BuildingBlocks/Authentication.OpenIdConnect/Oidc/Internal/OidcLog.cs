@@ -1,0 +1,43 @@
+using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
+
+namespace VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal;
+
+/// <summary>
+/// Source-generated high-performance loggers for the OIDC feature.
+/// </summary>
+[ExcludeFromCodeCoverage(Justification = "Source-generated logging methods are boilerplate and tested indirectly via feature tests.")]
+internal static partial class OidcLog
+{
+
+    [LoggerMessage(
+        EventId = 1001,
+        Level = LogLevel.Information,
+        Message = "OIDC Provider Registered: [{AuthProvider}] for Authority: [{Authority}]. TraceId: {TraceId}")]
+    public static partial void LogOidcProviderRegistered(this ILogger logger, string authProvider, string authority, string traceId);
+
+    [LoggerMessage(
+        EventId = 1002,
+        Level = LogLevel.Information,
+        Message = "OIDC Authentication Success: Provider: [{AuthProvider}], Subject: [{Subject}]. TraceId: {TraceId}")]
+    public static partial void LogOidcAuthenticationSuccess(this ILogger logger, string authProvider, string subject, string traceId);
+
+    [LoggerMessage(
+        EventId = 2001,
+        Level = LogLevel.Warning,
+        Message = "OIDC Authentication Failed: Provider: [{AuthProvider}], Error: [{vkError}]. TraceId: {TraceId}")]
+    public static partial void LogOidcAuthenticationFailed(this ILogger logger, string authProvider, string vkError, string traceId);
+
+    [LoggerMessage(
+        EventId = 3001,
+        Level = LogLevel.Error,
+        Message = "OIDC Authentication Error: Provider: [{AuthProvider}]. TraceId: {TraceId}")]
+    public static partial void LogOidcAuthenticationError(this ILogger logger, Exception exception, string authProvider, string traceId);
+
+    [LoggerMessage(
+        EventId = 3002,
+        Level = LogLevel.Error,
+        Message = "OIDC Configuration Mapping Failed: Provider: [{AuthProvider}]. TraceId: {TraceId}")]
+    public static partial void LogOidcMappingError(this ILogger logger, string authProvider, string traceId);
+}

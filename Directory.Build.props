@@ -20,7 +20,7 @@
     <CompilerVisibleProperty Include="Version" />
   </ItemGroup>
 
-  <ItemGroup Condition="$(MSBuildProjectName.StartsWith('VK.Blocks')) and !$(MSBuildProjectFullPath.Contains('Generators'))">
+  <ItemGroup Condition="$(MSBuildProjectName.StartsWith('VK.Blocks')) and !$(MSBuildProjectFullPath.Contains('Generators')) and !$(MSBuildProjectFullPath.Contains('Mcp'))">
     <ProjectReference Include="$(MSBuildThisFileDirectory)src\BuildingBlocks\Generators\VK.Blocks.Generators.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />

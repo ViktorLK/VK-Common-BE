@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core.Guids.Internal;
 using VK.Blocks.Core.Identity.Internal;
 using VK.Blocks.Core.Serialization.Internal;
+using VK.Blocks.Core.Utilities;
 
 namespace VK.Blocks.Core.DependencyInjection.Internal;
 
@@ -26,6 +27,7 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<IVKGuidGenerator, SequentialGuidGenerator>();
         services.TryAddSingleton<IVKJsonSerializer, SystemTextJsonSerializer>();
+        services.TryAddSingleton<IVKEnvironmentProvider, VKDefaultEnvironmentProvider>();
         services.TryAddSingleton<IVKUserContext, NullUserContext>();
 
         // 3. Mark-Self (Success Commit)

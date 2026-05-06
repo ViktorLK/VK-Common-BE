@@ -8,6 +8,9 @@ using VK.Blocks.Generators.Authorization.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authorization;
 
 /// <summary>
@@ -17,7 +20,7 @@ namespace VK.Blocks.Generators.Authorization;
 public sealed class EnumPolicyGenerator : IIncrementalGenerator
 {
     private const string AttributeName = "GeneratePolicy";
-    private const string AttributeFullName = VKBlocksConstants.VKBlocksPrefix + "Authorization.Features.DynamicPolicies.Metadata." + AttributeName;
+    private const string AttributeFullName = $"{VKBlocksConstants.VKBlocksPrefix}.Authorization.Features.DynamicPolicies.Metadata.{AttributeName}";
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -117,10 +120,8 @@ public sealed class EnumPolicyGenerator : IIncrementalGenerator
         sb.AppendLine("using Microsoft.AspNetCore.Authorization;");
         sb.AppendLine("using Microsoft.Extensions.Logging;");
         sb.AppendLine("using Microsoft.Extensions.Options;");
-        sb.AppendLine("using VK.Blocks.Authorization.Abstractions;");
-        sb.AppendLine("using VK.Blocks.Authorization.Common;");
-        sb.AppendLine("using VK.Blocks.Authorization.DependencyInjection;");
-        sb.AppendLine("using VK.Blocks.Core.Results;");
+        sb.AppendLine("using VK.Blocks.Authorization;");
+        sb.AppendLine("using VK.Blocks.Core;");
         sb.AppendLine();
         sb.AppendLine("namespace VK.Blocks.Authorization.Generated");
         sb.AppendLine("{");
@@ -144,7 +145,7 @@ public sealed class EnumPolicyGenerator : IIncrementalGenerator
             sb.AppendLine($"    public sealed record {requirementName}({info.FullName} RequiredValue) : IVKAuthorizationRequirement");
         }
         sb.AppendLine("    {");
-        sb.AppendLine($"        public Error DefaultError => new Error(\"Authorization.{baseName}Mismatch\", \"Insufficient {baseName} level.\", ErrorType.Forbidden);");
+        sb.AppendLine($"        public VKError DefaultError => new VKError(\"Authorization.{baseName}Mismatch\", \"Insufficient {baseName} level.\", VKErrorType.Forbidden);");
         sb.AppendLine("    }");
         sb.AppendLine();
 
