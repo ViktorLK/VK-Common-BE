@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace VK.Blocks.Core;
 
@@ -7,6 +8,7 @@ namespace VK.Blocks.Core;
 /// The Source Generator will automatically implement IVKBlockMarker
 /// and provide diagnostic fields (Source/Meter) for this class.
 /// </summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class VKBlockMarkerAttribute(string? identifier = null) : Attribute
 {
@@ -25,3 +27,4 @@ public sealed class VKBlockMarkerAttribute(string? identifier = null) : Attribut
     /// </summary>
     public Type[] Dependencies { get; set; } = [];
 }
+

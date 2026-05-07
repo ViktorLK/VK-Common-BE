@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Security.Cryptography;
@@ -60,7 +60,7 @@ internal sealed class ApiKeyValidator(
         VKResult<VKApiKeyRecord> storeResult = await _apiKeyStore.FindByHashAsync(hashedApiKey, cancellationToken).ConfigureAwait(false);
         if (storeResult.IsFailure)
         {
-            // Mask the hash in logs for security (Rule 7 / Audit 2026-04-01)
+            // Mask the hash in logs for security (OR.02 / Audit 2026-04-01)
             _logger.LogApiKeyNotFound(hashedApiKey[..4]);
             AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Invalid.Code);
             return VKResult.Failure<ApiKeyContext>(VKApiKeyErrors.Invalid);
@@ -129,7 +129,7 @@ internal sealed class ApiKeyValidator(
     private static string HashApiKey(string rawApiKey)
     {
         // PERF: Using stackalloc to avoid memory allocation for frequent calls.
-        // Rule 4.3: Use ArrayPool for large temporary buffers (> 256 bytes) to reduce GC pressure.
+        // CS.04.3: Use ArrayPool for large temporary buffers (> 256 bytes) to reduce GC pressure.
         int maxByteCount = Encoding.UTF8.GetMaxByteCount(rawApiKey.Length);
         byte[]? sharedBuffer = null;
         Span<byte> buffer = maxByteCount <= 256
@@ -179,3 +179,5 @@ internal sealed class ApiKeyValidator(
         }
     }
 }
+
+

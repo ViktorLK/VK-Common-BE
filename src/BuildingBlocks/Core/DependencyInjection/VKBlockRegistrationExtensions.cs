@@ -15,7 +15,7 @@ public static class VKBlockRegistrationExtensions
 {
     /// <summary>
     /// Registers a marker in the service collection to indicate that a building block has been initialized.
-    /// Following Rule 13 (Mark-Self).
+    /// Following AP.02 (Mark-Self).
     /// </summary>
     /// <remarks>
     /// <para>
@@ -38,7 +38,7 @@ public static class VKBlockRegistrationExtensions
     {
         VKGuard.NotNull(services);
 
-        // 1. [Rule 13: Check-Prerequisite] — Idempotency & Recursive Validation
+        // 1. [AP.02: Check-Prerequisite] — Idempotency & Recursive Validation
         // This is the "Fail-Fast" gate. Calling the generic IsVKBlockRegistered<TMarker> ensures:
         //   A) Idempotency: If the block (by ID) is already there, we return early.
         //   B) Safety: It recursively walks the dependency tree (IVKBlockMarker.Dependencies)
@@ -48,7 +48,7 @@ public static class VKBlockRegistrationExtensions
             return services;
         }
 
-        // 2. [Rule 13: Mark-Self] — Logical Identity Registration
+        // 2. [AP.02: Mark-Self] — Logical Identity Registration
         // We register a string-based identifier marker. This protects the system against
         // "Logical Collisions" where two different classes might try to use the same ID.
         // This marker is internal and used by the infrastructure for untyped dependency checks.
@@ -65,7 +65,7 @@ public static class VKBlockRegistrationExtensions
 
     /// <summary>
     /// Ensures that a required building block is registered before the current block.
-    /// Following Rule 13 (Check-Prerequisite).
+    /// Following AP.02 (Check-Prerequisite).
     /// </summary>
     /// <typeparam name="TRequired">The marker type of the required block.</typeparam>
     /// <typeparam name="TDependent">The marker type of the dependent block.</typeparam>
@@ -152,6 +152,7 @@ public static class VKBlockRegistrationExtensions
 
         // 3. Validation infrastructure (Still needed for startup check)
         services.AddOptions<TOptions>()
+            .Bind(configuration.GetSection(TOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -159,3 +160,4 @@ public static class VKBlockRegistrationExtensions
     }
 
 }
+

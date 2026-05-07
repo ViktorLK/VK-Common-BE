@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -15,7 +15,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
 
 /// <summary>
 /// Principal registration logic for the OpenIdConnect building block.
-/// Complies with Rule 18.2 (Internal Core).
+/// Complies with BB.03.2 (Internal Core).
 /// </summary>
 internal static class OidcBlockRegistration
 {
@@ -29,27 +29,27 @@ internal static class OidcBlockRegistration
 
         var services = builder.Services;
 
-        // 1. Check-Self & Prerequisite (Rule 18.2.1)
+        // 1. Check-Self & Prerequisite (BB.03.2.1)
         if (services.IsVKBlockRegistered<VKOidcBlock>())
         {
             return builder;
         }
 
-        // 2. Options Registration (Rule 18.2.2)
+        // 2. Options Registration (BB.03.2.2)
         // ADR-016: Use functional transformation to support immutable options
         VKOidcOptions oidcOptions = services.AddVKBlockOptions<VKOidcOptions>(configuration, transform);
 
-        // 3. Mark-Self (Rule 18.2.3)
+        // 3. Mark-Self (BB.03.2.3)
         services.AddVKBlockMarker<VKOidcBlock>();
 
-        // 4. Options Validation (Rule 18.2.4)
+        // 4. Options Validation (BB.03.2.4)
         services.TryAddEnumerableSingleton<IValidateOptions<VKOidcOptions>, OidcOptionsValidator>();
         services.TryAddEnumerableSingleton<IValidateOptions<OpenIdConnectOptions>, OidcFrameworkOptionsValidator>();
 
-        // 5. Diagnostics (Rule 18.2.5)
+        // 5. Diagnostics (BB.03.2.5)
         services.TryAddSingleton<IVKSecurityMetadataProvider, OidcMetadataProvider>();
 
-        // 6. Feature Toggle (Rule 18.2.6)
+        // 6. Feature Toggle (BB.03.2.6)
         if (!oidcOptions.Enabled)
         {
             return builder;
@@ -60,7 +60,7 @@ internal static class OidcBlockRegistration
             return builder;
         }
 
-        // 7. Core Services (Rule 18.2.7)
+        // 7. Core Services (BB.03.2.7)
         RegisterCoreServices(services, oidcOptions);
 
         return builder;
@@ -122,3 +122,4 @@ internal static class OidcBlockRegistration
         services.TryAddSingleton<IConfigureOptions<AuthorizationOptions>, OidcPolicyConfiguration>();
     }
 }
+

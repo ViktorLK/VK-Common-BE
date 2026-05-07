@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Core.DependencyInjection.Internal;
 
@@ -12,7 +12,7 @@ public static class VKBlockQueryExtensions
 {
     /// <summary>
     /// Checks if a specific building block is already registered in the service collection.
-    /// Following Rule 13 (Check-Self), this also automatically validates Rule 13 (Check-Prerequisite)
+    /// Following AP.02 (Check-Self), this also automatically validates AP.02 (Check-Prerequisite)
     /// recursively using the block marker's instance-based dependency tree.
     /// </summary>
     /// <remarks>
@@ -142,3 +142,4 @@ public static class VKBlockQueryExtensions
         return null;
     }
 }
+

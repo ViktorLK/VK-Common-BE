@@ -1,3 +1,4 @@
+﻿using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
@@ -5,7 +6,7 @@ namespace VK.Blocks.Authorization;
 /// <summary>
 /// A marker type for the VK.Blocks.Authorization building block.
 /// </summary>
+[ExcludeFromCodeCoverage]
 [VKBlockMarker(Dependencies = [typeof(VKCoreBlock)])]
-public sealed partial class VKAuthorizationBlock
-{
-}
+public sealed partial class VKAuthorizationBlock;
+

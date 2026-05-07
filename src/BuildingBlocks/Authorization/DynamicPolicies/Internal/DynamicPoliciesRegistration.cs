@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
@@ -17,7 +17,7 @@ internal static class DynamicPoliciesRegistration
         IVKAuthorizationBuilder builder,
         Func<VKDynamicPoliciesOptions, VKDynamicPoliciesOptions>? transform = null)
     {
-        // 1. Check-Self (Rule 13 & 18.2)
+        // 1. Check-Self (AP.02 & 18.2)
         if (builder.Services.IsVKBlockRegistered<DynamicPoliciesFeature>())
         {
             return builder;
@@ -25,7 +25,7 @@ internal static class DynamicPoliciesRegistration
 
         var options = builder.Services.AddVKBlockOptions<VKDynamicPoliciesOptions>(builder.Configuration, transform);
 
-        // 3. Mark-Self (Rule 18.2 - MUST be before early exit)
+        // 3. Mark-Self (BB.03.2 - MUST be before early exit)
         builder.Services.AddVKBlockMarker<DynamicPoliciesFeature>();
 
         if (!options.Enabled)
@@ -43,3 +43,5 @@ internal static class DynamicPoliciesRegistration
         return builder;
     }
 }
+
+

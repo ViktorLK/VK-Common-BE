@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace VK.Blocks.Core.Security;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Provides high-performance caching for property-level security metadata using Static Generic Caching.

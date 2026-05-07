@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +13,7 @@ namespace VK.Blocks.Authorization.DependencyInjection.Internal;
 
 /// <summary>
 /// Principal registration logic for the Authorization building block.
-/// Following Rule 18.2 execution sequence.
+/// Following BB.03.2 execution sequence.
 /// </summary>
 internal static class AuthorizationBlockRegistration
 {
@@ -26,7 +26,7 @@ internal static class AuthorizationBlockRegistration
         VKGuard.NotNull(configuration);
 
         // 1. Check-Self & Check-Prerequisite
-        // Following Rule 13, this smart check handles both idempotency and recursive dependency validation.
+        // Following AP.02, this smart check handles both idempotency and recursive dependency validation.
         if (services.IsVKBlockRegistered<VKAuthorizationBlock>())
         {
             return new AuthorizationBlockBuilder(services, configuration);
@@ -66,3 +66,5 @@ internal static class AuthorizationBlockRegistration
         return builder;
     }
 }
+
+

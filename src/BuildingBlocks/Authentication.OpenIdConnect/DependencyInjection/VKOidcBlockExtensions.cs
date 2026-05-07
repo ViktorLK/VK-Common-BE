@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
 using VK.Blocks.Core;
 
@@ -6,7 +6,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect;
 
 /// <summary>
 /// Extension methods for configuring OpenIdConnect authentication block.
-/// Complies with Rule 18.1 (Public Wrapper).
+/// Complies with BB.03.1 (Public Wrapper).
 /// </summary>
 public static class VKOidcBlockExtensions
 {
@@ -32,3 +32,4 @@ public static class VKOidcBlockExtensions
         return OidcBlockRegistration.Register(builder, builder.Configuration, configure);
     }
 }
+

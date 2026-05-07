@@ -1,4 +1,4 @@
-# VK.Blocks.Authorization
+﻿# VK.Blocks.Authorization
 
 ![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
@@ -22,7 +22,7 @@
 | カテゴリ | 採用パターン |
 |---|---|
 | **Design Principles** | Separation of Concerns, Interface Segregation (ISP), Open/Closed (OCP), Dependency Inversion (DIP), **Zero-Reflection** |
-| **Architectural Style** | Vertical Slice Architecture (Feature-Driven), **Rule 16-20 Compliance** |
+| **Architectural Style** | Vertical Slice Architecture (Feature-Driven), **BB.01-BB.05 Compliance** |
 | **Architectural Pattern** | BuildingBlock Composition, Provider-Evaluator-Handler Pipeline, **Modular Registration** |
 | **Design Patterns** | Strategy (Provider/Evaluator の差し替え), Template Method (AuthorizationHandler 基盤), Builder (Fluent DI Registration), **Marker Interface (IVKBlockMarker)** |
 | **Enterprise Patterns** | Result Pattern (構造化エラー伝播), Options Validation (Fail-Fast), Source Generator (自動コード生成), **Immutable Options (init-only records)** |
@@ -113,7 +113,7 @@ flowchart TB
 ```
 Authorization/
 ├── VKAuthorizationBlock.cs          # Public Marker (IVKBlockMarker)
-├── DependencyInjection/             # DI 登録 (Rule 18.2 準拠)
+├── DependencyInjection/             # DI 登録 (BB.03.2 準拠)
 │   ├── VKAuthorizationExtensions.cs # Public Wrapper (AddVKAuthorizationBlock)
 │   ├── VKAuthorizationOptions.cs    # Public Options (IVKBlockOptions)
 │   └── Internal/
@@ -416,3 +416,5 @@ dotnet test --filter "FullyQualifiedName~VK.Blocks.Authorization"
 ## ライセンス
 
 本プロジェクトは [MIT License](/LICENSE) の下で公開されています。
+
+

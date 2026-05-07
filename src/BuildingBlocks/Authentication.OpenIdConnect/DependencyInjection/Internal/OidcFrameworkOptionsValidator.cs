@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+﻿using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal;
@@ -8,7 +8,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
 /// <summary>
 /// A validator that ensures each OpenIdConnectOptions configuration has a corresponding
 /// VKOAuthProviderOptions entry in the VKAuthenticationOptions.
-/// Complies with Rule 20.
+/// Complies with BB.05.
 /// </summary>
 internal sealed class OidcFrameworkOptionsValidator(
     IOptions<VKOidcOptions> oidcOptions,
@@ -37,3 +37,4 @@ internal sealed class OidcFrameworkOptionsValidator(
         return ValidateOptionsResult.Success;
     }
 }
+

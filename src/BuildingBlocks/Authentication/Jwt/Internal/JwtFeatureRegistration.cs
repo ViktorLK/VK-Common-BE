@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -17,7 +17,7 @@ internal static class JwtFeatureRegistration
         IVKAuthenticationBuilder builder,
         Func<VKJwtOptions, VKJwtOptions>? configure = null)
     {
-        // 1. Check-Self (Rule 13 & 18.2)
+        // 1. Check-Self (AP.02 & 18.2)
         if (builder.Services.IsVKBlockRegistered<JwtFeature>())
         {
             return builder;
@@ -27,7 +27,7 @@ internal static class JwtFeatureRegistration
         // ADR-016: Functional transformation from configuration section
         VKJwtOptions jwtOptions = builder.Services.AddVKBlockOptions<VKJwtOptions>(builder.Configuration, configure);
 
-        // 3. Mark-Self (Rule 13)
+        // 3. Mark-Self (AP.02)
         builder.Services.AddVKBlockMarker<JwtFeature>();
 
         // Safety check: skip if parent block is disabled
@@ -74,3 +74,4 @@ internal static class JwtFeatureRegistration
         return builder;
     }
 }
+

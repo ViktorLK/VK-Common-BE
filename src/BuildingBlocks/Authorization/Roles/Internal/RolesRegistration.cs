@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -19,7 +19,7 @@ internal static class RolesRegistration
         IVKAuthorizationBuilder builder,
         Func<VKRoleOptions, VKRoleOptions>? transform = null)
     {
-        // 1. Check-Self (Rule 13 & 18.2)
+        // 1. Check-Self (AP.02 & 18.2)
         if (builder.Services.IsVKBlockRegistered<RolesFeature>())
         {
             return builder;
@@ -27,10 +27,10 @@ internal static class RolesRegistration
 
         var options = builder.Services.AddVKBlockOptions<VKRoleOptions>(builder.Configuration, transform);
 
-        // 3. Mark-Self (Rule 18.2 - MUST be before early exit)
+        // 3. Mark-Self (BB.03.2 - MUST be before early exit)
         builder.Services.AddVKBlockMarker<RolesFeature>();
 
-        // 4. Options Validation (Rule 18.2)
+        // 4. Options Validation (BB.03.2)
         builder.Services.TryAddEnumerableSingleton<IValidateOptions<VKRoleOptions>, RoleOptionsValidator>();
 
         if (!options.Enabled)
@@ -48,3 +48,5 @@ internal static class RolesRegistration
         return builder;
     }
 }
+
+

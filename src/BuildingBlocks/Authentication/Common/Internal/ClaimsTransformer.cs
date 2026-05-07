@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -57,7 +57,7 @@ internal sealed class ClaimsTransformer(
         {
             try
             {
-                // 2. Restore CancellationToken propagation via IHttpContextAccessor (Rule 3).
+                // 2. Restore CancellationToken propagation via IHttpContextAccessor (CS.03).
                 CancellationToken cancellationToken = _httpContextAccessor.HttpContext?.RequestAborted ?? default;
 
                 List<Claim> allDynamicClaims = [];
@@ -91,7 +91,7 @@ internal sealed class ClaimsTransformer(
             catch (Exception ex)
             {
                 // Resilience: Do not crash the entire request if claims enrichment fails.
-                // Log and return the original principal (Rule 6).
+                // Log and return the original principal (OR.01).
                 _logger.LogClaimsTransformationError(ex, userId);
 
                 AuthenticationDiagnostics.RecordClaimsTransformation(
@@ -105,3 +105,4 @@ internal sealed class ClaimsTransformer(
         return principal;
     }
 }
+

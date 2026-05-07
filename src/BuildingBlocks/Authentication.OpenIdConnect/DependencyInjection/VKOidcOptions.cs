@@ -1,17 +1,17 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.OpenIdConnect;
 
 /// <summary>
 /// Configuration options for the OpenIdConnect building block.
-/// Complies with Rule 20.
+/// Complies with BB.05.
 /// </summary>
 public sealed record VKOidcOptions : IVKBlockOptions
 {
     /// <summary>
     /// The configuration section name.
-    /// Complies with Rule 15.
+    /// Complies with AP.04.
     /// </summary>
     public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:OpenIdConnect";
 
@@ -40,3 +40,4 @@ public sealed record VKOidcOptions : IVKBlockOptions
     /// </summary>
     public Dictionary<string, VKOidcProviderOptions> Providers { get; init; } = [];
 }
+

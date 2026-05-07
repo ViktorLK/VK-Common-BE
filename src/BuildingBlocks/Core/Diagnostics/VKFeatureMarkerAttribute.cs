@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace VK.Blocks.Core;
 
@@ -7,6 +8,7 @@ namespace VK.Blocks.Core;
 /// The Source Generator will automatically implement IVKFeatureMarker
 /// and proxy diagnostic fields to the parent block.
 /// </summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class VKFeatureMarkerAttribute(string identifier, Type parentBlockType) : Attribute
 {

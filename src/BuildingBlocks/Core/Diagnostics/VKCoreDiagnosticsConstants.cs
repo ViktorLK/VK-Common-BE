@@ -1,10 +1,10 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace VK.Blocks.Core;
 
 /// <summary>
 /// Centralized constants for the Core diagnostics feature.
-/// Complies with Rule 6 (Diagnostics), Rule 14 (Naming), and Rule 16 (Standard Folder Structure).
+/// Complies with OR.01 (Diagnostics), AP.03 (Naming), and BB.01 (Standard Folder Structure).
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Static constants for diagnostics and telemetry tagging.")]
 public static class VKCoreDiagnosticsConstants
@@ -24,3 +24,4 @@ public static class VKCoreDiagnosticsConstants
     /// </summary>
     public const string TraceIdTagName = "trace_id";
 }
+

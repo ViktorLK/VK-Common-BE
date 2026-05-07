@@ -1,13 +1,13 @@
-namespace VK.Blocks.Core;
+﻿namespace VK.Blocks.Core;
 
 /// <summary>
 /// Provides extension methods for merging local overrides with global defaults.
-/// Following Rule 21: Hierarchical Configuration Pattern.
+/// Following AP.05: Hierarchical Configuration Pattern.
 /// </summary>
 public static class VKMergeExtensions
 {
     /// <summary>
-    /// Merges a local override value with a global default value (Rule 21).
+    /// Merges a local override value with a global default value (AP.05).
     /// Returns the local value if it's not null; otherwise, returns the global value.
     /// </summary>
     /// <typeparam name="T">The value type.</typeparam>
@@ -18,7 +18,7 @@ public static class VKMergeExtensions
         => local ?? global;
 
     /// <summary>
-    /// Merges a local override reference with a global default reference (Rule 21).
+    /// Merges a local override reference with a global default reference (AP.05).
     /// Returns the local value if it's not null; otherwise, returns the global value.
     /// </summary>
     /// <typeparam name="T">The reference type.</typeparam>
@@ -28,3 +28,4 @@ public static class VKMergeExtensions
     public static T MergeWith<T>(this T? local, T global) where T : class
         => local ?? global;
 }
+

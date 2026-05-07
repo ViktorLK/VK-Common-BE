@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics.Internal;
 
 /// <summary>
 /// Provides security metadata for the OpenIdConnect block.
-/// Complies with Rule 19.
+/// Complies with BB.04.
 /// </summary>
 internal sealed class OidcMetadataProvider : IVKSecurityMetadataProvider
 {
@@ -31,3 +31,4 @@ internal sealed class OidcMetadataProvider : IVKSecurityMetadataProvider
         });
     }
 }
+

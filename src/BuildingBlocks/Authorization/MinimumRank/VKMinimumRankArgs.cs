@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using VK.Blocks.Core;
 
@@ -6,7 +6,7 @@ namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Arguments for minimum rank evaluation.
-/// Following Rule 21: Local overrides for the global <see cref="VKMinimumRankOptions"/>.
+/// Following AP.05: Local overrides for the global <see cref="VKMinimumRankOptions"/>.
 /// </summary>
 public sealed record VKMinimumRankArgs : IVKArgs<VKMinimumRankArgs>
 {
@@ -26,3 +26,4 @@ public sealed record VKMinimumRankArgs : IVKArgs<VKMinimumRankArgs>
     /// </summary>
     public Type? EnumType { get; init; }
 }
+

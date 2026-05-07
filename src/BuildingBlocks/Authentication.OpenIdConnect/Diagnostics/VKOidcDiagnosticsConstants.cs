@@ -1,8 +1,8 @@
-namespace VK.Blocks.Authentication.OpenIdConnect;
+﻿namespace VK.Blocks.Authentication.OpenIdConnect;
 
 /// <summary>
 /// Centralized constants for OIDC diagnostics.
-/// Complies with Rule 6 (Diagnostics) and Rule 14 (Naming).
+/// Complies with OR.01 (Diagnostics) and AP.03 (Naming).
 /// </summary>
 public static class VKOidcDiagnosticsConstants
 {
@@ -36,3 +36,4 @@ public static class VKOidcDiagnosticsConstants
     /// <summary>Reason code when a mapper is not found for the provider.</summary>
     public const string ReasonMapperNotFound = "MapperNotFound";
 }
+

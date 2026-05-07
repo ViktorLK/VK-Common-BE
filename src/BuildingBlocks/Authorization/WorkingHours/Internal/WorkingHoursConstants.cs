@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace VK.Blocks.Authorization.WorkingHours.Internal;
 
 /// <summary>
 /// Defines constants and default values for the WorkingHours feature.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal static class WorkingHoursConstants
 {
     /// <summary>

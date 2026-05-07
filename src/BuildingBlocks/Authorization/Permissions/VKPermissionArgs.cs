@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using VK.Blocks.Core;
 
@@ -6,7 +6,7 @@ namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Arguments for permission evaluation.
-/// Following Rule 21: Local overrides for the global <see cref="VKPermissionOptions"/>.
+/// Following AP.05: Local overrides for the global <see cref="VKPermissionOptions"/>.
 /// </summary>
 public sealed record VKPermissionArgs : IVKArgs<VKPermissionArgs>
 {
@@ -26,3 +26,4 @@ public sealed record VKPermissionArgs : IVKArgs<VKPermissionArgs>
     /// </summary>
     public VKPermissionEvaluationMode? Mode { get; init; }
 }
+

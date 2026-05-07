@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -53,7 +53,7 @@ internal sealed class MinimumRankAuthorizationHandler(
         VKGuard.NotNull(user);
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
 
-        // 0. Merge settings (Rule 21)
+        // 0. Merge settings (AP.05)
         var minimumRank = args.MergeWith(VKMinimumRankArgs.Empty).MinimumRank.MergeWith(0);
         var enumType = args.MergeWith(VKMinimumRankArgs.Empty).EnumType;
 
@@ -110,3 +110,4 @@ internal sealed class MinimumRankAuthorizationHandler(
         return VKResult.Success(false);
     }
 }
+

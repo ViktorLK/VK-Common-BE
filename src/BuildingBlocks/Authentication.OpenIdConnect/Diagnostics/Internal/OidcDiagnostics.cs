@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using VK.Blocks.Core;
 
@@ -7,7 +7,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics.Internal;
 /// <summary>
 /// Centralized Diagnostics definition for the VK.Blocks.Authentication.OpenIdConnect building block.
 /// The Source Generator automatically emits the ActivitySource and Meter fields for this class.
-/// Complies with Rule 6 & 19 (Diagnostics Blueprint).
+/// Complies with OR.01 & BB.04 (Diagnostics Blueprint).
 /// </summary>
 [VKBlockDiagnostics<VKOidcBlock>]
 internal static partial class OidcDiagnostics
@@ -92,3 +92,5 @@ internal static partial class OidcDiagnostics
         return activity;
     }
 }
+
+

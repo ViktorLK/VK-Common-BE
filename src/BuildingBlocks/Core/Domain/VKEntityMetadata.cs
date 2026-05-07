@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Provides high-performance, non-generic access to entity metadata indicators (Rule 4).
+/// Provides high-performance, non-generic access to entity metadata indicators (CS.04).
 /// Uses a unified BitFlags dictionary to minimize hash lookups in hot paths like EFCore lifecycle processing.
 /// </summary>
 public static class VKEntityMetadata
@@ -75,3 +75,4 @@ public static class VKEntityMetadata
         });
     }
 }
+

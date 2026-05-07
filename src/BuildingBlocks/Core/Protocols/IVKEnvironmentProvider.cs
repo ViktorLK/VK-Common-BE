@@ -1,7 +1,7 @@
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Prohibit direct use of non-deterministic system APIs (Rule 5.1).
+/// Prohibit direct use of non-deterministic system APIs (CS.06).
 /// This provider abstracts environment variable access.
 /// </summary>
 public interface IVKEnvironmentProvider
@@ -13,3 +13,4 @@ public interface IVKEnvironmentProvider
     /// <returns>The value of the environment variable, or null if it does not exist.</returns>
     string? GetVariable(string name);
 }
+

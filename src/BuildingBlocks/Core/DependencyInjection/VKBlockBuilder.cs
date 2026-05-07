@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace VK.Blocks.Core;
@@ -10,7 +10,7 @@ namespace VK.Blocks.Core;
 /// <remarks>
 /// This class is intentionally not declared as <c>sealed</c> because it serves as a base class 
 /// for specialized builders in other modules (e.g., AuthenticationBlockBuilder) to share 
-/// common <see cref="Services"/> and <see cref="Configuration"/> logic (Rule 12).
+/// common <see cref="Services"/> and <see cref="Configuration"/> logic (AP.01).
 /// </remarks>
 public class VKBlockBuilder<TMarker>(IServiceCollection services, IConfiguration configuration) : IVKBlockBuilder<TMarker>
 {
@@ -20,3 +20,4 @@ public class VKBlockBuilder<TMarker>(IServiceCollection services, IConfiguration
     /// <inheritdoc />
     public IConfiguration Configuration { get; } = configuration;
 }
+

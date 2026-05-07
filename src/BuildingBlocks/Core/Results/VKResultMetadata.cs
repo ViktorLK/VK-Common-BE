@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -7,7 +7,7 @@ using System.Reflection;
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Provides high-performance, non-generic access to <see cref="VKResult{T}"/> failure creation (Rule 4).
+/// Provides high-performance, non-generic access to <see cref="VKResult{T}"/> failure creation (CS.04).
 /// Caches compiled expression delegates to avoid reflection overhead in hot paths.
 /// </summary>
 public static class VKResultMetadata
@@ -41,3 +41,4 @@ public static class VKResultMetadata
         return factory(errors);
     }
 }
+

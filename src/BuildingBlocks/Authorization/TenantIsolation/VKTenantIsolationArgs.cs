@@ -1,10 +1,10 @@
-using VK.Blocks.Core;
+﻿using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Arguments for tenant isolation evaluation.
-/// Following Rule 21: Local overrides for the global <see cref="VKTenantIsolationOptions"/>.
+/// Following AP.05: Local overrides for the global <see cref="VKTenantIsolationOptions"/>.
 /// </summary>
 public sealed record VKTenantIsolationArgs : IVKArgs<VKTenantIsolationArgs>
 {
@@ -19,3 +19,4 @@ public sealed record VKTenantIsolationArgs : IVKArgs<VKTenantIsolationArgs>
     /// </summary>
     public string? TargetTenantId { get; init; }
 }
+

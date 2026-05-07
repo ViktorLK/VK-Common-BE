@@ -1,10 +1,10 @@
-using VK.Blocks.Core;
+﻿using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Arguments for role evaluation.
-/// Following Rule 21: Local overrides for the global <see cref="VKRoleOptions"/>.
+/// Following AP.05: Local overrides for the global <see cref="VKRoleOptions"/>.
 /// </summary>
 public sealed record VKRoleArgs : IVKArgs<VKRoleArgs>
 {
@@ -18,3 +18,4 @@ public sealed record VKRoleArgs : IVKArgs<VKRoleArgs>
     /// </summary>
     public string[]? Roles { get; init; }
 }
+

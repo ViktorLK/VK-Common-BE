@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 
 using VK.Blocks.Core;
@@ -7,7 +7,7 @@ namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Arguments for internal network evaluation.
-/// Following Rule 21: Local overrides for the global <see cref="VKInternalNetworkOptions"/>.
+/// Following AP.05: Local overrides for the global <see cref="VKInternalNetworkOptions"/>.
 /// </summary>
 public sealed record VKInternalNetworkArgs : IVKArgs<VKInternalNetworkArgs>
 {
@@ -28,3 +28,4 @@ public sealed record VKInternalNetworkArgs : IVKArgs<VKInternalNetworkArgs>
     /// </summary>
     public IReadOnlyList<string>? AllowedCidrs { get; init; }
 }
+

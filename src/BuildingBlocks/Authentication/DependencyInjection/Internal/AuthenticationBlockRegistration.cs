@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,19 +22,19 @@ internal static class AuthenticationBlockRegistration
         Func<VKAuthenticationOptions, VKAuthenticationOptions>? configure = null)
     {
         // 1. Prerequisites & Idempotency Check (Smart Check)
-        // Rule 13: This handles both self-idempotency and recursive dependency validation.
+        // AP.02: This handles both self-idempotency and recursive dependency validation.
         if (services.IsVKBlockRegistered<VKAuthenticationBlock>())
         {
             return new AuthenticationBlockBuilder(services, configuration, null!);
         }
 
         // 2. Options Registration
-        // Rule 15: Bind options before marker registration
+        // AP.04: Bind options before marker registration
         // ADR-016: Use functional transformation to support immutable options
         VKAuthenticationOptions vkAuthOptions = services.AddVKBlockOptions<VKAuthenticationOptions>(configuration, configure);
 
         // 3. Success Commit (Marker)
-        // Rule 13: Register marker immediately after options but before feature-gate early return
+        // AP.02: Register marker immediately after options but before feature-gate early return
         services.AddVKBlockMarker<VKAuthenticationBlock>();
 
         // 4. Options Validation (Mandatory for config safety)
@@ -43,7 +43,7 @@ internal static class AuthenticationBlockRegistration
         // 5. Static Diagnostic Metadata (Always visible to diagnostics)
         services.TryAddEnumerableSingleton<IVKSecurityMetadataProvider, AuthenticationMetadataProvider>();
 
-        // 6. Early Return - Rule 13: Enabled check AFTER marker
+        // 6. Early Return - AP.02: Enabled check AFTER marker
         if (!vkAuthOptions.Enabled)
         {
             return new AuthenticationBlockBuilder(services, configuration, null!);
@@ -77,3 +77,4 @@ internal static class AuthenticationBlockRegistration
         });
     }
 }
+

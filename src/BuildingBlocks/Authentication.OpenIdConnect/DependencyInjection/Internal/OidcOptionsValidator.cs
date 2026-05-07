@@ -1,10 +1,10 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
 
 /// <summary>
 /// Validator for VKOidcOptions to ensure correct configuration.
-/// Complies with Rule 20.
+/// Complies with BB.05.
 /// </summary>
 internal sealed class OidcOptionsValidator : IValidateOptions<VKOidcOptions>
 {
@@ -45,3 +45,4 @@ internal sealed class OidcOptionsValidator : IValidateOptions<VKOidcOptions>
         return ValidateOptionsResult.Success;
     }
 }
+

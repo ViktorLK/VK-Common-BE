@@ -1,8 +1,8 @@
-namespace VK.Blocks.Core;
+﻿namespace VK.Blocks.Core;
 
 /// <summary>
 /// Constants for multi-tenant identification and orchestration.
-/// Shared across all BuildingBlocks to ensure architectural consistency (Rule 14).
+/// Shared across all BuildingBlocks to ensure architectural consistency (AP.03).
 /// </summary>
 public static class VKTenancyConstants
 {
@@ -32,3 +32,4 @@ public static class VKTenancyConstants
         public const string TenantInvalid = "Tenancy.TenantInvalid";
     }
 }
+

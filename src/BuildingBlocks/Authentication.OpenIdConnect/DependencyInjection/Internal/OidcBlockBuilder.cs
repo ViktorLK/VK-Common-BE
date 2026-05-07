@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Core;
@@ -7,7 +7,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
 
 /// <summary>
 /// Builder for the OpenIdConnect building block.
-/// Complies with Rule 16.
+/// Complies with BB.01.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Simple property bag for DI registration; contains no complex logic.")]
 internal sealed class OidcBlockBuilder : IVKBlockBuilder<VKAuthenticationBlock>
@@ -21,3 +21,4 @@ internal sealed class OidcBlockBuilder : IVKBlockBuilder<VKAuthenticationBlock>
     public IServiceCollection Services { get; }
     public IConfiguration Configuration { get; }
 }
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 
@@ -16,7 +16,7 @@ internal sealed class SequentialGuidGenerator(TimeProvider? timeProvider = null)
     public Guid Create()
     {
         // Rationale: SQL Server sorts GUIDs based on the last 6 bytes.
-        // To avoid heap allocations, we use stackalloc and Span (Rule 4.6).
+        // To avoid heap allocations, we use stackalloc and Span (CS.04.6).
         Span<byte> guidBytes = stackalloc byte[16];
 
         // 1. Fill first 10 bytes with cryptographically strong random data
@@ -36,3 +36,4 @@ internal sealed class SequentialGuidGenerator(TimeProvider? timeProvider = null)
         return new Guid(guidBytes);
     }
 }
+
