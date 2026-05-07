@@ -1,11 +1,11 @@
-# 📊 アーキテクチャ監査レポート: Authentication Building Block
+﻿# 📊 アーキテクチャ監査レポート: Authentication Building Block
 
 ## 📊 監査サマリー (Audit Summary)
 
 - **総合スコア**: 88/100点
 - **対象レイヤー判定**: Cross-Cutting Concerns / Infrastructure Layer (Building Block)
 - **総評 (Executive Summary)**:
-  `VK.Blocks.Authentication` は、現代的な C# 12 の機能を活用した高品質な認証基盤モジュールである。`Result<T>` パターンによる例外フリーの制御フロー、Keyed DI による Strategy パターン、`stackalloc` を用いたホットパスの最適化など、シニアレベルの設計判断が随所に見られる。`audit_vk_blocks_code` ツールによる自動監査においても **Pass（VK.Blocks Rule 1 & Rule 3 完全準拠）** の判定を取得済み。一方で、`TokenRevocationService` のインターフェイス不在、リフレッシュトークン TTL のハードコード、レートリミッターの非原子的更新など、エンタープライズ運用スケールに向けた改善の余地が残されている。
+  `VK.Blocks.Authentication` は、現代的な C# 12 の機能を活用した高品質な認証基盤モジュールである。`Result<T>` パターンによる例外フリーの制御フロー、Keyed DI による Strategy パターン、`stackalloc` を用いたホットパスの最適化など、シニアレベルの設計判断が随所に見られる。`audit_vk_blocks_code` ツールによる自動監査においても **Pass（VK.Blocks CS.01 & CS.03 完全準拠）** の判定を取得済み。一方で、`TokenRevocationService` のインターフェイス不在、リフレッシュトークン TTL のハードコード、レートリミッターの非原子的更新など、エンタープライズ運用スケールに向けた改善の余地が残されている。
 
 ---
 
@@ -85,3 +85,4 @@
     - **Distributed Locking & Atomic Counter**: Redis の `INCR`/`EXPIREAT` と `Lua Script` を用いた原子的レートリミット実装（StackExchange.Redis と `RedLock.net`）。
     - **RFC 7807 Problem Details**: .NET 8 の `IProblemDetailsService` を用いたミドルウェアレベルでの横断的エラーハンドリング標準化（`services.AddProblemDetails()`）。
     - **Options Pattern の深化**: `IOptionsMonitor<T>` / `IOptionsSnapshot<T>` の使い分けと、ホットリロード対応の設定設計。
+

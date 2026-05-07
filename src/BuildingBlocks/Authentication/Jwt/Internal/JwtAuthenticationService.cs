@@ -22,7 +22,9 @@ internal sealed class JwtAuthenticationService(
     ILogger<JwtAuthenticationService> logger,
     IVKJwtRevocationProvider revocationProvider) : IVKJwtAuthService
 {
-    private readonly VKJwtOptions _options = options.Value;
+    private readonly VKJwtOptions _options = VKGuard.NotNull(options).Value;
+    private readonly ILogger<JwtAuthenticationService> _logger = VKGuard.NotNull(logger);
+    private readonly IVKJwtRevocationProvider _revocationProvider = VKGuard.NotNull(revocationProvider);
     private readonly JsonWebTokenHandler _tokenHandler = new();
     private readonly Dictionary<string, bool> _revocationCache = [];
 
@@ -33,7 +35,7 @@ internal sealed class JwtAuthenticationService(
 
         if (string.IsNullOrWhiteSpace(token))
         {
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.EmptyToken.Code);
+            AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.EmptyToken.Code);
             return VKResult.Failure<VKAuthenticatedUser>(VKJwtErrors.EmptyToken);
         }
 
@@ -43,8 +45,8 @@ internal sealed class JwtAuthenticationService(
 
             if (string.IsNullOrEmpty(jwtOptions.SecretKey))
             {
-                logger.LogOptionsNotConfigured();
-                AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.ConfigurationError.Code);
+                _logger.LogOptionsNotConfigured();
+                AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.ConfigurationError.Code);
                 return VKResult.Failure<VKAuthenticatedUser>(VKJwtErrors.ConfigurationError);
             }
 
@@ -61,8 +63,8 @@ internal sealed class JwtAuthenticationService(
                     _ => VKJwtErrors.Invalid
                 };
 
-                logger.LogAuthenticationFailed(validationResult.Exception, failureReason.Code);
-                AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, failureReason.Code);
+                _logger.LogAuthenticationFailed(validationResult.Exception, failureReason.Code);
+                AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, false, failureReason.Code);
                 return VKResult.Failure<VKAuthenticatedUser>(failureReason);
             }
 
@@ -79,19 +81,19 @@ internal sealed class JwtAuthenticationService(
             VKResult<VKAuthenticatedUser> mappingResult = principal.ToAuthenticatedUser();
             if (mappingResult.IsFailure)
             {
-                AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, mappingResult.FirstError.Code);
+                AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, false, mappingResult.FirstError.Code);
                 return VKResult.Failure<VKAuthenticatedUser>(mappingResult.FirstError);
             }
 
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, true);
-            activity?.SetTag(AuthenticationDiagnosticsConstants.TagUserId, principal.GetUserId());
+            AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, true);
+            activity?.SetTag(VKAuthenticationDiagnosticsConstants.TagUserId, principal.GetUserId());
             return VKResult.Success(mappingResult.Value);
         }
         catch (Exception ex)
         {
-            logger.LogUnexpectedAuthenticationError(ex);
+            _logger.LogUnexpectedAuthenticationError(ex);
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.Invalid.Code);
+            AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.Invalid.Code);
             return VKResult.Failure<VKAuthenticatedUser>(VKJwtErrors.Invalid);
         }
     }
@@ -110,11 +112,11 @@ internal sealed class JwtAuthenticationService(
                 return isRevoked ? VKResult.Failure(VKJwtErrors.Revoked) : VKResult.Success();
             }
 
-            if (await revocationProvider.IsUserRevokedAsync(userId, cancellationToken).ConfigureAwait(false))
+            if (await _revocationProvider.IsUserRevokedAsync(userId, cancellationToken).ConfigureAwait(false))
             {
                 _revocationCache[userId] = true;
-                AuthenticationDiagnostics.RecordRevocationHit(AuthenticationDiagnosticsConstants.TypeJwt);
-                AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.Revoked.Code);
+                AuthenticationDiagnostics.RecordRevocationHit(VKAuthenticationDiagnosticsConstants.TypeJwt);
+                AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.Revoked.Code);
                 return VKResult.Failure(VKJwtErrors.Revoked);
             }
 
@@ -130,11 +132,11 @@ internal sealed class JwtAuthenticationService(
                 return isRevoked ? VKResult.Failure(VKJwtErrors.Revoked) : VKResult.Success();
             }
 
-            if (await revocationProvider.IsRevokedAsync(jti, cancellationToken).ConfigureAwait(false))
+            if (await _revocationProvider.IsRevokedAsync(jti, cancellationToken).ConfigureAwait(false))
             {
                 _revocationCache[jti] = true;
-                AuthenticationDiagnostics.RecordRevocationHit(AuthenticationDiagnosticsConstants.TypeJwt);
-                AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.Revoked.Code);
+                AuthenticationDiagnostics.RecordRevocationHit(VKAuthenticationDiagnosticsConstants.TypeJwt);
+                AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, false, VKJwtErrors.Revoked.Code);
                 return VKResult.Failure(VKJwtErrors.Revoked);
             }
 

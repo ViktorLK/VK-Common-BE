@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -22,6 +22,10 @@ internal sealed class ClaimsTransformer(
     IHttpContextAccessor httpContextAccessor,
     ILogger<ClaimsTransformer> logger) : IClaimsTransformation
 {
+    private readonly IServiceScopeFactory _scopeFactory = VKGuard.NotNull(scopeFactory);
+    private readonly IHttpContextAccessor _httpContextAccessor = VKGuard.NotNull(httpContextAccessor);
+    private readonly ILogger<ClaimsTransformer> _logger = VKGuard.NotNull(logger);
+
     /// <inheritdoc />
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
@@ -46,15 +50,15 @@ internal sealed class ClaimsTransformer(
             return principal;
         }
 
-        using IServiceScope scope = scopeFactory.CreateScope();
+        using IServiceScope scope = _scopeFactory.CreateScope();
         List<IVKClaimsProvider> claimsProviders = [.. (scope.ServiceProvider.GetService<IEnumerable<IVKClaimsProvider>>() ?? [])];
 
         if (claimsProviders.Count > 0)
         {
             try
             {
-                // 2. Restore CancellationToken propagation via IHttpContextAccessor (Rule 3).
-                CancellationToken cancellationToken = httpContextAccessor.HttpContext?.RequestAborted ?? default;
+                // 2. Restore CancellationToken propagation via IHttpContextAccessor (CS.03).
+                CancellationToken cancellationToken = _httpContextAccessor.HttpContext?.RequestAborted ?? default;
 
                 List<Claim> allDynamicClaims = [];
                 foreach (IVKClaimsProvider provider in claimsProviders)
@@ -79,7 +83,7 @@ internal sealed class ClaimsTransformer(
 
                     double durationMs = Stopwatch.GetElapsedTime(startTime).TotalMilliseconds;
                     AuthenticationDiagnostics.RecordClaimsTransformation(durationMs, applied: true);
-                    activity?.SetTag(AuthenticationDiagnosticsConstants.TagClaimsTransformed, true);
+                    activity?.SetTag(VKAuthenticationDiagnosticsConstants.TagClaimsTransformed, true);
 
                     return clone;
                 }
@@ -87,8 +91,8 @@ internal sealed class ClaimsTransformer(
             catch (Exception ex)
             {
                 // Resilience: Do not crash the entire request if claims enrichment fails.
-                // Log and return the original principal (Rule 6).
-                logger.LogClaimsTransformationError(ex, userId);
+                // Log and return the original principal (OR.01).
+                _logger.LogClaimsTransformationError(ex, userId);
 
                 AuthenticationDiagnostics.RecordClaimsTransformation(
                     Stopwatch.GetElapsedTime(startTime).TotalMilliseconds, applied: false);
@@ -101,3 +105,4 @@ internal sealed class ClaimsTransformer(
         return principal;
     }
 }
+

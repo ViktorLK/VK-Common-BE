@@ -10,18 +10,22 @@ using VK.Blocks.Generators.Diagnostics.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
+
 namespace VK.Blocks.Generators.Diagnostics;
 
 
 /// <summary>
-/// Scans for all static readonly Error fields in the module and generates an ErrorCatalog.
+/// Scans for all static readonly VKError fields in the module and generates an ErrorCatalog.
 /// This allows for centralized discovery, documentation, and i18n support.
 /// </summary>
 [Generator]
 public sealed class ErrorCatalogGenerator : IIncrementalGenerator
 {
-    private const string ErrorTypeName = "Error";
-    private const string ErrorFullTypeName = VKBlocksConstants.VKBlocksPrefix + "Core.Results.Error";
+    private const string ErrorTypeName = "VKError";
+    private const string ErrorFullTypeName = $"{VKBlocksConstants.VKBlocksPrefix}.Core.Results.VKError";
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -65,7 +69,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
             return null;
         }
 
-        // Try to extract metadata from the initializer (new Error("Code", "Description", ...))
+        // Try to extract metadata from the initializer (new VKError("Code", "Description", ...))
         string? code = null;
         string? description = null;
         var type = "Failure";
@@ -86,7 +90,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
                 }
                 if (args.Count > 2)
                 {
-                    // ErrorType is an enum, try to get its name
+                    // VKErrorType is an enum, try to get its name
                     var typeSymbol = context.SemanticModel.GetSymbolInfo(args[2].Expression, ct).Symbol;
                     if (typeSymbol != null)
                     {
@@ -97,7 +101,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
         }
         else if (variable.Initializer?.Value is InvocationExpressionSyntax invocation)
         {
-            // Factory method like Error.Validation("Code", "Description")
+            // Factory method like VKError.Validation("Code", "Description")
             if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
             {
                 type = memberAccess.Name.Identifier.Text;
@@ -122,7 +126,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
             FullTypeName: symbol.ContainingType.ToDisplayString(),
             Code: code ?? symbol.Name,
             Description: description ?? "Defined in " + symbol.ContainingType.Name,
-            ErrorType: type);
+            VKErrorType: type);
     }
 
     private static void Execute(SourceProductionContext context, ImmutableArray<ErrorInfo?> errors, string? assemblyName, Type generatorType)
@@ -140,7 +144,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
 
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using System.Collections.Generic;");
-        sb.AppendLine("using VK.Blocks.Core.Results;");
+        sb.AppendLine("using VK.Blocks.Core;");
         sb.AppendLine();
 
         // Use the base namespace of the module (e.g., VK.Blocks.Authentication)
@@ -157,7 +161,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
         sb.AppendLine($"        public const string MetadataHash = \"{CalculateDeterministicHash(validErrors)}\";");
         sb.AppendLine();
         sb.AppendLine("        /// <summary>A complete list of all Errors defined in this module.</summary>");
-        sb.AppendLine("        public static readonly IReadOnlyList<Error> All = new List<Error>");
+        sb.AppendLine("        public static readonly IReadOnlyList<VKError> All = new List<VKError>");
         sb.AppendLine("        {");
 
         foreach (var e in validErrors)
@@ -167,8 +171,8 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
 
         sb.AppendLine("        }.AsReadOnly();");
         sb.AppendLine();
-        sb.AppendLine("        /// <summary>Maps error codes to their standardized Error objects.</summary>");
-        sb.AppendLine("        public static readonly IReadOnlyDictionary<string, Error> Map = new Dictionary<string, Error>");
+        sb.AppendLine("        /// <summary>Maps error codes to their standardized VKError objects.</summary>");
+        sb.AppendLine("        public static readonly IReadOnlyDictionary<string, VKError> Map = new Dictionary<string, VKError>");
         sb.AppendLine("        {");
         foreach (var e in validErrors)
         {

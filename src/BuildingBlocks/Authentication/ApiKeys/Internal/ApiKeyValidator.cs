@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Security.Cryptography;
@@ -23,6 +23,13 @@ internal sealed class ApiKeyValidator(
     TimeProvider timeProvider,
     ILogger<ApiKeyValidator> logger)
 {
+    private readonly IVKApiKeyStore _apiKeyStore = VKGuard.NotNull(apiKeyStore);
+    private readonly IVKApiKeyRevocationProvider _revocationProvider = VKGuard.NotNull(revocationProvider);
+    private readonly IVKApiKeyRateLimiter _rateLimiter = VKGuard.NotNull(rateLimiter);
+    private readonly VKApiKeyOptions _options = VKGuard.NotNull(options).Value;
+    private readonly TimeProvider _timeProvider = VKGuard.NotNull(timeProvider);
+    private readonly ILogger<ApiKeyValidator> _logger = VKGuard.NotNull(logger);
+
     /// <summary>
     /// Validates a raw API key asynchronously.
     /// </summary>
@@ -35,63 +42,63 @@ internal sealed class ApiKeyValidator(
     {
         using Activity? activity = AuthenticationDiagnostics.StartApiKeyValidation();
 
-        VKApiKeyOptions settings = options.Value;
+        VKApiKeyOptions settings = _options;
 
         // Enforce input presence and minimum length
         if (string.IsNullOrWhiteSpace(rawApiKey) || rawApiKey.Length < settings.MinLength)
         {
             if (rawApiKey?.Length < settings.MinLength && !string.IsNullOrWhiteSpace(rawApiKey))
             {
-                logger.LogApiKeyTooShort(settings.MinLength);
+                _logger.LogApiKeyTooShort(settings.MinLength);
             }
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Invalid.Code);
+            AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Invalid.Code);
             return VKResult.Failure<ApiKeyContext>(VKApiKeyErrors.Invalid);
         }
 
         string hashedApiKey = HashApiKey(rawApiKey);
 
-        VKResult<VKApiKeyRecord> storeResult = await apiKeyStore.FindByHashAsync(hashedApiKey, cancellationToken).ConfigureAwait(false);
+        VKResult<VKApiKeyRecord> storeResult = await _apiKeyStore.FindByHashAsync(hashedApiKey, cancellationToken).ConfigureAwait(false);
         if (storeResult.IsFailure)
         {
-            // Mask the hash in logs for security (Rule 7 / Audit 2026-04-01)
-            logger.LogApiKeyNotFound(hashedApiKey[..4]);
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Invalid.Code);
+            // Mask the hash in logs for security (OR.02 / Audit 2026-04-01)
+            _logger.LogApiKeyNotFound(hashedApiKey[..4]);
+            AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Invalid.Code);
             return VKResult.Failure<ApiKeyContext>(VKApiKeyErrors.Invalid);
         }
 
         VKApiKeyRecord apiKeyRecord = storeResult.Value;
 
-        if (await revocationProvider.IsRevokedAsync(apiKeyRecord.Id.ToString(), cancellationToken).ConfigureAwait(false))
+        if (await _revocationProvider.IsRevokedAsync(apiKeyRecord.Id.ToString(), cancellationToken).ConfigureAwait(false))
         {
-            logger.LogRevokedApiKeyUsed(apiKeyRecord.Id.ToString());
-            AuthenticationDiagnostics.RecordRevocationHit(AuthenticationDiagnosticsConstants.TypeApiKey);
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Revoked.Code);
+            _logger.LogRevokedApiKeyUsed(apiKeyRecord.Id.ToString());
+            AuthenticationDiagnostics.RecordRevocationHit(VKAuthenticationDiagnosticsConstants.TypeApiKey);
+            AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Revoked.Code);
             return VKResult.Failure<ApiKeyContext>(VKApiKeyErrors.Revoked);
         }
 
-        DateTimeOffset now = timeProvider.GetUtcNow();
+        DateTimeOffset now = _timeProvider.GetUtcNow();
         if (apiKeyRecord.ExpiresAt.HasValue && apiKeyRecord.ExpiresAt.Value < now)
         {
-            logger.LogExpiredApiKeyUsed(apiKeyRecord.Id.ToString());
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Expired.Code);
+            _logger.LogExpiredApiKeyUsed(apiKeyRecord.Id.ToString());
+            AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Expired.Code);
             return VKResult.Failure<ApiKeyContext>(VKApiKeyErrors.Expired);
         }
 
         if (!apiKeyRecord.IsEnabled)
         {
-            logger.LogDisabledApiKeyUsed(apiKeyRecord.Id.ToString());
-            AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Disabled.Code);
+            _logger.LogDisabledApiKeyUsed(apiKeyRecord.Id.ToString());
+            AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.Disabled.Code);
             return VKResult.Failure<ApiKeyContext>(VKApiKeyErrors.Disabled);
         }
 
         // Apply Rate Limiting
         if (settings.EnableRateLimiting)
         {
-            if (!await rateLimiter.IsAllowedAsync(apiKeyRecord.Id, settings.RateLimitPerMinute, settings.RateLimitWindowSeconds, cancellationToken).ConfigureAwait(false))
+            if (!await _rateLimiter.IsAllowedAsync(apiKeyRecord.Id, settings.RateLimitPerMinute, settings.RateLimitWindowSeconds, cancellationToken).ConfigureAwait(false))
             {
-                logger.LogRateLimitExceeded(apiKeyRecord.Id.ToString());
+                _logger.LogRateLimitExceeded(apiKeyRecord.Id.ToString());
                 AuthenticationDiagnostics.RecordTooManyRequests(apiKeyRecord.Id.ToString(), apiKeyRecord.TenantId ?? string.Empty);
-                AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.RateLimitExceeded.Code);
+                AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.RateLimitExceeded.Code);
                 return VKResult.Failure<ApiKeyContext>(VKApiKeyErrors.RateLimitExceeded);
             }
         }
@@ -101,9 +108,9 @@ internal sealed class ApiKeyValidator(
             await UpdateLastUsedAsync(apiKeyRecord.Id, cancellationToken).ConfigureAwait(false);
         }
 
-        AuthenticationDiagnostics.RecordAuthAttempt(AuthenticationDiagnosticsConstants.TypeApiKey, true);
-        activity?.SetTag(AuthenticationDiagnosticsConstants.TagKeyId, apiKeyRecord.Id.ToString());
-        activity?.SetTag(AuthenticationDiagnosticsConstants.TagTenantId, apiKeyRecord.TenantId);
+        AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, true);
+        activity?.SetTag(VKAuthenticationDiagnosticsConstants.TagKeyId, apiKeyRecord.Id.ToString());
+        activity?.SetTag(VKAuthenticationDiagnosticsConstants.TagTenantId, apiKeyRecord.TenantId);
 
         return VKResult.Success(new ApiKeyContext
         {
@@ -122,7 +129,7 @@ internal sealed class ApiKeyValidator(
     private static string HashApiKey(string rawApiKey)
     {
         // PERF: Using stackalloc to avoid memory allocation for frequent calls.
-        // Rule 4.3: Use ArrayPool for large temporary buffers (> 256 bytes) to reduce GC pressure.
+        // CS.04.3: Use ArrayPool for large temporary buffers (> 256 bytes) to reduce GC pressure.
         int maxByteCount = Encoding.UTF8.GetMaxByteCount(rawApiKey.Length);
         byte[]? sharedBuffer = null;
         Span<byte> buffer = maxByteCount <= 256
@@ -164,11 +171,13 @@ internal sealed class ApiKeyValidator(
     {
         try
         {
-            await apiKeyStore.UpdateLastUsedAtAsync(keyId, timeProvider.GetUtcNow(), ct).ConfigureAwait(false);
+            await _apiKeyStore.UpdateLastUsedAtAsync(keyId, _timeProvider.GetUtcNow(), ct).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            logger.LogLastUsedUpdateFailed(ex, keyId.ToString());
+            _logger.LogLastUsedUpdateFailed(ex, keyId.ToString());
         }
     }
 }
+
+

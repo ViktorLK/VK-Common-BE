@@ -15,8 +15,10 @@ Ensure all C# files adhere to VK.Blocks physical standards and standard .NET for
 
 ## Steps
 
-### 1. Identify the Target
+### 1. Identify Target & Load Context
 - Determine the **absolute path** of the directory or file (default: `src`).
+- **Mandatory (PS.04)**: Call `vk_get_module_context(path)`.
+- Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
 
 ### 2. Execute Mechanical Normalization
 This script first fixes the physical file boundaries and then applies standard .NET formatting.
@@ -76,7 +78,7 @@ foreach ($project in $projects) {
 }
 ```
 
-### 3. Verification
+### 3. Verification & Reporting
 - Confirm that files are clean and the project still builds.
 
 // turbo
@@ -84,6 +86,10 @@ foreach ($project in $projects) {
 # Run a quick build to ensure no breaking changes
 dotnet build <path_to_relevant_csproj_or_sln> --no-restore
 ```
+
+- **Reporting Protocol**:
+  - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+  - Audit: `Audit: ✅ Mechanical normalization complete.`
 
 ## Why this is "Mechanical"
 Unlike `vk-code-normalization`, this workflow does NOT use AI to analyze code. It relies entirely on deterministic tools, making it safe to run on large codebases in seconds.

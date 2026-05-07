@@ -1,0 +1,114 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using VK.Blocks.Authentication.OpenIdConnect.Diagnostics.Internal;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal;
+
+/// <summary>
+/// A factory for creating standardized OIDC event handlers.
+/// </summary>
+internal static class OidcHandlerFactory
+{
+    /// <summary>
+    /// Creates a delegate for the OnTokenValidated event.
+    /// </summary>
+    /// <param name="providerName">The name of the authentication provider.</param>
+    /// <returns>A function that handles the token validation context.</returns>
+    public static Func<TokenValidatedContext, Task> CreateOnTokenValidated(string providerName)
+    {
+        VKGuard.NotNullOrWhiteSpace(providerName);
+        return context =>
+        {
+            var services = context.HttpContext.RequestServices;
+            var logger = services.GetRequiredService<ILogger<VKAuthenticationBlock>>();
+            var traceId = context.HttpContext.TraceIdentifier;
+
+            using var activity = OidcDiagnostics.StartOidcValidation(providerName);
+            var stopwatch = Stopwatch.StartNew();
+            var isSuccess = false;
+
+            try
+            {
+                var mapper = services.GetKeyedService<IVKOAuthClaimsMapper>(providerName)
+                             ?? services.GetKeyedService<IVKOAuthClaimsMapper>(OidcConstants.StandardProvider);
+
+                if (mapper == null)
+                {
+                    logger.LogOidcMappingError(providerName, traceId);
+                    OidcDiagnostics.RecordAuthAttempt(providerName, false, VKOidcDiagnosticsConstants.ReasonMapperNotFound);
+                    activity?.SetStatus(ActivityStatusCode.Error, OidcConstants.MapperNotFoundMessage);
+                    return Task.CompletedTask;
+                }
+
+                var VKExternalIdentity = ExtractVKExternalIdentity(context, providerName);
+                var internalClaims = mapper.MapToClaims(VKExternalIdentity);
+
+                var identity = new ClaimsIdentity(internalClaims, OidcConstants.FederatedAuthType);
+                context.Principal?.AddIdentity(identity);
+
+                logger.LogOidcAuthenticationSuccess(providerName, VKExternalIdentity.ProviderId, traceId);
+                OidcDiagnostics.RecordAuthAttempt(providerName, true);
+                activity?.SetStatus(ActivityStatusCode.Ok);
+                isSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogOidcAuthenticationError(ex, providerName, traceId);
+                OidcDiagnostics.RecordAuthAttempt(providerName, false, ex.Message);
+                activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+                throw;
+            }
+            finally
+            {
+                stopwatch.Stop();
+                OidcDiagnostics.RecordDuration(providerName, stopwatch.Elapsed.TotalMilliseconds, isSuccess);
+            }
+
+            return Task.CompletedTask;
+        };
+    }
+
+    /// <summary>
+    /// Extracts external identity information from the token validation context.
+    /// </summary>
+    internal static VKExternalIdentity ExtractVKExternalIdentity(TokenValidatedContext context, string providerName)
+    {
+        VKGuard.NotNull(context);
+        VKGuard.NotNullOrWhiteSpace(providerName);
+        var principal = context.Principal;
+        if (principal == null)
+        {
+            return new VKExternalIdentity
+            {
+                Provider = providerName,
+                ProviderId = OidcConstants.UnknownProviderId,
+                Claims = new Dictionary<string, string>()
+            };
+        }
+
+        var claims = principal.Claims
+            .GroupBy(c => c.Type)
+            .ToDictionary(g => g.Key, g => g.First().Value);
+
+        return new VKExternalIdentity
+        {
+            Provider = providerName,
+            ProviderId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? principal.FindFirst(OidcConstants.ClaimSub)?.Value
+                         ?? OidcConstants.UnknownProviderId,
+            Email = principal.FindFirst(ClaimTypes.Email)?.Value
+                    ?? principal.FindFirst(OidcConstants.ClaimEmail)?.Value,
+            Name = principal.FindFirst(ClaimTypes.Name)?.Value
+                   ?? principal.FindFirst(OidcConstants.ClaimName)?.Value,
+            Claims = claims
+        };
+    }
+}

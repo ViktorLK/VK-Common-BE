@@ -1,4 +1,4 @@
-# ADR 002: Adopt Custom TenantResolutionResult Instead of Generic Result
+﻿# ADR 002: Adopt Custom TenantResolutionResult Instead of Generic Result
 
 ## 1. Meta Data
 
@@ -10,7 +10,7 @@
 ## 2. Context (背景)
 
 （参照: ADR 001）
-新しい Tenant Resolution Pipeline において、各リゾルバは解決の成否（TenantId、またはエラーメッセージ）を返す必要がある。VK.Blocks の標準アーキテクチャールール（Rule 1: Result Pattern）では汎用の `Result<T>` を使用することが義務付けられているが、パイプラインの初期実装においては、結果をより明示的かつドメイン固有に表現するため、専用の `TenantResolutionResult` が導入された。
+新しい Tenant Resolution Pipeline において、各リゾルバは解決の成否（TenantId、またはエラーメッセージ）を返す必要がある。VK.Blocks の標準アーキテクチャールール（CS.01: Result Pattern）では汎用の `Result<T>` を使用することが義務付けられているが、パイプラインの初期実装においては、結果をより明示的かつドメイン固有に表現するため、専用の `TenantResolutionResult` が導入された。
 しかし、その後のアーキテクチャ監査において、生の文字列（Raw Error Strings）によるエラーハンドリングと、標準の `Result<T>` トラクトからの逸脱が重大なアーキテクチャの匂い（Critical Architectural Smell）として指摘された。
 
 ## 3. Problem Statement (問題定義)
@@ -58,3 +58,4 @@ return TenantResolutionResult.Fail("Request host is empty.");
 
 - エラー定数は `MultiTenancyConstants.Errors` に静的読み取り専用（`static readonly Error`）として定義する。
 - `TenantResolutionMiddleware` にて、パイプラインから返された `Result<T>.Failure` のエラーオブジェクトから、統一された Error Code/Message を使用して Problem Details を生成する。これにより、クライアントへの適切なエラー構造の提示とロギングのセキュアな標準化が保証される。
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -17,7 +17,7 @@ internal static class ApiKeyFeatureRegistration
         IVKAuthenticationBuilder builder,
         Func<VKApiKeyOptions, VKApiKeyOptions>? transform = null)
     {
-        // 1. Check-Self (Rule 13 & 18.2)
+        // 1. Check-Self (AP.02 & 18.2)
         if (builder.Services.IsVKBlockRegistered<ApiKeyFeature>())
         {
             return builder;
@@ -27,7 +27,7 @@ internal static class ApiKeyFeatureRegistration
         // ADR-016: Functional transformation from configuration section
         VKApiKeyOptions apiKeyOptions = builder.Services.AddVKBlockOptions<VKApiKeyOptions>(builder.Configuration, transform);
 
-        // 3. Mark-Self (Rule 13)
+        // 3. Mark-Self (AP.02)
         builder.Services.AddVKBlockMarker<ApiKeyFeature>();
 
         // Safety check: skip if parent block is disabled
@@ -65,3 +65,4 @@ internal static class ApiKeyFeatureRegistration
         return builder;
     }
 }
+

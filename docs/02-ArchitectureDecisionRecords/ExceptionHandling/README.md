@@ -1,4 +1,4 @@
-# Architecture Decision Records (ADR) - Index
+﻿# Architecture Decision Records (ADR) - Index
 
 このディレクトリには、VK.Blocks.ExceptionHandling モジュールの主要な設計決定を記録した ADR が含まれています。
 
@@ -29,8 +29,8 @@
 #### [ADR-004: Exception Handling Architecture Normalization](./adr-004-exception-handling-architecture-normalization.md)
 
 **Status**: ✅ Accepted  
-**概要**: Rule 14 (Organization) および Rule 6 (Observability) への適合を目的とした、フォルダ構成の垂直スライス化とメトリクス計装の導入について記録。  
-**キーワード**: Rule 14, Observability, Metrics, Vertical Slice
+**概要**: AP.03 (Organization) および OR.01 (Observability) への適合を目的とした、フォルダ構成の垂直スライス化とメトリクス計装の導入について記録。  
+**キーワード**: AP.03, Observability, Metrics, Vertical Slice
 
 ---
 
@@ -48,3 +48,4 @@
 
 **Last Updated**: 2026-04-18
 **Total ADRs**: 4
+

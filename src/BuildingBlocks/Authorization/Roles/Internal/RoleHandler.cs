@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -55,7 +55,7 @@ internal sealed class RoleHandler(
         VKGuard.NotNull(user);
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
 
-        // 0. Merge settings (Rule 21)
+        // 0. Merge settings (AP.05)
         var roles = args.MergeWith(VKRoleArgs.Empty).Roles.MergeWith([]);
         if (roles.Length == 0)
         {
@@ -125,3 +125,4 @@ internal sealed class RoleHandler(
         return finalResult;
     }
 }
+

@@ -1,50 +1,53 @@
+﻿---
+trigger: model_decision
 ---
-trigger: always_on
----
 
-# VK.Blocks: Building Block Blueprint (Refined)
+# VK.Blocks: Building Block Blueprint (BB)
 
-> **Note**: This file provides the concrete blueprint and implementation templates for the architectural principles defined in `04-architecture-patterns.md` (specifically Rules 13-15).
+> **Note**: This file provides the concrete blueprint and implementation templates for the architectural principles defined in `04-architecture-patterns.md` (specifically AP.02–AP.04).
 
-### Rule 16 — Standard Folder Structure (Vertical Slice Priority)
+### BB.01 — Standard Folder Structure (Vertical Slice Priority)
 
 Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Generic technical folders should be used sparingly as a last resort:
 
-- **`{FeatureName}/` (MANDATORY)**: First-level domain folders for vertical slices (e.g., `ApiKeys/`, `Guids/`). 
+- **`{FeatureName}/` (MANDATORY)**: First-level domain folders for vertical slices (e.g., `ApiKeys/`, `Guids/`).
     - MUST contain all logic related to that domain (Interfaces, Handlers, Validators, etc.).
     - `Internal/`: Encapsulated implementations for the feature. **MUST NOT** be wrapped in a `Features/` folder.
 - `VK{ModuleName}Block.cs`: **Public** marker type placed directly in the module's root directory. This SHOULD be the only `.cs` file in the root to maintain a clean entry point.
 - `Abstractions/` (OPTIONAL): Use ONLY for top-level contracts shared across multiple features that cannot be assigned to a specific domain.
 - `Common/` (OPTIONAL): Use ONLY for true cross-cutting utilities (e.g., `Utilities/`, `Constants/`).
 - `Contracts/`: Cross-boundary public contracts (e.g., Integration Events, external DTOs).
-- `DependencyInjection/`: 
+- `DependencyInjection/`:
     - `VK{ModuleName}BlockExtensions.cs`: **Public entry point** (Wrapper).
     - `VK{ModuleName}Options.cs`: **Public configuration** (Sealed Record).
     - `Internal/`:
         - `{ModuleName}BlockRegistration.cs`: **Principal registration logic**.
         - `{ModuleName}BlockBuilder.cs`: Custom builder implementation.
         - `{ModuleName}OptionsValidator.cs`: Options validation logic.
-- `Diagnostics/`: 
+- `Diagnostics/`:
     - `DiagnosticsConstants.cs`: Semantic tokens.
     - `Internal/`: `[LoggerMessage]` and `[VKBlockDiagnostics]` classes.
 
-### Rule 17 — The Marker Pattern ([VKBlockMarker])
+### BB.02 — The Marker Pattern ([VKBlockMarker])
 
 Each module MUST define a sealed partial class decorated with the `[VKBlockMarker]` attribute, placed in the module's root directory:
+
 - **Source Generation**: DO NOT manually implement `IVKBlockMarker`. The interface and its properties (BlockName, ActivitySource, etc.) are automatically implemented via Source Generation based on the attribute metadata.
 - **Partial Declaration**: The class MUST be declared as `sealed partial class`.
-- **Namespace**: `VK.Blocks.{ModuleName}` (library root namespace, per Rule 14 — public API surface).
+- **Namespace**: `VK.Blocks.{ModuleName}` (library root namespace, per AP.03 — public API surface).
 - **Dependencies**: Explicitly define prerequisite blocks using the `Dependencies` property (e.g., `[VKBlockMarker(Dependencies = [typeof(VKCoreBlock)])]`).
 - **Activity/Meter**: The generated implementation uses `VKBlocksConstants.VKBlocksPrefix + ModuleName`.
 
-### Rule 18 — Idempotent DI Registration (Wrapper vs Core)
+### BB.03 — Idempotent DI Registration (Wrapper vs Core)
 
 #### 18.1 Public Wrapper
+
 The public extension class MUST delegate to the internal registration class.
+
 ```csharp
 namespace VK.Blocks.{ModuleName};
 
-public static class VK{ModuleName}BlockExtensions 
+public static class VK{ModuleName}BlockExtensions
 {
     public static IVK{ModuleName}Builder Add{ModuleName}Block(this IServiceCollection services, IConfiguration configuration)
         => {ModuleName}BlockRegistration.Register(services, configuration);
@@ -52,9 +55,11 @@ public static class VK{ModuleName}BlockExtensions
 ```
 
 #### 18.2 Internal Core (Registration Sequence)
+
 **STRICT CONSTRAINT**: The entire registration flow MUST be synchronous. Executing I/O operations (e.g., database calls, network requests) or using blocking async calls (`Task.Wait()`, `.GetAwaiter().GetResult()`) inside DI extensions is STRICTLY PROHIBITED as it leads to startup deadlocks and thread pool starvation.
 
 The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow this exact order:
+
 1.  **Check-Self & Prerequisite**: `if (services.IsVKBlockRegistered<{ModuleName}Block>()) return builder;` (This smart check automatically validates dependencies).
 2.  **Options Registration**: `var options = services.AddVKBlockOptions<VK{ModuleName}Options>(configuration);`
 3.  **Mark-Self**: `services.AddVKBlockMarker<{ModuleName}Block>();` (MUST be called BEFORE early exit).
@@ -63,17 +68,20 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 6.  **Feature Toggle**: `if (!options.Enabled) return builder;`
 7.  **Core Services**: Register the actual feature logic using idempotent `TryAdd` patterns. PROHIBIT synchronous blocking calls (e.g. `.Result`, `.Wait()`) during service registration to avoid deadlocks during container composition.
 
-### Rule 19 — Diagnostics Blueprint
+### BB.04 — Diagnostics Blueprint
 
 - **Metadata**: Register an `ISecurityMetadataProvider` (if applicable) to provide version info to diagnostics.
 - **Diagnostics Class**: Annotated with `[VKBlockDiagnostics(typeof({ModuleName}Block))]`.
 - **Constants**: Defined in `DiagnosticsConstants.cs`.
 
-### Rule 20 — Options Architecture
+### BB.05 — Options Architecture
 
 - **Immutability**: MUST be a `sealed record` with `init` properties.
-- **Functional Transformation (ADR-016)**: ANY code-based configuration MUST use the **`Func<T, T> transform`** pattern (instead of `Action<T>`) to support immutability via `with` expressions.
+- **Functional Transformation (ADR-016)**: ANY code-based configuration MUST use the **`Func<T, T> configure`** pattern (instead of `Action<T>`) to support immutability via `with` expressions.
 - **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions`).
-- **Interface**: MUST implement `IVKBlockOptions` (as required by Rule 15).
-- **SectionName**: Formatted according to Rule 15.
+- **Interface**: MUST implement `IVKBlockOptions` (as required by AP.04).
+- **SectionName**: Formatted according to AP.04.
 - **Validation**: MUST have a corresponding `IValidateOptions` implementation.
+
+
+

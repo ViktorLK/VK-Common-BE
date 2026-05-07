@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -54,7 +54,7 @@ internal sealed class InternalNetworkAuthorizationHandler(
     {
         var userId = user?.Identity?.Name ?? VKBlocksConstants.SystemIdentity;
 
-        // 0. Merge settings (Rule 21)
+        // 0. Merge settings (AP.05)
         var activeCidrs = args.MergeWith(VKInternalNetworkArgs.Empty).AllowedCidrs.MergeWith(_networkOptions.InternalCidrs);
         var remoteIp = args.MergeWith(VKInternalNetworkArgs.Empty).RemoteIp;
 
@@ -122,7 +122,7 @@ internal sealed class InternalNetworkAuthorizationHandler(
             return false;
         }
 
-        // Use stackalloc to avoid heap allocation (Rule 4: ≤ 256 bytes)
+        // Use stackalloc to avoid heap allocation (CS.04: ≤ 256 bytes)
         Span<byte> networkBytes = stackalloc byte[16];
         Span<byte> ipBytes = stackalloc byte[16];
 
@@ -164,3 +164,4 @@ internal sealed class InternalNetworkAuthorizationHandler(
         return true;
     }
 }
+

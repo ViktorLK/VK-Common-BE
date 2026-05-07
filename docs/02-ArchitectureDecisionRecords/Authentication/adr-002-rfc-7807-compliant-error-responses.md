@@ -1,4 +1,4 @@
-# ADR 002: RFC 7807 Compliant Error Responses in Authentication Pipeline
+﻿# ADR 002: RFC 7807 Compliant Error Responses in Authentication Pipeline
 
 **Date**: 2026-03-03  
 **Status**: 📝 Draft  
@@ -7,7 +7,7 @@
 
 ## 1. Context (背景)
 
-VK.Blocks の全体規約 (Rule 1) では、HTTP エラーレスポンスに対して RFC 7807 (Problem Details for HTTP APIs) 形式の統一フォーマットを要求している。また Rule 6 では、すべてのエラーレスポンスに `TraceId` を含めることが義務付けられている。
+VK.Blocks の全体規約 (CS.01) では、HTTP エラーレスポンスに対して RFC 7807 (Problem Details for HTTP APIs) 形式の統一フォーマットを要求している。また OR.01 では、すべてのエラーレスポンスに `TraceId` を含めることが義務付けられている。
 
 2026年3月のアーキテクチャ監査において、Authentication パイプラインの2箇所で RFC 7807 非準拠のエラーレスポンスが発見された。
 
@@ -42,7 +42,7 @@ OnChallenge = context =>
 **問題点**:
 
 1. `type`, `title`, `status`, `detail` フィールドが欠如している（RFC 7807 非準拠）。
-2. `TraceId` が含まれていないため、インシデント時のサーバーログとの相関分析が不可能（Rule 6 違反）。
+2. `TraceId` が含まれていないため、インシデント時のサーバーログとの相関分析が不可能（OR.01 違反）。
 3. `Content-Type` が `application/json` であり、RFC 7807 で推奨される `application/problem+json` ではない。
 
 ## 3. Decision (決定事項)
@@ -103,7 +103,7 @@ OnChallenge = context =>
 ### Option 2: 現状維持（非準拠のまま）
 
 - **Approach**: API クライアントが既に `{ "error": "..." }` 形式に適応しているため変更しない。
-- **Rejected Reason**: VK.Blocks 規約 (Rule 1) への準拠義務があり、今後の新規 API クライアントの統合コストを削減するためにも標準化は必須。また、`TraceId` の欠如は運用監視の深刻な死角を生む。
+- **Rejected Reason**: VK.Blocks 規約 (CS.01) への準拠義務があり、今後の新規 API クライアントの統合コストを削減するためにも標準化は必須。また、`TraceId` の欠如は運用監視の深刻な死角を生む。
 
 ### Option 3: グローバル Exception Middleware でのみ Problem Details を返す
 
@@ -129,3 +129,4 @@ OnChallenge = context =>
     - `detail` フィールドにスタックトレースや内部実装情報を含めてはならない。必ずユーザー向けの一般的なメッセージに限定する。
     - `TraceId` はログ相関用であり、攻撃者に有用な情報を漏洩しないため安全に公開可能。
 - **検証**: 統合テストで 401 レスポンスの JSON 構造が RFC 7807 に準拠していることを検証。`TraceId` の存在を `Assert.NotNull` で確認。
+

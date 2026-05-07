@@ -9,6 +9,9 @@ using VK.Blocks.Generators.Authorization.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authorization;
 
 /// <summary>
@@ -18,8 +21,8 @@ namespace VK.Blocks.Generators.Authorization;
 [Generator]
 public sealed class MinimumRankGenerator : IIncrementalGenerator
 {
-    private const string AttributeName = "GenerateRankAuthorize";
-    private const string AttributeFullName = VKBlocksConstants.VKBlocksPrefix + "Authorization.Features.MinimumRank.Metadata." + AttributeName;
+    private const string AttributeName = "VKGenerateRankAuthorize";
+    private const string AttributeFullName = "VK.Blocks.Authorization." + AttributeName;
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -102,7 +105,9 @@ public sealed class MinimumRankGenerator : IIncrementalGenerator
         sb.AppendLine("namespace VK.Blocks.Authorization.Generated");
         sb.AppendLine("{");
 
-        var attributeName = $"Require{info.Name}Attribute";
+        // Normalize attribute name: if Enum is VKEmployeeRank, we want VKRequireEmployeeRankAttribute
+        var strippedName = info.Name.StartsWith("VK") ? info.Name.Substring(2) : info.Name;
+        var attributeName = $"VKRequire{strippedName}Attribute";
 
         // Generate dynamic authorize attribute based on the enum name
         sb.AppendLine("    /// <summary>");
@@ -121,7 +126,7 @@ public sealed class MinimumRankGenerator : IIncrementalGenerator
         sb.AppendLine("        /// <inheritdoc />");
         sb.AppendLine("        public System.Collections.Generic.IEnumerable<IAuthorizationRequirement> GetRequirements()");
         sb.AppendLine("        {");
-        sb.AppendLine($"            yield return new VK.Blocks.Authorization.Features.MinimumRank.MinimumRankRequirement((int)Rank, typeof({info.Namespace}.{info.Name}));");
+        sb.AppendLine($"            yield return new VK.Blocks.Authorization.VKMinimumRankRequirement((int)Rank, typeof({info.Namespace}.{info.Name}));");
         sb.AppendLine("        }");
         sb.AppendLine("    }");
 

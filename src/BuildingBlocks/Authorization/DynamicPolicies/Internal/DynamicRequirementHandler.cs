@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 
@@ -24,9 +24,10 @@ internal sealed class DynamicRequirementHandler(
         var result = await evaluator.EvaluateAsync(context.User, new VKDynamicPoliciesArgs { Requirement = requirement }, default)
             .ConfigureAwait(false);
 
-        // 1. Record evaluation metrics (Rule 6 Compliance)
+        // 1. Record evaluation metrics (OR.01 Compliance)
         sw.RecordEvaluation($"{DynamicPoliciesConstants.FeatureName}:{requirement.Attribute}", result);
 
         context.ApplyResult(requirement, result, this);
     }
 }
+

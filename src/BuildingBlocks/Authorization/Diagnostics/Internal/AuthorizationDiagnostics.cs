@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Authorization.Generated;
@@ -14,6 +15,7 @@ namespace VK.Blocks.Authorization.Diagnostics.Internal;
 /// Provides centralized diagnostics and telemetry for the Authorization block.
 /// The Source Generator automatically emits the ActivitySource and Meter fields for this class.
 /// </summary>
+[ExcludeFromCodeCoverage]
 [VKBlockDiagnostics<VKAuthorizationBlock>]
 internal static partial class AuthorizationDiagnostics
 {

@@ -87,7 +87,7 @@ graph TD
 
 - **`[VKBlockDiagnostics]`**: Source Generator による `ActivitySource` / `Meter` の自動生成
 - **`VKStopwatchExtensions.RecordProcess`**: `Activity.Current` への自動タグ付け
-- **OTel Semantic Conventions**: `CoreDiagnosticsConstants` による標準化されたメトリクス名
+- **OTel Semantic Conventions**: `VKCoreDiagnosticsConstants` による標準化されたメトリクス名
 
 ### 🏛️ ドメインプリミティブ (`Domain/`)
 

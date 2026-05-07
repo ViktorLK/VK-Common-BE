@@ -8,19 +8,24 @@ A comprehensive, multi-phase architecture audit that evaluates a BuildingBlock m
 
 **Reference modules (= "correct" baseline)**: `Authentication`, `Authorization`
 
-## Phase 0: Setup
+## Phase 0: Setup & Context
 
 1. **Identify the Target**:
     - Determine the **absolute path** of the BuildingBlock module from the user's input.
     - If not provided, ask: `"Which module would you like me to full-audit?"`
     - Extract `moduleName` from the path.
 
-2. **Load Rules**:
-    - Read the audit blueprint from `docs/Blueprints/ArchitectureAudit.md`.
+2. **Mandatory (PS.04)**: Call `vk_get_module_context(path)`.
 
-3. **Prepare Report Metadata**:
+3. **Load Rules**:
+    - Read the audit blueprint from `docs/00-Blueprints/ArchitectureAudit.md`.
+
+4. **Prepare Report Metadata**:
     - Date in `YYYYMMDD` format.
     - Output path: `docs/04-AuditReports/<ModuleName>/<ModuleName>_<Date>.md`.
+
+5. **Handshake**:
+    `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`
 
 ## Phase 1: Structural Audit
 
@@ -28,7 +33,7 @@ A comprehensive, multi-phase architecture audit that evaluates a BuildingBlock m
 
 - Execute `/vk-audit-fast` against the target module.
 - Record the Fast Audit score and all findings (Pass / Fail / Warn).
-- All results are carried forward into the final report — **do NOT stop even if Critical items fail**.
+- All results are carried forward into the final report — **do NOT stop even if Critical items (🔴) fail**.
 
 ## Phase 2: Registration Audit (DI Layer Only)
 
@@ -36,13 +41,13 @@ A comprehensive, multi-phase architecture audit that evaluates a BuildingBlock m
 
 Checks that require reading file contents (grep cannot verify these):
 
-| Check | Rule | What to Verify |
-|:------|:-----|:---------------|
-| Rule 18 Execution Order | 18 | The 8 steps must appear in exact sequence: Check-Self → Options → Mark-Self → Validator → Diagnostics → Toggle → Core Services |
-| ADR-016 Func Transform | 15, 20 | `configure` parameter must be `Func<T, T>` (not `Action<T>`) for immutable `record` options |
-| Enabled Policy Position | 18 | `if (!options.Enabled)` must appear AFTER `AddVKBlockMarker` |
-| Builder Pattern | 18 | Builder class returns `IVKBlockBuilder<T>` and uses `TryAdd` extensions |
-| OptionsValidator Quality | 20 | `IValidateOptions<T>` implementation validates all critical properties |
+| Check | Rule | Tier | What to Verify |
+|:------|:-----|:-----|:---------------|
+| Execution Order | BB.03 | 🔴 | The 8 steps must appear in exact sequence: Check-Self → Options → Mark-Self → Validator → Diagnostics → Toggle → Core Services |
+| Func Transform | BB.03 | 🔴 | `configure` parameter must be `Func<T, T>` (not `Action<T>`) for immutable `record` options (ADR-016) |
+| Enabled Policy Position | BB.03 | 🔴 | `if (!options.Enabled)` must appear AFTER `AddVKBlockMarker` |
+| Builder Pattern | BB.03 | 🟡 | Builder class returns `IVKBlockBuilder<T>` and uses `TryAdd` extensions |
+| OptionsValidator Quality | BB.05 | 🔴 | `IValidateOptions<T>` implementation validates all critical properties |
 
 Record all findings. Proceed to Phase 3 regardless of results.
 
@@ -61,7 +66,7 @@ Evaluate against ALL 7 audit dimensions defined in `ArchitectureAudit.md`:
 4. **Architectural Styles** — Clean Architecture, Vertical Slice alignment
 5. **Architectural Patterns** — CQRS, MediatR, DDD adherence
 6. **Enterprise Patterns** — Idempotency, Caching, Circuit Breaker, Observability
-7. **VK.Blocks Compliance (Deep)** — Error constants, CancellationToken propagation, Visibility (Rule 14)
+7. **VK.Blocks Compliance (Deep)** — Error constants (CS.01), CancellationToken propagation (CS.03), Visibility (AP.03), Core Abstractions (CS.06)
 
 ## Phase 4: Report Generation
 
@@ -70,6 +75,7 @@ Evaluate against ALL 7 audit dimensions defined in `ArchitectureAudit.md`:
     - **Links**: 必ずリポジトリルートからの相対パス（`[file.cs](/src/...)`）を使用し、エディタ上でクリック可能な形式にすること。
     - **Fast Audit Reference**: Include the Phase 1 score in the 監査サマリー section.
     - **Schema**: `ArchitectureAudit.md` の「Output Schema」で定義されている全ヘッダー（絵文字含む）と項目を完全にコピーして使用すること。
+    - **Audit Header**: `Audit: {✅ | 🚩 [RuleID]}`.
 
 2. **Save the Report**:
     - Ensure the directory exists (create if necessary).
@@ -78,3 +84,4 @@ Evaluate against ALL 7 audit dimensions defined in `ArchitectureAudit.md`:
 3. **Confirm Completion**:
     - Output: `✅ Full Audit complete. Saved to: [path]`
     - Include a one-line summary: `Phase 1: X/Y | Phase 2: PASS/FAIL | Phase 3 Score: ZZ/100`
+    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`

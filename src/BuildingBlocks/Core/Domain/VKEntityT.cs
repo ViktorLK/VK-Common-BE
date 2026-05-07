@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace VK.Blocks.Core;
 
@@ -13,7 +13,7 @@ public abstract class VKEntity<TId> where TId : notnull
     /// Gets the entity's unique identifier.
     /// </summary>
     /// <remarks>
-    /// Initialized with default! to support ORM parameterless constructor requirements (Rule 12 Exception).
+    /// Initialized with default! to support ORM parameterless constructor requirements (AP.01 Exception).
     /// Guaranteed to be non-null after hydration or explicit constructor initialization.
     /// </remarks>
     public TId Id { get; init; } = default!;
@@ -65,3 +65,4 @@ public abstract class VKEntity<TId> where TId : notnull
     public static bool operator ==(VKEntity<TId>? left, VKEntity<TId>? right) => Equals(left, right);
     public static bool operator !=(VKEntity<TId>? left, VKEntity<TId>? right) => !Equals(left, right);
 }
+

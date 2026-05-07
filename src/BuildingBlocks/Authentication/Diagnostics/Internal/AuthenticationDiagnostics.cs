@@ -38,35 +38,35 @@ internal static partial class AuthenticationDiagnostics
     static AuthenticationDiagnostics()
     {
         _authenticationRequests = Meter.CreateCounter<long>(
-            AuthenticationDiagnosticsConstants.AuthRequestCounterName,
-            description: AuthenticationDiagnosticsConstants.AuthRequestCounterDescription
+            VKAuthenticationDiagnosticsConstants.AuthRequestCounterName,
+            description: VKAuthenticationDiagnosticsConstants.AuthRequestCounterDescription
         );
 
         _tooManyRequests = Meter.CreateCounter<long>(
-            AuthenticationDiagnosticsConstants.TooManyRequestsCounterName,
-            unit: AuthenticationDiagnosticsConstants.TooManyRequestsCounterUnit,
-            description: AuthenticationDiagnosticsConstants.TooManyRequestsCounterDescription
+            VKAuthenticationDiagnosticsConstants.TooManyRequestsCounterName,
+            unit: VKAuthenticationDiagnosticsConstants.TooManyRequestsCounterUnit,
+            description: VKAuthenticationDiagnosticsConstants.TooManyRequestsCounterDescription
         );
 
         _revocations = Meter.CreateCounter<long>(
-            AuthenticationDiagnosticsConstants.RevocationCounterName,
-            description: AuthenticationDiagnosticsConstants.RevocationCounterDescription
+            VKAuthenticationDiagnosticsConstants.RevocationCounterName,
+            description: VKAuthenticationDiagnosticsConstants.RevocationCounterDescription
         );
 
         _replayAttacks = Meter.CreateCounter<long>(
-            AuthenticationDiagnosticsConstants.ReplayCounterName,
-            description: AuthenticationDiagnosticsConstants.ReplayCounterDescription
+            VKAuthenticationDiagnosticsConstants.ReplayCounterName,
+            description: VKAuthenticationDiagnosticsConstants.ReplayCounterDescription
         );
 
         _claimsTransformations = Meter.CreateCounter<long>(
-            AuthenticationDiagnosticsConstants.ClaimsTransformationCounterName,
-            description: AuthenticationDiagnosticsConstants.ClaimsTransformationCounterDescription
+            VKAuthenticationDiagnosticsConstants.ClaimsTransformationCounterName,
+            description: VKAuthenticationDiagnosticsConstants.ClaimsTransformationCounterDescription
         );
 
         _claimsTransformationDuration = Meter.CreateHistogram<double>(
-            AuthenticationDiagnosticsConstants.ClaimsTransformationDurationName,
-            unit: AuthenticationDiagnosticsConstants.ClaimsTransformationDurationUnit,
-            description: AuthenticationDiagnosticsConstants.ClaimsTransformationDurationDescription
+            VKAuthenticationDiagnosticsConstants.ClaimsTransformationDurationName,
+            unit: VKAuthenticationDiagnosticsConstants.ClaimsTransformationDurationUnit,
+            description: VKAuthenticationDiagnosticsConstants.ClaimsTransformationDurationDescription
         );
     }
 
@@ -80,13 +80,13 @@ internal static partial class AuthenticationDiagnostics
     {
         var tags = new TagList
         {
-            { AuthenticationDiagnosticsConstants.TagAuthType, authType },
-            { AuthenticationDiagnosticsConstants.TagAuthResult, isSuccess ? AuthenticationDiagnosticsConstants.ValueSuccess : AuthenticationDiagnosticsConstants.ValueFailure }
+            { VKAuthenticationDiagnosticsConstants.TagAuthType, authType },
+            { VKAuthenticationDiagnosticsConstants.TagAuthResult, isSuccess ? VKAuthenticationDiagnosticsConstants.ValueSuccess : VKAuthenticationDiagnosticsConstants.ValueFailure }
         };
 
         if (!isSuccess && !string.IsNullOrEmpty(failureReason))
         {
-            tags.Add(AuthenticationDiagnosticsConstants.TagFailureReason, failureReason);
+            tags.Add(VKAuthenticationDiagnosticsConstants.TagFailureReason, failureReason);
         }
 
         _authenticationRequests.Add(1, tags);
@@ -98,7 +98,7 @@ internal static partial class AuthenticationDiagnostics
     /// <param name="authType">The type of authentication.</param>
     public static void RecordRevocationHit(string authType)
     {
-        _revocations.Add(1, new KeyValuePair<string, object?>(AuthenticationDiagnosticsConstants.TagAuthType, authType));
+        _revocations.Add(1, new KeyValuePair<string, object?>(VKAuthenticationDiagnosticsConstants.TagAuthType, authType));
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ internal static partial class AuthenticationDiagnostics
     /// <param name="familyId">The family identifier of the token.</param>
     public static void RecordReplayAttack(string familyId)
     {
-        _replayAttacks.Add(1, new KeyValuePair<string, object?>(AuthenticationDiagnosticsConstants.TagUserId, familyId));
+        _replayAttacks.Add(1, new KeyValuePair<string, object?>(VKAuthenticationDiagnosticsConstants.TagUserId, familyId));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ internal static partial class AuthenticationDiagnostics
     {
         var tags = new TagList
         {
-            { AuthenticationDiagnosticsConstants.TagClaimsTransformed, applied }
+            { VKAuthenticationDiagnosticsConstants.TagClaimsTransformed, applied }
         };
 
         _claimsTransformations.Add(1, tags);
@@ -135,8 +135,8 @@ internal static partial class AuthenticationDiagnostics
     {
         var tags = new TagList
         {
-            { AuthenticationDiagnosticsConstants.TagKeyId, keyId },
-            { AuthenticationDiagnosticsConstants.TagTenantId, tenantId ?? string.Empty }
+            { VKAuthenticationDiagnosticsConstants.TagKeyId, keyId },
+            { VKAuthenticationDiagnosticsConstants.TagTenantId, tenantId ?? string.Empty }
         };
 
         _tooManyRequests.Add(1, tags);
@@ -146,19 +146,19 @@ internal static partial class AuthenticationDiagnostics
     /// Starts a new activity for JWT validation.
     /// </summary>
     public static Activity? StartJwtValidation()
-        => Source.StartActivity(AuthenticationDiagnosticsConstants.ActivityAuthenticateJwt);
+        => Source.StartActivity(VKAuthenticationDiagnosticsConstants.ActivityAuthenticateJwt);
 
     /// <summary>
     /// Starts a new activity for API key validation.
     /// </summary>
     public static Activity? StartApiKeyValidation()
-        => Source.StartActivity(AuthenticationDiagnosticsConstants.ActivityValidateApiKey);
+        => Source.StartActivity(VKAuthenticationDiagnosticsConstants.ActivityValidateApiKey);
 
     /// <summary>
     /// Starts a new activity for claims transformation.
     /// </summary>
     public static Activity? StartClaimsTransformation()
-        => Source.StartActivity(AuthenticationDiagnosticsConstants.ActivityTransformClaims);
+        => Source.StartActivity(VKAuthenticationDiagnosticsConstants.ActivityTransformClaims);
 
     /// <summary>
     /// Gets the compiled authentication metadata for all discovered endpoints.

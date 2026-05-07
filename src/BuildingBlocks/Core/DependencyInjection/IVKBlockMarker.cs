@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace VK.Blocks.Core;
@@ -51,7 +51,7 @@ public interface IVKBlockMarker
 
     /// <summary>
     /// Recursively ensures that all dependencies of this building block are registered.
-    /// Following Rule 13 (Check-Prerequisite), this performs a deep-scan of the dependency tree.
+    /// Following AP.02 (Check-Prerequisite), this performs a deep-scan of the dependency tree.
     /// </summary>
     /// <param name="services">The service collection to check.</param>
     /// <param name="dependentId">The identifier of the block that requires these dependencies.</param>
@@ -82,3 +82,4 @@ public interface IVKBlockMarker
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -16,7 +16,7 @@ internal static class OAuthFeatureRegistration
         IVKAuthenticationBuilder builder,
         Func<VKOAuthOptions, VKOAuthOptions>? transform = null)
     {
-        // 1. Check-Self (Rule 13 & 18.2)
+        // 1. Check-Self (AP.02 & 18.2)
         if (builder.Services.IsVKBlockRegistered<OAuthFeature>())
         {
             return builder;
@@ -26,7 +26,7 @@ internal static class OAuthFeatureRegistration
         // ADR-016: Functional transformation from configuration section
         VKOAuthOptions oauthOptions = builder.Services.AddVKBlockOptions<VKOAuthOptions>(builder.Configuration, transform);
 
-        // 3. Mark-Self (Rule 13)
+        // 3. Mark-Self (AP.02)
         builder.Services.AddVKBlockMarker<OAuthFeature>();
 
         // Safety check: skip if parent block is disabled
@@ -53,3 +53,4 @@ internal static class OAuthFeatureRegistration
         return builder;
     }
 }
+

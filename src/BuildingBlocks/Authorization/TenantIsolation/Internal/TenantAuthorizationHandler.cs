@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -54,7 +54,7 @@ internal sealed class TenantAuthorizationHandler(
         VKGuard.NotNull(user);
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
 
-        // 0. Merge settings (Rule 21)
+        // 0. Merge settings (AP.05)
         var targetTenantId = args.MergeWith(VKTenantIsolationArgs.Empty).TargetTenantId;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
@@ -95,3 +95,4 @@ internal sealed class TenantAuthorizationHandler(
         return ValueTask.FromResult(VKResult.Success(false));
     }
 }
+

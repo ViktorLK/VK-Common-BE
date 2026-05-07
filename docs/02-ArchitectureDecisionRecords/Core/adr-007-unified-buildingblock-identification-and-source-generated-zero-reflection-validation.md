@@ -1,4 +1,4 @@
-# ADR-007: Unified BuildingBlock Identification and Source-Generated Zero-Reflection Validation
+﻿# ADR-007: Unified BuildingBlock Identification and Source-Generated Zero-Reflection Validation
 
 - **Date**: 2026-04-20
 - **Status**: ✅ Accepted
@@ -74,7 +74,7 @@ public sealed partial class CachingBlock : IVKBlockMarker
 - **Option 1: 全てを static abstract メンバにする**
     - **Rejected**: シングルトンインスタンスがないと、`GetRequiredService` などの DI コンテナ内での「登録済みマーカー」の再帰的チェックが実装しにくいため。
 - **Option 2: 属性（Attribute）による識別**
-    - **Rejected**: 実行時のリフレクションコストが発生し、Rule 15 (Zero-Reflection) の精神に反するため。
+    - **Rejected**: 実行時のリフレクションコストが発生し、AP.04 (Zero-Reflection) の精神に反するため。
 
 ## 5. Consequences & Mitigation (結果と緩和策)
 
@@ -94,3 +94,4 @@ public sealed partial class CachingBlock : IVKBlockMarker
 - セキュリティ面では、各ブロックのメタデータは不変（Immutable）であり、外部からの不正な変更は不可能です。
 
 **Last Updated**: 2026-04-20
+

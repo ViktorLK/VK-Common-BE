@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -49,7 +49,7 @@ internal sealed class InternalNetworkOptionsValidator : IValidateOptions<VKInter
             return false;
         }
 
-        // Use Span for zero-allocation parsing (Rule 4)
+        // Use Span for zero-allocation parsing (CS.04)
         ReadOnlySpan<char> span = cidr.AsSpan().Trim();
         int slashIndex = span.IndexOf('/');
         if (slashIndex == -1)
@@ -74,3 +74,4 @@ internal sealed class InternalNetworkOptionsValidator : IValidateOptions<VKInter
         };
     }
 }
+

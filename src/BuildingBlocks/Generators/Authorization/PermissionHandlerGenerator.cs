@@ -8,6 +8,9 @@ using VK.Blocks.Generators.Authorization.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authorization;
 
 /// <summary>
@@ -108,10 +111,8 @@ public sealed class PermissionHandlerGenerator : IIncrementalGenerator
         sb.AppendLine("using System.Threading;");
         sb.AppendLine("using System.Threading.Tasks;");
         sb.AppendLine("using Microsoft.Extensions.Options;");
-        sb.AppendLine("using VK.Blocks.Authorization.DependencyInjection;");
-        sb.AppendLine("using VK.Blocks.Authorization.Features.Permissions;");
-        sb.AppendLine("using VK.Blocks.Authorization.Features.Permissions.Persistence;");
-        sb.AppendLine("using VK.Blocks.Core.Results;");
+        sb.AppendLine("using VK.Blocks.Authorization;");
+        sb.AppendLine("using VK.Blocks.Core;");
         sb.AppendLine();
         sb.AppendLine("namespace VK.Blocks.Authorization.Generated");
         sb.AppendLine("{");
@@ -125,18 +126,18 @@ public sealed class PermissionHandlerGenerator : IIncrementalGenerator
 
         if (isDatabase)
         {
-            sb.AppendLine($"    public sealed class {className}(IPermissionStore store) : IPermissionProvider");
+            sb.AppendLine($"    public sealed class {className}(IVKPermissionStore store) : IVKPermissionProvider");
         }
         else
         {
-            sb.AppendLine($"    public sealed class {className}(IOptions<VKAuthorizationOptions> options) : IPermissionProvider");
+            sb.AppendLine($"    public sealed class {className}(IOptions<VKAuthorizationOptions> options) : IVKPermissionProvider");
         }
 
         sb.AppendLine("    {");
 
         if (isDatabase)
         {
-            sb.AppendLine("        private readonly IPermissionStore _store = store;");
+            sb.AppendLine("        private readonly IVKPermissionStore _store = store;");
         }
         else
         {
@@ -145,24 +146,24 @@ public sealed class PermissionHandlerGenerator : IIncrementalGenerator
 
         sb.AppendLine();
         sb.AppendLine("        /// <inheritdoc />");
-        sb.AppendLine("        public async ValueTask<Result<bool>> HasPermissionAsync(ClaimsPrincipal user, string permission, CancellationToken ct = default)");
+        sb.AppendLine("        public async ValueTask<VKResult<bool>> HasPermissionAsync(ClaimsPrincipal user, string permission, CancellationToken ct = default)");
         sb.AppendLine("        {");
         sb.AppendLine("            if (user.Identity?.IsAuthenticated != true)");
         sb.AppendLine("            {");
-        sb.AppendLine("                return Result.Success(false);");
+        sb.AppendLine("                return VKResult.Success(false);");
         sb.AppendLine("            }");
         sb.AppendLine();
 
         if (isDatabase)
         {
-            sb.AppendLine("            // Database check via IPermissionStore");
+            sb.AppendLine("            // Database check via IVKPermissionStore");
             sb.AppendLine("            return await _store.HasPermissionAsync(user, permission, ct).ConfigureAwait(false);");
         }
         else
         {
             sb.AppendLine("            // Claims check using global configuration");
             sb.AppendLine("            var hasPermission = user.HasClaim(_options.PermissionClaimType, permission);");
-            sb.AppendLine("            return Result.Success(hasPermission);");
+            sb.AppendLine("            return VKResult.Success(hasPermission);");
         }
 
         sb.AppendLine("        }");

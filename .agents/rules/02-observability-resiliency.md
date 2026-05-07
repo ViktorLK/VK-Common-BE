@@ -1,10 +1,10 @@
----
-trigger: always_on
+﻿---
+trigger: model_decision
 ---
 
-# VK.Blocks: Observability & Resiliency
+# VK.Blocks: Observability & Resiliency (OR)
 
-### Rule 6 — Observability
+### OR.01 — Observability
 
 #### Logging
 
@@ -21,15 +21,16 @@ trigger: always_on
 - **Constants**: ALL metric names and tag keys MUST be defined in `XxxDiagnosticsConstants.cs`. Follow OpenTelemetry Semantic Conventions.
 - **Instrument Selection**: Use `Counter` for counts, `Histogram` for durations, `UpDownCounter` for gauges. NEVER create metrics instruments inside loops.
 
-### Rule 7 — Security
+### OR.02 — Security
 
 - `TenantId` filtering MUST be enforced via EF Core Global Query Filters.
 - NO query is allowed to bypass tenant isolation.
 - ALL PII and secrets MUST be masked in logs via a dedicated masking processor (e.g. `SensitiveDataProcessor`).
 
-### Rule 8 — Resiliency
+### OR.03 — Resiliency
 
 - ALL external calls (HTTP / Azure SDK / third-party) MUST be wrapped with Polly.
 - Minimum policy: Retry (3x) + CircuitBreaker.
 - Timeout MUST be explicitly configured. NO indefinite waits.
 - Prefer using Azure SDK's built-in retries when applicable, and use Polly for custom HTTP/Third-party calls.
+

@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Authorization.DependencyInjection.Internal;
@@ -7,8 +8,9 @@ namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Service collection extensions for VK.Blocks.Authorization module.
-/// Public API Wrapper following Rule 18.1.
+/// Public API Wrapper following BB.03.1.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class VKAuthorizationBlockExtensions
 {
     /// <summary>
@@ -34,3 +36,4 @@ public static class VKAuthorizationBlockExtensions
         return AuthorizationBlockRegistration.Register(services, configuration, transform);
     }
 }
+

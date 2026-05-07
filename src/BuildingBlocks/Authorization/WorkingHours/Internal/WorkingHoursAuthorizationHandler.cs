@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -58,7 +58,7 @@ internal sealed class WorkingHoursAuthorizationHandler(
         VKGuard.NotNull(user);
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
 
-        // 0. Merge settings (Rule 21)
+        // 0. Merge settings (AP.05)
         var activeStart = args.MergeWith(VKWorkingHoursArgs.Empty).Start.MergeWith(_workingHoursOptions.WorkStart);
         var activeEnd = args.MergeWith(VKWorkingHoursArgs.Empty).End.MergeWith(_workingHoursOptions.WorkEnd);
 
@@ -97,3 +97,4 @@ internal sealed class WorkingHoursAuthorizationHandler(
         return VKResult.Success(false);
     }
 }
+

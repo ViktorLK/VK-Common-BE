@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -18,7 +18,7 @@ internal static class TenantIsolationRegistration
         IVKAuthorizationBuilder builder,
         Func<VKTenantIsolationOptions, VKTenantIsolationOptions>? transform = null)
     {
-        // 1. Check-Self (Rule 13 & 18.2)
+        // 1. Check-Self (AP.02 & 18.2)
         if (builder.Services.IsVKBlockRegistered<TenantIsolationFeature>())
         {
             return builder;
@@ -26,10 +26,10 @@ internal static class TenantIsolationRegistration
 
         var options = builder.Services.AddVKBlockOptions<VKTenantIsolationOptions>(builder.Configuration, transform);
 
-        // 3. Mark-Self (Rule 18.2 - MUST be before early exit)
+        // 3. Mark-Self (BB.03.2 - MUST be before early exit)
         builder.Services.AddVKBlockMarker<TenantIsolationFeature>();
 
-        // 4. Options Validation (Rule 18.2)
+        // 4. Options Validation (BB.03.2)
         builder.Services.TryAddEnumerableSingleton<IValidateOptions<VKTenantIsolationOptions>, TenantIsolationOptionsValidator>();
 
         if (!options.Enabled)
@@ -47,3 +47,5 @@ internal static class TenantIsolationRegistration
         return builder;
     }
 }
+
+

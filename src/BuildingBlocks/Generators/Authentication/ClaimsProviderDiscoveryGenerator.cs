@@ -8,6 +8,9 @@ using VK.Blocks.Generators.Authentication.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authentication;
 
 /// <summary>
@@ -79,7 +82,7 @@ public sealed class ClaimsProviderDiscoveryGenerator : IIncrementalGenerator
 
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
-        sb.AppendLine("using VK.Blocks.Authentication.Abstractions;");
+        sb.AppendLine("");
         sb.AppendLine();
         sb.AppendLine("namespace VK.Blocks.Authentication.Generated");
         sb.AppendLine("{");

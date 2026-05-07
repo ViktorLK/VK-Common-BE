@@ -11,8 +11,8 @@ namespace VK.Blocks.Generators.Utilities;
 /// </summary>
 internal static class VKBlockGeneratorGuard
 {
-    private const string VKBlockNamespacePrefix = VKBlocksConstants.VKBlocksPrefix;
-    private const string VKBlockGeneratorsPrefix = VKBlocksConstants.VKBlocksPrefix + "Generators.";
+    private const string VKBlockNamespacePrefix = $"{VKBlocksConstants.VKBlocksPrefix}.";
+    private const string VKBlockGeneratorsPrefix = $"{VKBlocksConstants.VKBlocksPrefix}.Generators.";
 
     private static readonly string[] _globalModules = ["Observability", "Diagnostics", "DependencyInjection"];
 

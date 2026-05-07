@@ -1,4 +1,4 @@
-# ADR 011: Refactor Authorization Building Block Structure and Naming
+﻿# ADR 011: Refactor Authorization Building Block Structure and Naming
 
 - **Date**: 2026-04-22
 - **Status**: ✅ Accepted
@@ -7,7 +7,7 @@
 
 ## 1. Context (背景)
 
-VK.Blocks プロジェクト全体で策定された新しい標準規約（Rules 01-20）に基づき、BuildingBlock 各モジュールの構造的整合性と命名の統一性が求められている。先行してリファクタリングが完了した Core および Authentication モジュールのパターンを Authorization モジュールにも適用し、保守性と視認性を向上させる必要がある。
+VK.Blocks プロジェクト全体で策定された新しい標準規約（CS.01–BB.05）に基づき、BuildingBlock 各モジュールの構造的整合性と命名の統一性が求められている。先行してリファクタリングが完了した Core および Authentication モジュールのパターンを Authorization モジュールにも適用し、保守性と視認性を向上させる必要がある。
 
 ## 2. Problem Statement (問題定義)
 
@@ -28,7 +28,7 @@ VK.Blocks プロジェクト全体で策定された新しい標準規約（Rule
    - 全ての公開インターフェースに `IVK` プレフィックスを付与。
    - 内部実装クラスからは `VK` プレフィックスを除去し、`Internal/` サブ名前空間に隔離した。
 3. **DI 登録の標準化**: 
-   - `AddVKAuthorizationBlock` を Rule 13 (Idempotent registration) に準拠させ、`VKAuthorizationBlock` マーカー型による二重登録防止を実装。
+   - `AddVKAuthorizationBlock` を AP.02 (Idempotent registration) に準拠させ、`VKAuthorizationBlock` マーカー型による二重登録防止を実装。
    - 各機能のハンドラーを `IAuthorizationHandler` インターフェースとして `TryAddEnumerable` で登録するように修正した。
 4. **オプションモデルの改善**: `VKAuthorizationOptions` のプロパティを `set` に変更し、`IOptions` パターンにおける柔軟性を確保した。
 
@@ -52,7 +52,7 @@ public static IServiceCollection AddRolesFeature(this IServiceCollection service
 
 ### Option 1: 既存の名前空間を維持し、エイリアスで対応
 - **Approach**: 名前空間は変更せず、`using` エイリアスや型名変更のみを行う。
-- **Rejected Reason**: 根本的な構造的複雑さが解消されず、新しい BuildingBlock 開発ガイドライン（Rule 16）に抵触するため。
+- **Rejected Reason**: 根本的な構造的複雑さが解消されず、新しい BuildingBlock 開発ガイドライン（BB.01）に抵触するため。
 
 ### Option 2: すべてのハンドラーを Singleton で登録
 - **Approach**: パフォーマンス向上のため、状態を持たないハンドラーを Singleton にする。
@@ -78,3 +78,5 @@ public static IServiceCollection AddRolesFeature(this IServiceCollection service
 - **セキュリティ**: テナント隔離やネットワーク制限などの重要な認可ロジックが、新しい `IAuthorizationHandler` 登録により、ASP.NET Core の認可ミドルウェアから確実かつ暗黙的に呼び出されることを保証した。
 
 **Last Updated**: 2026-04-22
+
+

@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート — VK.Blocks.Observability.OpenTelemetry
+﻿# アーキテクチャ監査レポート — VK.Blocks.Observability.OpenTelemetry
 
 | 項目                   | 値                                       |
 | ---------------------- | ---------------------------------------- |
@@ -184,16 +184,16 @@ public string Environment { get; set; } = "Production";
 
 ### ✅ H-04: `sealed class` の完全適用
 
-全クラスに `sealed` 修飾子が正しく付与されており、Rule 15 に完全準拠している：
+全クラスに `sealed` 修飾子が正しく付与されており、AP.04 に完全準拠している：
 - `VkObservabilityBuilder`, `VkObservabilityOptions` (新 API)
 - `OtlpOptions`, `ValidateOtlpOptions` (レガシー API)
 - `DefaultEnvironmentProvider` (Infrastructure)
 
-### ✅ H-05: Rule 14 (Type Segregation) の完全準拠
+### ✅ H-05: AP.03 (Type Segregation) の完全準拠
 
 全ファイルが「一ファイル一型」原則を遵守している。`OtlpOptions` / `ValidateOtlpOptions` / `OtlpOptionsConstants` がそれぞれ独立ファイルに分離されている。
 
-### ✅ H-06: 定数管理の徹底 (Rule 13)
+### ✅ H-06: 定数管理の徹底 (AP.02)
 
 - モジュール横断定数: `OpenTelemetryConstants`（ワイルドカードソース名、EF Core ActivitySource 名、ヘルスチェック除外パス）
 - フィーチャー内定数: `OtlpOptionsConstants`（デフォルトサービス名）
@@ -232,3 +232,4 @@ public string Environment { get; set; } = "Production";
 | 1   | **OpenTelemetry .NET — ILogger Integration** | `EnableLogging` フラグが定義済みだが未実装。OTLP Log Exporter の統合方法を理解し、3 シグナル統合を完成させる。 |
 | 2   | **Testcontainers for OpenTelemetry**         | `VkResourceBuilder` や Fluent Builder の統合テストを Testcontainers + OTLP Collector で自動化する方法。        |
 | 3   | **OpenTelemetry Semantic Conventions SDK**   | `OpenTelemetry.SemanticConventions` パッケージによる標準属性キーの型安全な参照。                               |
+

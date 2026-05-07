@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization.Entitlements.Internal;
@@ -15,7 +15,7 @@ internal static class EntitlementsRegistration
         IVKAuthorizationBuilder builder,
         Func<VKEntitlementsOptions, VKEntitlementsOptions>? transform = null)
     {
-        // 1. Check-Self (Rule 13 & 18.2)
+        // 1. Check-Self (AP.02 & 18.2)
         if (builder.Services.IsVKBlockRegistered<EntitlementsFeature>())
         {
             return builder;
@@ -23,7 +23,7 @@ internal static class EntitlementsRegistration
 
         var options = builder.Services.AddVKBlockOptions<VKEntitlementsOptions>(builder.Configuration, transform);
 
-        // 3. Mark-Self (Rule 18.2 - MUST be before early exit)
+        // 3. Mark-Self (BB.03.2 - MUST be before early exit)
         builder.Services.AddVKBlockMarker<EntitlementsFeature>();
 
         if (!options.Enabled)
@@ -38,3 +38,5 @@ internal static class EntitlementsRegistration
         return builder;
     }
 }
+
+

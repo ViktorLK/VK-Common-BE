@@ -1,4 +1,4 @@
-# 🏛️ アーキテクチャ監査レポート — Authorization BuildingBlock
+﻿# 🏛️ アーキテクチャ監査レポート — Authorization BuildingBlock
 
 > **監査日:** 2026-04-09  
 > **対象モジュール:** `src/BuildingBlocks/Authorization`  
@@ -41,7 +41,7 @@ Authorization BuildingBlock は、ASP.NET Core の Authorization パイプライ
 public class AuthorizePermissionAttribute(string permission) : AuthorizeAttribute, IAuthorizationRequirementData
 ```
 
-Rule 15（Sealed by Default）に違反。`AuthorizeRolesAttribute` と `DynamicAuthorizeAttribute` は `sealed` 宣言されているが、`AuthorizePermissionAttribute` のみ `public class` のままである。意図しない拡張や仮想ディスパッチのオーバーヘッドが発生する。
+AP.04（Sealed by Default）に違反。`AuthorizeRolesAttribute` と `DynamicAuthorizeAttribute` は `sealed` 宣言されているが、`AuthorizePermissionAttribute` のみ `public class` のままである。意図しない拡張や仮想ディスパッチのオーバーヘッドが発生する。
 
 **影響度**: 低 — セキュリティリスクは小さいが、コーディング規約の一貫性を損なう
 
@@ -135,7 +135,7 @@ public List<string> InternalCidrs { get; set; } = [.. InternalNetworkConstants.D
 | TenantIsolation | `TenantIsolationLog.cs` |
 | WorkingHours    | `WorkingHoursLog.cs`    |
 
-すべてが `internal static partial class` で `ILogger` 拡張メソッドパターンを使用しており、Rule 6 に完全準拠。テンプレートは構造化プレースホルダ (`{UserId}`, `{PolicyName}`) を使用し、文字列補間は一切使用されていない。
+すべてが `internal static partial class` で `ILogger` 拡張メソッドパターンを使用しており、OR.01 に完全準拠。テンプレートは構造化プレースホルダ (`{UserId}`, `{PolicyName}`) を使用し、文字列補間は一切使用されていない。
 
 ### 📡 `[VKBlockDiagnostics]` による Meter/ActivitySource 自動生成
 
@@ -158,7 +158,7 @@ public List<string> InternalCidrs { get; set; } = [.. InternalNetworkConstants.D
 
 **ファイル:** `src/BuildingBlocks/Authorization/DependencyInjection/VKAuthorizationOptions.cs`
 
-Rule 15 では「Use `required` keyword for all non-nullable properties in record or DTO types」を義務付けている。`VKAuthorizationOptions` は `sealed class` であり `record` ではないが、`RoleClaimType`, `PermissionClaimType`, `TenantClaimType`, `RankClaimType` 等の非 nullable 文字列プロパティにはデフォルト値が設定されているため、Options バインディングの文脈では問題ないが、直接インスタンス化する場合の安全性が低い。
+AP.04 では「Use `required` keyword for all non-nullable properties in record or DTO types」を義務付けている。`VKAuthorizationOptions` は `sealed class` であり `record` ではないが、`RoleClaimType`, `PermissionClaimType`, `TenantClaimType`, `RankClaimType` 等の非 nullable 文字列プロパティにはデフォルト値が設定されているため、Options バインディングの文脈では問題ないが、直接インスタンス化する場合の安全性が低い。
 
 ### ⚠️ AuthorizationBuilderExtensions.AddVKPolicies — LINQ による ServiceDescriptor 検索
 
@@ -208,7 +208,7 @@ var options = builder.Services
 
 `IVKAuthorizationRequirement` が `IAuthorizationRequirement` を拡張し、`Error DefaultError` プロパティを追加することで、Result パターンと ASP.NET Core Authorization パイプラインの橋渡しを実現。全 7 Requirement が `AuthorizationErrors` の定義済みエラー定数を返す。
 
-### ✅ 3. DI 登録の完全な Rule 16/17 準拠
+### ✅ 3. DI 登録の完全な BB.01/17 準拠
 
 - `AddVKBlockOptions` によるオプション登録 ✅
 - `IValidateOptions<T>` による起動時バリデーション ✅
@@ -230,7 +230,7 @@ CIDR フォーマット検証（IPv4/IPv6 対応）、Working Hours の論理検
 
 ### ✅ 7. ConfigureAwait(false) の徹底
 
-全 `await` 呼び出しで `.ConfigureAwait(false)` が使用されており、ライブラリコードの同期コンテキストデッドロックリスクが排除されている (Rule 3 完全準拠)。
+全 `await` 呼び出しで `.ConfigureAwait(false)` が使用されており、ライブラリコードの同期コンテキストデッドロックリスクが排除されている (CS.03 完全準拠)。
 
 ### ✅ 8. ValueTask の一貫採用
 
@@ -270,3 +270,4 @@ CIDR フォーマット検証（IPv4/IPv6 対応）、Working Hours の論理検
 ---
 
 > **結論**: Authorization BuildingBlock は VK.Blocks のアーキテクチャ原則を極めて高い水準で実装しており、特に Vertical Slice 設計、Provider/Evaluator 分離パターン、Source Generator 活用、および DI 登録の冪等性において模範的なコードベースである。発見された課題は全て軽微であり、即時に対応可能な範囲に収まっている。
+

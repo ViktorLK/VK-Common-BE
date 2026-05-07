@@ -1,8 +1,8 @@
-namespace VK.Blocks.Core.Security;
+﻿namespace VK.Blocks.Core;
 
 /// <summary>
 /// Defines the security level of a data property.
-/// Complies with Rule 14.
+/// Complies with AP.03.
 /// </summary>
 public enum VKSecurityLevel
 {
@@ -15,3 +15,4 @@ public enum VKSecurityLevel
     /// <summary>Contains highly sensitive data that should be fully redacted (hidden).</summary>
     Redacted = 2
 }
+

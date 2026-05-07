@@ -9,6 +9,9 @@ using VK.Blocks.Generators.Authorization.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authorization;
 
 /// <summary>
@@ -20,9 +23,9 @@ public sealed class AuthorizationMetadataGenerator : IIncrementalGenerator
 {
     private const string RequirementDataInterfaceName = "IAuthorizationRequirementData";
     private const string AuthorizeAttributeName = "AuthorizeAttribute";
-    private const string PermissionAttributeName = "AuthorizePermissionAttribute";
-    private const string RolesAttributeName = "AuthorizeRolesAttribute";
-    private const string DynamicAttributeName = "DynamicAuthorizeAttribute";
+    private const string PermissionAttributeName = "VKAuthorizePermissionAttribute";
+    private const string RolesAttributeName = "VKAuthorizeRolesAttribute";
+    private const string DynamicAttributeName = "VKDynamicAuthorizeAttribute";
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -83,7 +86,7 @@ public sealed class AuthorizationMetadataGenerator : IIncrementalGenerator
             // Handle Permissions
             if (name?.Contains("Permission") == true)
             {
-                // AuthorizePermissionAttribute has a constructor with permission string
+                // VKAuthorizePermissionAttribute has a constructor with permission string
                 if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string p)
                 {
                     permissions.Add(p);
@@ -166,7 +169,7 @@ public sealed class AuthorizationMetadataGenerator : IIncrementalGenerator
 
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using System.Collections.Generic;");
-        sb.AppendLine("using VK.Blocks.Authorization.Common;");
+        sb.AppendLine("using VK.Blocks.Authorization;");
         sb.AppendLine();
         sb.AppendLine("namespace VK.Blocks.Authorization.Generated");
         sb.AppendLine("{");
@@ -179,12 +182,12 @@ public sealed class AuthorizationMetadataGenerator : IIncrementalGenerator
         sb.AppendLine($"        public const string MetadataHash = \"{hash}\";");
         sb.AppendLine();
         sb.AppendLine("        /// <summary>Maps endpoint display names to their derived authorization information.</summary>");
-        sb.AppendLine("        public static readonly IReadOnlyDictionary<string, EndpointAuthorizationInfo> Endpoints = new Dictionary<string, EndpointAuthorizationInfo>");
+        sb.AppendLine("        public static readonly IReadOnlyDictionary<string, VKEndpointAuthorizationInfo> Endpoints = new Dictionary<string, VKEndpointAuthorizationInfo>");
         sb.AppendLine("        {");
 
         foreach (var m in mergedMetadata)
         {
-            sb.AppendLine($"            [\"{m.EndpointName}\"] = new EndpointAuthorizationInfo");
+            sb.AppendLine($"            [\"{m.EndpointName}\"] = new VKEndpointAuthorizationInfo");
             sb.AppendLine("            {");
             sb.AppendLine($"                EndpointName = \"{m.EndpointName}\",");
             sb.Append("                Permissions = new string[] { ");

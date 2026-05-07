@@ -1,6 +1,9 @@
 using Microsoft.CodeAnalysis;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Diagnostics;
 
 /// <summary>
@@ -8,7 +11,7 @@ namespace VK.Blocks.Generators.Diagnostics;
 /// </summary>
 public static class VKDiagnosticDescriptors
 {
-    private const string Category = VKBlocksConstants.VKBlocksPrefix + "Observability";
+    private const string Category = $"{VKBlocksConstants.VKBlocksPrefix}.Observability";
 
     /// <summary>
     /// VK1001: Missing observability metrics recording.

@@ -1,4 +1,4 @@
-# 🏗️ アーキテクチャ監査レポート: VK.Blocks.Authorization
+﻿# 🏗️ アーキテクチャ監査レポート: VK.Blocks.Authorization
 
 **監査日**: 2026-04-12  
 **対象モジュール**: `/src/BuildingBlocks/Authorization`  
@@ -33,7 +33,7 @@
 
 ### ✅ 高評価ポイント
 
-- 🔒 **CIDR マッチング**: `InternalNetworkAuthorizationHandler.IsInCidr()` は `stackalloc byte[16]` + `Span<T>` を使用し、ヒープアロケーション完全回避を実現 — Rule 4 準拠
+- 🔒 **CIDR マッチング**: `InternalNetworkAuthorizationHandler.IsInCidr()` は `stackalloc byte[16]` + `Span<T>` を使用し、ヒープアロケーション完全回避を実現 — CS.04 準拠
 - 🔒 **SuperAdmin バイパス**: 全ハンドラーに `user.IsSuperAdmin(options)` として集約拡張メソッドで統一適用 — セキュリティ一貫性確保
 - 🔒 **テナント分離**: `StrictTenantIsolation` フラグで SuperAdmin のテナント横断バイパスを厳密制御
 
@@ -106,7 +106,7 @@
 
 ## ⚠️ コード品質とコーディング規約のリスク (Code Quality & Standard Risks)
 
-### Rule 12 (Modern C# Semantics) 準拠チェック
+### AP.01 (Modern C# Semantics) 準拠チェック
 
 | 規約                        | 準拠 | 備考                                                                   |
 | --------------------------- | :--: | ---------------------------------------------------------------------- |
@@ -117,7 +117,7 @@
 | `is null` / `is not null`   |  ✅  | 全体的に一貫使用                                                       |
 | Collection Expressions `[]` |  ✅  | `_providers = [.. permissionProviders]` 等で使用                       |
 
-### Rule 13 (Service Registration Pattern) 準拠チェック
+### AP.02 (Service Registration Pattern) 準拠チェック
 
 | 規約                            | 準拠 | 備考                                                                             |
 | ------------------------------- | :--: | -------------------------------------------------------------------------------- |
@@ -128,7 +128,7 @@
 | `AddVKBlockOptions<T>`          |  ✅  | `VKAuthorizationOptions` を Eager-bind + ValidateOnStart                         |
 | Validator 登録                  |  ✅  | `TryAddEnumerableSingleton` で `VKAuthorizationOptionsValidator` を登録          |
 
-### Rule 14 (Structural Organization) 準拠チェック
+### AP.03 (Structural Organization) 準拠チェック
 
 | 規約                  | 準拠 | 備考                                                                                                                      |
 | --------------------- | :--: | ------------------------------------------------------------------------------------------------------------------------- |
@@ -237,3 +237,4 @@
 ---
 
 > **結論**: `VK.Blocks.Authorization` は、VK.Blocks アーキテクチャ基準に高いレベルで準拠しており、エンタープライズ認可基盤として **本番運用に適した成熟度** を達成している。上記の軽微な改善点を段階的に対応することで、スコア 95+ への到達が見込まれる。
+

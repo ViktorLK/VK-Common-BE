@@ -1,4 +1,4 @@
-# Task: アーキテクチャ監査レポート (Observability Audit)
+﻿# Task: アーキテクチャ監査レポート (Observability Audit)
 
 **監査日**: 2026-03-10
 **前回監査日**: 2026-03-06 (スコア: 92/100)
@@ -26,11 +26,11 @@
     1. `Source12` フィールドを即座に削除
     2. `CachingDiagnostics` クラスを Caching モジュールに移動、もしくは削除
 
-### ❌ CS-02: 型分離違反 (Rule 14) — 1ファイル複数型
+### ❌ CS-02: 型分離違反 (AP.03) — 1ファイル複数型
 
 - **ファイル**: `DiagnosticConfig.cs`
 - **内容**: `CachingDiagnostics` (internal) と `DiagnosticConfig` (public) の2つの主要型が同一ファイルに定義されている。
-- **ルール違反**: Rule 14「One File, One Type」に違反。`CachingDiagnostics` は Observability の責務外であり、SRP にも抵触する。
+- **ルール違反**: AP.03「One File, One Type」に違反。`CachingDiagnostics` は Observability の責務外であり、SRP にも抵触する。
 - **修正案**: `CachingDiagnostics` を別ファイル（理想的には Caching モジュール）に分離。
 
 ---
@@ -90,10 +90,10 @@
 - `DeploymentEnvironment` と `Environment` が同一の `"deployment.environment"` を指している。XML コメントに「deprecated」と記載されているが、`[Obsolete]` 属性が付与されていないため、コンパイル時の警告が発生せず、利用者が誤って `Environment` を使い続ける可能性がある。
 - **修正案**: `Environment` に `[Obsolete("Use DeploymentEnvironment instead.")]` を付与する。
 
-### ⚠️ CQ-02: `ObservabilityOptions` が `sealed class` のまま (Rule 15)
+### ⚠️ CQ-02: `ObservabilityOptions` が `sealed class` のまま (AP.04)
 
 - **ファイル**: `Options/ObservabilityOptions.cs`
-- VK.Blocks Rule 15 では、すべての DTO/設定は `sealed record` を使用すべきとされている。ただし、`ObservabilityOptions` は DI の `IOptions<T>` パターンと `Configure()` デリゲートによるミュータブル設定を前提としているため、`record` への変換は適用不可。`sealed class` は妥当であるが、プロパティの `init` セッターへの変更を検討すべき。
+- VK.Blocks AP.04 では、すべての DTO/設定は `sealed record` を使用すべきとされている。ただし、`ObservabilityOptions` は DI の `IOptions<T>` パターンと `Configure()` デリゲートによるミュータブル設定を前提としているため、`record` への変換は適用不可。`sealed class` は妥当であるが、プロパティの `init` セッターへの変更を検討すべき。
 - **修正案**: `set` を `init` に変更し、`Configure()` パターンとの互換性を検証した上で適用。互換性がない場合は現状維持で妥当。
 
 ### ⚠️ CQ-03: `IConfiguration` バインディングの未提供
@@ -142,7 +142,7 @@
 | #   | 対象ファイル          | 修正内容                                                                 | 重要度      |
 | --- | --------------------- | ------------------------------------------------------------------------ | ----------- |
 | 1   | `DiagnosticConfig.cs` | `Source12` フィールドを削除                                              | 🔴 Critical |
-| 2   | `DiagnosticConfig.cs` | `CachingDiagnostics` クラスを別ファイル/モジュールに分離（Rule 14 準拠） | 🔴 Critical |
+| 2   | `DiagnosticConfig.cs` | `CachingDiagnostics` クラスを別ファイル/モジュールに分離（AP.03 準拠） | 🔴 Critical |
 | 3   | `FieldNames.cs`       | `Environment` 定数に `[Obsolete]` 属性を付与                             | 🟡 High     |
 
 ### 2. リファクタリング提案 (Refactoring)
@@ -187,3 +187,4 @@
 | R13  | Constant Visibility | ✅   | `FieldNames` (public cross-feature), `DiagnosticConfig` (public global)                               |
 | R14  | Type Segregation    | ❌   | `DiagnosticConfig.cs` に2型定義 (CQ-02)                                                               |
 | R15  | Modern C# Semantics | ⚠️   | `sealed class` は準拠。`ObservabilityOptions` の `record` 化は Options パターンとの互換性上見送り妥当 |
+

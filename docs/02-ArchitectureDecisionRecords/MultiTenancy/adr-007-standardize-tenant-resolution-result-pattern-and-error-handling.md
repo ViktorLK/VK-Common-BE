@@ -1,4 +1,4 @@
-# ADR 007: Standardize Tenant Resolution Result Pattern and Error Handling
+﻿# ADR 007: Standardize Tenant Resolution Result Pattern and Error Handling
 
 **Date**: 2026-03-13  
 **Status**: ✅ Accepted  
@@ -12,7 +12,7 @@ VK.Blocks.MultiTenancy モジュールは、当初独自の `TenantResolutionRes
 ## 2. Problem Statement (問題定義)
 
 - **一貫性の欠如**: 独自の `TenantResolutionResult` は、`VK.Blocks.Core` の `Result<T>` と機能が重複しており、学習コストとコードの冗長性を高めていました。
-- **エラーハンドリングの非標準化**: 匿名型を使用した HTTP エラーレスポンスは、クライアント側での型安全な処理を困難にし、プロジェクトの可観測性（Rule 6）およびエラーハンドリング（Rule 1）の規定に違反していました。
+- **エラーハンドリングの非標準化**: 匿名型を使用した HTTP エラーレスポンスは、クライアント側での型安全な処理を困難にし、プロジェクトの可観測性（OR.01）およびエラーハンドリング（CS.01）の規定に違反していました。
 - **マジックストリングの散在**: ヘッダー名やエラーメッセージがハードコードされている箇所があり、メンテナンス性が低下していました。
 
 ## 3. Decision (決定事項)
@@ -27,7 +27,7 @@ VK.Blocks.MultiTenancy モジュールは、当初独自の `TenantResolutionRes
 ## 4. Alternatives Considered (代替案の検討)
 
 - **Option 1: `TenantResolutionResult` を維持し、`Result<T>` を継承する**
-    - **Rejected Reason**: 継承による複雑化を避け、可能な限り単純な標準型を利用すべきという方針（Rule 1）に基づき却下。
+    - **Rejected Reason**: 継承による複雑化を避け、可能な限り単純な標準型を利用すべきという方針（CS.01）に基づき却下。
 - **Option 2: 既存の `ProblemDetails` 型を直接使用し、拡張プロパティを使用する**
     - **Rejected Reason**: VK.Blocks 全体で `VKProblemDetails` への統一が進められており、依存関係を追加してでも標準に従うべきと判断。
 
@@ -52,3 +52,4 @@ VK.Blocks.MultiTenancy モジュールは、当初独自の `TenantResolutionRes
 
 - **実装**: `Result<T>` の `Value` プロパティは成功時のみアクセス可能であり、ミドルウェア側で型安全に取得されます。
 - **セキュリティ**: テナント ID のバリデーション（長さ制限、文字種チェック）を継続して維持し、不正な ID によるインジェクションや攻撃を Boundary で遮断します。エラーレスポンスには機密情報を含めず、`traceId` を通じて管理ログと紐付けます。
+

@@ -1,36 +1,29 @@
 # Coding Standards (開発標準)
 
-本プロジェクトで採用しているコーディング規約とアーキテクチャ標準について記述します。
+本プロジェクトで採用しているコーディング規約とアーキテクチャ标准（VK.Blocks Industrial DNA）のインデックスです。
 
-## 1. Code Style (コードスタイル)
+## 📜 核心標準 (Detailed Standards)
 
-- **C# Version**: C# 12.0 最新機能を積極的に採用する。
-- **Namespace**: File-scoped namespace (`namespace MyNamespace;`) を使用する。
-- **Nullable Reference Types**: 全プロジェクトで `Enabled` に設定し、`null` 安全性を保証する。
-- **Async/Await**:
-    - すべての I/O 操作は非同期とする。
-    - ライブラリコードでは `ConfigureAwait(false)` を徹底する。
-    - 可能であれば `ValueTask` を使用してアロケーションを削減する。
+各領域の深い技術標準については、以下の個別ドキュメントを参照してください。
 
-## 2. Architecture (アーキテクチャ)
+1.  **[Standard 01: Result Pattern & Error Handling](./01-result-pattern.md)**
+    - 統一されたエラー処理、Result<T>、エラーコード階層の定義。
+2.  **[Standard 02: Observability & Resiliency](./02-observability-resiliency.md)**
+    - LoggerMessage、OpenTelemetry、Polly レジリエンスポリシーの適用。
+3.  **[Standard 03: Dependency Injection & Configuration](./03-dependency-injection.md)**
+    - 冪等な登録シーケンス、Marker Pattern、Options ライフサイクル。
+4.  **[Standard 04: Structural Organization & Naming](./04-structural-organization.md)**
+    - 垂直スライス、可见性境界（Level 1/2）、VK プレフィックス、Args Pattern。
+5.  **[Standard 05: Development Lifecycle](./05-development-lifecycle.md)**
+    - テストプロトコル、ADR (アーキテクチャ意思決定)、RFC (提案要求)、Backlog 管理。
 
-### Clean Architecture & DDD
+---
 
-- **Dominant Layer**: ドメイン層（Core）が中心であり、インフラストラクチャ層（Persistence）はドメインに依存する。
-- **Repository Pattern**:
-    - `IReadRepository` (Query) と `IWriteRepository` (Command) を分離する (CQS)。
-    - `IQueryable` は Repository 外部に公開しない（将来的な方針）。
-- **Dependency Injection**:
-    - コンストラクタ注入を原則とする。
-    - `IServiceCollection` 拡張メソッドを提供し、利用者が 1 行で登録できるようにする (`AddVKDbContext`)。
+## 🛠️ 基本スタイル (Base Style)
 
-## 3. Testing (テスト)
-
-- **Unit Testing**: xUnit を使用。
-- **Integration Testing**: Testcontainers または SQLite In-Memory を使用して、実際のデータベース挙動に近いテストを行う。
-- **Naming**: `MethodName_StateUnderTest_ExpectedBehavior` 形式を推奨。
-
-## 4. Documentation (ドキュメント)
-
-- **Language**: 原則として英語（コードコメント）または日本語（設計書）。
-- **XML Documentation**: 公開 API (`public` メソッド/クラス) には必ず `<summary>` を記述する。
+- **C# Version**: C# 12.0/13.0 最新機能を積極的に採用する。
+- **Namespace**: File-scoped namespace を使用する。
+- **Nullable**: 全プロジェクトで `Enabled`。
+- **Async**: `ConfigureAwait(false)` の徹底（ライブラリのみ）、`ValueTask` の活用。
+- **Sealed**: すべてのクラスはデフォルトで `sealed`。
+- **Guard**: 境界チェックには `VKGuard` を必須とする。

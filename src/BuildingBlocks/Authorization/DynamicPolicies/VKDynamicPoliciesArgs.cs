@@ -1,10 +1,10 @@
-using VK.Blocks.Core;
+﻿using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Arguments for dynamic policies evaluation.
-/// Following Rule 21: Local overrides for the global <see cref="VKDynamicPoliciesOptions"/>.
+/// Following AP.05: Local overrides for the global <see cref="VKDynamicPoliciesOptions"/>.
 /// </summary>
 public sealed record VKDynamicPoliciesArgs : IVKArgs<VKDynamicPoliciesArgs>
 {
@@ -18,3 +18,4 @@ public sealed record VKDynamicPoliciesArgs : IVKArgs<VKDynamicPoliciesArgs>
     /// </summary>
     public VKDynamicRequirement? Requirement { get; init; }
 }
+

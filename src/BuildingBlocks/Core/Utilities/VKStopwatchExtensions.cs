@@ -1,9 +1,9 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Provides extension methods for <see cref="Stopwatch"/> to support Rule 6 (Observability) compliance.
+/// Provides extension methods for <see cref="Stopwatch"/> to support OR.01 (Observability) compliance.
 /// </summary>
 public static class VKStopwatchExtensions
 {
@@ -18,7 +18,7 @@ public static class VKStopwatchExtensions
     {
         sw.Stop();
 
-        // Rule 6: Support distributed tracing by enriching the current activity with process metadata.
+        // OR.01: Support distributed tracing by enriching the current activity with process metadata.
         // This ensures that even without explicit logging, the trace contains performance and success indicators.
         Activity? activity = Activity.Current;
         if (activity is null)
@@ -39,3 +39,4 @@ public static class VKStopwatchExtensions
         }
     }
 }
+

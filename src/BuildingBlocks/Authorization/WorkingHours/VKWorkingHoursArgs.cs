@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 using VK.Blocks.Core;
 
@@ -6,7 +6,7 @@ namespace VK.Blocks.Authorization;
 
 /// <summary>
 /// Arguments for working hours evaluation.
-/// Following Rule 21: Local overrides for the global <see cref="VKWorkingHoursOptions"/>.
+/// Following AP.05: Local overrides for the global <see cref="VKWorkingHoursOptions"/>.
 /// </summary>
 public sealed record VKWorkingHoursArgs : IVKArgs<VKWorkingHoursArgs>
 {
@@ -27,3 +27,4 @@ public sealed record VKWorkingHoursArgs : IVKArgs<VKWorkingHoursArgs>
     /// </summary>
     public TimeOnly? End { get; init; }
 }
+

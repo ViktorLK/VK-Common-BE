@@ -11,6 +11,9 @@ using VK.Blocks.Generators.Authentication.Internal;
 using VK.Blocks.Generators.Extensions;
 using VK.Blocks.Generators.Utilities;
 
+
+
+
 namespace VK.Blocks.Generators.Authentication;
 
 /// <summary>
@@ -19,13 +22,13 @@ namespace VK.Blocks.Generators.Authentication;
 [Generator]
 public sealed class OAuthProviderMapperGenerator : IIncrementalGenerator
 {
-    private const string AttributeFullName = VKBlocksConstants.VKBlocksPrefix + "Authentication.Features.OAuth.Mappers.OAuthProviderAttribute";
+    private const string AttributeFullName = "VK.Blocks.Authentication.VKOAuthProviderAttribute";
 
     private static readonly DiagnosticDescriptor _duplicateProviderWarning = new(
         id: "VK0001",
         title: "Duplicate OAuth Provider Mapper",
         messageFormat: "Multiple OAuth mappers found for provider '{0}'. Only '{1}' will be registered.",
-        category: VKBlocksConstants.VKBlocksPrefix + "Authentication",
+        category: $"{VKBlocksConstants.VKBlocksPrefix}.Authentication",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
@@ -95,8 +98,7 @@ public sealed class OAuthProviderMapperGenerator : IIncrementalGenerator
         var sb = SourceCodeBuilder.CreateWithHeader();
 
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
-        sb.AppendLine("using VK.Blocks.Authentication.Features.OAuth;");
-        sb.AppendLine("using VK.Blocks.Authentication.Features.OAuth.Mappers;");
+        sb.AppendLine("using VK.Blocks.Authentication;");
         sb.AppendLine();
         sb.AppendLine("namespace VK.Blocks.Authentication.Generated");
         sb.AppendLine("{");
@@ -128,7 +130,7 @@ public sealed class OAuthProviderMapperGenerator : IIncrementalGenerator
             providerNames.Add(primary.ProviderName);
 
             // Generate registration for the primary mapper
-            sb.AppendLine($"        services.AddKeyedScoped(typeof(IOAuthClaimsMapper), \"{primary.ProviderName}\", typeof({primary.FullClassName}));");
+            sb.AppendLine($"        services.AddKeyedScoped(typeof(IVKOAuthClaimsMapper), \"{primary.ProviderName}\", typeof({primary.FullClassName}));");
 
             // Report warnings for any duplicates found for the same provider
             if (mappersInGroup.Count > 1)
