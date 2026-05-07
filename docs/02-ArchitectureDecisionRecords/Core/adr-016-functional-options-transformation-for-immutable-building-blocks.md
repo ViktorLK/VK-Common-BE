@@ -1,4 +1,4 @@
-# ADR 016: Functional Options Transformation for Immutable Building Blocks
+﻿# ADR 016: Functional Options Transformation for Immutable Building Blocks
 
 - **Date**: 2026-04-25
 - **Status**: ✅ Accepted
@@ -7,7 +7,7 @@
 
 ## Context (背景)
 
-VK.Blocks の設計原則（Rule 20）では、ビルドブロックの Options クラスにおいて `init` アクセサを用いた不変性（Immutability）の確保が義務付けられています。
+VK.Blocks の設計原則（BB.05）では、ビルドブロックの Options クラスにおいて `init` アクセサを用いた不変性（Immutability）の確保が義務付けられています。
 
 一方で、.NET 標準の `Options` パターン（`IServiceCollection.AddOptions<T>().Configure(Action<T>)`）は、既存のインスタンスをデリゲート内で直接書き換える「原地変異（In-place Mutation）」を前提としています。この標準パターンは `init` プロパティと技術的に競合しており、デリゲート内での値の代入がビルドエラー（CS8852）を引き起こします。
 
@@ -18,7 +18,7 @@ VK.Blocks の設計原則（Rule 20）では、ビルドブロックの Options 
 不変オプション (`init`) と動的構成 (`Action<T>`) の衝突により、以下の問題が発生しています。
 
 1.  **Immutability の喪失**: `set` を許容すると、DI コンテナに登録された後のオプションが意図せず変更されるリスク（Side-effects）が生じる。
-2.  **アーキテクチャの一貫性の欠如**: Rule 20 と実装実態が乖離し、開発者によって `init` と `set` が混在する原因となる。
+2.  **アーキテクチャの一貫性の欠如**: BB.05 と実装実態が乖離し、開発者によって `init` と `set` が混在する原因となる。
 3.  **関数型プログラミングの利点の欠如**: C# 9.0 以降の強力な `record` 機能（`with` 式）を構成ロジックに活用できていない。
 
 ## Decision (決定事項)
@@ -93,3 +93,4 @@ services.AddVKAuthenticationBlock(config, options => options with
 
 - **スレッドセーフ**: 変換は Startup フェーズ（ConfigureServices）で行われ、その後は不変となるため、ランタイムでのスレッドセーフ性が完璧に確保される。
 - **セキュリティ**: オプションが読み取り専用となることで、悪意のあるコードやバグによって実行時にセキュリティ設定（Enabled フラグなど）が書き換えられるリスクを完全に排除できる。
+

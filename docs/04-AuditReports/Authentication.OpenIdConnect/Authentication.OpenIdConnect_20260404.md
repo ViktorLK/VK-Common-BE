@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート — Authentication.OpenIdConnect
+﻿# アーキテクチャ監査レポート — Authentication.OpenIdConnect
 
 > **モジュール**: `VK.Blocks.Authentication.OpenIdConnect`
 > **監査日**: 2026-04-04
@@ -43,7 +43,7 @@ _該当なし_
 - ⚙️ **テスト容易性の向上**:
   `OidcHandlerFactory` に埋め込まれていた外部 Identity 抽出ロジック (`ExtractExternalIdentity`) が `internal` に昇格されたため、`[InternalsVisibleTo]` を通じたユニットテスト（Mock 不要なピュア関数としてのテスト）が容易になりました。
 - ⚙️ **Strategy パターンと Keyed DI の活用**:
-  各種プロバイダー（Google, AzureB2C, Standard）に対する `IOAuthClaimsMapper` 実装が `[OAuthProvider]` 属性を用いた Keyed サービスとして疎結合に登録されており、Open/Closed 原則 (OCP) を満たしています。これに伴い、全 Mapper クラスに確実に `sealed` が付与されています（Rule 15 準拠）。
+  各種プロバイダー（Google, AzureB2C, Standard）に対する `IOAuthClaimsMapper` 実装が `[OAuthProvider]` 属性を用いた Keyed サービスとして疎結合に登録されており、Open/Closed 原則 (OCP) を満たしています。これに伴い、全 Mapper クラスに確実に `sealed` が付与されています（AP.04 準拠）。
 
 ---
 
@@ -65,10 +65,10 @@ _該当なし_
 
 ## ✅ 評価ポイント (Highlights / Good Practices)
 
-- **Rule 12 (Vertical Slice)**: `Features/Oidc/Mappers` のようにドメイン知識・機能ベースでのフォルダー構成が徹底されています。
-- **Rule 13 (Constant Visibility)**: マジックストリング（`"VK.Federated"`, `"unknown"`, `"sub"`, `"Standard"` 等）が全て `OidcConstants.cs` の `internal const` 定数として集約され、視認性と変更容易性が確保されました。また、診断用タグ名も `vk.auth.` の標準プレフィックスとスネークケースに統一されました。
-- **Rule 16 (High-Performance Logging)**: `logger.LogInformation` 等の動的メソッド呼び出しが完全に排除され、コンパイル時生成アプローチが貫徹されています。
-- **Rule 17 (Service Marker / Idempotency)**: `OidcBlock` マーカー型を利用した事前依存解決と `IsVKBlockRegistered` によるIdempotent (ベキ等) な DI 自動登録パターンが正確に実装されています。
+- **AP.01 (Vertical Slice)**: `Features/Oidc/Mappers` のようにドメイン知識・機能ベースでのフォルダー構成が徹底されています。
+- **AP.02 (Constant Visibility)**: マジックストリング（`"VK.Federated"`, `"unknown"`, `"sub"`, `"Standard"` 等）が全て `OidcConstants.cs` の `internal const` 定数として集約され、視認性と変更容易性が確保されました。また、診断用タグ名も `vk.auth.` の標準プレフィックスとスネークケースに統一されました。
+- **BB.01 (High-Performance Logging)**: `logger.LogInformation` 等の動的メソッド呼び出しが完全に排除され、コンパイル時生成アプローチが貫徹されています。
+- **BB.02 (Service Marker / Idempotency)**: `OidcBlock` マーカー型を利用した事前依存解決と `IsVKBlockRegistered` によるIdempotent (ベキ等) な DI 自動登録パターンが正確に実装されています。
 
 ---
 
@@ -84,3 +84,4 @@ _該当なし_
 
 ---
 ✅ **Audit Completed successfully.**
+

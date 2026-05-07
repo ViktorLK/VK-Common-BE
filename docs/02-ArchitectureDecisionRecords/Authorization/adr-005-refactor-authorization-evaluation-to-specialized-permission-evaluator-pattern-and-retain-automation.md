@@ -1,4 +1,4 @@
-# ADR 005: Refactor Authorization Evaluation to Specialized Permission Evaluator Pattern and Retain Automation
+﻿# ADR 005: Refactor Authorization Evaluation to Specialized Permission Evaluator Pattern and Retain Automation
 
 - **Date**: 2026-04-02
 - **Status**: ✅ Accepted
@@ -9,13 +9,13 @@
 
 `VK.Blocks.Authorization` モジュールでは、これまで `IVKAuthorizationHandler` という汎用的なインターフェースを拡張ポイントとして提供してきましたが、このインターフェースは役割が曖昧であり、実質的に「権限チェック（Permission Check）」専用として使用されていました。また、ASP.NET Core の `IAuthorizationHandler` と名称が酷似しており、開発上の混乱を招く要因となっていました。
 
-さらに、既存のメソッドは同期的な `bool` または `Task<bool>` を返しており、エンタープライズ級の **Result Pattern (Rule 1)** に準拠しておらず、エラーの詳細コンテキストを呼び出し側に伝えることが困難でした。
+さらに、既存のメソッドは同期的な `bool` または `Task<bool>` を返しており、エンタープライズ級の **Result Pattern (CS.01)** に準拠しておらず、エラーの詳細コンテキストを呼び出し側に伝えることが困難でした。
 
 ## 2. Problem Statement (問題定義)
 
 1.  **単一責任原則の不徹底**: `IVKAuthorizationHandler` が「認可ハンドラー」なのか「権限評価器」なのかが不明確。
 2.  **Result Pattern への非準拠**: 認可失敗時に「なぜ失敗したか（例：テナント不一致なのか、権限不足なのか）」を構造化データとして返せない。
-3.  **垂直スライスの不全 (Rule 12)**: 権限関連の抽象がグローバルな `Abstractions` フォルダに散在しており、特定の Feature への凝集度が低い。
+3.  **垂直スライスの不全 (AP.01)**: 権限関連の抽象がグローバルな `Abstractions` フォルダに散在しており、特定の Feature への凝集度が低い。
 4.  **手動 DI 登録の摩擦**: Source Generator を排除して手動登録に切り替えた場合、"Low Friction" というプロジェクトの哲学に反し、ヒューマンエラーを誘発する。
 
 ## 3. Decision (決定事項)
@@ -74,3 +74,4 @@ public interface IPermissionEvaluator
 
 ---
 **Last Updated**: 2026-04-02
+

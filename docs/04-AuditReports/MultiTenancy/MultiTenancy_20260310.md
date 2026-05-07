@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート: MultiTenancy Module
+﻿# アーキテクチャ監査レポート: MultiTenancy Module
 
 **監査実施日**: 2026-03-10
 
@@ -42,14 +42,14 @@
 ## ⚠️ コード品質とコーディング規約のリスク (Code Quality & Standard Risks)
 
 - ⚠️ **[1ファイル1タイプの原則違反]**: `Options/MultiTenancyOptions.cs`
-    - **リスク要因**: 同一の `.cs` ファイル内に、`MultiTenancyOptions` クラスと `TenantResolverType` 列挙型（Enum）が二重に定義されています。これは Rule 14「One File, One Type」に違反しており、ファイルナビゲーションの凝集度を下げる要因となります。
+    - **リスク要因**: 同一の `.cs` ファイル内に、`MultiTenancyOptions` クラスと `TenantResolverType` 列挙型（Enum）が二重に定義されています。これは AP.03「One File, One Type」に違反しており、ファイルナビゲーションの凝集度を下げる要因となります。
 
 ---
 
 ## ✅ 評価ポイント (Highlights / Good Practices)
 
 - **Modern C# Semantics の徹底**:
-  ほぼ全てのクラスに `sealed class` が適用されており（Rule 15 準拠）、継承の乱用を防いでいます。また、`TenantInfo` などのデータ転送オブジェクトに `sealed record` を用いてイミュータブルな特性を活かしている点はベストプラクティスです。
+  ほぼ全てのクラスに `sealed class` が適用されており（AP.04 準拠）、継承の乱用を防いでいます。また、`TenantInfo` などのデータ転送オブジェクトに `sealed record` を用いてイミュータブルな特性を活かしている点はベストプラクティスです。
 - **Chain of Responsibilityの適用**:
   テナント解決のロジックを1つの巨大なミドルウェアに全て書くのではなく、`ITenantResolver` と `TenantResolutionPipeline` に委譲することで、高い凝集度と開閉原則（Open/Closed Principle）を満たすアーキテクチャが実現されています。
 
@@ -65,3 +65,4 @@
     - `QueryStringTenantResolver` 内に `#if DEBUG` ディレクティブや、`IWebHostEnvironment.IsDevelopment()` のチェックロジックを追加し、本番環境で誤って実行される脆弱性を技術レベルで遮断する。
 3. **推奨される学習トピック (Learning Suggestions)**:
     - Error as Value パターン: 例外をスローする代わりに専用の `Error` オブジェクトを `Result<T>` で伝搬させ、ドメイン全体で統一されたエラーハンドリングを実現するための設計論。
+

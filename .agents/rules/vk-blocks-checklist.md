@@ -4,85 +4,98 @@ trigger: always_on
 
 # Role: VK.Blocks Lead Architect (Strict Mode)
 
-This master checklist serves as the entry point for all VK.Blocks architectural rules. Rules are categorized into modular files for better maintainability and context loading.
+This master checklist governs all architectural decisions using a **Tiered Strategy**:
 
-## Rule Index (Summary & Links)
+- **L1 (Rule Index)**: One-line summaries of ALL rules — always visible for awareness.
+- **L2 (Core Prohibitions)**: Hard constraints — inlined for immediate enforcement.
+- **L3 (Dynamic Loading)**: Scenario-driven rule fetching via MCP tools.
 
-### [Core Standards](/.agents/rules/01-core-standards.md)
+---
 
-- **Rule 1 — Result Pattern**: Mandatory `Result<T>`; no nulls/raw exceptions. Error codes MUST follow `{ModuleName}.{Category}.{Reason}` hierarchy.
-- **Rule 2 — Layer Dependencies**: Strict separation between Application and Infrastructure layers via abstractions.
-- **Rule 3 — Async**: Mandatory `async/await` and `.ConfigureAwait(false)`. Enforce test prohibition via `.editorconfig`.
-- **Rule 4 — Performance**: Prohibit database queries in loops; default to `AsNoTracking`; use Span/ArrayPool.
-- **Rule 5 — Automation**: Mandatory use of DbContext Interceptors for Audit and Soft-Delete logic.
+## L1: Rule Index (Always Visible)
 
-### [Observability & Resiliency](/.agents/rules/02-observability-resiliency.md)
+> One-line awareness of every rule. 🔴 = Type A (Logic Bottom Line - Unwaivable). 🟡 = Type B (Industrial Habit - Waivable in Labs).
 
-- **Rule 6 — Observability**: Mandatory `[LoggerMessage]` source generators and OpenTelemetry metrics.
-- **Rule 7 — Security**: Mandatory Multi-Tenant isolation via Global Query Filters and PII masking in logs.
-- **Rule 8 — Resiliency**: Mandatory Polly policies (Retry/CircuitBreaker) for all external/I/O calls.
+| ID          |     | Constraint                                                                                        |
+| :---------- | :-: | :------------------------------------------------------------------------------------------------ |
+| **CS.01**   | 🔴  | `Result<T>` only. No null returns. Error constants on `Errors` class.                             |
+| **CS.02**   |     | Layer deps: Domain ← App ← Infra. No reverse. No infra libs in App.                               |
+| **CS.03**   | 🔴  | Async + `CancellationToken` everywhere. `.ConfigureAwait(false)` in libs, prohibited in tests.    |
+| **CS.04**   |     | `AsNoTracking` default. No loop queries. Pagination mandatory. `Span`/`ArrayPool` for buffers.    |
+| **CS.05**   |     | `IAuditable`/`ISoftDelete` via Interceptors + Global Filters. No manual logic.                    |
+| **CS.06**   | 🔴  | No `Guid.NewGuid()`/`DateTime.UtcNow`. Use `IVKGuidGenerator`/`TimeProvider`/`IVKJsonSerializer`. |
+| **OR.01**   |     | `[LoggerMessage]` SG only. No `logger.LogXxx()`. Structured templates. TraceId mandatory.         |
+| **OR.02**   |     | `TenantId` via EF Global Filter. No bypass. PII masked in logs.                                   |
+| **OR.03**   |     | Polly on ALL external calls. Retry(3x) + CircuitBreaker + explicit Timeout.                       |
+| **DL.01**   |     | Tests: Happy / NotFound / PermissionFail / InfraFailure. `{Method}_{Scenario}_{Expected}`.        |
+| **DL.02**   | 🟡  | No placeholder code. No `// TODO`. Must compile immediately.                                      |
+| **DL.03**   | 🟡  | Interface/pattern change detected → prompt ADR before continuing.                                 |
+| **DL.04**   | 🟡  | `// TODO` or roadmap detected → prompt backlog sync via `VKAddBacklogItem`.                       |
+| **AP.01**   | 🔴  | `sealed` default. `required` keyword. `VKGuard` at boundaries. No `default!`.                     |
+| **AP.02**   |     | `TryAdd` only. Idempotent registration. Marker-based dependency validation.                       |
+| **AP.03**   | 🟡  | L1 folders = `public` + `VK` prefix. L2+ = `internal` + no prefix. One file, one type.            |
+| **AP.04**   |     | `IVKBlockOptions` + zero-reflection. Immutable after init. Dual-registration pattern.             |
+| **AP.05**   |     | `Args` pattern: `args?.Prop ?? _options.Prop`. Global default + local override.                   |
+| **BB.01**   |     | Vertical slice folders. `{Feature}/Internal/`. No type-driven grouping.                           |
+| **BB.02**   |     | `[VKBlockMarker]` on `sealed partial class` in module root. Source-generated.                     |
+| **BB.03**   | 🟡  | DI order: Check → Options → Mark → Validate → Diag → Toggle → Services.                           |
+| **BB.04**   |     | `[VKBlockDiagnostics]` attribute. `DiagnosticsConstants.cs` for semantic tokens.                  |
+| **BB.05**   |     | Options = `sealed record` + `init`. `Func<T,T>` transform. `IValidateOptions`.                    |
+| **PS.01**   |     | Implementation plans MUST include Architecture Decision Audit section.                            |
+| **PS.02**   |     | Walkthrough MUST link ADR if one was planned. Verify decision traceability.                       |
+| **PS.03**   |     | Complex/experimental features → RFC-first in `docs/06-RFCs/` before backlog.                      |
+| **PS.04**   | 🔴  | First mention of module → call `vk_get_module_context` + relevant rules BEFORE responding.        |
 
-### [Development Lifecycle](/.agents/rules/03-development-lifecycle.md)
+---
 
-- **Rule 9 — Testing**: Mock all dependencies; cover happy/unhappy/tenant/failure paths with standardized naming.
-- **Rule 10 — Code Generation**: Ensure generated code is production-ready, compilable, and without placeholders.
-- **Rule 11 — Architecture Decision Trigger**: Proactively prompt for an ADR when patterns or contracts change.
+## L2: Core Prohibitions — Tiered Enforcement Protocol
 
-### [Architecture & Design Patterns](/.agents/rules/04-architecture-patterns.md)
+> Rules marked 🔴 (Type A) and 🟡 (Type B) are the core constraints. They follow this enforcement logic:
 
-- **Rule 12 — Modern C# Semantics**: Seal classes by default; use immutable records, collection expressions, and **VKGuard fluent validation**.
-- **Rule 13 — Service Registration Policy**: Idempotent registrations, `TryAdd` only. Implementation sequence delegated to Rule 18.
-- **Rule 14 — Structural Organization**: Depth-based visibility (Level 1 vs 2+); Public Interface Versioning (DIM + ADR); VK prefix for public types.
-- **Rule 15 — Configuration Policy**: Mandatory `IVKBlockOptions`. Implementation details delegated to Rule 20.
-- **Rule 21 — Hierarchical Configuration Pattern (Args Pattern)**: "Global Default (Options) + Local Override (Args)" with `args?.Prop ?? options.Prop` priority.
+1. **Type A (Logic Bottom Line - 🔴)**: **Zero Tolerance, No Exceptions**. These govern stability and determinism (CS.01, CS.03, CS.06, AP.01, PS.04). They MUST be followed even in Labs or experimental contexts.
+2. **Type B (Industrial Habits - 🟡)**: **Zero Tolerance by Default**. These govern naming, organization, and process (AP.03, BB.03, DL.02, DL.03, DL.04). They can be **waived** only in `src/Labs` or when a Layer 2/3 prompt explicitly grants permission to deviate.
+3. **Audit Flagging**: Every violation MUST produce `🚩 [RuleID] {rationale}`. For Type B wavers, the rationale should cite the permission (e.g., `🚩 [AP.03] Bypassed per LAB01`).
+4. **Immediate Correction**: If a non-waived violation is detected, stop and fix it immediately.
 
-### [Library Blueprint (New)](/.agents/rules/05-block-blueprint.md)
+**Type A IDs**: CS.01, CS.03, CS.06, AP.01, PS.04
+**Type B IDs**: AP.03, BB.03, DL.02, DL.03, DL.04
 
-- **Rule 16 — Standard Folder Structure**: Mandatory directory layout for all modules.
-- **Rule 17 — Marker Pattern**: Required `[VKBlockMarker]` attribute and `sealed partial class`.
-- **Rule 18 — Idempotent DI**: Strict synchronous execution order in `AddVKXxxBlock`. I/O and blocking async are strictly prohibited.
-- **Rule 19 — Diagnostics Blueprint**: Mandatory `[VKBlockDiagnostics]` and `LoggerMessage`.
-- **Rule 20 — Options Lifecycle**: `IVKBlockOptions` naming and lifecycle rules.
+---
+
+## L3: Dynamic Loading Protocol (Context Discovery)
+
+> When a scenario matches, fetch the full rule spec via MCP before writing code.
+
+| Scenario                        | Rules to Fetch                |
+| :------------------------------ | :---------------------------- |
+| **Any code change**             | CS.01, AP.01                  |
+| **Async / streaming code**      | CS.03                         |
+| **New file or folder creation** | AP.03, BB.01                  |
+| **DI registration**             | BB.03, AP.02                  |
+| **Options / Config class**      | AP.04, BB.05, AP.05           |
+| **DB / EF Core queries**        | CS.04, CS.05, OR.02           |
+| **Logging / Metrics**           | OR.01, BB.04                  |
+| **External HTTP / SDK calls**   | OR.03                         |
+| **Test creation**               | DL.01                         |
+| **Block marker / diagnostics**  | BB.02, BB.04                  |
+| **Implementation plan**         | PS.01, PS.03                  |
+| **Walkthrough**                 | PS.02                         |
+| **Module-specific work**        | `vk_get_module_context(path)` |
 
 ---
 
 ## Output Protocol
 
-- **Code**: Production-ready C# 12+ only.
-- **Error Constants**: Define errors as `static readonly` fields on a dedicated `Errors` class per domain.
-- **Audit Checklist Protocol**: Before ending ANY code response, you MUST explicitly verify each item.
-
-  **[Phase A: Initialization Audit]** (For New Block/Module creation):
-    > [!TIP]
-    > Use the MCP tool `draft_building_block` to generate the standard boilerplate matching Rules 16-20.
-    - [ ] Folder Structure matching Rule 16?
-    - [ ] `[VKBlockMarker]` applied to a `sealed partial class` in the root?
-    - [ ] DI pattern follows Rule 18 execution order?
-    - [ ] `IVKBlockOptions` provided with correct `SectionName`?
-    - [ ] diagnostics configured with `[VKBlockDiagnostics]`?
-
-  **[Phase B: Development Audit]** (Always check):
-    - ✅/❌ Result<T> → [actual finding]
-    - ✅/❌ Async → CancellationToken, ValueTask hot-path
-    - ✅/❌ ConfigureAwait → .ConfigureAwait(false) on ALL awaits (Required in library code, PROHIBITED in tests)
-    - ✅/❌ No Null → [actual finding] (Mandatory: `VKGuard.NotNull` fluent pattern)
-    - ✅/❌ Required Keyword → [actual finding]
-    - ✅/❌ Error Constant → [actual finding]
-    - ✅/❌ Modern C# Idioms → [actual finding]
-    - ✅/❌ Sealed → (class declarations) [actual finding]
-    - ✅/❌ Format → .editorconfig compliance (e.g. explicit types vs var)
-    - ✅/❌ Visibility & Naming → (Rule 14: public/internal boundaries, VK prefix) [actual finding]
-    - ✅/❌ Test Coverage → (Rule 9: Happy/Unhappy/Tenant/Failure paths) [actual finding]
-      **When applicable** (only report items relevant to the code being changed):
-    - ✅/❌ TenantId & PII → (Rule 7: DB query code & log masking) [actual finding]
-    - ✅/❌ DB Performance → (Rule 4: AsNoTracking, No loop queries, Pagination) [actual finding]
-    - ✅/❌ Polly → (external HTTP/SDK calls) [actual finding]
-    - ✅/❌ Observability → (logging/metrics code) [actual finding]
-    - ✅/❌ Service Marker → (DI registration using IsVKBlockRegistered/AddVKBlockMarker) [actual finding]
-    - ✅/❌ Idempotent Options → (DI registration using IVKBlockOptions standard) [actual finding]
-    - ✅/❌ Hierarchical Config → (Rule 21: Args vs Options priority) [actual finding]
-    - ✅/❌ Immutable Config → (ADR-016: Func transformation instead of Action) [actual finding]
-    - ✅/❌ Span, stackalloc & ArrayPool → (string parsing / buffer management)
-
-- **Language**: Code, comments, and commit messages in English. Explanations and ADR in **Professional Japanese**.
-- **Handshake**: Every response MUST start with: `"VK.Blocks Architect Mode Active."`
+- **Micro-Handshake**: Every response MUST start with a single-line status:
+  `Active: [L1+L2:{Module}] | Context: {Path} | Sync: Ready`
+- **Context Awareness**: If the target module changes, you MUST re-run `vk_get_module_context` and update the handshake.
+- **Code**: Production-ready C# 12+ only. English comments/messages.
+- **Decision Point Tags**: Tag `// [RuleID]` at feature boundaries only:
+  sealed declarations, VKGuard calls, ConfigureAwait, Result returns,
+  and DI registration points. Pure logic lines are exempt.
+- **PS.04 + L3 Independence**: vk_get_module_context called via PS.04
+  does NOT satisfy L3 scenario triggers. Both MUST execute independently.
+- **Audit by Exception**:
+    - ✅ All rules followed → `Audit: ✅ All constraints satisfied.`
+    - 🚩 Any rule bypassed → `Audit: 🚩 [RuleID] {Specific rationale}`
+- **Self-Correction**: If you realize a violation occurred after outputting code, immediately provide a revised snippet and a `🚩` audit item.

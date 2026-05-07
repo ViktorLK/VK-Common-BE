@@ -1,4 +1,4 @@
-# Architecture Decision Records (ADR) - Index
+﻿# Architecture Decision Records (ADR) - Index
 
 このディレクトリには、VK.Blocks.Authorization モジュールの主要な設計決定を記録した ADR が含まれています。
 
@@ -23,25 +23,25 @@
 
 **Status**: ✅ Accepted  
 **概要**: VK.Blocks 標準規約への準拠のため、名前空間のフラット化、VK プレフィックスの適用、および DI 登録パターンの標準化を実施  
-**キーワード**: Refactoring, Naming Convention, Namespace Flattening, Rule 13
+**キーワード**: Refactoring, Naming Convention, Namespace Flattening, AP.02
 
 #### [ADR-012: Authorization Library Architecture Normalization](./adr-012-authorization-library-architecture-normalization.md)
 
 **Status**: ✅ Accepted  
-**概要**: VK.Blocks 標準規約 (Rules 16-20) への完全準拠のため、ディレクトリ構造の再編、`IVKBlockMarker` の実装、およびカプセル化の深化を実施  
-**キーワード**: Blueprint, IVKBlockMarker, Internal Isolation, Rule 16
+**概要**: VK.Blocks 標準規約 (BB.01–BB.05) への完全準拠のため、ディレクトリ構造の再編、`IVKBlockMarker` の実装、およびカプセル化の深化を実施  
+**キーワード**: Blueprint, IVKBlockMarker, Internal Isolation, BB.01
 
 #### [ADR-013: Feature-Sliced Modular Registration Pattern](./adr-013-feature-sliced-modular-registration-pattern.md)
 
 **Status**: ✅ Accepted  
-**概要**: 認可機能を垂直スライスごとに分割し、Rule 18 に準拠した個別の登録ロジックと Builder による fluent API を提供するアーキテクチャ  
-**キーワード**: Modular Registration, Rule 18, IVKAuthorizationBuilder, Encapsulation
+**概要**: 認可機能を垂直スライスごとに分割し、BB.03 に準拠した個別の登録ロジックと Builder による fluent API を提供するアーキテクチャ  
+**キーワード**: Modular Registration, BB.03, IVKAuthorizationBuilder, Encapsulation
 
 #### [ADR-016: Authorization Block Normalization and Core Protocol Standardization](./adr-016-authorization-block-normalization-and-core-protocol-standardization.md)
 
 **Status**: ✅ Accepted  
-**概要**: 認可ブロックの全機能を Rule 21 に適合させ、ドメインセマンティクスを優先したエバリュエータ設計と Core Protocols 規格を確立  
-**キーワード**: Normalization, Rule 21, Semantic-Priority, Protocols
+**概要**: 認可ブロックの全機能を AP.05 に適合させ、ドメインセマンティクスを優先したエバリュエータ設計と Core Protocols 規格を確立  
+**キーワード**: Normalization, AP.05, Semantic-Priority, Protocols
 
 ---
 
@@ -117,9 +117,9 @@
 
 ### アーキテクチャとセキュア設計の理解用
 
-1. **ADR-016**: 認可ブロックの最新の標準化（Rule 21）と Core Protocols による横断的な規格設計
+1. **ADR-016**: 認可ブロックの最新の標準化（AP.05）と Core Protocols による横断的な規格設計
 2. **ADR-012**: モジュールの標準ディレクトリ構造 (Blueprint) とマーカーパターンによる自動化の基礎
-3. **ADR-013**: 機能ごとの独立した登録フロー (Rule 18.2) と Builder による拡張性の確保
+3. **ADR-013**: 機能ごとの独立した登録フロー (BB.03.2) と Builder による拡張性の確保
 4. **ADR-015**: テナントレベルの機能認可 (Entitlements) による多次元のアクセス制御
 5. **ADR-011**: 初期のリファクタリングと命名規則の統一（歴史的経緯）
 6. **ADR-001**: マルチテナントシステムにおける認可境界（Authorization Boundary）の設計思想
@@ -149,3 +149,5 @@
 
 **Last Updated**: 2026-05-05  
 **Total ADRs**: 16
+
+

@@ -108,7 +108,7 @@
 
 **Status**: ✅ Accepted  
 **概要**: 技術レイヤーベースのフォルダ構成を廃止し、ドメイン駆動の垂直スライスを採用。非決定論的 API（Guid, DateTime）の直接使用を禁止し、Core 抽象の利用を義務化。  
-**キーワード**: Vertical Slices, Deterministic Logic, Rule 5.1, Rule 16
+**キーワード**: Vertical Slices, Deterministic Logic, CS.06, BB.01
 
 ---
 
@@ -122,3 +122,4 @@
 
 **Last Updated**: 2026-04-25  
 **Total ADRs**: 16
+

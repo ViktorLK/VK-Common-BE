@@ -1,4 +1,4 @@
-# ADR 012: Authorization Library Architecture Normalization
+﻿# ADR 012: Authorization Library Architecture Normalization
 
 - **Date**: 2026-04-24
 - **Status**: ✅ Accepted
@@ -7,12 +7,12 @@
 
 ## 1. Context (背景)
 
-Authorization ライブラリは、先行して実施されたリファクタリング（ADR-011）により基本的な名前空間の整理が行われていたが、その後に策定された「Building Block Blueprint (Rules 16-20)」に対しては、内部構造の階層、マーカーパターンの実装、およびソースジェネレータとの統合において依然として不整合が残っていた。特に、診断用メタデータの提供方法や、内部実装の隠蔽深度において、他の Building Block との統一性が欠如していた。
+Authorization ライブラリは、先行して実施されたリファクタリング（ADR-011）により基本的な名前空間の整理が行われていたが、その後に策定された「Building Block Blueprint (BB.01–BB.05)」に対しては、内部構造の階層、マーカーパターンの実装、およびソースジェネレータとの統合において依然として不整合が残っていた。特に、診断用メタデータの提供方法や、内部実装の隠蔽深度において、他の Building Block との統一性が欠如していた。
 
 ## 2. Problem Statement (問題定義)
 
 現在の実装には以下の課題があった：
-1. **Blueprint 違反**: フォルダ構造が Rule 16 に定める「垂直スライス」および `Internal/` フォルダによるカプセル化ルールに完全に適合していなかった。
+1. **Blueprint 違反**: フォルダ構造が BB.01 に定める「垂直スライス」および `Internal/` フォルダによるカプセル化ルールに完全に適合していなかった。
 2. **マーカーパターンの未整備**: `IVKBlockMarker` が正しく実装されておらず、グローバルなテレメトリ収集において手動の文字列定義に依存していた。
 3. **カプセル化の不足**: 2段階目以降の深度にあるべき内部クラスがルート近傍に混在し、公開 API サーフェスが不明確であった。
 
@@ -20,10 +20,10 @@ Authorization ライブラリは、先行して実施されたリファクタリ
 
 Authorization ライブラリを「Building Block Blueprint」に完全準拠させるべく、以下の再編を実施した：
 
-1. **名前空間とフォルダ構造の再編 (Rule 14/16)**:
+1. **名前空間とフォルダ構造の再編 (AP.03/16)**:
    - 公開 API（Options, Builder, Marker）のみを `VK.Blocks.Authorization` ルートに配置。
    - すべての実装ロジック、ハンドラー、バリデーターを各機能フォルダ配下の `Internal/` サブディレクトリへ移動し、名前空間もそれに同期させた。
-2. **IVKBlockMarker の実装 (Rule 17)**:
+2. **IVKBlockMarker の実装 (BB.02)**:
    - `VKAuthorizationBlock` マーカークラスをルートに導入。
    - Source Generator により、`BlockIdentifier` ("VK.Blocks.Authorization") と `BlockName` ("Authorization") を自動生成。
 3. **命名規則の完全適用**:
@@ -75,3 +75,5 @@ Authorization/
 
 **Last Updated**: 2026-04-24
 **Status**: ✅ Accepted
+
+

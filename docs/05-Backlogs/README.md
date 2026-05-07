@@ -1,4 +1,4 @@
-# VK.Blocks Backlog Dashboard
+﻿# VK.Blocks Backlog Dashboard
 
 Welcome to the central backlog for the VK.Blocks ecosystem. This directory tracks all technical debt, upcoming features, and architectural refinements categorized by module.
 
@@ -12,11 +12,11 @@ Welcome to the central backlog for the VK.Blocks ecosystem. This directory track
 | **[MultiTenancy](active/03-MultiTenancy.md)** | 2 | 0 | 🟢 Stable |
 | **[Persistence](active/04-Persistence.md)** | 2 | 2 | 🔴 Refactoring |
 
-## 🛠️ Management Guide
+## 🛠�E�EManagement Guide
 
 - **New Tasks**: Add to the respective module file in `active/`.
 - **Completion**: Move the task to `archive/` or mark as completed in the module file.
-- **Large Shifts**: If a task requires a significant design change, trigger an **ADR** (Rule 11).
+- **Large Shifts**: If a task requires a significant design change, trigger an **ADR** (DL.03).
 
 ## 📂 Directory Structure
 
@@ -26,3 +26,4 @@ Welcome to the central backlog for the VK.Blocks ecosystem. This directory track
 
 ---
 *Last Updated: 2026-05-05*
+

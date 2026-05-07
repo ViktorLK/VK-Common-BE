@@ -1,10 +1,10 @@
----
-trigger: always_on
+﻿---
+trigger: model_decision
 ---
 
-# VK.Blocks: Architecture & Design Patterns
+# VK.Blocks: Architecture & Design Patterns (AP)
 
-### Rule 12 — Modern C# Semantics
+### AP.01 — Modern C# Semantics
 
 - **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required.
 - **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality. Use `with` expressions for non-destructive mutation instead of manual copy constructors.
@@ -12,9 +12,9 @@ trigger: always_on
 - **Modern C# Idioms**: Use C# 12+ features (Collection expressions `[]`, Primary constructors) where appropriate. STRICTLY ADHERE to the project's `.editorconfig` for formatting rules (e.g., preference for explicit types over `var` for built-in types).
 - **Pattern Matching**: Prefer `is` and `switch` expressions over `if`/`else` chains and type casting for concise, readable branching.
 - **Null Handling**: Prefer `??` / `??=` / `?.` over explicit null checks. Use `is null` / `is not null` over `== null` to avoid operator overload side-effects and ensure pattern consistency.
-- **Defensive Programming (VKGuard)**: 
+- **Defensive Programming (VKGuard)**:
     - **Mandatory Boundary Checks**: ALL method and constructor boundaries MUST use `VKGuard` to enforce preconditions. Manual `if (x == null) throw` patterns are STRICTLY PROHIBITED.
-    - **Specific Guard Selection**: 
+    - **Specific Guard Selection**:
         - Use `VKGuard.NotNull(x)` for reference types.
         - Use `VKGuard.NotNullOrWhiteSpace(s)` for strings.
         - Use `VKGuard.NotEmpty(list)` for collections.
@@ -23,15 +23,15 @@ trigger: always_on
     - **Fluent Assignment**: Leverage the return value of `VKGuard` for single-line field initialization (e.g., `_service = VKGuard.NotNull(service);`) or expression-bodied members.
 - **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
 
-### Rule 13 — Service Registration Policy
+### AP.02 — Service Registration Policy
 
 - **Idempotency**: All building block registrations MUST be strictly idempotent. Registering the same block multiple times must be safe and have no side effects.
 - **Dependency Validation**: Modules MUST declare and automatically validate their prerequisite blocks (e.g., Core, Infrastructure) before registering themselves.
 - **Marker Types**: Each module MUST use a strongly typed marker (`[VKBlockMarker]`) to track its registration state and dependencies.
 - **Safe Registration**: Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`). Direct `AddSingleton` is PROHIBITED.
-- **Implementation Delegation**: For the exact execution order and implementation sequence of this policy, you MUST strictly follow **Rule 18** in `05-block-blueprint.md`.
+- **Implementation Delegation**: For the exact execution order and implementation sequence of this policy, you MUST strictly follow **BB.03** in `05-block-blueprint.md`.
 
-### Rule 14 — Structural Organization
+### AP.03 — Structural Organization
 
 #### Depth-Based Visibility & Naming Convention
 
@@ -52,7 +52,7 @@ trigger: always_on
 
 - **Backward Compatibility**: Once an interface (e.g., `IVK...`) is published as a Level 1 Public API, breaking changes to consumers MUST be avoided.
 - **Default Interface Methods (DIM)**: Use C# 8.0+ Default Interface Methods when adding new functionality to an existing public interface to maintain backward compatibility.
-- **ADR Trigger**: Any unavoidable breaking change to a Level 1 public interface REQUIRES an immediate Architectural Decision Record (ADR) and explicit team approval (Rule 11).
+- **ADR Trigger**: Any unavoidable breaking change to a Level 1 public interface REQUIRES an immediate Architectural Decision Record (ADR) and explicit team approval (DL.03).
 
 #### Constant Visibility
 
@@ -70,14 +70,14 @@ trigger: always_on
 - **Navigation**: Extract nested or bundled types into their own files to maintain high cohesive navigation.
 - **Exception**: Private nested types used exclusively within the same class MAY remain in the same file. e.g. private sealed record InternalResult(...)
 
-### Rule 15 — Configuration Policy (Zero-Reflection)
+### AP.04 — Configuration Policy (Zero-Reflection)
 
 - **Strict Contracts**: ALL building block Options classes MUST implement `IVKBlockOptions` to support the zero-reflection pattern.
 - **Immutability**: Configuration objects MUST be immutable after initialization.
 - **Dual-Registration**: The framework MUST maintain an **Idempotent Dual-Registration Pattern** (IOptions + Singleton) to allow synchronous access to options during startup.
-- **Implementation Delegation**: For the exact structure, naming conventions, and validation setup of Options classes, you MUST strictly follow **Rule 20** in `05-block-blueprint.md`.
+- **Implementation Delegation**: For the exact structure, naming conventions, and validation setup of Options classes, you MUST strictly follow **BB.05** in `05-block-blueprint.md`.
 
-### Rule 21 — Hierarchical Configuration Pattern (Args Pattern)
+### AP.05 — Hierarchical Configuration Pattern (Args Pattern)
 
 - **Pattern**: Any behavioral setting that can change per-request (e.g., Timeout, TTL, Temperature) MUST follow the **"Global Default + Local Override"** pattern.
 - **Components**:
@@ -85,3 +85,5 @@ trigger: always_on
     - **Local Overrides**: Defined in a dedicated `XxxArgs` record (e.g., `VKAgentArgs.MaxIterations`) and passed as an optional method argument.
 - **Merging Priority**: The implementation MUST merge these values using the null-coalescing priority: **`args?.Property ?? _options.Property`**.
 - **Naming**: Overriding records MUST be named with the **`Args` suffix** (e.g., `VKChatArgs`, `VKRagArgs`).
+
+

@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート — VK.Blocks.MultiTenancy
+﻿# アーキテクチャ監査レポート — VK.Blocks.MultiTenancy
 
 **監査日**: 2026-03-12  
 **対象モジュール**: `VK.Blocks.MultiTenancy`  
@@ -21,7 +21,7 @@
 2. **DI 登録における Options パターンの逸脱** — 他モジュールと同様、`new` による手動構築が行われている。
 3. **`TenantContextAccessor` が Service Locator パターンを使用** — `GetService(typeof(ITenantContext))` による手動解決。
 4. **`TenantResolutionMiddleware` での匿名型 ProblemDetails** — `VK.Blocks.ExceptionHandling` の `VKProblemDetails` を使用すべき。
-5. **`MultiTenancyOptions` 内の `TenantResolverType` enum** — Rule 14（Type Segregation: One File, One Type）違反。
+5. **`MultiTenancyOptions` 内の `TenantResolverType` enum** — AP.03（Type Segregation: One File, One Type）違反。
 
 ---
 
@@ -70,7 +70,7 @@ services.AddSingleton(resolutionOptions);
 
 ---
 
-### ❌ CS-03: `MultiTenancyOptions.cs` に `TenantResolverType` enum が同居 (Rule 14 違反)
+### ❌ CS-03: `MultiTenancyOptions.cs` に `TenantResolverType` enum が同居 (AP.03 違反)
 
 **該当箇所**: [MultiTenancyOptions.cs](/src/BuildingBlocks/MultiTenancy/Options/MultiTenancyOptions.cs#L29-L42)
 
@@ -80,7 +80,7 @@ public sealed class MultiTenancyOptions { ... }
 public enum TenantResolverType { Header, Claims, Domain, QueryString }
 ```
 
-Rule 14（One File, One Type）に違反。`TenantResolverType` は外部から参照される公開型であり、独立したファイルに分離すべきである。
+AP.03（One File, One Type）に違反。`TenantResolverType` は外部から参照される公開型であり、独立したファイルに分離すべきである。
 
 **推奨**: `Options/TenantResolverType.cs` に分離すること。
 
@@ -194,7 +194,7 @@ services.TryAddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>
 
 ### 📡 OB-01: 構造化ログの一貫した実装 ✅
 
-`TenantResolutionMiddleware` および `TenantResolutionPipeline` では、`{TenantId}`, `{TraceId}`, `{ResolverType}`, `{Error}` などの構造化プレースホルダを使用した適切なログ出力が実装されている。Rule 6 (Observability) に準拠。
+`TenantResolutionMiddleware` および `TenantResolutionPipeline` では、`{TenantId}`, `{TraceId}`, `{ResolverType}`, `{Error}` などの構造化プレースホルダを使用した適切なログ出力が実装されている。OR.01 (Observability) に準拠。
 
 ### 📡 OB-02: 個別リゾルバのログ不足
 
@@ -238,22 +238,22 @@ const string placeholder = "{tenant}";
 
 **該当箇所**: 全リゾルバの `TenantResolutionResult.Fail(...)` 呼び出し
 
-リゾルバの失敗メッセージに文字列補間 (`$"Header '{_headerName}' not found or empty."`) が使用されている。これらはログメッセージではなく Result のエラー文言として使用されているため、Rule 6 の直接的な違反ではないが、構造化された `Error` オブジェクトに移行する場合は定数化が必要になる。
+リゾルバの失敗メッセージに文字列補間 (`$"Header '{_headerName}' not found or empty."`) が使用されている。これらはログメッセージではなく Result のエラー文言として使用されているため、OR.01 の直接的な違反ではないが、構造化された `Error` オブジェクトに移行する場合は定数化が必要になる。
 
 ---
 
 ## ✅ 評価ポイント (Highlights / Good Practices)
 
 1. **Strategy + Chain of Responsibility パターン**: `ITenantResolver` × 4 リゾルバ + `TenantResolutionPipeline` による優先順位付き解決パイプラインが適切に実装されている。
-2. **定数の一元管理**: `MultiTenancyConstants` に Headers, Claims, QueryString, Defaults, Errors がカテゴリ別に整理されており、Rule 13 に準拠。
-3. **`sealed` の適切な適用**: 全リゾルバ (`HeaderTenantResolver`, `ClaimsTenantResolver`, `DomainTenantResolver`, `QueryStringTenantResolver`)、`TenantContext`, `TenantContextAccessor`, `TenantResolutionMiddleware`, `TenantResolutionPipeline`, `TenantContextTenantProvider` が `sealed` 宣言されている (Rule 15 準拠)。
-4. **`sealed record TenantInfo`**: イミュータブルなテナント情報を `sealed record` で表現 (Rule 15)。
+2. **定数の一元管理**: `MultiTenancyConstants` に Headers, Claims, QueryString, Defaults, Errors がカテゴリ別に整理されており、AP.02 に準拠。
+3. **`sealed` の適切な適用**: 全リゾルバ (`HeaderTenantResolver`, `ClaimsTenantResolver`, `DomainTenantResolver`, `QueryStringTenantResolver`)、`TenantContext`, `TenantContextAccessor`, `TenantResolutionMiddleware`, `TenantResolutionPipeline`, `TenantContextTenantProvider` が `sealed` 宣言されている (AP.04 準拠)。
+4. **`sealed record TenantInfo`**: イミュータブルなテナント情報を `sealed record` で表現 (AP.04)。
 5. **`sealed record TenantResolutionResult`**: Factory メソッドパターン (`Success()`, `Fail()`) による生成を強制。
 6. **`CancellationToken` の完全伝播**: `ITenantResolver.ResolveAsync`, `ITenantStore.GetByIdAsync/GetByDomainAsync`, `TenantResolutionPipeline.ResolveAsync` すべてで `CancellationToken` が伝播されている。
 7. **RFC 7807 準拠レスポンス**: テナント解決失敗時に ProblemDetails 形式のレスポンスを返却（匿名型ではあるが構造は準拠）。
 8. **Fail-Fast 設計**: `EnforceTenancy = true` のデフォルト設定でテナント未解決リクエストを拒否する防御的設計。
 9. **`BaseException` 継承例外**: `TenantNotProvidedException`, `InvalidTenantImplementationException` が `BaseException` を継承し、定数化されたエラーコードを使用。
-10. **構造化ログ出力**: `TenantResolutionMiddleware` / `TenantResolutionPipeline` で `{TenantId}`, `{TraceId}` プレースホルダを使用した Rule 6 準拠のログ。
+10. **構造化ログ出力**: `TenantResolutionMiddleware` / `TenantResolutionPipeline` で `{TenantId}`, `{TraceId}` プレースホルダを使用した OR.01 準拠のログ。
 11. **File-Scoped Namespace**: 全ファイルで file-scoped namespace を使用。
 12. **`#region` による構造化**: 全クラスで一貫した `#region` タグの使用。
 
@@ -300,3 +300,4 @@ const string placeholder = "{tenant}";
 - ❌ Error Constant → `TenantResolutionMiddleware.cs` の匿名型 ProblemDetails にマジックストリングが存在 (CQ-01)。
 - ✅ Polly → 本モジュールは外部 HTTP/Third-party 呼び出しを行わないため対象外。`ITenantStore` の実装側で Polly を適用すべき。
 - ✅ NoTracking → DB アクセスを直接行わないため対象外。`ITenantStore` の実装側で適用すべき。
+

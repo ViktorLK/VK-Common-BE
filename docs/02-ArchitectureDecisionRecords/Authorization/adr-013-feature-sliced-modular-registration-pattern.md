@@ -1,4 +1,4 @@
-# ADR 013: Feature-Sliced Modular Registration Pattern
+﻿# ADR 013: Feature-Sliced Modular Registration Pattern
 
 - **Date**: 2026-04-24
 - **Status**: ✅ Accepted
@@ -7,7 +7,7 @@
 
 ## 1. Context (背景)
 
-Authorization ライブラリは、Roles, Permissions, WorkingHours, TenantIsolation など多岐にわたる機能を提供している。従来、これらの機能の DI 登録は `AddAuthorizationBlock` 内の単一のモノリシックな拡張メソッドで管理されていた。しかし、機能の増加に伴い、登録ロジックが複雑化し、特定の機能のみを有効化したり、機能ごとの依存関係を制御したりすることが困難になっていた。また、Rule 13 および Rule 18 で規定されている「べき等な登録シーケンス（Check-Self, Options, Mark-Self, Validation, Feature Toggle, Core Services）」を各機能に対して厳格に適用する必要があった。
+Authorization ライブラリは、Roles, Permissions, WorkingHours, TenantIsolation など多岐にわたる機能を提供している。従来、これらの機能の DI 登録は `AddAuthorizationBlock` 内の単一のモノリシックな拡張メソッドで管理されていた。しかし、機能の増加に伴い、登録ロジックが複雑化し、特定の機能のみを有効化したり、機能ごとの依存関係を制御したりすることが困難になっていた。また、AP.02 および BB.03 で規定されている「べき等な登録シーケンス（Check-Self, Options, Mark-Self, Validation, Feature Toggle, Core Services）」を各機能に対して厳格に適用する必要があった。
 
 ## 2. Problem Statement (問題定義)
 
@@ -23,7 +23,7 @@ Authorization ライブラリは、Roles, Permissions, WorkingHours, TenantIsola
 
 1. **機能別登録クラスの導入**:
    - 各機能（Roles, Permissions 等）に対して、`Internal/{FeatureName}Registration.cs` を作成した。
-   - 各クラスは、Rule 18 に基づく 8 ステップの登録シーケンスをカプセル化して実装する。
+   - 各クラスは、BB.03 に基づく 8 ステップの登録シーケンスをカプセル化して実装する。
 2. **IVKAuthorizationBuilder による fluent インターフェース**:
    - `AddAuthorizationBlock` が `IVKAuthorizationBuilder` を返すように変更。
    - `AddRoles()`, `AddPermissions()` などのメソッドを Builder の拡張メソッドとして定義し、チェーン呼び出しを可能にした。
@@ -74,7 +74,7 @@ internal static class RolesRegistration
 ### Positive
 - **高い凝集度**: 各機能の登録ロジックがその機能のフォルダ内に閉じられ、保守性が劇的に向上した。
 - **構成の柔軟性**: 必要な機能だけを明示的に `AddXxx()` することで、最小限のサービス構成を実現できる。
-- **規約の強制**: Rule 18 のシーケンスを機能単位で適用できるため、起動時のバリデーションや二重登録防止がより堅牢になった。
+- **規約の強制**: BB.03 のシーケンスを機能単位で適用できるため、起動時のバリデーションや二重登録防止がより堅牢になった。
 
 ### Negative
 - **コード量の増加**: 各機能に Registration クラスと Builder 拡張が必要になるため、ファイル数が増加する。
@@ -84,8 +84,9 @@ internal static class RolesRegistration
 
 ## 6. Implementation & Security (実装詳細とセキュリティ考察)
 
-- **セキュリティ**: 各機能の有効化（Enabled）フラグが、Registration クラス内の Rule 18 シーケンスによって厳格に評価される。無効化された機能のハンドラーは DI コンテナに登録されないため、意図しない認可ロジックの実行を構造的に防ぐことができる。
+- **セキュリティ**: 各機能の有効化（Enabled）フラグが、Registration クラス内の BB.03 シーケンスによって厳格に評価される。無効化された機能のハンドラーは DI コンテナに登録されないため、意図しない認可ロジックの実行を構造的に防ぐことができる。
 - **依存関係**: `IVKAuthorizationBuilder` を通じて `IServiceCollection` と `IConfiguration` にアクセスできるため、各機能が個別に設定セクション（`VKBlocks:Authorization:Roles` 等）を読み取ることが可能。
 
 **Last Updated**: 2026-04-24
 **Status**: ✅ Accepted
+

@@ -1,4 +1,4 @@
-# ADR 001: Remove Dead Code and Unused Abstractions
+﻿# ADR 001: Remove Dead Code and Unused Abstractions
 
 **Date**: 2026-03-03  
 **Status**: 📝 Draft  
@@ -34,7 +34,7 @@ public class AuthResult : Result
 // services.AddScoped<ApiKeyProvider>();                        // L69
 ```
 
-これらは **Rule 10（コード生成品質）** の精神に反しており、将来の開発者に「この機能は未実装なのか、意図的に削除されたのか」という混乱を招く。
+これらは **DL.02（コード生成品質）** の精神に反しており、将来の開発者に「この機能は未実装なのか、意図的に削除されたのか」という混乱を招く。
 
 ## 3. Decision (決定事項)
 
@@ -77,7 +77,7 @@ public class AuthResult : Result
 
 - **Positive**:
     - コードベースのノイズ除去による可読性向上。
-    - Rule 10 への準拠。
+    - DL.02 への準拠。
     - 新規開発者の onboarding 時の混乱防止。
 - **Negative**:
     - `AuthResult` を外部パッケージとして参照している NuGet コンシューマーがいた場合、破壊的変更となる。
@@ -89,3 +89,4 @@ public class AuthResult : Result
 - **影響範囲**: ファイル2件のみ。ビジネスロジックへの影響なし。
 - **セキュリティへの影響**: なし。デッドコードの除去であり、認証フローに変更はない。
 - **検証**: `dotnet build` による全プロジェクトのコンパイル確認で十分。
+

@@ -1,4 +1,4 @@
-# ADR 016: Authorization Block Normalization and Core Protocol Standardization
+﻿# ADR 016: Authorization Block Normalization and Core Protocol Standardization
 
 - **Date**: 2026-05-05
 - **Status**: ✅ Accepted
@@ -11,13 +11,13 @@ Authorization ブロックのノーマライゼーションを進める過程で
 
 1.  **エバリュエータのシグネチャ**: 汎用的な `IVKEvaluator<T>.EvaluateAsync` だけでは、開発者が各機能（例：WorkingHours, Roles）をプログラムから呼び出す際に直感的ではなく（DX の低下）、ドメイン特有の意味論（IsWithinWorkingHoursAsync 等）が失われていた。
 2.  **プロトコルの配置**: `IVKArgs` や `IVKEvaluator` は認可だけでなく AI ブロックなど横断的に使われる「工業規格」であるべきだが、配置場所が `Core/Abstractions` と曖昧であり、規格としての重みが不足していた。
-3.  **Rule 21 の実装負荷**: 「グローバル設定 + ローカル上書き」のロジックが `args?.Prop ?? options.Prop` という記述の繰り返しになり、可読性と記述効率の課題があった。
+3.  **AP.05 の実装負荷**: 「グローバル設定 + ローカル上書き」のロジックが `args?.Prop ?? options.Prop` という記述の繰り返しになり、可読性と記述効率の課題があった。
 
 ## 3. Problem Statement (問題定義)
 
 - **セマンティクスの欠如**: 汎用インターフェースに依存しすぎると、ドメイン固有の認可ロジックが「ただの Evaluate」に埋もれ、コードの意図が伝わりにくくなる。
 - **配置の曖昧さ**: `Abstractions` という汎用すぎるフォルダ名は、フレームワークの核心となるプロトコルの重要性を低下させていた。
-- **記述スタイルの不一致**: null 合体演算子が至る所に現れることは、Rule 12 が目指す「洗練された簡潔な C# スタイル」に逆行していた。
+- **記述スタイルの不一致**: null 合体演算子が至る所に現れることは、AP.01 が目指す「洗練された簡潔な C# スタイル」に逆行していた。
 
 ## 4. Decision (決定事項)
 
@@ -45,7 +45,7 @@ public interface IVKWorkingHoursEvaluator : IVKEvaluator<VKWorkingHoursArgs>
 - 名前空間は `VK.Blocks.Core` を維持し、既存コードへの影響を最小限に抑える。
 
 ### 4.3 MergeWith 拡張メソッドの導入
-Rule 21 の実装を簡潔かつ宣言的に行うための `MergeWith` パターンを採用する。
+AP.05 の実装を簡潔かつ宣言的に行うための `MergeWith` パターンを採用する。
 
 ```csharp
 // VKMergeExtensions.cs
@@ -60,7 +60,7 @@ var roles = args.MergeWith(VKRoleArgs.Empty).Roles.MergeWith([]);
 - **Option 1: 汎用 EvaluateAsync のみを公開する**
     - **Rejected Reason**: 各機能の特有の振る舞いが隠れてしまい、ユニットテストやプログラムからの直接利用時に「何を評価しているのか」が不明確になる。
 - **Option 2: 従来の ?? 演算子を使い続ける**
-    - **Rejected Reason**: 重複した記述が増え、Rule 12 の「簡潔さ」を追求できない。また、将来的にマージロジックを変更する際の柔軟性に欠ける。
+    - **Rejected Reason**: 重複した記述が増え、AP.01 の「簡潔さ」を追求できない。また、将来的にマージロジックを変更する際の柔軟性に欠ける。
 
 ## 6. Consequences & Mitigation (結果と緩和策)
 
@@ -77,3 +77,4 @@ var roles = args.MergeWith(VKRoleArgs.Empty).Roles.MergeWith([]);
 
 - **実装**: `IVKArgs` インターフェースをマーカーとして提供し、Source Generator による将来的なメタデータ自動収集を容易にした。
 - **安全性**: `VKRoleArgs.Empty` 等を自動プロパティ初期化子（静的シングルトン）で実装することで、不必要なオブジェクト生成とガベージコレクション（GC）の負荷を最小化している。
+

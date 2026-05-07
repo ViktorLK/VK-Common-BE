@@ -1,4 +1,4 @@
-# ADR 005: Introduce Atomic Rate Limiting for API Keys
+﻿# ADR 005: Introduce Atomic Rate Limiting for API Keys
 
 **Date**: 2026-03-05  
 **Status**: 📝 Draft  
@@ -176,7 +176,7 @@ else
 - **Mitigation**:
     - フォールバック戦略（3.4 節参照）により、Redis 非使用環境でもアプリケーションが動作。
     - `StackExchange.Redis` の依存は、既に `IDistributedCache` の Redis 実装（`Microsoft.Extensions.Caching.StackExchangeRedis`）で間接的に存在するため、追加の依存コストは最小限。
-    - 将来的に、`IConnectionMultiplexer` に対して Polly の Circuit Breaker を適用し、Redis 障害時はレートリミットをバイパス（またはフォールバック）するレジリエンス設計を検討（Rule 8）。
+    - 将来的に、`IConnectionMultiplexer` に対して Polly の Circuit Breaker を適用し、Redis 障害時はレートリミットをバイパス（またはフォールバック）するレジリエンス設計を検討（OR.03）。
 
 ## 6. Implementation & Security (実装詳細とセキュリティ考察)
 
@@ -202,3 +202,4 @@ else
 
 - **単体テスト**: `IConnectionMultiplexer` を Mock し、`ScriptEvaluateAsync` の呼び出しと戻り値を検証。
 - **統合テスト**: Testcontainers で Redis インスタンスを起動し、並行リクエストのシナリオで正確なカウントを検証。
+

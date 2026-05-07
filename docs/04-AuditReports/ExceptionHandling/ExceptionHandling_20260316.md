@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート — VK.Blocks.ExceptionHandling
+﻿# アーキテクチャ監査レポート — VK.Blocks.ExceptionHandling
 
 **監査日**: 2026-03-16  
 **対象モジュール**: `VK.Blocks.ExceptionHandling`  
@@ -17,7 +17,7 @@
 
 しかし、以下の点において改善の余地がある：
 
-1. **`sealed` キーワードの欠如** — 大半のクラスが `sealed` 宣言されておらず、Rule 15 (Modern C# Semantics) に違反している。
+1. **`sealed` キーワードの欠如** — 大半のクラスが `sealed` 宣言されておらず、AP.04 (Modern C# Semantics) に違反している。
 2. **`ExceptionContext` が `class` で定義** — コンテキスト情報はイミュータブルな `record` であるべきところ、ミュータブルな `class` として実装されている。
 3. **ハンドラ間のコード重複** — `BaseException` の Extensions をコピーするロジックが複数ハンドラに散在している。
 4. **マジックストリング** — エラーコード (`"NotFound"`, `"Unauthorized"`, `"ValidationErrors"`, `"InternalServerError"`, `"stackTrace"`) がリテラルとしてハードコードされている。
@@ -27,11 +27,11 @@
 
 ## 🚨 重大なアーキテクチャの懸念事項 (Critical Architectural Smells)
 
-### ❌ CS-01: `sealed` 宣言の欠如 (Rule 15 違反)
+### ❌ CS-01: `sealed` 宣言の欠如 (AP.04 違反)
 
 **該当箇所**: `ExceptionContext.cs`, `ProblemDetailsFactory.cs`, `BaseExceptionHandler.cs`, `NotFoundExceptionHandler.cs`, `ValidationExceptionHandler.cs`, `DefaultExceptionHandler.cs`, `ExceptionHandlerPipeline.cs`, `ExceptionHandlingMiddleware.cs`, `ExceptionHandlingOptions.cs`, `VKProblemDetails.cs`
 
-VK.Blocks コーディング規約 Rule 15 では、明示的なポリモーフィズムが不要なすべての Application/Infrastructure クラスに `sealed` を付与することが義務付けられている。現状、**`UnauthorizedExceptionHandler` のみ**が `sealed` 宣言されており、他の 9 クラスは未対応である。
+VK.Blocks コーディング規約 AP.04 では、明示的なポリモーフィズムが不要なすべての Application/Infrastructure クラスに `sealed` を付与することが義務付けられている。現状、**`UnauthorizedExceptionHandler` のみ**が `sealed` 宣言されており、他の 9 クラスは未対応である。
 
 **影響**: 継承による意図しない振る舞い変更のリスク、JIT 最適化（仮想呼び出しの脱仮想化）の阻害。
 
@@ -62,7 +62,7 @@ foreach (var handlerType in optionsValue.Handlers)
 
 ---
 
-### ❌ CS-03: マジックストリングの散在 (Rule 13 違反)
+### ❌ CS-03: マジックストリングの散在 (AP.02 違反)
 
 **該当箇所**: 複数ファイル
 
@@ -179,7 +179,7 @@ await context.HttpContext.Response.WriteAsJsonAsync(problemDetails, ct);
 logger.LogWarning("The response has already started, the exception handling middleware will not be executed.");
 ```
 
-ログテンプレートに `{TraceId}` や `{Path}` などの構造化プレースホルダが含まれていない。Rule 6 (Observability) では構造化ログテンプレートの使用が義務付けられている。
+ログテンプレートに `{TraceId}` や `{Path}` などの構造化プレースホルダが含まれていない。OR.01 (Observability) では構造化ログテンプレートの使用が義務付けられている。
 
 **推奨**:
 
@@ -191,7 +191,7 @@ logger.LogWarning("The response has already started, the exception handling midd
 
 ## ⚠️ コード品質とコーディング規約のリスク (Code Quality & Standard Risks)
 
-### ⚠️ CQ-01: `ExceptionContext` は `record` であるべき (Rule 15)
+### ⚠️ CQ-01: `ExceptionContext` は `record` であるべき (AP.04)
 
 **該当箇所**: [ExceptionContext.cs](/src/BuildingBlocks/ExceptionHandling/Abstractions/Contracts/ExceptionContext.cs)
 
@@ -292,3 +292,4 @@ public sealed record ExceptionHandlingOptions
 - ❌ Error Constant → エラーコード文字列がリテラルとしてハードコードされている (CS-03)。
 - ✅ Polly → 本モジュールは外部呼び出しを行わないため対象外。
 - ✅ NoTracking → DB アクセスを行わないため対象外。
+

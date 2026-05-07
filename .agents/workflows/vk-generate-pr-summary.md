@@ -1,4 +1,4 @@
----
+﻿---
 description: Analyze git diff and generate a professional Pull Request summary in Markdown.
 ---
 
@@ -31,13 +31,13 @@ Read the uncommitted changes (or changes between specific branches) using `git d
 
     ## 🛡️ アーキテクチャ準拠 (Architectural Alignment)
 
-    - ✅ **Result Pattern (Rule 1)**: [Did we apply Result<T> properly?]
-    - ✅ **Observability (Rule 6)**: [Did we add proper tracing/structured logs?]
+    - ✅ **Result Pattern (CS.01)**: [Did we apply Result<T> properly?]
+    - ✅ **Observability (OR.01)**: [Did we add proper tracing/structured logs?]
     - (Include only the Rules that are relevant to this PR)
 
     [IF interfaces or core contracts were modified, inject the following section:]
     ## ⚠️ 契約変更アラート (Architecture Rules Alert)
-    ⚠️ 契约/インターフェースの変更が検出されました。Rule 11 (ADR Trigger) に基づき、ADRが更新されているか確認してください。
+    ⚠️ 契约/インターフェースの変更が検出されました。DL.03 (ADR Trigger) に基づき、ADRが更新されているか確認してください。
 
     ## 🧪 確認事項 (Testing Done)
 
@@ -48,3 +48,4 @@ Read the uncommitted changes (or changes between specific branches) using `git d
 4. **Output Format**:
     - Do NOT save this to a file.
     - Print the generated Markdown directly into the chat inside a `markdown ` block so the user can easily copy and paste it into GitHub / Azure DevOps.
+

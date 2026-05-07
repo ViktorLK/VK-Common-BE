@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート — Authentication.OpenIdConnect
+﻿# アーキテクチャ監査レポート — Authentication.OpenIdConnect
 
 > **モジュール**: `VK.Blocks.Authentication.OpenIdConnect`
 > **監査日**: 2026-04-03
@@ -96,7 +96,7 @@ return new ExternalIdentity
 
 **問題の詳細**:
 
-1. `ExternalIdentity` は `required string Provider` と `required string ProviderId` を持つ `sealed record` であるが、`ProviderId` のフォールバック値として `"unknown"` というマジックストリングが使用されている。Rule 13 (定数の可視性階層) に違反。
+1. `ExternalIdentity` は `required string Provider` と `required string ProviderId` を持つ `sealed record` であるが、`ProviderId` のフォールバック値として `"unknown"` というマジックストリングが使用されている。AP.02 (定数の可視性階層) に違反。
 2. `Claims` プロパティは `IReadOnlyDictionary<string, string>` 型だが、`Dictionary<string, string>` で初期化している。型の不一致自体は暗黙変換で問題ないが、`ToDictionary()` の結果が null の場合に新規辞書を生成しており、`GroupBy` のパイプラインで `claims` 変数が null になりうる。
 
 **推奨修正**:
@@ -116,7 +116,7 @@ return new ExternalIdentity
 var identity = new ClaimsIdentity(internalClaims, "VK.Federated"); // ← マジックストリング
 ```
 
-認証タイプ `"VK.Federated"` はモジュール全体で共有されるべき定数だが、インラインで宣言されている。Rule 13 に従い、`OidcConstants` に昇格させるべきである。
+認証タイプ `"VK.Federated"` はモジュール全体で共有されるべき定数だが、インラインで宣言されている。AP.02 に従い、`OidcConstants` に昇格させるべきである。
 
 ---
 
@@ -193,7 +193,7 @@ Claims Mapper (`StandardOidcClaimsMapper`, `GoogleOidcClaimsMapper`, `AzureB2COi
 
 ### 📡 O-01: Source-Generated ロガーの適切な実装 ✅
 
-[`OidcLog.cs`](/src/BuildingBlocks/Authentication.OpenIdConnect/Features/Oidc/OidcLog.cs) は `[LoggerMessage]` ソースジェネレーターを正しく使用しており、Rule 16 に完全準拠している:
+[`OidcLog.cs`](/src/BuildingBlocks/Authentication.OpenIdConnect/Features/Oidc/OidcLog.cs) は `[LoggerMessage]` ソースジェネレーターを正しく使用しており、BB.01 に完全準拠している:
 
 - `LogOidcProviderRegistered` — Information レベル
 - `LogOidcAuthenticationSuccess` — Information レベル
@@ -272,7 +272,7 @@ public sealed class StandardOidcClaimsMapper : OAuthClaimsMapperBase
 
 ### ✅ H-01: Feature-Driven Vertical Slice アーキテクチャ
 
-`Features/Oidc/` 配下にハンドラーファクトリ、定数、診断、マッパーが集約されており、Rule 12 に準拠した優れた構造設計。
+`Features/Oidc/` 配下にハンドラーファクトリ、定数、診断、マッパーが集約されており、AP.01 に準拠した優れた構造設計。
 
 ### ✅ H-02: `[VKBlockDiagnostics]` ソースジェネレーターの活用
 
@@ -280,11 +280,11 @@ OpenTelemetry 互換のメトリクス・トレーシング基盤が標準化さ
 
 ### ✅ H-03: `[LoggerMessage]` ソースジェネレーターの完全採用
 
-直接の `logger.LogXxx()` 呼び出しが存在せず、Rule 16 に完全準拠。高パフォーマンスな構造化ロギングが実現されている。
+直接の `logger.LogXxx()` 呼び出しが存在せず、BB.01 に完全準拠。高パフォーマンスな構造化ロギングが実現されている。
 
 ### ✅ H-04: `sealed` 修飾子の適用
 
-全 Claims Mapper (`StandardOidcClaimsMapper`, `GoogleOidcClaimsMapper`, `AzureB2COidcClaimsMapper`) に `sealed` が適用されており、Rule 15 に準拠。
+全 Claims Mapper (`StandardOidcClaimsMapper`, `GoogleOidcClaimsMapper`, `AzureB2COidcClaimsMapper`) に `sealed` が適用されており、AP.04 に準拠。
 
 ### ✅ H-05: Strategy パターンによるクレームマッピング
 
@@ -296,7 +296,7 @@ OpenTelemetry 互換のメトリクス・トレーシング基盤が標準化さ
 
 ### ✅ H-07: Backchannel HttpClient の外部化
 
-`OidcBackchannelName` 定数を公開し、アプリケーションレベルでの Polly ポリシー適用を可能にしている。レジリエンス責務のライブラリからの分離は Rule 8 の精神に沿った適切なアーキテクチャ判断。
+`OidcBackchannelName` 定数を公開し、アプリケーションレベルでの Polly ポリシー適用を可能にしている。レジリエンス責務のライブラリからの分離は OR.03 の精神に沿った適切なアーキテクチャ判断。
 
 ### ✅ H-08: Fail-Fast バリデーション
 
@@ -340,3 +340,4 @@ OpenTelemetry 互換のメトリクス・トレーシング基盤が標準化さ
 ---
 
 > **次のステップ**: 最優先対応 (C-01, C-02) の修正後、統合テストの追加と共にコアモジュール `Authentication` との整合性を再検証することを推奨する。
+

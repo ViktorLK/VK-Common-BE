@@ -1,4 +1,4 @@
-# ADR-008: Robust BuildingBlock Dependency Validation through Pre-order Traversal and Cycle Detection
+﻿# ADR-008: Robust BuildingBlock Dependency Validation through Pre-order Traversal and Cycle Detection
 
 - **Date**: 2026-04-20
 - **Status**: ✅ Accepted
@@ -67,7 +67,7 @@ public interface IVKBlockMarker
 - **Option 1: 公開メソッドに HashSet? を残す**
     - **Rejected**: API の利用者が内部実装（再帰の仕組み）を意識せざるを得なくなり、DRY 原則やカプセル化に反するため。
 - **Option 2: 属性(Attribute)ベースの識別**
-    - **Rejected**: リフレクションが必要となり、Rule 15 (Zero-Reflection) に反するため。
+    - **Rejected**: リフレクションが必要となり、AP.04 (Zero-Reflection) に反するため。
 
 ## 5. Consequences & Mitigation (結果と緩和策)
 
@@ -84,3 +84,4 @@ public interface IVKBlockMarker
 - `Identifier` は Slug であることが保証（ADR-007）されているため、文字列ベースの検索でも高い信頼性が保たれます。
 
 **Last Updated**: 2026-04-20
+

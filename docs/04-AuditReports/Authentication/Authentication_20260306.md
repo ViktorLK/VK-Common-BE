@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート: VK.Blocks.Authentication
+﻿# アーキテクチャ監査レポート: VK.Blocks.Authentication
 
 | 項目               | 内容                                       |
 | ------------------ | ------------------------------------------ |
@@ -37,7 +37,7 @@
 
 - 🔒 **[セキュリティ: ハッシュ処理]**: `ApiKeyValidator.cs` (Line 110-121) — SHA-256 ハッシュと `stackalloc` による低アロケーション実装は良好。ただし、SHA-256 は high-value API キーには適切だが、将来的に HMAC-SHA256（HMAC with secret pepper）への移行を検討すること。現状の純粋なハッシュは、データベース漏洩時に Rainbow Table 攻撃に晒されるリスクがある。
 
-- 🔒 **[セキュリティ: ログマスキング未実施]**: `ApiKeyValidator.cs` (Line 51) — `hashedKey[..8]` を警告ログに出力しているが、ハッシュの先頭8文字であっても、同一ハッシュプレフィックスを持つキーを特定するヒントになりうる。PII マスキング規約（Rule 7）の観点から、ログ出力は `[REDACTED]` に変更、または専用マスクプロセッサに委譲することが望ましい。
+- 🔒 **[セキュリティ: ログマスキング未実施]**: `ApiKeyValidator.cs` (Line 51) — `hashedKey[..8]` を警告ログに出力しているが、ハッシュの先頭8文字であっても、同一ハッシュプレフィックスを持つキーを特定するヒントになりうる。PII マスキング規約（OR.02）の観点から、ログ出力は `[REDACTED]` に変更、または専用マスクプロセッサに委譲することが望ましい。
 
 - 🔒 **[セキュリティ: JWTのClaimsIdentifierの二重チェック]**: `JwtAuthenticationService.cs` (Lines 70-87) — userId と jti の両方でリボケーションチェックを実施している点は評価できる。ただし、`userId` が取得できない場合（匿名トークン等）はユーザーレベルのチェックがスキップされる動作について、明示的なログ出力がない。潜在的なセキュリティイベントを見逃すリスクがある。
 
@@ -63,9 +63,9 @@
 
 - 📡 **[優秀: Source Generator による可観測性のインフラ化]**: `AuthenticationDiagnostics.cs` — `[VKBlockDiagnostics]` ソースジェネレーターが `ActivitySource` と `Meter` を自動生成する設計は、モジュール横断的な可観測性インフラの理想的な実装。`authentication.requests` と `authentication.rate_limit_exceeded` のメトリクスは OpenTelemetry によるダッシュボード連携に直結できる。
 
-- 📡 **[準拠: RFC 7807 準拠のエラーレスポンス]**: `AuthenticationResponseHelper.cs` (Line 27) — `ProblemDetails` に `traceId` を付加しており、RFC 7807 および Rule 6（TraceId の必須化）に適合している。これは優れた実装パターン。
+- 📡 **[準拠: RFC 7807 準拠のエラーレスポンス]**: `AuthenticationResponseHelper.cs` (Line 27) — `ProblemDetails` に `traceId` を付加しており、RFC 7807 および OR.01（TraceId の必須化）に適合している。これは優れた実装パターン。
 
-- 📡 **[軽微な不備: ログテンプレートの一部逸脱]**: `JwtAuthenticationService.cs` (Line 53) — `logger.LogError("JWT Validation options are not configured properly.")` は構造化ログではあるが、プレースホルダーが存在しない。Rule 6 の「構造化ログテンプレート with プレースホルダー」要件には厳密には適合していない。`logger.LogError("JWT Validation failed. Module: {Module}", nameof(JwtAuthenticationService))` のように識別子を付加することを推奨。
+- 📡 **[軽微な不備: ログテンプレートの一部逸脱]**: `JwtAuthenticationService.cs` (Line 53) — `logger.LogError("JWT Validation options are not configured properly.")` は構造化ログではあるが、プレースホルダーが存在しない。OR.01 の「構造化ログテンプレート with プレースホルダー」要件には厳密には適合していない。`logger.LogError("JWT Validation failed. Module: {Module}", nameof(JwtAuthenticationService))` のように識別子を付加することを推奨。
 
 - 📡 **[改善推奨: TraceId の明示的なアクティビティタグ付け]**: `JwtAuthenticationService.cs` (Line 91) — 認証成功パスでは `activity.SetTag("auth.user.id", ...)` でユーザー ID が記録されるが、失敗パス（Line 97-105）では `activity.SetTag("auth.failure.reason", ...)` による失敗理由のタグ付けが欠如している。失敗トレースのデバッグ能力向上のために追加を推奨。
 
@@ -73,18 +73,18 @@
 
 ## ⚠️ コード品質とコーディング規約のリスク (Code Quality & Standard Risks)
 
-- ⚠️ **[Rule 15 違反: `sealed` 欠如]**: 以下のクラスが `sealed` でない（Rule 15: 全 Application/Infrastructure クラスは明示的な多態性要件がない限り `sealed` にすること）:
+- ⚠️ **[AP.04 違反: `sealed` 欠如]**: 以下のクラスが `sealed` でない（AP.04: 全 Application/Infrastructure クラスは明示的な多態性要件がない限り `sealed` にすること）:
     - `VKAuthenticationOptions.cs` — `public class VKAuthenticationOptions` → フレームワーク制約上の例外だがコメントが必要
     - `ApiKeyAuthenticationOptions.cs` — `public class ApiKeyAuthenticationOptions` → 同上
     - `ApiKeyRecord.cs` — `public class ApiKeyRecord` → `sealed` にすべき
     - `VKClaimsTransformer.cs` — `public class VKClaimsTransformer` → `sealed` にすべき
     - `AzureB2CClaimsMapper.cs`, `GoogleClaimsMapper.cs`, `GitHubClaimsMapper.cs` — 継承元の `OAuthClaimsMapperBase` が `abstract` のため、各実装クラスは `sealed` にできる
 
-- ⚠️ **[Rule 15 違反: `record` 未使用]**: `ApiKeyContext.cs` (Line 9) — `sealed class` として正しく宣言されているが、`sealed record` にするとバリューイコールティと不変性がより強く保証される。`AuthenticatedUser.cs` や `ExternalIdentity.cs` は `record` を使用しており、一貫性のために `ApiKeyContext` も `sealed record` に移行を推奨。
+- ⚠️ **[AP.04 違反: `record` 未使用]**: `ApiKeyContext.cs` (Line 9) — `sealed class` として正しく宣言されているが、`sealed record` にするとバリューイコールティと不変性がより強く保証される。`AuthenticatedUser.cs` や `ExternalIdentity.cs` は `record` を使用しており、一貫性のために `ApiKeyContext` も `sealed record` に移行を推奨。
 
-- ⚠️ **[Rule 14 準拠確認: 一ファイル一型]**: 全ファイルを確認した結果、各 `.cs` ファイルには単一の型のみが定義されており、Rule 14 に完全に準拠している。
+- ⚠️ **[AP.03 準拠確認: 一ファイル一型]**: 全ファイルを確認した結果、各 `.cs` ファイルには単一の型のみが定義されており、AP.03 に完全に準拠している。
 
-- ⚠️ **[マジックストリング残存の可能性]**: `JwtAuthenticationService.cs` (Line 119) — `"preferred_username"` がハードコードされている。Rule 13（マジックストリング排除）に従い、`VKClaimTypes` または `OpenIdClaimTypes` 等のクラスで定数化することを推奨。
+- ⚠️ **[マジックストリング残存の可能性]**: `JwtAuthenticationService.cs` (Line 119) — `"preferred_username"` がハードコードされている。AP.02（マジックストリング排除）に従い、`VKClaimTypes` または `OpenIdClaimTypes` 等のクラスで定数化することを推奨。
 
 - ⚠️ **[TokenRevocationService の userId 引数の未使用]**: `TokenRevocationService.cs` (Line 42) — `RevokeUserTokensAsync` の `userId` パラメータがメソッド本体内で使用されていない（コメントでも「currently unused」と明記）。この引数は API の混乱を招く。将来的な用途が確定していない場合は削除し、インタフェースも更新することを推奨。
 
@@ -92,7 +92,7 @@
 
 ## ✅ 評価ポイント (Highlights / Good Practices)
 
-- **`Result<T>` パターンの完全な適用**: `IAuthenticationService`, `IRefreshTokenValidator` の戻り値型として `Task<Result<T>>` が一貫して用いられ、null を返す箇所がない。Rule 1 に完全準拠。
+- **`Result<T>` パターンの完全な適用**: `IAuthenticationService`, `IRefreshTokenValidator` の戻り値型として `Task<Result<T>>` が一貫して用いられ、null を返す箇所がない。CS.01 に完全準拠。
 
 - **二層のリボケーション設計**: ユーザーレベル（`IsUserRevokedAsync`）とトークンレベル（`IsRevokedAsync`）の両方でリボケーションチェックが行われており、強固なセキュリティアーキテクチャを実現。JwtBearerEvents での事前チェックと JwtAuthenticationService での二重チェックの組み合わせは特に評価できる。
 
@@ -117,9 +117,9 @@
 | 優先度  | 対象ファイル                                                                  | 改善内容                                      |
 | ------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
 | 🔴 High | `ApiKeyValidator.cs:51`                                                       | `hashedKey[..8]` のログ出力をマスクまたは削除 |
-| 🔴 High | `ApiKeyRecord.cs`                                                             | `sealed` 修飾子の追加 (Rule 15)               |
-| 🔴 High | `VKClaimsTransformer.cs`                                                      | `sealed` 修飾子の追加 (Rule 15)               |
-| 🔴 High | `AzureB2CClaimsMapper.cs` / `GoogleClaimsMapper.cs` / `GitHubClaimsMapper.cs` | `sealed` 修飾子の追加 (Rule 15)               |
+| 🔴 High | `ApiKeyRecord.cs`                                                             | `sealed` 修飾子の追加 (AP.04)               |
+| 🔴 High | `VKClaimsTransformer.cs`                                                      | `sealed` 修飾子の追加 (AP.04)               |
+| 🔴 High | `AzureB2CClaimsMapper.cs` / `GoogleClaimsMapper.cs` / `GitHubClaimsMapper.cs` | `sealed` 修飾子の追加 (AP.04)               |
 
 ### 2. リファクタリング提案 (Refactoring)
 
@@ -147,3 +147,4 @@
 | 2026-03-03 (初回)      | 45/100     | 基礎的な実装のみ                                                                  |
 | 2026-03-05 (第2回)     | 72/100     | `ITokenBlacklist` 抽象化、`IApiKeyBlacklist` 導入、エラー定数集中化               |
 | **2026-03-06 (第3回)** | **88/100** | Source Generator テレメトリ、`IApiKeyRateLimiter` 導入、RFC 7807 エラーレスポンス |
+

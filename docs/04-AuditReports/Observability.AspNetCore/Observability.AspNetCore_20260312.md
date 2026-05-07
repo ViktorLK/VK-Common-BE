@@ -1,4 +1,4 @@
-# Architecture Audit Report: Observability.AspNetCore (2026-03-12)
+﻿# Architecture Audit Report: Observability.AspNetCore (2026-03-12)
 
 ## 📊 監査サマリー (Audit Summary)
 
@@ -75,12 +75,12 @@
 ## ⚠️ コード品質とコーディング規約のリスク (Code Quality & Standard Risks)
 
 - ⚠️ **[Options クラスの型宣言 — class vs sealed record]**: [RequestLoggingOptions.cs:6](/src/BuildingBlocks/Observability.AspNetCore/Options/RequestLoggingOptions.cs#L6) / [TraceContextOptions.cs:6](/src/BuildingBlocks/Observability.AspNetCore/Options/TraceContextOptions.cs#L6)
-    - 両 Options クラスが `public sealed class` + `set` プロパティで宣言されています。VK.Blocks Rule 15 では Options/DTO は `sealed record` + `init` プロパティが推奨されます。ただし、`IOptions<T>` パターンの `Configure<T>(Action<T>)` は `set` プロパティを必要とするため、**Options Pattern との互換性のために `class` + `set` を使用するのは合理的** です。
+    - 両 Options クラスが `public sealed class` + `set` プロパティで宣言されています。VK.Blocks AP.04 では Options/DTO は `sealed record` + `init` プロパティが推奨されます。ただし、`IOptions<T>` パターンの `Configure<T>(Action<T>)` は `set` プロパティを必要とするため、**Options Pattern との互換性のために `class` + `set` を使用するのは合理的** です。
     - **深刻度**: 🟢 情報レベル — Options Pattern の制約上、現在の設計は許容されます。
 
 - ⚠️ **[マジックストリング — HttpLogEnricher スコープキー]**: [HttpLogEnricher.cs:38-45](/src/BuildingBlocks/Observability.AspNetCore/Logging/HttpLogEnricher.cs#L38-L45)
     - `"Http.Method"`, `"Http.Path"`, `"Http.Scheme"`, `"Http.Host"`, `"TraceId"`, `"SpanId"`, `"RequestId"`, `"ClientIp"` が文字列リテラルとして使用されています。
-    - **VK.Blocks Rule 13 違反**: これらは定数クラス（例: `HttpLogPropertyNames`）に集約すべきです。
+    - **VK.Blocks AP.02 違反**: これらは定数クラス（例: `HttpLogPropertyNames`）に集約すべきです。
     - **深刻度**: 🟡 中
 
 - ⚠️ **[マジックストリング — HttpMetricsCollector タグキー]**: [HttpMetricsCollector.cs:66-68](/src/BuildingBlocks/Observability.AspNetCore/Metrics/HttpMetricsCollector.cs#L66-L68)
@@ -103,11 +103,11 @@
 - ✅ **SensitiveDataRedactor**: `RegexOptions.Compiled` + タイムアウト付き正規表現により、ReDoS 耐性とパフォーマンスを両立。フィールド名リストは設定可能。
 - ✅ **PathFilter**: 除外パスの Prefix マッチングにより、ヘルスチェック・Swagger 等のノイズログを効率的に除外。
 - ✅ **HttpMetricsCollector**: OpenTelemetry Semantic Conventions 準拠のメトリクス名・タグ。`IDisposable` による `Meter` ライフタイム管理も適切。
-- ✅ **MiddlewareOrder 定数クラス**: パイプライン順序を数値定数で明示し、Rule 13 に準拠。
+- ✅ **MiddlewareOrder 定数クラス**: パイプライン順序を数値定数で明示し、AP.02 に準拠。
 - ✅ **TryAddSingleton による DI 登録**: 多重登録を防止する防御的な DI パターン。
 - ✅ **HttpLogEntry の sealed record**: 不変データモデルとして適切。`required` プロパティによる必須フィールドの強制。
 - ✅ **TraceContextMiddleware のレスポンスヘッダーガード**: `context.Response.HasStarted` チェックにより、ヘッダー送信後の `InvalidOperationException` を防止。
-- ✅ **Sealed Classes**: 全ミドルウェア・サービスクラスに `sealed` を適用。Rule 15 準拠。
+- ✅ **Sealed Classes**: 全ミドルウェア・サービスクラスに `sealed` を適用。AP.04 準拠。
 - ✅ **ファイルスコープ名前空間**: 全ファイルで一貫して `namespace X;` 構文を使用。
 - ✅ **XML ドキュメントコメント**: `AspNetCoreExtensions` を除く全クラスで充実したドキュメントが整備。
 
@@ -127,7 +127,7 @@
 
 | #   | 課題                                             | 対応方針                                                                                         | 優先度 |
 | --- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ | ------ |
-| 1   | `HttpLogEnricher` スコープキーの定数化           | `HttpLogPropertyNames` 定数クラスの導入 (Rule 13)                                                | 中     |
+| 1   | `HttpLogEnricher` スコープキーの定数化           | `HttpLogPropertyNames` 定数クラスの導入 (AP.02)                                                | 中     |
 | 2   | `HttpMetricsCollector` タグキーの定数化          | OpenTelemetry SDK の `SemanticConventions` 定数を使用、または `MetricsTagNames` 定数クラスの導入 | 低     |
 | 3   | `SensitiveDataRedactor` の数値/boolean 対応      | 正規表現パターンを拡張し、`"field": 123` / `"field": true` 形式もマスキング対象にする            | 低     |
 | 4   | `ClientIp` ログのオプトアウト機能                | `RequestLoggingOptions` に `LogClientIp` フラグを追加し、GDPR 準拠を容易にする                   | 中     |
@@ -148,3 +148,4 @@
 **Auditor**: VK.Blocks Architect (Automated)
 **Date**: 2026-03-12
 **Previous Audit**: なし（初回監査）
+

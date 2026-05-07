@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート: MultiTenancy
+﻿# アーキテクチャ監査レポート: MultiTenancy
 
 **対象モジュール**: `VK.Blocks.MultiTenancy`
 **監査日**: 2026-04-20
@@ -24,15 +24,15 @@
 - ❌ **ハードコードされたロール名**: [[TenantSecurityMiddleware.cs](/src/BuildingBlocks/MultiTenancy/Internal/TenantSecurityMiddleware.cs:L1464)]
   `"SuperAdmin"` がハードコードされている。コード中のコメントにも「Ideally, we'd pull this from a central constant」と記載されているが未対応。ロール名はセキュリティ要件に直結するため、`MultiTenancyOptions` に設定化するか、`MultiTenancyConstants` に定数として定義すべき重大事項。
 
-- ❌ **`[LoggerMessage]` SG 未使用 (Rule 6 違反)**: [[TenantSecurityMiddleware.cs](/src/BuildingBlocks/MultiTenancy/Internal/TenantSecurityMiddleware.cs:L1452-L1474)]
-  `TenantSecurityMiddleware` 内で `_logger.LogWarning()` / `_logger.LogCritical()` / `_logger.LogInformation()` を直接呼び出している。VK.Blocks Rule 6 では、`[LoggerMessage]` Source Generator を使用した `internal static partial class` 経由のログ記録が**必須**であり、標準ロガーメソッドの直接呼び出しは**禁止**されている。`MultiTenancyLog` クラスにエントリを追加し、Source Generator パターンに移行する必要がある。
+- ❌ **`[LoggerMessage]` SG 未使用 (OR.01 違反)**: [[TenantSecurityMiddleware.cs](/src/BuildingBlocks/MultiTenancy/Internal/TenantSecurityMiddleware.cs:L1452-L1474)]
+  `TenantSecurityMiddleware` 内で `_logger.LogWarning()` / `_logger.LogCritical()` / `_logger.LogInformation()` を直接呼び出している。VK.Blocks OR.01 では、`[LoggerMessage]` Source Generator を使用した `internal static partial class` 経由のログ記録が**必須**であり、標準ロガーメソッドの直接呼び出しは**禁止**されている。`MultiTenancyLog` クラスにエントリを追加し、Source Generator パターンに移行する必要がある。
 
 ---
 
 ## 🛡️ 非機能要件とセキュリティ (Non-Functional Requirements & Security)
 
 - 🔒 **テナント ID バリデーション**: [[TenantResolutionMiddleware.cs](/src/BuildingBlocks/MultiTenancy/Features/Resolution/TenantResolutionMiddleware.cs:L1276-L1280)]
-  `IsValidTenantId` は `LINQ.All()` を使用しているが、`ReadOnlySpan<char>` ベースの文字走査に置き換えることで、ゼロアロケーションかつ高パフォーマンスな検証となる。ホットパス（全リクエスト通過）であるため、Rule 4 (Performance / Span) の観点から推奨。
+  `IsValidTenantId` は `LINQ.All()` を使用しているが、`ReadOnlySpan<char>` ベースの文字走査に置き換えることで、ゼロアロケーションかつ高パフォーマンスな検証となる。ホットパス（全リクエスト通過）であるため、CS.04 (Performance / Span) の観点から推奨。
 
 - 🔒 **テナント偽装のセキュリティ境界**: [[OverrideTenantResolver.cs](/src/BuildingBlocks/MultiTenancy/Features/Resolution/Resolvers/OverrideTenantResolver.cs)]
   `OverrideTenantResolver` は常に DI に登録される (`RegisterResolvers` メソッド内で無条件 `TryAddEnumerable`)。`EnableImpersonation = false` の場合はランタイムで `ResolverSkipped` を返すが、不要なサービスが DI コンテナに存在すること自体がセキュリティの表面積を広げる。`EnableImpersonation` が `false` の場合は登録自体をスキップすることが推奨される。
@@ -67,13 +67,13 @@
 ## ⚠️ コード品質とコーディング規約のリスク (Code Quality & Standard Risks)
 
 - ⚠️ **`MultiTenancyOptions.EnabledResolvers` の型**: [[MultiTenancyOptions.cs](/src/BuildingBlocks/MultiTenancy/MultiTenancyOptions.cs:L1698)]
-  `List<TenantResolverType>` が `public` プロパティとして公開されているが、外部からの不正な操作を防ぐため `IReadOnlyList<TenantResolverType>` に変更し、`init` アクセサを使用すべき（Rule 12 - Immutable Data）。`sealed record` であっても、`List<T>` プロパティはミュータブルなコレクション参照を持つ。
+  `List<TenantResolverType>` が `public` プロパティとして公開されているが、外部からの不正な操作を防ぐため `IReadOnlyList<TenantResolverType>` に変更し、`init` アクセサを使用すべき（AP.01 - Immutable Data）。`sealed record` であっても、`List<T>` プロパティはミュータブルなコレクション参照を持つ。
 
 - ⚠️ **`EnableImpersonation` に `required` キーワード未使用**: [[MultiTenancyOptions.cs](/src/BuildingBlocks/MultiTenancy/MultiTenancyOptions.cs:L1692)]
-  `EnforceTenancy` には `required` が付いているが、`EnableImpersonation` には付いていない。Rule 12 では非 nullable プロパティに `required` を使用することが推奨される。`bool` 型にデフォルト値がある場合でも一貫性のため統一すべき。
+  `EnforceTenancy` には `required` が付いているが、`EnableImpersonation` には付いていない。AP.01 では非 nullable プロパティに `required` を使用することが推奨される。`bool` 型にデフォルト値がある場合でも一貫性のため統一すべき。
 
 - ⚠️ **`ExceptionHandling` への不明な依存**: [[VK.Blocks.MultiTenancy.csproj](/src/BuildingBlocks/MultiTenancy/VK.Blocks.MultiTenancy.csproj:L1921)]
-  `ExceptionHandling` プロジェクトへの `ProjectReference` が設定されているが、コードベース全体を走査した限り、`ExceptionHandling` からの型やサービスを直接使用している箇所が確認できない。不要な依存は Layer Dependencies (Rule 2) の観点から除去を推奨。
+  `ExceptionHandling` プロジェクトへの `ProjectReference` が設定されているが、コードベース全体を走査した限り、`ExceptionHandling` からの型やサービスを直接使用している箇所が確認できない。不要な依存は Layer Dependencies (CS.02) の観点から除去を推奨。
 
 - ⚠️ **`MultiTenancyConstants.Errors` と `MultiTenancyErrors` の責務重複**: 
   `MultiTenancyConstants.Errors` にはエラーコード文字列 (`MissingTenantCode`) とメッセージ文字列 (`MissingTenantMessage`) が定義されているが、`MultiTenancyErrors` には `Error` オブジェクトが定義されている。`MultiTenancyConstants.Errors` のエラー関連定数は `MultiTenancyErrors` の `Error` オブジェクトから参照されておらず、**未使用の可能性が高い**。DRY 原則違反。
@@ -87,15 +87,15 @@
 
 ## ✅ 評価ポイント (Highlights / Good Practices)
 
-- ✅ **Service Registration Pattern 完全準拠 (Rule 13)**: `IsVKBlockRegistered<MultiTenancyBlock>()` → `EnsureVKCoreBlockRegistered` → `AddVKBlockOptions` → `AddVKBlockMarker` → 実際の登録、という「Check-Self, Check-Prerequisite, Actual Registration, Mark-Self」パターンが `AddVKMultiTenancy` / `AddMultiTenancyInternal` の双方で正確に実装されている。
-- ✅ **TryAdd パターン完全準拠 (Rule 13)**: `AddMultiTenancyCore` 内の全サービス登録が `TryAddScoped` / `TryAddEnumerable` を使用しており、冪等性が保証されている。
-- ✅ **`IVKBlockOptions` 準拠 (Rule 15)**: `MultiTenancyOptions` / `TenantResolutionOptions` ともに `IVKBlockOptions` を実装し、`SectionName` が `VKBlocksConstants.VKBlocksConfigPrefix` を使用して定義されている。
-- ✅ **Result Pattern 準拠 (Rule 1)**: 全リゾルバー、パイプライン、Feature Evaluator が `Result<T>` を返却。`MultiTenancyErrors` に構造化された `Error` オブジェクトが定義されており、`Result.Failure("raw string")` の使用はゼロ。
-- ✅ **ValueTask 活用 (Rule 3)**: 同期完了が一般的なリゾルバー (`Header`, `Claims`, `QueryString`) で `ValueTask<Result<string>>` が適切に使用されている。
-- ✅ **ConfigureAwait(false) (Rule 3)**: 全 `await` 呼び出しに `.ConfigureAwait(false)` が付与されている。
-- ✅ **Span ベースのドメイン解析 (Rule 4)**: `DomainTenantResolver.ExtractTenantSegment` で `ReadOnlySpan<char>` を活用したゼロアロケーション文字列解析が実装されている。
-- ✅ **Sealed Record + Required 適用 (Rule 12)**: `TenantInfo` / `MultiTenancyOptions` / `TenantResolutionOptions` が `sealed record` として定義され、`required` キーワードが適用されている。
-- ✅ **Feature-Driven Folder Layout (Rule 14)**: `Features/Context`, `Features/Entitlements`, `Features/Resolution` という名詞ベースのドメイン駆動フォルダ構造が採用されている。
+- ✅ **Service Registration Pattern 完全準拠 (AP.02)**: `IsVKBlockRegistered<MultiTenancyBlock>()` → `EnsureVKCoreBlockRegistered` → `AddVKBlockOptions` → `AddVKBlockMarker` → 実際の登録、という「Check-Self, Check-Prerequisite, Actual Registration, Mark-Self」パターンが `AddVKMultiTenancy` / `AddMultiTenancyInternal` の双方で正確に実装されている。
+- ✅ **TryAdd パターン完全準拠 (AP.02)**: `AddMultiTenancyCore` 内の全サービス登録が `TryAddScoped` / `TryAddEnumerable` を使用しており、冪等性が保証されている。
+- ✅ **`IVKBlockOptions` 準拠 (AP.04)**: `MultiTenancyOptions` / `TenantResolutionOptions` ともに `IVKBlockOptions` を実装し、`SectionName` が `VKBlocksConstants.VKBlocksConfigPrefix` を使用して定義されている。
+- ✅ **Result Pattern 準拠 (CS.01)**: 全リゾルバー、パイプライン、Feature Evaluator が `Result<T>` を返却。`MultiTenancyErrors` に構造化された `Error` オブジェクトが定義されており、`Result.Failure("raw string")` の使用はゼロ。
+- ✅ **ValueTask 活用 (CS.03)**: 同期完了が一般的なリゾルバー (`Header`, `Claims`, `QueryString`) で `ValueTask<Result<string>>` が適切に使用されている。
+- ✅ **ConfigureAwait(false) (CS.03)**: 全 `await` 呼び出しに `.ConfigureAwait(false)` が付与されている。
+- ✅ **Span ベースのドメイン解析 (CS.04)**: `DomainTenantResolver.ExtractTenantSegment` で `ReadOnlySpan<char>` を活用したゼロアロケーション文字列解析が実装されている。
+- ✅ **Sealed Record + Required 適用 (AP.01)**: `TenantInfo` / `MultiTenancyOptions` / `TenantResolutionOptions` が `sealed record` として定義され、`required` キーワードが適用されている。
+- ✅ **Feature-Driven Folder Layout (AP.03)**: `Features/Context`, `Features/Entitlements`, `Features/Resolution` という名詞ベースのドメイン駆動フォルダ構造が採用されている。
 - ✅ **Builder Pattern**: `IVKMultiTenancyBuilder` を返却する Fluent API 設計により、モジュール消費者が段階的にサービスを構築可能。
 - ✅ **環境制限付きリゾルバー**: `QueryStringTenantResolver` が `IHostEnvironment.IsDevelopment()` チェックを含み、本番環境での不正なテナント注入を防止。
 
@@ -108,7 +108,7 @@
 | # | 問題 | 影響 | 対象ファイル |
 |---|------|------|-------------|
 | 1 | **Captive Dependency**: `TenantResolutionMiddleware` のコンストラクタで Scoped サービス (`ITenantResolutionPipeline`) をインジェクション | ランタイムバグ: シングルトンミドルウェアが初回リクエストの Scoped インスタンスをキャプチャし、全後続リクエストで同じインスタンスを再利用 | [TenantResolutionMiddleware.cs](/src/BuildingBlocks/MultiTenancy/Features/Resolution/TenantResolutionMiddleware.cs) |
-| 2 | **`[LoggerMessage]` SG への移行**: `TenantSecurityMiddleware` の直接 `ILogger` 呼び出し | Rule 6 違反、構造化ログの欠損 | [TenantSecurityMiddleware.cs](/src/BuildingBlocks/MultiTenancy/Internal/TenantSecurityMiddleware.cs) |
+| 2 | **`[LoggerMessage]` SG への移行**: `TenantSecurityMiddleware` の直接 `ILogger` 呼び出し | OR.01 違反、構造化ログの欠損 | [TenantSecurityMiddleware.cs](/src/BuildingBlocks/MultiTenancy/Internal/TenantSecurityMiddleware.cs) |
 | 3 | **マジックストリング排除**: `context.Items` キーとロール名の定数化 | サイレント障害リスク、セキュリティ要件の不透明化 | [OverrideTenantResolver.cs](/src/BuildingBlocks/MultiTenancy/Features/Resolution/Resolvers/OverrideTenantResolver.cs), [TenantSecurityMiddleware.cs](/src/BuildingBlocks/MultiTenancy/Internal/TenantSecurityMiddleware.cs) |
 
 ### 2. リファクタリング提案 (Refactoring)
@@ -116,12 +116,12 @@
 | # | 提案 | 根拠 |
 |---|------|------|
 | 1 | **アクセス修飾子の引き締め**: `TenantResolutionMiddleware`, `TenantResolutionPipeline`, 全 Resolver を `internal` に変更 | カプセル化の強化、不要な API サーフェスの削減 |
-| 2 | **`IsValidTenantId` の Span 化**: `tenantId.All(...)` を `ReadOnlySpan<char>` ループに変更 | ホットパスでの GC プレッシャー低減 (Rule 4) |
-| 3 | **`EnabledResolvers` の不変化**: `List<TenantResolverType>` → `IReadOnlyList<TenantResolverType>` + `init` アクセサ | Rule 12 - Immutable Data 準拠 |
+| 2 | **`IsValidTenantId` の Span 化**: `tenantId.All(...)` を `ReadOnlySpan<char>` ループに変更 | ホットパスでの GC プレッシャー低減 (CS.04) |
+| 3 | **`EnabledResolvers` の不変化**: `List<TenantResolverType>` → `IReadOnlyList<TenantResolverType>` + `init` アクセサ | AP.01 - Immutable Data 準拠 |
 | 4 | **`OverrideTenantResolver` の条件付き登録**: `EnableImpersonation = false` 時に DI 登録自体をスキップ | セキュリティ表面積の最小化 |
 | 5 | **`MultiTenancyConstants.Errors` の精査**: 未使用エラー定数 (`MissingTenantCode` / `MissingTenantMessage` / `InvalidTenantImplementationCode`) の削除、または `MultiTenancyErrors` との統合 | DRY 原則、コードベースの簡素化 |
 | 6 | **レガシー診断タグの削除**: `MultiTenancyDiagnosticsConstants` 内の `TenantIdTagName` / `TenantNameTagName` | DRY 原則、`TagTenantId` との重複 |
-| 7 | **`ExceptionHandling` 依存の検証と除去**: `.csproj` の `ProjectReference` が実際に使用されているか確認し、不要であれば除去 | Rule 2 - Layer Dependencies |
+| 7 | **`ExceptionHandling` 依存の検証と除去**: `.csproj` の `ProjectReference` が実際に使用されているか確認し、不要であれば除去 | CS.02 - Layer Dependencies |
 
 ### 3. 推奨される学習トピック (Learning Suggestions)
 
@@ -141,7 +141,8 @@
 | 設計パターン | 18/20 | Strategy/Pipeline/Builder/Options パターンの適用は模範的 |
 | アーキテクチャ原則 | 14/20 | カプセル化の不足（public 過多）、Captive Dependency 問題 |
 | アーキテクチャ風格 | 16/20 | Vertical Slice 準拠、Feature-Driven 構造は良好 |
-| VK.Blocks フレームワーク準拠 | 15/20 | Options/Marker/Diagnostics は模範的だが、Rule 6 (LoggerMessage SG) 違反あり |
+| VK.Blocks フレームワーク準拠 | 15/20 | Options/Marker/Diagnostics は模範的だが、OR.01 (LoggerMessage SG) 違反あり |
 | セキュリティ & 運用 | 5/10 | ハードコードロール名、Captive Dependency、マジックストリングがリスク要因 |
 
 **総合: 82 / 100**
+

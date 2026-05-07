@@ -1,4 +1,4 @@
-# ADR 004: Exception Handling Architecture Normalization
+﻿# ADR 004: Exception Handling Architecture Normalization
 
 **Date**: 2026-04-18  
 **Status**: ✅ Accepted  
@@ -8,9 +8,9 @@
 ## 2. Context (背景)
 
 `ExceptionHandling` ビルディングブロックは、VK.Blocks フレームワークにおいて例外処理の共通基盤を提供していますが、現状の構成には以下の課題がありました。
-- **Rule 14 (Organization)** の違反: フォルダ構成が技術レイヤー（Abstractions, Pipeline, Helpers 等）に基づいており、垂直スライス（Feature-driven）の原則に適合していない。
-- **Rule 6 (Observability)** の不足: `[LoggerMessage]` による構造化ログは実装されているが、OpenTelemetry 標準に準拠したメトリクス（Metrics）およびトレーシング（Tracing）の計装が未完了。
-- **Rule 12 (Modern C#)** の不徹底: `ExceptionContext` などのモデルにおいて、プロパティの可変性（Mutability）が残っており、予期せぬ副作用のリスクがある。
+- **AP.03 (Organization)** の違反: フォルダ構成が技術レイヤー（Abstractions, Pipeline, Helpers 等）に基づいており、垂直スライス（Feature-driven）の原則に適合していない。
+- **OR.01 (Observability)** の不足: `[LoggerMessage]` による構造化ログは実装されているが、OpenTelemetry 標準に準拠したメトリクス（Metrics）およびトレーシング（Tracing）の計装が未完了。
+- **AP.01 (Modern C#)** の不徹底: `ExceptionContext` などのモデルにおいて、プロパティの可変性（Mutability）が残っており、予期せぬ副作用のリスクがある。
 
 ## 3. Problem Statement (問題定義)
 
@@ -33,7 +33,7 @@
 
 - **Option 1: 現状維持 (Status Quo)**
     - Approach: 既存の技術フォルダを維持し、メトリクスのみ追加。
-    - Rejected Reason: Rule 14 への違反が継続されるため、長期的には他の Building Block との一貫性が失われる。
+    - Rejected Reason: AP.03 への違反が継続されるため、長期的には他の Building Block との一貫性が失われる。
 - **Option 2: 完全な機能別スライス**
     - Approach: ハンドラーごとにフォルダを分ける。
     - Rejected Reason: ExceptionHandling はそれ自体が単一の「コア機能」であり、過度な分割は逆に複雑さを増すため、`Core` への集約が最適と判断。
@@ -53,3 +53,4 @@
 
 - **Metrics**: `vk_blocks_exception_handling_handled_total` (Counter) などのメトリクスを定義。
 - **Security**: 設定（`ExceptionHandlingOptions`）により、本番環境では詳細なスタックトレースが漏洩しないよう維持（RFC 7807 準拠）。
+

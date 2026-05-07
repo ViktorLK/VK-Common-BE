@@ -1,4 +1,4 @@
-# ADR 006: Modernize Dynamic Policy Evaluation with IAuthorizationRequirementData
+﻿# ADR 006: Modernize Dynamic Policy Evaluation with IAuthorizationRequirementData
 
 - **Date**: 2026-04-06
 - **Status**: ✅ Accepted
@@ -18,9 +18,9 @@
 ## 2. Problem Statement (問題定義)
 
 1. **認可パイプラインの複雑性**: カスタム属性を認可要件に変換するために、通常 `IAuthorizationPolicyProvider` による文字列パースが必要でしたが、これはマジックストリングに依存し、実装の保守性を下げていました。
-2. **Result Pattern (Rule 1) への非遵守**: 動的な評価結果が単純な `bool` で返されていたため、操作符（Operator）のミス設定などのエラーを構造化データとして返せず、診断が困難でした。
-3. **垂直スライスの不全 (Rule 12)**: 属性評価のコアロジックが別の機能フォルダに混在しており、モジュール性が損なわれていました。
-4. **不変性の欠如 (Rule 15)**: `DynamicRequirement` のプロパティが必須入力として強制されておらず、ランタイムエラーの温床となっていました。
+2. **Result Pattern (CS.01) への非遵守**: 動的な評価結果が単純な `bool` で返されていたため、操作符（Operator）のミス設定などのエラーを構造化データとして返せず、診断が困難でした。
+3. **垂直スライスの不全 (AP.01)**: 属性評価のコアロジックが別の機能フォルダに混在しており、モジュール性が損なわれていました。
+4. **不変性の欠如 (AP.04)**: `DynamicRequirement` のプロパティが必須入力として強制されておらず、ランタイムエラーの温床となっていました。
 5. **Role/Rank の密結合と静的ポリシーの限界**: `MinimumRankRequirement` が特定の `EmployeeRank` にハードコードされており、下流のマイクロサービスが独自のランク列挙型（例: `VipLevel`）を定義した際、パイプラインが機能不全に陥っていました。さらに、SG が生成する文字列ポリシーは、実行時に手動で `AddPolicy` を登録する必要があるため、「ゼロコンフィグ（Zero Config）」が達成できていませんでした。
 6. **観測可能性の欠如**: 標準の `Roles` プロパティや文字列ベースの `Permission` 判定では、どの具体的なロールや権限が原因で認可が失敗したかをメトリクスとして抽出できず、運用監視上の大きな課題となっていました。
 
@@ -55,7 +55,7 @@
 ### Option 2: IAttributeEvaluator を Abstractions に移動
 
 - **Approach**: グローバルなフォルダに抽象を置く。
-- **Rejected Reason**: Rule 12（垂直スライス）に反し、このインターフェースは `DynamicPolicies` 機能に特化しているため。
+- **Rejected Reason**: AP.01（垂直スライス）に反し、このインターフェースは `DynamicPolicies` 機能に特化しているため。
 
 ## 5. Consequences & Mitigation (結果と緩和策)
 
@@ -81,3 +81,4 @@
 ---
 
 **Last Updated**: 2026-04-06
+

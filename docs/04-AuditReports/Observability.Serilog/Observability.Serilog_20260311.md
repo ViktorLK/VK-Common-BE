@@ -1,4 +1,4 @@
-# Architecture Audit Report: Observability.Serilog (2026-03-11)
+﻿# Architecture Audit Report: Observability.Serilog (2026-03-11)
 
 ## 📊 監査サマリー (Audit Summary)
 
@@ -59,14 +59,14 @@
 ## ⚠️ コード品質とコーディング規約のリスク (Code Quality & Standard Risks)
 
 - ⚠️ **[マジックストリング — Enricher プロパティ名]**: 各 Enricher 内で `"TraceId"`, `"SpanId"`, `"ParentId"`, `"ApplicationName"`, `"Environment"`, `"Version"`, `"UserId"`, `"TenantId"` 等の文字列リテラルが直接使用されています。
-    - **VK.Blocks Rule 13 違反**: クロスフィーチャーで参照される定数は `public static class` に集約すべきです。
+    - **VK.Blocks AP.02 違反**: クロスフィーチャーで参照される定数は `public static class` に集約すべきです。
     - **提案**: `SerilogPropertyNames` のような定数クラスを導入し、一元管理することでログ分析ツール側の参照整合性を保つべきです。
 
 - ⚠️ **[マジックストリング — Claim Type]**: [UserContextEnricher.cs:26](/src/BuildingBlocks/Observability.Serilog/Enrichers/UserContextEnricher.cs#L26)
     - `"tenant_id"` が文字列リテラルとして使用されています。他のモジュール（MultiTenancy 等）で同じ Claim 名が使われる場合、定数の共有が必要です。
 
 - ⚠️ **[Options 内のネスト型]**: [SerilogOptions.cs:64, 73](/src/BuildingBlocks/Observability.Serilog/Options/SerilogOptions.cs#L64-L73)
-    - **VK.Blocks Rule 14 (Type Segregation)** 観点: `ConsoleOptions` と `FileOptions` が `SerilogOptions` 内にネストされています。これらは `SinkConfigurator` からも直接参照されるため、独立ファイルへの分離が望ましいです。ただし、Options Pattern の一般的慣例として許容範囲内です。
+    - **VK.Blocks AP.03 (Type Segregation)** 観点: `ConsoleOptions` と `FileOptions` が `SerilogOptions` 内にネストされています。これらは `SinkConfigurator` からも直接参照されるため、独立ファイルへの分離が望ましいです。ただし、Options Pattern の一般的慣例として許容範囲内です。
 
 - ⚠️ **[未使用オプション — MinimumLevel]**: [SerilogOptions.cs:36](/src/BuildingBlocks/Observability.Serilog/Options/SerilogOptions.cs#L36)
     - `MinimumLevel` プロパティが定義されていますが、`SerilogObservabilityExtensions` 内で使用されていません。`ReadFrom.Configuration` に委譲される想定ですが、明示的に使用されない場合は Dead Code です。
@@ -75,8 +75,8 @@
 
 ## ✅ 評価ポイント (Highlights / Good Practices)
 
-- ✅ **Immutable Options Pattern**: `SerilogOptions` は `sealed record` + `init` プロパティにより完全な不変性を保証。VK.Blocks Rule 15 に準拠。
-- ✅ **Sealed Classes**: すべての Enricher に `sealed` を適用し、継承の意図しない拡張を防止。VK.Blocks Rule 15 に準拠。
+- ✅ **Immutable Options Pattern**: `SerilogOptions` は `sealed record` + `init` プロパティにより完全な不変性を保証。VK.Blocks AP.04 に準拠。
+- ✅ **Sealed Classes**: すべての Enricher に `sealed` を適用し、継承の意図しない拡張を防止。VK.Blocks AP.04 に準拠。
 - ✅ **Primary Constructor (C# 12+)**: `ApplicationEnricher`, `UserContextEnricher` で Primary Constructor を活用し、ボイラープレートを最小化。
 - ✅ **SensitiveDataEnricher の HashSet 使用**: 高速な `O(1)` キー検索により、高頻度ログイベントでのパフォーマンスオーバーヘッドを最小化。
 - ✅ **ファイルスコープ名前空間**: 全ファイルで一貫して `namespace X;` 構文を使用。
@@ -98,7 +98,7 @@
 
 | #   | 課題                                       | 対応方針                                                                                             | 優先度 |
 | --- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------ |
-| 1   | Enricher プロパティ名の定数化              | `SerilogPropertyNames` 定数クラスの導入 (Rule 13)                                                    | 中     |
+| 1   | Enricher プロパティ名の定数化              | `SerilogPropertyNames` 定数クラスの導入 (AP.02)                                                    | 中     |
 | 2   | `"tenant_id"` Claim 名の共通化             | Core モジュール内の共有定数クラスへの移動                                                            | 中     |
 | 3   | `SensitiveDataEnricher` の部分一致対応     | `Contains` / 正規表現ベースのマッチングモード追加。Destructure ポリシーとの併用検討                  | 低     |
 | 4   | `ISinkConfigurator` インターフェースの導入 | 将来的な Sink 拡張（Seq, Application Insights 等）に備えた開閉原則 (OCP) 準拠の設計                  | 低     |
@@ -118,3 +118,4 @@
 **Auditor**: VK.Blocks Architect (Automated)
 **Date**: 2026-03-11
 **Previous Audit**: [2026-03-06 (98/100)](/docs/04-AuditReports/Observability.Serilog/Observability.Serilog_20260306.md) — 前回は構造的課題の深掘りが不十分であったため、本監査で再評価を実施。
+

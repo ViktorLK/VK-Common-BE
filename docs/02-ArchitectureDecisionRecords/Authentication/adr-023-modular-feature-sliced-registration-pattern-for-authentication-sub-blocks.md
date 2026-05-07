@@ -1,4 +1,4 @@
-# ADR 023: Modular Feature-Sliced Registration Pattern for Authentication Sub-Blocks
+﻿# ADR 023: Modular Feature-Sliced Registration Pattern for Authentication Sub-Blocks
 
 - **Date**: 2026-04-24
 - **Status**: ✅ Accepted
@@ -55,7 +55,7 @@ internal static class AuthenticationBlockRegistration
 - **Negative**:
     - ファイル数が増え、DI 登録の流れを追う際に複数のフォルダを跨ぐ必要がある。
 - **Mitigation**:
-    - 標準化された命名規則（`XxxFeatureRegistration`）とフォルダ構造（`FeatureName/Internal/`）を Rule 16 で規定し、探索を容易にする。
+    - 標準化された命名規則（`XxxFeatureRegistration`）とフォルダ構造（`FeatureName/Internal/`）を BB.01 で規定し、探索を容易にする。
 
 ## 7. Implementation & Security (実装詳細とセキュリティ考察)
 
@@ -63,3 +63,4 @@ internal static class AuthenticationBlockRegistration
 - **Validation**: 各 Feature は独自の `IValidateOptions` を持ち、有効化された機能に対してのみ厳格なバリデーションを行う。
 
 **Last Updated**: 2026-04-24
+

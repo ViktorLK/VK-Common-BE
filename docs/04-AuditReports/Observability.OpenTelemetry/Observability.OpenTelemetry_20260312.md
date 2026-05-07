@@ -1,4 +1,4 @@
-# アーキテクチャ監査レポート — VK.Blocks.Observability.OpenTelemetry
+﻿# アーキテクチャ監査レポート — VK.Blocks.Observability.OpenTelemetry
 
 | 項目                   | 値                                       |
 | ---------------------- | ---------------------------------------- |
@@ -19,7 +19,7 @@
 一方、以下の点で改善の余地がある：
 
 1. **レガシー API (`OpenTelemetryExtensions.cs`) の Type Segregation 違反**と潜在的セキュリティリスク
-2. **`OtlpOptions.cs` における Rule 14 (一ファイル一型) 違反**
+2. **`OtlpOptions.cs` における AP.03 (一ファイル一型) 違反**
 3. **環境変数への直接依存** によるテスト困難性
 4. **マジックストリング** の散在
 
@@ -27,7 +27,7 @@
 
 ## 🚨 重大なアーキテクチャの懸念事項 (Critical Architectural Smells)
 
-### ❌ C-01: `OtlpOptions.cs` — Rule 14 (Type Segregation) 違反
+### ❌ C-01: `OtlpOptions.cs` — AP.03 (Type Segregation) 違反
 
 **ファイル**: `OpenTelemetry/OtlpOptions.cs` (L8, L62)
 
@@ -39,7 +39,7 @@
 
 ---
 
-### ❌ C-02: `OtlpOptions` — Rule 15 (`sealed` 宣言の欠如) 違反
+### ❌ C-02: `OtlpOptions` — AP.04 (`sealed` 宣言の欠如) 違反
 
 **ファイル**: `OpenTelemetry/OtlpOptions.cs` (L8), `OpenTelemetry/OtlpOptions.cs` (L62)
 
@@ -124,7 +124,7 @@ public interface IEnvironmentProvider
 
 **ファイル**: `Builder/VkObservabilityBuilder.cs` (L178-L180)
 
-ヘルスチェックパスが `"/health"`, `"/healthz"`, `"/ready"` としてハードコーディングされている。VK.Blocks 規約 Rule 13（定数の可視性）に基づき、これらを定数として抽出すべきである。
+ヘルスチェックパスが `"/health"`, `"/healthz"`, `"/ready"` としてハードコーディングされている。VK.Blocks 規約 AP.02（定数の可視性）に基づき、これらを定数として抽出すべきである。
 
 ```csharp
 // 現行: マジックストリング
@@ -142,7 +142,7 @@ o.Filter = context =>
 
 **ファイル**: `Builder/VkObservabilityBuilder.cs` (L85, L133)
 
-`"VK.Blocks.*"` がトレーシングとメトリクスの両方でリテラル文字列として使用されている。Rule 13 に従いクロスファイル定数として抽出すべきである。
+`"VK.Blocks.*"` がトレーシングとメトリクスの両方でリテラル文字列として使用されている。AP.02 に従いクロスファイル定数として抽出すべきである。
 
 ---
 
@@ -190,7 +190,7 @@ o.Filter = context =>
 
 ### ⚠️ Q-04: `OtlpOptions` に `sealed` 不足 / `sealed record` 推奨
 
-レガシー `OtlpOptions` はミュータブルな `class` であり、イミュータブルな `sealed record` が推奨される（Rule 15）。ただし、レガシーであり `[Obsolete]` マーク済みのため、優先度は低い。
+レガシー `OtlpOptions` はミュータブルな `class` であり、イミュータブルな `sealed record` が推奨される（AP.04）。ただし、レガシーであり `[Obsolete]` マーク済みのため、優先度は低い。
 
 ---
 
@@ -214,7 +214,7 @@ o.Filter = context =>
 
 ### ✅ H-04: `sealed class` の適用 (新 API)
 
-新 API の中核クラス群（`VkObservabilityBuilder`, `VkObservabilityOptions`）は `sealed` 修飾子が正しく付与されており、Rule 15 に準拠している。
+新 API の中核クラス群（`VkObservabilityBuilder`, `VkObservabilityOptions`）は `sealed` 修飾子が正しく付与されており、AP.04 に準拠している。
 
 ### ✅ H-05: レガシー API の `[Obsolete]` マーキング
 
@@ -232,15 +232,15 @@ o.Filter = context =>
 
 | #   | 対応内容                                                     | 根拠                      |
 | --- | ------------------------------------------------------------ | ------------------------- |
-| 1   | `OtlpOptions.cs` から `ValidateOtlpOptions` を分離           | C-01: Rule 14 違反        |
-| 2   | `OtlpOptions`, `ValidateOtlpOptions` に `sealed` 付与        | C-02: Rule 15 違反        |
+| 1   | `OtlpOptions.cs` から `ValidateOtlpOptions` を分離           | C-01: AP.03 違反        |
+| 2   | `OtlpOptions`, `ValidateOtlpOptions` に `sealed` 付与        | C-02: AP.04 違反        |
 | 3   | `ConfigureOtlpExporter` のアクセス修飾子を `internal` に変更 | S-02: 不必要な public API |
 
 ### 2. リファクタリング提案 (Refactoring)
 
 | #   | 対応内容                                                                                            | 根拠                                                                   |
 | --- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 4   | ヘルスチェックパス・ワイルドカードソース名・EF Core ActivitySource 名を定数化                       | O-01〜O-03: Rule 13 マジックストリング                                 |
+| 4   | ヘルスチェックパス・ワイルドカードソース名・EF Core ActivitySource 名を定数化                       | O-01〜O-03: AP.02 マジックストリング                                 |
 | 5   | `VkObservabilityOptions.ServiceName` のデフォルト値を空文字に変更、またはカスタムバリデーション追加 | Q-03: バリデーション不整合                                             |
 | 6   | `ValidateOtlpOptions` に `Uri.TryCreate()` による Endpoint フォーマット検証を追加                   | Q-01: URI パース例外リスク                                             |
 | 7   | `VkResourceBuilder` の環境変数読み取りを `IEnvironmentProvider` で抽象化                            | T-01: テスト容易性向上                                                 |
@@ -253,3 +253,4 @@ o.Filter = context =>
 | 1   | **OpenTelemetry .NET — ILogger Integration** | `EnableLogging` フラグが定義済みだが未実装。OTLP Log Exporter の統合方法を理解し、3 シグナル統合を完成させる。 |
 | 2   | **Options Pattern — Named Options**          | レガシーとの共存期間中に Named Options を活用することで、同一型の複数構成をクリーンに管理できる。              |
 | 3   | **Testcontainers for OpenTelemetry**         | `VkResourceBuilder` や Fluent Builder の統合テストを Testcontainers + OTLP Collector で自動化する方法。        |
+
