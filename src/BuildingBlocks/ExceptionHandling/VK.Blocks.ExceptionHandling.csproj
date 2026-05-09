@@ -1,17 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
 
+  <PropertyGroup>
     <RootNamespace>VK.Blocks.ExceptionHandling</RootNamespace>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
-    <ProjectReference Include="..\Validation\VK.Blocks.Validation.csproj" />
   </ItemGroup>
+
 </Project>
