@@ -51,12 +51,12 @@ graph TD
 
 ### 設計原則とパターン
 
-| カテゴリ | 適用パターン |
-|---|---|
-| **Design Principles** | SOLID, DRY, Fail-Fast, Defensive Programming |
-| **Design Patterns** | Result Pattern (Railway-Oriented), Null Object, Marker Interface, Static Generic Caching, Throw Helper |
-| **Architectural Principles** | Separation of Concerns, Dependency Inversion, Zero-Reflection |
-| **Enterprise Patterns** | Value Object, Entity, Aggregate Root, Domain Event |
+| カテゴリ                     | 適用パターン                                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **Design Principles**        | SOLID, DRY, Fail-Fast, Defensive Programming                                                           |
+| **Design Patterns**          | Result Pattern (Railway-Oriented), Null Object, Marker Interface, Static Generic Caching, Throw Helper |
+| **Architectural Principles** | Separation of Concerns, Dependency Inversion, Zero-Reflection                                          |
+| **Enterprise Patterns**      | Value Object, Entity, Aggregate Root, Domain Event                                                     |
 
 ---
 
@@ -117,15 +117,15 @@ graph TD
 
 ## 採用技術
 
-| 技術 | 用途 |
-|---|---|
-| **.NET 10** | ランタイム・フレームワーク |
-| **C# 12+** | Collection expressions, Primary constructors, Static abstract members |
-| **Microsoft.Extensions.DependencyInjection** | DI コンテナ抽象化 |
-| **Microsoft.Extensions.Options** | 構成バインディング・バリデーション |
-| **Microsoft.Extensions.Configuration** | 構成セクション解決 |
-| **System.Diagnostics.DiagnosticSource** | OpenTelemetry 統合用 ActivitySource |
-| **FrozenDictionary** (.NET 8+) | 読み取り専用キャッシュの最適化 |
+| 技術                                         | 用途                                                                  |
+| -------------------------------------------- | --------------------------------------------------------------------- |
+| **.NET 10**                                  | ランタイム・フレームワーク                                            |
+| **C# 12+**                                   | Collection expressions, Primary constructors, Static abstract members |
+| **Microsoft.Extensions.DependencyInjection** | DI コンテナ抽象化                                                     |
+| **Microsoft.Extensions.Options**             | 構成バインディング・バリデーション                                    |
+| **Microsoft.Extensions.Configuration**       | 構成セクション解決                                                    |
+| **System.Diagnostics.DiagnosticSource**      | OpenTelemetry 統合用 ActivitySource                                   |
+| **FrozenDictionary** (.NET 8+)               | 読み取り専用キャッシュの最適化                                        |
 
 ---
 

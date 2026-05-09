@@ -1,4 +1,4 @@
-namespace VK.Blocks.Observability.Conventions;
+namespace VK.Blocks.Observability;
 
 /// <summary>
 /// Contains standard field names used for logging and telemetry.
@@ -62,7 +62,7 @@ public static class FieldNames
     public const string ResultFailure = "result.failure";
 
     /// <summary>Field for error type.</summary>
-    public const string ErrorType = "error.type";
+    public const string VKErrorType = "error.type";
 
     #endregion
 }
