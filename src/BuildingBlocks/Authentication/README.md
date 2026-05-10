@@ -129,16 +129,20 @@ flowchart TB
 
 ```
 Authentication/
-├── Abstractions/             # 共有ドメインモデル (AuthenticatedUser, ExternalIdentity)
-├── Common/                   # 横断的関心事 (Constants, AuthGroups, InMemoryCleanup, ResponseHelper)
-│   └── Extensions/           # ClaimsPrincipal 拡張メソッド
-├── DependencyInjection/      # Module-level DI 登録 (AuthenticationBlock, Options)
-├── Diagnostics/              # OpenTelemetry ActivitySource / Meter / Constants
-└── Features/                 # Vertical Slice 機能群
-    ├── ApiKeys/              # API Key 認証 (Metadata, Internal, Persistence, DI)
-    ├── Jwt/                  # JWT 認証 (Metadata, Internal, Persistence, DI)
-    ├── OAuth/                # OAuth クレームマッピング (Metadata, Internal, Mappers, DI)
-    └── SemanticAttributes/   # 型安全なメタデータ属性 (Metadata)
+├── Abstractions/             # 共有ドメインモデル (VKAuthenticatedUser, VKExternalIdentity)
+├── ApiKeys/                  # API Key 認証 (公開契約: Interfaces, Options, Errors, Record)
+│   └── Internal/             # 実装詳細 (Handler, Validator, InMemory Providers, Log)
+├── Common/                   # 横断的関心事 (Constants, AuthGroups, ClaimsPrincipal Extensions)
+│   ├── Extensions/           # InMemoryCleanup 登録ヘルパー
+│   └── Internal/             # ClaimsTransformer, BackgroundService, ResponseHelper
+├── DependencyInjection/      # Module-level DI 登録 (BlockExtensions, BuilderExtensions, Options)
+│   └── Internal/             # BlockRegistration, BlockBuilder, OptionsValidator
+├── Diagnostics/              # OpenTelemetry Constants (public)
+│   └── Internal/             # ActivitySource / Meter / Metadata Provider
+├── Jwt/                      # JWT 認証 (公開契約: Interfaces, Options, Errors, AuthMode)
+│   └── Internal/             # JwtAuthenticationService, Revocation, Refresh, Events, Log
+└── OAuth/                    # OAuth クレームマッピング (公開契約: Interfaces, Options, Errors)
+    └── Internal/             # FeatureRegistration, PolicyConfiguration, Mappers/
 ```
 
 ---
@@ -288,41 +292,62 @@ internal sealed class GitHubClaimsMapper : OAuthClaimsMapperBase
 
 ### 2. 構成 (appsettings.json)
 
-```json
+```jsonc
 {
     "VKBlocks": {
         "Authentication": {
-            "Enabled": true,
-            "DefaultScheme": "Bearer",
-            "InMemoryCleanupIntervalMinutes": 10,
+            "Enabled": true,                       // ブロック全体の有効化スイッチ (default: false)
+            "DefaultScheme": "Bearer",             // デフォルト認証スキーム (default: "Bearer")
+            "InMemoryCleanupIntervalMinutes": 10,  // InMemory キャッシュのクリーンアップ間隔 (default: 15)
+
             "Jwt": {
-                "Enabled": true,
-                "AuthMode": "Symmetric",
-                "SecretKey": "your-256-bit-secret-key-here...",
-                "Issuer": "VK.Blocks",
-                "Audience": "VK.API",
-                "SchemeName": "Bearer"
+                "Enabled": true,                   // JWT 機能の有効化 (default: false)
+                "SchemeName": "Bearer",            // 認証スキーム名 (default: "Bearer")
+                "AuthMode": "Symmetric",           // "Symmetric" | "OidcDiscovery" (default: "Symmetric")
+
+                // --- Symmetric モード用 ---
+                "SecretKey": "your-256-bit-secret-key-here...", // 署名鍵 (≥32文字, Symmetric 時必須)
+                "ExpiryMinutes": 60,               // アクセストークン有効期限 (default: 60)
+                "RefreshTokenLifetimeDays": 30,    // リフレッシュトークン有効期限 (default: 30)
+
+                // --- OidcDiscovery モード用 ---
+                // "Authority": "https://login.microsoftonline.com/...",  // OIDC Discovery Base URL
+                // "MetadataAddress": "https://.../.well-known/openid-configuration", // カスタム metadata URL (任意)
+
+                // --- 共通 ---
+                "Issuer": "VK.Blocks",             // トークン発行者 (必須)
+                "Audience": "VK.API",              // トークン受信者 (必須)
+                "ClockSkewSeconds": 0              // クロックスキュー許容秒数 (default: 0)
             },
+
             "ApiKey": {
-                "Enabled": true,
-                "HeaderName": "X-Api-Key",
-                "MinLength": 32,
-                "EnableRateLimiting": true,
-                "RateLimitPerMinute": 60,
-                "RateLimitWindowSeconds": 60
+                "Enabled": true,                   // API Key 機能の有効化 (default: false)
+                "SchemeName": "ApiKey",            // 認証スキーム名 (default: "ApiKey")
+                "HeaderName": "X-Api-Key",         // ヘッダー名 (default: "X-Api-Key")
+                "MinLength": 32,                   // API Key 最小長 (default: 32)
+                "EnableRateLimiting": true,         // レート制限の有効化 (default: false)
+                "RateLimitPerMinute": 60,           // ウィンドウあたりの最大リクエスト数 (default: 60)
+                "RateLimitWindowSeconds": 60,       // レート制限ウィンドウ秒数 (default: 60)
+                "RevocationCacheTtl": "00:05:00",  // 失効キャッシュ TTL (default: 5分)
+                "TrackLastUsedAt": false            // 最終使用日時の追跡 (default: false)
             },
+
             "OAuth": {
-                "Enabled": true,
+                "Enabled": true,                   // OAuth 機能の有効化 (default: false)
                 "Providers": {
                     "GitHub": {
-                        "Enabled": true,
+                        "Enabled": true,           // プロバイダーの有効化 (default: true)
+                        "SchemeName": "GitHub",    // カスタムスキーム名 (省略時はキー名を使用)
                         "Authority": "https://github.com",
                         "ClientId": "your-client-id",
                         "ClientSecret": "your-client-secret",
                         "CallbackPath": "/signin-github",
-                        "ResponseType": "code",
-                        "GetClaimsFromUserInfoEndpoint": true,
-                        "Scopes": ["user:email"]
+                        "DisplayName": "GitHub",   // 表示名 (任意)
+                        "ResponseType": "code",    // レスポンスタイプ (default: "code")
+                        "GetClaimsFromUserInfoEndpoint": true, // UserInfo エンドポイント利用 (default: true)
+                        "SaveTokens": true,        // トークンの保存 (default: true)
+                        "Scopes": ["user:email"]   // 要求スコープ
+                        // "MetadataAddress": "..."  // カスタム metadata URL (任意)
                     }
                 }
             }
@@ -375,17 +400,35 @@ services.TryAddEnumerableSingleton<IValidateOptions<MyOptions>, MyValidator>();
 
 ---
 
+## 🏛️ アーキテクチャ監査
+
+最新の監査レポートは [Authentication_20260510.md](/docs/04-AuditReports/Authentication/Authentication_20260510.md) を参照してください。
+
+| 項目 | 結果 |
+| ---- | ---- |
+| **総合スコア** | 94 / 100 |
+| **Fast Audit** | 18/18 (100%) |
+| **DI Registration** | ✅ PASS (BB.03 完全準拠) |
+| **重大な懸念事項** | なし |
+
+### 監査による改善提案 (軽微)
+
+- `GetVKAuthenticatedUser` の戻り値を `VKResult<VKAuthenticatedUser>` に統一し、`ToAuthenticatedUser` との API 一貫性を確保
+- `JwtAuthenticationService._revocationCache` のスコープ説明コメント追加
+
+---
+
 ## 🔭 今後の展望
 
-| 機能                             | 概要                                                  |
-| -------------------------------- | ----------------------------------------------------- |
-| **Immutable Configuration**      | ADR-016 に基づく不変 Options (init) による高効率な構成管理 |
-| **Auth Scheme Support**          | 標準的な認証スキーム (JWT/API Key 等) のシームレスな統合 |
-| **Dynamic Session Revocation**   | 全デバイスログアウト / セッション単位のリモート無効化 |
-| **Scoped API Keys**              | リソース単位のアクセス制御 (PoLP)                     |
-| **Multi-Tenant Auth Isolation**  | テナントごとの OIDC プロバイダー動的切り替え          |
-| **Identity Enrichment Pipeline** | Redis キャッシュ連携による RBAC ロール自動取得        |
-| **Security Observability**       | 異常検知アラート / RFC 5424 準拠セキュリティログ      |
+| 機能                             | 状態 | 概要                                                  |
+| -------------------------------- | :--: | ----------------------------------------------------- |
+| **Immutable Configuration**      | ✅ | ADR-016 に基づく不変 Options (init) + `Func<T,T>` Transform 実装完了 |
+| **Auth Scheme Support**          | ✅ | JWT / API Key / OAuth のマルチ戦略認証を構成駆動で統合完了 |
+| **Dynamic Session Revocation**   | 🔄 | 全デバイスログアウト / セッション単位のリモート無効化 |
+| **Scoped API Keys**              | 📋 | リソース単位のアクセス制御 (PoLP)                     |
+| **Multi-Tenant Auth Isolation**  | 📋 | テナントごとの OIDC プロバイダー動的切り替え          |
+| **Identity Enrichment Pipeline** | 📋 | Redis キャッシュ連携による RBAC ロール自動取得        |
+| **Security Observability**       | 📋 | 異常検知アラート / RFC 5424 準拠セキュリティログ      |
 
 ---
 
