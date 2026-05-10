@@ -23,7 +23,7 @@ internal sealed partial class McpTools
         try
         {
             var projectRoot = FindProjectRoot();
-            var templatePath = Path.Combine(projectRoot, "docs", "Blueprints", "AdrPrompt.md");
+            var templatePath = Path.Combine(projectRoot, "docs", "00-Blueprints", "AdrPrompt.md");
 
             if (!File.Exists(templatePath))
             {
@@ -69,7 +69,7 @@ Your task is TWO steps — complete BOTH in order:
 === STEP 1: Write the ADR file ===
 Generate a complete, professional ADR following ALL rules below, then save it.
 
---- ADR RULES (from docs/Blueprints/AdrPrompt.md) ---
+--- ADR RULES (from docs/00-Blueprints/AdrPrompt.md) ---
 {adrRules}
 
 --- USER INPUT ---
