@@ -1,4 +1,4 @@
-﻿# VK.Blocks.Authorization
+# VK.Blocks.Authorization
 
 ![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
@@ -112,26 +112,78 @@ flowchart TB
 
 ```
 Authorization/
-├── VKAuthorizationBlock.cs          # Public Marker (IVKBlockMarker)
-├── DependencyInjection/             # DI 登録 (BB.03.2 準拠)
-│   ├── VKAuthorizationExtensions.cs # Public Wrapper (AddVKAuthorizationBlock)
-│   ├── VKAuthorizationOptions.cs    # Public Options (IVKBlockOptions)
+├── VKAuthorizationBlock.cs              # Public Marker ([VKBlockMarker] SG)
+├── Common/                              # 共通型定義
+│   ├── VKAuthorizationClaimTypes.cs     # クレーム型定数
+│   ├── VKAuthorizationErrors.cs         # VKError 定数クラス (CS.01)
+│   ├── VKAuthorizationHandlerInfo.cs    # ハンドラーメタデータ型
+│   ├── VKAuthorizationPolicies.cs       # 名前付きポリシー定数
+│   └── VKEndpointAuthorizationInfo.cs   # エンドポイント認可情報
+├── Contracts/                           # 公開インターフェース
+│   └── IVKAuthorizationRequirement.cs   # VKError 付き Requirement 契約
+├── DependencyInjection/                 # DI 登録 (BB.03 準拠)
+│   ├── IVKAuthorizationBuilder.cs       # Builder インターフェース
+│   ├── VKAuthorizationBlockExtensions.cs # Public Wrapper (AddVKAuthorizationBlock)
+│   ├── VKAuthorizationBuilderExtensions.cs # Fluent Builder 拡張メソッド
+│   ├── VKAuthorizationExtensions.cs     # 横断ユーティリティ (SuperAdmin, RecordEvaluation, ApplyResult)
+│   ├── VKAuthorizationOptions.cs        # Public Options (IVKBlockOptions)
 │   └── Internal/
-│       ├── AuthorizationBlockRegistration.cs # 主登録ロジック (8-Step Sequence)
-│       └── AuthorizationOptionsValidator.cs  # オプション検証
-├── Diagnostics/                     # OpenTelemetry メトリクス・トレース
-│   ├── VKAuthorizationDiagnosticsConstants.cs
+│       ├── AuthorizationBlockBuilder.cs       # Builder 実装 (sealed internal)
+│       ├── AuthorizationBlockRegistration.cs  # 主登録ロジック (8-Step Sequence)
+│       ├── AuthorizationOptionsValidator.cs   # オプション検証
+│       └── AuthorizationPolicyProvider.cs     # Semantic Scheme ベースポリシー設定
+├── Diagnostics/                         # OpenTelemetry メトリクス・トレース
+│   ├── VKAuthorizationDiagnosticsConstants.cs # セマンティックトークン定数
 │   └── Internal/
-│       ├── AuthorizationDiagnostics.cs
-│       └── AuthorizationMetadataProvider.cs
-├── Roles/                           # ロール認可
-├── Permissions/                     # パーミッション認可
-├── DynamicPolicies/                 # 動的ポリシー (Attribute Evaluator)
-├── Entitlements/                    # テナント機能認可 [NEW]
-├── TenantIsolation/                 # マルチテナント隔離
-├── MinimumRank/                     # 職位ランク制限
-├── WorkingHours/                    # 勤務時間制限
-└── InternalNetwork/                 # ネットワーク制御
+│       ├── AuthorizationDiagnostics.cs        # Counter/Histogram/Metadata ([VKBlockDiagnostics] SG)
+│       └── AuthorizationMetadataProvider.cs   # IVKSecurityMetadataProvider 実装
+├── Permissions/                         # パーミッション認可
+│   ├── IVKPermissionEvaluator.cs        # Evaluator インターフェース
+│   ├── IVKPermissionProvider.cs         # Provider インターフェース
+│   ├── IVKPermissionStore.cs            # 永続化抽象
+│   ├── VKAuthorizePermissionAttribute.cs # 宣言的属性 (SG 基底)
+│   ├── VKPermission.cs / VKPermissionArgs.cs / VKPermissionOptions.cs
+│   ├── VKPermissionRequirement.cs       # Requirement 定義
+│   └── Internal/                        # 7-file Feature Slice
+│       ├── PermissionsConstants.cs / PermissionsFeature.cs
+│       ├── PermissionsRegistration.cs / PermissionsLog.cs
+│       ├── PermissionHandler.cs / DefaultPermissionProvider.cs
+│       ├── PermissionOptionsValidator.cs / PermissionStoreExtensions.cs
+│       └── VKGeneratePermissionsAttribute.cs / VKGeneratePermissionHandlerAttribute.cs
+├── Roles/                               # ロール認可
+│   ├── IVKRoleEvaluator.cs / IVKRoleProvider.cs
+│   ├── VKAuthorizeRolesAttribute.cs / VKRoleRequirement.cs
+│   ├── VKRoleArgs.cs / VKRoleOptions.cs
+│   └── Internal/ (RoleHandler, DefaultRoleProvider, RolesRegistration, ...)
+├── TenantIsolation/                     # マルチテナント隔離
+│   ├── IVKTenantEvaluator.cs / IVKUserTenantProvider.cs
+│   ├── VKAuthorizeTenantIsolationAttribute.cs / VKTenantIsolationRequirement.cs
+│   ├── VKTenantIsolationArgs.cs / VKTenantIsolationOptions.cs
+│   └── Internal/ (TenantAuthorizationHandler, DefaultUserTenantProvider, ...)
+├── Entitlements/                        # テナント機能認可
+│   ├── VKRequireTenantFeatureAttribute.cs / VKTenantFeatureRequirement.cs
+│   ├── VKEntitlementsOptions.cs
+│   └── Internal/ (EntitlementsRegistration, ...)
+├── DynamicPolicies/                     # 動的ポリシー (Attribute Evaluator)
+│   ├── IVKDynamicPoliciesEvaluator.cs / IVKDynamicPoliciesProvider.cs
+│   ├── VKDynamicAuthorizeAttribute.cs / VKAuthorizeDynamicPoliciesAttribute.cs
+│   ├── VKDynamicRequirement.cs / VKDynamicPoliciesArgs.cs / VKDynamicPoliciesOptions.cs
+│   └── Internal/ (DefaultDynamicPoliciesEvaluator, DynamicRequirementHandler, ...)
+├── MinimumRank/                         # 職位ランク制限
+│   ├── IVKMinimumRankEvaluator.cs / IVKRankProvider.cs
+│   ├── VKAuthorizeMinimumRankAttribute.cs / VKMinimumRankRequirement.cs
+│   ├── VKMinimumRankArgs.cs / VKMinimumRankOptions.cs / VKEmployeeRank.cs
+│   └── Internal/ (MinimumRankAuthorizationHandler, DefaultRankProvider, ...)
+├── WorkingHours/                        # 勤務時間制限
+│   ├── IVKWorkingHoursEvaluator.cs / IVKWorkingHoursProvider.cs
+│   ├── VKAuthorizeWorkingHoursAttribute.cs / VKWorkingHoursRequirement.cs
+│   ├── VKWorkingHoursArgs.cs / VKWorkingHoursOptions.cs
+│   └── Internal/ (WorkingHoursAuthorizationHandler, DefaultWorkingHoursProvider, ...)
+└── InternalNetwork/                     # ネットワーク制御
+    ├── IVKInternalNetworkEvaluator.cs / IVKIpAddressProvider.cs
+    ├── VKAuthorizeInternalNetworkAttribute.cs / VKInternalNetworkRequirement.cs
+    ├── VKInternalNetworkArgs.cs / VKInternalNetworkOptions.cs
+    └── Internal/ (InternalNetworkAuthorizationHandler, DefaultIpAddressProvider, ...)
 ```
 
 ---
@@ -405,11 +457,19 @@ dotnet test --filter "FullyQualifiedName~VK.Blocks.Authorization"
 
 ## 今後の展望
 
-- [ ] **ポリシー合成エンジン**: 複数ポリシーの AND/OR 合成を宣言的に実現
-- [ ] **分散キャッシュ連携**: Redis を利用したパーミッション/ロールキャッシュ
+- [ ] **ポリシー合成エンジン**: 複数ポリシーの AND/OR 合成をデコレーターパターンで宣言的に実現
+- [ ] **分散キャッシュ連携**: Redis を利用したパーミッション/ロール評価結果のキャッシュ
 - [ ] **監査ログ統合**: 認可判定結果の永続化と監査証跡の自動生成
 - [ ] **API ゲートウェイ連携**: YARP / Ocelot でのポリシー伝播サポート
 - [ ] **リアルタイムポリシー更新**: SignalR を利用した認可ポリシーのホットリロード
+
+---
+
+## 監査履歴
+
+| 日付 | スコア | レポート |
+|---|---|---|
+| 2026-05-10 | 96/100 (Fast: 98%) | [Authorization_20260510.md](/docs/04-AuditReports/Authorization/Authorization_20260510.md) |
 
 ---
 
