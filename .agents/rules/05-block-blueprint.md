@@ -1,4 +1,4 @@
-﻿---
+---
 trigger: model_decision
 ---
 
@@ -49,7 +49,7 @@ namespace VK.Blocks.{ModuleName};
 
 public static class VK{ModuleName}BlockExtensions
 {
-    public static IVK{ModuleName}Builder Add{ModuleName}Block(this IServiceCollection services, IConfiguration configuration)
+    public static IVK{ModuleName}Builder AddVK{ModuleName}Block(this IServiceCollection services, IConfiguration configuration)
         => {ModuleName}BlockRegistration.Register(services, configuration);
 }
 ```

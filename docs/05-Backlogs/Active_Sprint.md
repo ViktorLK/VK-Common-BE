@@ -11,6 +11,12 @@
 - [ ] [CORE-007: Systematize Architectural Rule Numbers (Logical Aliasing)](./Core/007-systematize-architectural-rule-numbers-(logical-aliasing).md)
 - [ ] [CORE-008: Implement Architectural Rule Retrieval Tool in MCP Server](./Core/008-implement-architectural-rule-retrieval-tool-in-mcp-server.md)
 - [ ] [CORE-009: Validate .agents/rules Effectiveness (Model Decision Pattern)](./Core/009-validate-model-decision-rule-effectiveness.md)
+- [ ] [CORE-010: Implement VKGuard Source Generator for CallerInfo](./Core/010-implement-vkguard-source-generator-for-callerinfo.md)
+- [ ] [CORE-011: Refactor IVKBlockMarker.Dependencies using Covariant Return Types](./Core/011-refactor-ivkblockmarkerdependencies-using-covariant-return-types.md)
+- [ ] [CORE-012: Provide VKBaseExceptionExtensions for Unified Error Mapping](./Core/012-provide-vkbaseexceptionextensions-for-unified-error-mapping.md)
+- [ ] [CORE-013: Implement standard IOptions Bridge Wrapper for ADR-016](./Core/013-implement-standard-ioptions-bridge-wrapper-for-adr-016.md)
+- [ ] [CORE-014: Refactor Legacy Exception Throw Sites in Core Library](./Core/014-refactor-legacy-exception-throw-sites-in-core-library.md)
+- [ ] [CORE-015: Refactor Configuration Section Naming to Namespace-Underscore Pattern](./Core/015-refactor-configuration-section-naming-to-namespace-underscore-pattern.md)
 ## 🧠 AI Tasks
 - [ ] [AI-001: Deep Recall Mechanism](./AI/001-deep-recall-mechanism.md)
 - [ ] [AI-002: Configure AI.SemanticKernel Builder](./AI/002-semantic-kernel-builder.md)
@@ -23,6 +29,7 @@
 - [ ] [AI-007: Implement Multi-Engine Failover and Routing Policy](./AI/007-implement-multi-engine-failover-and-routing-policy.md)
 - [ ] [AI-008: Implement Liquid-based Prompt Templating System](./AI/008-implement-liquid-based-prompt-templating-system.md)
 - [ ] [AI-009: Build Automated AI Evaluation Framework](./AI/009-build-automated-ai-evaluation-framework.md)
+- [ ] [AI-010: Industrialize AI Text/Embedding Response Models for Tokenics Visibility](./AI/010-industrialize-ai-text-embedding-response-models-for-tokenics-visibility.md)
 ## 🔐 Authorization Tasks
 - [ ] [AUTHORIZATION-001: Authorization DI Normalization](./Authorization/001-di-normalization.md)
 - [ ] [AUTHORIZATION-002: API Gateway Integration (YARP-Ocelot)](./Authorization/002-api-gateway-integration-(yarp-ocelot).md)
@@ -31,6 +38,7 @@
 - [ ] [AUTHORIZATION-005: Distributed Cache Integration](./Authorization/005-distributed-cache-integration.md)
 - [ ] [AUTHORIZATION-006: Audit Log Integration](./Authorization/006-audit-log-integration.md)
 
+- [ ] [AUTHORIZATION-007: Standardize Authorization Options with IVKToggleableBlockOptions](./Authorization/007-standardize-authorization-options-with-ivktoggleableblockoptions.md)
 ## 💾 MultiTenancy Tasks
 - [ ] [MULTITENANCY-001: Distributed Tenant Store](./MultiTenancy/001-distributed-tenant-store.md)
 - [ ] [MULTITENANCY-002: Tenant Settings Management](./MultiTenancy/002-tenant-settings-management.md)
@@ -41,6 +49,7 @@
 ## 💾 Persistence Tasks
 - [ ] [PERSISTENCE-001: Persistence Registration Cleanup](./Persistence/001-registration-cleanup.md)
 
+- [ ] [PERSISTENCE-002: Standardize Persistence Options with IVKToggleableBlockOptions](./Persistence/002-standardize-persistence-options-with-ivktoggleableblockoptions.md)
 ## 🧪 Labs Tasks
 - [ ] [LABS-001: AuditTrail UserId Integration](./Labs/001-audittrail-userid-integration.md)
 
@@ -52,3 +61,25 @@
 - [ ] [AI.SEMANTICKERNEL-002: Full implementation of AISK Retrieval Engine](./AI.SemanticKernel/002-full-implementation-of-aisk-retrieval-engine.md)
 - [ ] [AI.SEMANTICKERNEL-003: Industrial Telemetry and Semantic Logging Implementation](./AI.SemanticKernel/003-industrial-telemetry-and-semantic-logging-implementation.md)
 - [ ] [AI.SEMANTICKERNEL-004: Complete Governance Filters and Token Counting Logic](./AI.SemanticKernel/004-complete-governance-filters-and-token-counting-logic.md)
+
+## 📋 Web Tasks
+- [ ] [WEB-002: Standardize Web Options with IVKToggleableBlockOptions](./Web/002-standardize-web-options-with-ivktoggleableblockoptions.md)
+
+## 📋 Validation Tasks
+- [ ] [VALIDATION-001: Standardize Validation Options with IVKToggleableBlockOptions](./Validation/001-standardize-validation-options-with-ivktoggleableblockoptions.md)
+
+- [ ] [VALIDATION-002: Enhance Validation (Core) Options and Diagnostics](./Validation/002-enhance-validation-(core)-options-and-diagnostics.md)
+## 📋 Observability Tasks
+- [ ] [OBSERVABILITY-001: Standardize Observability Options with IVKToggleableBlockOptions](./Observability/001-standardize-observability-options-with-ivktoggleableblockoptions.md)
+
+## 📋 Validation.Fluent Tasks
+- [ ] [VALIDATION.FLUENT-001: Enhance Validation.Fluent Options and Diagnostics](./Validation.Fluent/001-enhance-validationfluent-options-and-diagnostics.md)
+
+## 📋 Validation.MediatR Tasks
+- [ ] [VALIDATION.MEDIATR-001: Enhance Validation.MediatR Options and Diagnostics](./Validation.MediatR/001-enhance-validationmediatr-options-and-diagnostics.md)
+
+## 📋 Validation.Web Tasks
+- [ ] [VALIDATION.WEB-001: Enhance Validation.Web Options and Diagnostics](./Validation.Web/001-enhance-validationweb-options-and-diagnostics.md)
+
+## 📋 AI.Core Tasks
+- [ ] [AI.CORE-001: Implement Metadata dictionary in IVKAIProviderSettings for provider-specific connection parameters](./AI.Core/001-implement-metadata-dictionary-in-ivkaiprovidersettings-for-provider-specific-connection-parameters.md)

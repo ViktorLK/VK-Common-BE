@@ -66,6 +66,14 @@
 
 ---
 
+#### [ADR-013: Industrialization of AI Engine Infrastructure and Streaming Resilience](./adr-013-industrialization-of-ai-engine-infrastructure-and-streaming-resilience.md)
+
+**Status**: ✅ Accepted  
+**概要**: 推理モデル（CoT）への対応、統一エラーマッピング、および Channel を用いた高性能な非ブロッキング流式プロトコルを定義します。  
+**キーワード**: Reasoning Support, Channels, Error Mapping
+
+---
+
 ### Governance & Security
 
 #### [ADR-008: Integrated Moderation and Governance Middleware](./adr-008-integrated-moderation-and-governance-middleware.md)
@@ -129,5 +137,5 @@
 ## 🔗 関連ドキュメント
 - [AI Module Manifest](../../../src/BuildingBlocks/AI/module-manifest.md)
 
-**Last Updated**: 2026-05-10  
-**Total ADRs**: 12
+**Last Updated**: 2026-05-11  
+**Total ADRs**: 13

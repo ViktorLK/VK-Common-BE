@@ -33,4 +33,3 @@ trigger: model_decision
 - Minimum policy: Retry (3x) + CircuitBreaker.
 - Timeout MUST be explicitly configured. NO indefinite waits.
 - Prefer using Azure SDK's built-in retries when applicable, and use Polly for custom HTTP/Third-party calls.
-

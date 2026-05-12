@@ -15,9 +15,18 @@ A comprehensive, multi-phase architecture audit that evaluates a BuildingBlock m
     - If not provided, ask: `"Which module would you like me to full-audit?"`
     - Extract `moduleName` from the path.
 
-2. **Mandatory (PS.04)**: Call `vk_get_module_context(path)`.
+2. **Bootstrap Context (PS.04)**:
+    - Call `vk_get_module_context(path)` to load localized prompts and rules.
+    - This typically loads core "Type A" rules (CS.01, AP.01, etc.) via `.prompts/industrial-dna.md`.
 
-3. **Load Rules**:
+3. **Rule Differential Loading (L3 Verification)**:
+    - **Scan Context**: Review the rules already provided in the flattened module context from `vk_get_module_context`.
+    - **Top-up**: Identify rules that are MISSING from the context but required for this audit:
+        - **Required**: `BB.01, AP.03, BB.02, BB.03, BB.04, BB.05, AP.02, CS.02`
+        - **Action**: Call `vk_get_architectural_rule` ONLY for the IDs not already present in the "Active Rule Set" section of the context.
+    - **Output**: `Audit Load: [BB.01:L3, AP.03:L3, BB.02:L3, BB.03:L3, BB.04:L3, BB.05:L3, AP.02:L3, CS.02:L3] | Status: Verified ✅`
+
+4. **Load Rules & Blueprints**:
     - Read the audit blueprint from `docs/00-Blueprints/ArchitectureAudit.md`.
 
 4. **Prepare Report Metadata**:
