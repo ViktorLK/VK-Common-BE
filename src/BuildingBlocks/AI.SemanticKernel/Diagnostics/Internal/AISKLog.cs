@@ -39,4 +39,34 @@ internal static partial class AISKLog
         Level = LogLevel.Trace,
         Message = "Prompt rendered for {PluginName}.{FunctionName}:\n{Prompt}")]
     internal static partial void LogPromptRendered(this ILogger logger, string pluginName, string functionName, string prompt);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "AI Chat Request completed. Model: {ModelId}, PromptTokens: {PromptTokens}, CompletionTokens: {CompletionTokens}, Total: {TotalTokens}")]
+    internal static partial void LogTokenUsage(this ILogger logger, string? modelId, int promptTokens, int completionTokens, int totalTokens);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "AI Audit: {Action} for user {UserId}. Model: {ModelId}")]
+    internal static partial void LogChatAudit(this ILogger logger, string action, string? userId, string? modelId);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Performing semantic search for: {Query}")]
+    internal static partial void LogRetrievalSearch(this ILogger logger, string query);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Generating embeddings for {Count} items. BatchSize: {BatchSize}")]
+    internal static partial void LogEmbeddingGeneration(this ILogger logger, int count, int batchSize);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Embedding batch completed. Model: {ModelId}, Items: {Count}")]
+    internal static partial void LogEmbeddingBatchCompleted(this ILogger logger, string? modelId, int count);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Text generated successfully. Model: {ModelId}, Duration: {Duration}s")]
+    internal static partial void LogTextGenerationCompleted(this ILogger logger, string? modelId, double duration);
 }

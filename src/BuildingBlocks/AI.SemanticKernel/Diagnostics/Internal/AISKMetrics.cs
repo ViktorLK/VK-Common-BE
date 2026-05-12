@@ -1,0 +1,87 @@
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
+
+/// <summary>
+/// Metrics for the AISK building block.
+/// </summary>
+[VKBlockDiagnostics<VKAISKBlock>]
+internal static partial class AISKMetrics
+{
+    private static readonly Histogram<double> ChatRequestDuration = Meter.CreateHistogram<double>(
+        AISKDiagnosticsConstants.Metrics.ChatRequestDuration,
+        unit: "s",
+        description: "Duration of AI chat requests.");
+
+    private static readonly Counter<long> ChatTokenUsage = Meter.CreateCounter<long>(
+        AISKDiagnosticsConstants.Metrics.ChatTokenUsage,
+        unit: "{tokens}",
+        description: "Total number of tokens consumed by AI chat requests.");
+
+    private static readonly Histogram<double> EmbeddingGenerationDuration = Meter.CreateHistogram<double>(
+        AISKDiagnosticsConstants.Metrics.EmbeddingGenerationDuration,
+        unit: "s",
+        description: "Duration of embedding generation requests.");
+
+    private static readonly Counter<long> EmbeddingItemsCount = Meter.CreateCounter<long>(
+        AISKDiagnosticsConstants.Metrics.EmbeddingItemsCount,
+        unit: "{items}",
+        description: "Total number of items processed for embeddings.");
+
+    /// <summary>
+    /// Records the duration of a chat request.
+    /// </summary>
+    public static void RecordChatDuration(double durationSeconds, string? modelId)
+    {
+        ChatRequestDuration.Record(durationSeconds, new TagList
+        {
+            { AISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
+        });
+    }
+
+    /// <summary>
+    /// Records the duration of an embedding generation request.
+    /// </summary>
+    public static void RecordEmbeddingDuration(double durationSeconds, string? modelId)
+    {
+        EmbeddingGenerationDuration.Record(durationSeconds, new TagList
+        {
+            { AISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
+        });
+    }
+
+    /// <summary>
+    /// Records the number of items processed for embeddings.
+    /// </summary>
+    public static void RecordEmbeddingItems(int count, string? modelId)
+    {
+        EmbeddingItemsCount.Add(count, new TagList
+        {
+            { AISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
+        });
+    }
+
+    /// <summary>
+    /// Records the token usage of a chat request.
+    /// </summary>
+    public static void RecordTokenUsage(string? modelId, int promptTokens, int completionTokens)
+    {
+        var tags = new TagList { { AISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" } };
+
+        if (promptTokens > 0)
+        {
+            var pTags = tags;
+            pTags.Add(AISKDiagnosticsConstants.Tags.TokenType, "prompt");
+            ChatTokenUsage.Add(promptTokens, pTags);
+        }
+
+        if (completionTokens > 0)
+        {
+            var cTags = tags;
+            cTags.Add(AISKDiagnosticsConstants.Tags.TokenType, "completion");
+            ChatTokenUsage.Add(completionTokens, cTags);
+        }
+    }
+}

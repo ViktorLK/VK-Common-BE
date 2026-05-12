@@ -14,12 +14,6 @@ public sealed record VKAIOptions : IVKBlockOptions
     public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:{VKAIBlock.BlockName}";
 
     /// <summary>
-    /// Gets or sets a value indicating whether AI is enabled.
-    /// Defaults to true.
-    /// </summary>
-    public bool Enabled { get; init; } = true;
-
-    /// <summary>
     /// Gets or sets the provider for all AI features.
     /// Specific feature providers can override this value.
     /// Defaults to OpenAI.

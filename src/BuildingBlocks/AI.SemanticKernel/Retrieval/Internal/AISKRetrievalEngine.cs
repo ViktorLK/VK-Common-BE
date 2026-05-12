@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel;
+using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 using VK.Blocks.Core;
 
@@ -20,7 +19,7 @@ internal sealed class AISKRetrievalEngine(
     IOptions<VKAIOptions> globalOptions,
     IOptions<VKRetrievalOptions> options,
     ILogger<AISKRetrievalEngine> logger)
-    : AISKEngineBase<VKRetrievalOptions>(kernel, globalOptions, options, logger)
+    : AISKEngineBase<VKRetrievalOptions>(kernel, globalOptions, options, logger), IVKRetrievalEngine
 {
     /// <summary>
     /// Performs a semantic search using the kernel.
@@ -32,17 +31,16 @@ internal sealed class AISKRetrievalEngine(
     {
         VKGuard.NotNull(query);
 
-        return await ExecuteAsync(async () =>
+        return await ExecuteAsync(async (ct) =>
         {
             // This is a placeholder for actual vector search logic.
             // In a real implementation, you would use Kernel.GetRequiredService<IVectorStoreRecordCollection<...>>()
             // or the older SemanticMemory system.
-            
-            // Note: In production, use [LoggerMessage] source generator (OR.01)
-            Logger.LogInformation("Performing semantic search for: {Query}", query);
-            
+
+            Logger.LogRetrievalSearch(query);
+
             IEnumerable<string> results = [];
             return await Task.FromResult(results).ConfigureAwait(false);
-        }).ConfigureAwait(false);
+        }, args, VKRetrievalErrors.FeatureDisabled, cancellationToken).ConfigureAwait(false);
     }
 }

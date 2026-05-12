@@ -1,5 +1,4 @@
 using System;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel;
@@ -7,7 +6,7 @@ namespace VK.Blocks.AI.SemanticKernel;
 /// <summary>
 /// Options for the Retrieval feature in Semantic Kernel.
 /// </summary>
-public sealed record VKRetrievalOptions : IVKRetrievalSettings, IVKAIConnectionSettings, IVKAIGovernanceSettings, IVKBlockOptions
+public sealed record VKRetrievalOptions : IVKRetrievalSettings, IVKAIProviderSettings, IVKAIGovernanceSettings, IVKToggleableBlockOptions
 {
     /// <inheritdoc />
     public static string SectionName => $"{VKAISKOptions.SectionName}:Retrieval";
@@ -23,13 +22,19 @@ public sealed record VKRetrievalOptions : IVKRetrievalSettings, IVKAIConnectionS
     /// <inheritdoc />
     public float? MinScore { get; init; } = 0.7f;
 
-    // --- IVKAIConnectionSettings ---
+    // --- Connection ---
 
     /// <inheritdoc />
     public VKAIProviderType? Provider { get; init; }
 
     /// <inheritdoc />
     public string? ModelId { get; init; }
+
+    /// <inheritdoc />
+    public VKSensitiveString? ApiKey { get; init; }
+
+    /// <inheritdoc />
+    public string? Endpoint { get; init; }
 
     // --- IVKAIGovernanceSettings ---
 
@@ -61,4 +66,5 @@ public sealed record VKRetrievalOptions : IVKRetrievalSettings, IVKAIConnectionS
 
     /// <inheritdoc />
     public int? RateLimitPerMinute { get; init; }
+
 }

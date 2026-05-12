@@ -6,31 +6,39 @@ namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 internal static partial class AISKProviderRegistrar
 {
-    internal static void RegisterAzureOpenAI(
+    internal static void RegisterAzureOpenAIChat(
         this IKernelBuilder builder,
-        VKAISKOptions options,
-        string modelId,
-        bool isChat,
+        VKAISKOptions aiskOptions,
+        IVKAIProviderSettings connectionSettings,
         HttpClient? httpClient)
     {
-        if (string.IsNullOrWhiteSpace(options.Endpoint))
+        if (string.IsNullOrWhiteSpace(connectionSettings.Endpoint))
             throw new InvalidOperationException("Endpoint is required for AzureOpenAI");
 
-        if (isChat)
-        {
-            builder.AddAzureOpenAIChatCompletion(
-                deploymentName: options.DeploymentName ?? modelId,
-                endpoint: options.Endpoint,
-                apiKey: options.ApiKey!,
-                httpClient: httpClient);
-        }
-        else
-        {
-            builder.AddAzureOpenAIEmbeddingGenerator(
-                deploymentName: options.DeploymentName ?? modelId,
-                endpoint: options.Endpoint,
-                apiKey: options.ApiKey!,
-                httpClient: httpClient);
-        }
+        var modelId = connectionSettings.ModelId ?? string.Empty;
+
+        builder.AddAzureOpenAIChatCompletion(
+            deploymentName: aiskOptions.DeploymentName ?? modelId,
+            endpoint: connectionSettings.Endpoint,
+            apiKey: connectionSettings.ApiKey?.Reveal() ?? string.Empty,
+            httpClient: httpClient);
+    }
+
+    internal static void RegisterAzureOpenAIEmbedding(
+        this IKernelBuilder builder,
+        VKAISKOptions aiskOptions,
+        IVKAIProviderSettings connectionSettings,
+        HttpClient? httpClient)
+    {
+        if (string.IsNullOrWhiteSpace(connectionSettings.Endpoint))
+            throw new InvalidOperationException("Endpoint is required for AzureOpenAI");
+
+        var modelId = connectionSettings.ModelId ?? string.Empty;
+
+        builder.AddAzureOpenAIEmbeddingGenerator(
+            deploymentName: aiskOptions.DeploymentName ?? modelId,
+            endpoint: connectionSettings.Endpoint,
+            apiKey: connectionSettings.ApiKey?.Reveal() ?? string.Empty,
+            httpClient: httpClient);
     }
 }

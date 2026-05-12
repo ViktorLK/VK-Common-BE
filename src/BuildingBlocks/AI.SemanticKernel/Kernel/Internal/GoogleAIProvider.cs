@@ -6,17 +6,25 @@ namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 internal static partial class AISKProviderRegistrar
 {
-    internal static void RegisterGoogleAI(
+    internal static void RegisterGoogleAIChat(
         this IKernelBuilder builder,
-        VKAISKOptions options,
-        string modelId,
-        bool isChat,
+        VKAISKOptions aiskOptions,
+        IVKAIProviderSettings connectionSettings,
         HttpClient? httpClient)
     {
+        var modelId = connectionSettings.ModelId ?? string.Empty;
         var cleanModelId = modelId.Replace("models/", "", StringComparison.OrdinalIgnoreCase);
-        if (isChat)
-            builder.AddGoogleAIGeminiChatCompletion(cleanModelId, options.ApiKey!, httpClient: httpClient);
-        else
-            builder.AddGoogleAIEmbeddingGenerator(cleanModelId, options.ApiKey!, httpClient: httpClient);
+        builder.AddGoogleAIGeminiChatCompletion(cleanModelId, connectionSettings.ApiKey?.Reveal() ?? string.Empty, httpClient: httpClient);
+    }
+
+    internal static void RegisterGoogleAIEmbedding(
+        this IKernelBuilder builder,
+        VKAISKOptions aiskOptions,
+        IVKAIProviderSettings connectionSettings,
+        HttpClient? httpClient)
+    {
+        var modelId = connectionSettings.ModelId ?? string.Empty;
+        var cleanModelId = modelId.Replace("models/", "", StringComparison.OrdinalIgnoreCase);
+        builder.AddGoogleAIEmbeddingGenerator(cleanModelId, connectionSettings.ApiKey?.Reveal() ?? string.Empty, httpClient: httpClient);
     }
 }

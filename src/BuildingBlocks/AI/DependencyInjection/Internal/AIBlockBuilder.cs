@@ -15,5 +15,5 @@ internal sealed class AIBlockBuilder(IServiceCollection services, IConfiguration
     public IServiceCollection Services { get; } = VKGuard.NotNull(services);
 
     /// <inheritdoc />
-    public IConfiguration? Configuration { get; } = configuration;
+    public IConfiguration Configuration { get; } = configuration!;
 }

@@ -46,4 +46,9 @@ public static class VKChatErrors
     /// Error returned when the model's context window (token limit) is exceeded.
     /// </summary>
     public static readonly VKError ContextWindowExceeded = new("AI.Chat.ContextWindowExceeded", "The model's context window has been exceeded.");
+
+    /// <summary>
+    /// Error returned when the chat feature is disabled in configuration.
+    /// </summary>
+    public static readonly VKError FeatureDisabled = new("AI.Chat.FeatureDisabled", "The chat feature is disabled.");
 }

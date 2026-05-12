@@ -32,12 +32,10 @@ public static class VKAISKBlockExtensions
     /// <returns>The builder to continue configuration.</returns>
     public static IVKAISKBuilder AddVKAISKBlock(
         this IServiceCollection services,
-        IConfiguration configuration,
         Func<VKAISKOptions, VKAISKOptions> configure)
     {
         VKGuard.NotNull(services);
-        VKGuard.NotNull(configuration);
         VKGuard.NotNull(configure);
-        return AISKBlockRegistration.Register(services, configuration, configure);
+        return AISKBlockRegistration.Register(services, configure: configure);
     }
 }

@@ -6,7 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Tokenics feature.
 /// </summary>
-public sealed record VKTokenicsOptions : IVKAIQuotaSettings, IVKBlockOptions
+public sealed record VKTokenicsOptions : IVKAIQuotaSettings, IVKToggleableBlockOptions
 {
     /// <summary>
     /// The configuration section name for Tokenics options.

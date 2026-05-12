@@ -6,6 +6,8 @@ using VK.Blocks.AI.Chat.Internal;
 using VK.Blocks.AI.DependencyInjection.Internal;
 using VK.Blocks.AI.Embeddings.Internal;
 using VK.Blocks.AI.Moderation.Internal;
+using VK.Blocks.AI.Text;
+using VK.Blocks.AI.Text.Internal;
 using VK.Blocks.AI.Tokenics.Internal;
 using VK.Blocks.Core;
 
@@ -37,68 +39,109 @@ public static class VKAIBlockExtensions
     /// <returns>The AI block builder.</returns>
     public static IVKAIBuilder AddVKAIBlock(
         this IServiceCollection services,
-        IConfiguration configuration,
         Func<VKAIOptions, VKAIOptions> transform)
     {
         VKGuard.NotNull(services);
-        VKGuard.NotNull(configuration);
         VKGuard.NotNull(transform);
-        return AIBlockRegistration.Register(services, configuration, transform);
+        return AIBlockRegistration.Register(services, transform: transform);
     }
 
     /// <summary>
     /// Adds the Chat feature to the AI building block.
     /// </summary>
     /// <param name="builder">The AI block builder.</param>
+    /// <param name="transform">The functional transformation to apply to the default options.</param>
     /// <returns>The AI block builder.</returns>
-    public static IVKAIBuilder AddVKChat(this IVKAIBuilder builder)
+    public static IVKAIBuilder AddVKChat(
+        this IVKAIBuilder builder,
+        Func<VKChatOptions, VKChatOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        return ChatFeatureRegistration.Register(builder);
+        return ChatFeatureRegistration.Register(builder, transform);
     }
 
     /// <summary>
     /// Adds the Embeddings feature to the AI building block.
     /// </summary>
     /// <param name="builder">The AI block builder.</param>
+    /// <param name="transform">The functional transformation to apply to the default options.</param>
     /// <returns>The AI block builder.</returns>
-    public static IVKAIBuilder AddVKEmbeddings(this IVKAIBuilder builder)
+    public static IVKAIBuilder AddVKEmbeddings(
+        this IVKAIBuilder builder,
+        Func<VKEmbeddingOptions, VKEmbeddingOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        return EmbeddingsFeatureRegistration.Register(builder);
+        return EmbeddingsFeatureRegistration.Register(builder, transform);
     }
 
     /// <summary>
-    /// Adds the Audio features (Speech and Transcription) to the AI building block.
+    /// Adds the Audio Speech (TTS) feature to the AI building block.
     /// </summary>
     /// <param name="builder">The AI block builder.</param>
+    /// <param name="transform">The functional transformation to apply to the default options.</param>
     /// <returns>The AI block builder.</returns>
-    public static IVKAIBuilder AddVKAudio(this IVKAIBuilder builder)
+    public static IVKAIBuilder AddVKAudioSpeech(
+        this IVKAIBuilder builder,
+        Func<VKAudioSpeechOptions, VKAudioSpeechOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        return AudioFeatureRegistration.Register(builder);
+        return AudioFeatureRegistration.RegisterSpeech(builder, transform);
+    }
+
+    /// <summary>
+    /// Adds the Audio Transcription (STT) feature to the AI building block.
+    /// </summary>
+    /// <param name="builder">The AI block builder.</param>
+    /// <param name="transform">The functional transformation to apply to the default options.</param>
+    /// <returns>The AI block builder.</returns>
+    public static IVKAIBuilder AddVKAudioTranscription(
+        this IVKAIBuilder builder,
+        Func<VKAudioTranscriptionOptions, VKAudioTranscriptionOptions>? transform = null)
+    {
+        VKGuard.NotNull(builder);
+        return AudioFeatureRegistration.RegisterTranscription(builder, transform);
     }
 
     /// <summary>
     /// Adds the Moderation feature to the AI building block.
     /// </summary>
     /// <param name="builder">The AI block builder.</param>
+    /// <param name="transform">The functional transformation to apply to the default options.</param>
     /// <returns>The AI block builder.</returns>
-    public static IVKAIBuilder AddVKModeration(this IVKAIBuilder builder)
+    public static IVKAIBuilder AddVKModeration(
+        this IVKAIBuilder builder,
+        Func<VKModerationOptions, VKModerationOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        return ModerationFeatureRegistration.Register(builder);
+        return ModerationFeatureRegistration.Register(builder, transform);
     }
 
     /// <summary>
     /// Adds the Tokenics feature to the AI building block.
     /// </summary>
     /// <param name="builder">The AI block builder.</param>
+    /// <param name="transform">The functional transformation to apply to the default options.</param>
     /// <returns>The AI block builder.</returns>
-    public static IVKAIBuilder AddVKTokenics(this IVKAIBuilder builder)
+    public static IVKAIBuilder AddVKTokenics(
+        this IVKAIBuilder builder,
+        Func<VKTokenicsOptions, VKTokenicsOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        return TokenicsFeatureRegistration.Register(builder);
+        return TokenicsFeatureRegistration.Register(builder, transform);
+    }
+
+    /// <summary>
+    /// Adds the Text Generation feature to the AI building block.
+    /// </summary>
+    /// <param name="builder">The AI block builder.</param>
+    /// <param name="transform">The functional transformation to apply to the default options.</param>
+    /// <returns>The AI block builder.</returns>
+    public static IVKAIBuilder AddVKText(
+        this IVKAIBuilder builder,
+        Func<VKTextOptions, VKTextOptions>? transform = null)
+    {
+        VKGuard.NotNull(builder);
+        return TextFeatureRegistration.Register(builder, transform);
     }
 
     /// <summary>
@@ -112,7 +155,9 @@ public static class VKAIBlockExtensions
         return builder
             .AddVKChat()
             .AddVKEmbeddings()
-            .AddVKAudio()
+            .AddVKText()
+            .AddVKAudioSpeech()
+            .AddVKAudioTranscription()
             .AddVKModeration()
             .AddVKTokenics();
     }

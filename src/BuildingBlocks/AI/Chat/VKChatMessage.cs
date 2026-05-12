@@ -37,10 +37,8 @@ public sealed record VKChatMessage
         init
         {
             VKGuard.NotNull(value);
-            if (_parts is null || !_parts.Any())
-            {
-                _parts = [new VKTextPart { Text = value }];
-            }
+            var newPart = new VKTextPart { Text = value };
+            _parts = _parts is null ? [newPart] : [.. _parts.Where(p => p is not VKTextPart), newPart];
         }
     }
 
@@ -69,13 +67,30 @@ public sealed record VKChatMessage
 
     /// <summary>
     /// Gets the reasoning/thinking process content (e.g. from DeepSeek R1).
+    /// <para>
+    /// **Getter**: Returns the reasoning text from the first <see cref="VKReasoningPart"/> found in <see cref="Parts"/>.
+    /// </para>
+    /// <para>
+    /// **Setter**: Automatically creates or updates a <see cref="VKReasoningPart"/> in the <see cref="Parts"/> collection.
+    /// </para>
     /// </summary>
-    public string? ReasoningContent { get; init; }
+    public string? ReasoningContent
+    {
+        get => _parts?.OfType<VKReasoningPart>().FirstOrDefault()?.Reasoning;
+        init
+        {
+            if (value is not null)
+            {
+                var newPart = new VKReasoningPart { Reasoning = value };
+                _parts = _parts is null ? [newPart] : [.. _parts.Where(p => p is not VKReasoningPart), newPart];
+            }
+        }
+    }
 
     /// <summary>
     /// Gets additional metadata for the message (e.g., LogProbabilities, FinishReason).
     /// </summary>
-    public IDictionary<string, object>? Metadata { get; init; }
+    public IDictionary<string, object?>? Metadata { get; init; }
 
     /// <summary>
     /// Helper to create a simple text-based message.

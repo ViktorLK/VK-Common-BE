@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
@@ -9,7 +10,9 @@ namespace VK.Blocks.AI.Tokenics.Internal;
 /// </summary>
 internal static class TokenicsFeatureRegistration
 {
-    public static IVKAIBuilder Register(IVKAIBuilder builder)
+    public static IVKAIBuilder Register(
+        IVKAIBuilder builder,
+        Func<VKTokenicsOptions, VKTokenicsOptions>? transform = null)
     {
         IServiceCollection services = builder.Services;
 
@@ -20,7 +23,7 @@ internal static class TokenicsFeatureRegistration
         }
 
         // 2. Options Registration
-        VKTokenicsOptions options = services.AddVKBlockOptions<VKTokenicsOptions>(builder.Configuration!);
+        VKTokenicsOptions options = services.AddVKBlockOptions<VKTokenicsOptions>(builder.Configuration!, transform);
 
         // 3. Mark-Self
         services.AddVKBlockMarker<TokenicsFeature>();

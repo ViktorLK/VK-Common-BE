@@ -4,17 +4,9 @@ using Microsoft.SemanticKernel;
 namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 /// <summary>
-/// Defines a provider that can register plugins into a KernelBuilder.
+/// A delegate-based implementation of <see cref="IVKAISKPluginProvider"/>.
 /// </summary>
-internal interface IAISKPluginProvider
-{
-    void Register(IKernelBuilder builder, IServiceProvider serviceProvider);
-}
-
-/// <summary>
-/// A delegate-based implementation of <see cref="IAISKPluginProvider"/>.
-/// </summary>
-internal sealed class AISKDelegatePluginProvider(Action<IKernelBuilder, IServiceProvider> registrationAction) : IAISKPluginProvider
+internal sealed class AISKDelegatePluginProvider(Action<IKernelBuilder, IServiceProvider> registrationAction) : IVKAISKPluginProvider
 {
     private readonly Action<IKernelBuilder, IServiceProvider> _registrationAction = registrationAction;
 

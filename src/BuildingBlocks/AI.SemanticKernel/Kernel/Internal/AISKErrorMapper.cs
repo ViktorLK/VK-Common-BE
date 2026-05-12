@@ -3,7 +3,7 @@ using System.Net;
 using Microsoft.SemanticKernel;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.SemanticKernel.Chat.Internal;
+namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 /// <summary>
 /// Maps Semantic Kernel and underlying provider exceptions to VK Errors.
@@ -16,10 +16,7 @@ internal static class AISKErrorMapper
         return exception switch
         {
             HttpOperationException httpEx => MapHttpError(httpEx),
-            UnauthorizedAccessException => VKChatErrors.Unauthorized,
-            OperationCanceledException => VKError.Failure("Core.OperationCancelled", "The operation was cancelled."),
-            ArgumentException => VKChatErrors.InvalidRequest,
-            _ => VKChatErrors.ExecutionError
+            _ => VK.Blocks.AI.Internal.VKAIErrorMapper.Map(exception)
         };
     }
 
@@ -28,16 +25,16 @@ internal static class AISKErrorMapper
         if (ex.ResponseContent?.Contains("context_length_exceeded", StringComparison.OrdinalIgnoreCase) == true ||
             ex.Message.Contains("context_length_exceeded", StringComparison.OrdinalIgnoreCase))
         {
-            return VKChatErrors.ContextWindowExceeded;
+            return VKAIErrors.ContextWindowExceeded;
         }
 
         return ex.StatusCode switch
         {
-            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => VKChatErrors.Unauthorized,
-            HttpStatusCode.TooManyRequests => VKChatErrors.RateLimitReached,
-            HttpStatusCode.NotFound => VKChatErrors.InvalidModel,
-            HttpStatusCode.BadRequest => VKChatErrors.InvalidRequest,
-            _ => VKChatErrors.ProviderError
+            HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => VKAIErrors.AuthenticationFailed,
+            HttpStatusCode.TooManyRequests => VKAIErrors.QuotaExceeded,
+            HttpStatusCode.NotFound => VKAIErrors.InvalidModel,
+            HttpStatusCode.BadRequest => VKAIErrors.InvalidRequest(),
+            _ => VKAIErrors.ProviderError
         };
     }
 }

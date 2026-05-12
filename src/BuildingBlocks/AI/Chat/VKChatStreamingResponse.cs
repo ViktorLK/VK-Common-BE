@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace VK.Blocks.AI;
 
 /// <summary>
@@ -29,4 +31,9 @@ public sealed record VKChatStreamingResponse
     /// Gets a value indicating whether this is the final chunk.
     /// </summary>
     public bool IsFinal { get; init; }
+
+    /// <summary>
+    /// Gets additional metadata for the chunk.
+    /// </summary>
+    public IDictionary<string, object?>? Metadata { get; init; }
 }

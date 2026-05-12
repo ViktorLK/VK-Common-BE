@@ -1,5 +1,5 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.SemanticKernel;
 using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 using VK.Blocks.Core;
@@ -21,7 +21,7 @@ public static class VKAISKPluginExtensions
     public static IVKAISKBuilder AddPlugin<T>(this IVKAISKBuilder builder, string? pluginName = null) where T : class
     {
         VKGuard.NotNull(builder);
-        builder.Services.AddSingleton<IAISKPluginProvider>(new AISKDelegatePluginProvider((k, sp) => k.Plugins.Add(KernelPluginFactory.CreateFromType<T>(pluginName, sp))));
+        builder.Services.TryAddSingleton<IVKAISKPluginProvider>(new AISKDelegatePluginProvider((k, sp) => k.Plugins.Add(KernelPluginFactory.CreateFromType<T>(pluginName, sp))));
         return builder;
     }
 
@@ -36,7 +36,7 @@ public static class VKAISKPluginExtensions
     {
         VKGuard.NotNull(builder);
         VKGuard.NotNull(instance);
-        builder.Services.AddSingleton<IAISKPluginProvider>(new AISKDelegatePluginProvider((k, _) => k.Plugins.Add(KernelPluginFactory.CreateFromObject(instance, pluginName))));
+        builder.Services.TryAddSingleton<IVKAISKPluginProvider>(new AISKDelegatePluginProvider((k, _) => k.Plugins.Add(KernelPluginFactory.CreateFromObject(instance, pluginName))));
         return builder;
     }
 
@@ -52,7 +52,28 @@ public static class VKAISKPluginExtensions
         VKGuard.NotNull(builder);
         VKGuard.NotNullOrWhiteSpace(pluginName);
         VKGuard.NotNull(functions);
-        builder.Services.AddSingleton<IAISKPluginProvider>(new AISKDelegatePluginProvider((k, _) => k.Plugins.Add(KernelPluginFactory.CreateFromFunctions(pluginName, functions))));
+        builder.Services.TryAddSingleton<IVKAISKPluginProvider>(new AISKDelegatePluginProvider((k, _) => k.Plugins.Add(KernelPluginFactory.CreateFromFunctions(pluginName, functions))));
+        return builder;
+    }
+
+    /// <summary>
+    /// Scans the specified assembly for plugins decorated with <see cref="VKAIPluginAttribute"/> and adds them.
+    /// </summary>
+    /// <param name="builder">The builder.</param>
+    /// <param name="assembly">The assembly to scan.</param>
+    /// <returns>The builder.</returns>
+    public static IVKAISKBuilder AddPluginsFromAssembly(this IVKAISKBuilder builder, System.Reflection.Assembly assembly)
+    {
+        VKGuard.NotNull(builder);
+        VKGuard.NotNull(assembly);
+        builder.Services.TryAddSingleton<IVKAISKPluginProvider>(new AISKDelegatePluginProvider((k, sp) =>
+        {
+            var plugins = Plugins.Internal.AISKPluginScanner.Scan([assembly], sp);
+            foreach (var plugin in plugins)
+            {
+                k.Plugins.Add(plugin);
+            }
+        }));
         return builder;
     }
 }
