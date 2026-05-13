@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Audio Transcription feature.
 /// </summary>
-public sealed record VKAudioTranscriptionOptions : IVKAIConnectionSettings, IVKAIGovernanceSettings, IVKBlockOptions
+public sealed record VKAudioTranscriptionOptions : IVKAIProviderSettings, IVKAIGovernanceSettings, IVKToggleableBlockOptions
 {
     /// <summary>
     /// The configuration section name for Audio Transcription options.
@@ -27,6 +27,12 @@ public sealed record VKAudioTranscriptionOptions : IVKAIConnectionSettings, IVKA
 
     /// <inheritdoc />
     public string? ModelId { get; init; }
+
+    /// <inheritdoc />
+    public VKSensitiveString? ApiKey { get; init; }
+
+    /// <inheritdoc />
+    public string? Endpoint { get; init; }
 
     // --- Resilience ---
 

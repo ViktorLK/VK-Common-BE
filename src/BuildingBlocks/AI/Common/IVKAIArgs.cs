@@ -20,4 +20,10 @@ public interface IVKAIArgs : IVKArgs
     /// Gets the specific timeout override for this request.
     /// </summary>
     TimeSpan? Timeout { get; init; }
+
+    /// <summary>
+    /// Gets the unique identifier of the user making the request.
+    /// Used for auditing and rate limiting.
+    /// </summary>
+    string? UserId { get; init; }
 }

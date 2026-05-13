@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace VK.Blocks.AI.SemanticKernel.Governance;

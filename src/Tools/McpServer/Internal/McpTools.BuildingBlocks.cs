@@ -283,6 +283,7 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
 
             // 3. Flattening Engine
             var activeRules = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var generalInstructions = new System.Text.StringBuilder();
             var metadata = new List<string>();
 
             foreach (var file in promptFiles)
@@ -314,9 +315,17 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
                     }
                 }
 
-                // Parse sections (## ID or ### ID) and merge
-                var sections = SplitIntoSections(body);
-                foreach (var section in sections)
+                // Parse sections and separate General Body vs ID-based Rules
+                var (preamble, ruleSections) = SplitBodyIntoContext(body);
+                
+                if (!string.IsNullOrWhiteSpace(preamble))
+                {
+                    generalInstructions.AppendLine($"### 💡 Instructions from {Path.GetFileName(file)}");
+                    generalInstructions.AppendLine(preamble.Trim());
+                    generalInstructions.AppendLine();
+                }
+
+                foreach (var section in ruleSections)
                 {
                     activeRules[section.Key] = section.Value;
                 }
@@ -330,6 +339,14 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
             sb.AppendLine($"> Target: {path}");
             sb.AppendLine($"> Layers: {string.Join(" -> ", metadata)}");
             sb.AppendLine("\n---");
+
+            if (generalInstructions.Length > 0)
+            {
+                sb.AppendLine("\n## 🎯 General Guidance & Philosophy\n");
+                sb.AppendLine(generalInstructions.ToString());
+                sb.AppendLine("\n---");
+            }
+
             sb.AppendLine("\n## 📜 Active Rule Set\n");
 
             foreach (var rule in activeRules.OrderBy(r => r.Key))
@@ -439,12 +456,19 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
         return result.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
-    private static Dictionary<string, string> SplitIntoSections(string body)
+    private static (string Preamble, Dictionary<string, string> Sections) SplitBodyIntoContext(string body)
     {
         var sections = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         // Match headers like ## ID: Name [tags] or ### ID
         var regex = new Regex(@"^(#{2,3})\s+([A-Z0-9.]+)(:.*)?$", RegexOptions.Multiline);
         var matches = regex.Matches(body);
+
+        if (matches.Count == 0)
+        {
+            return (body, sections);
+        }
+
+        var preamble = body.Substring(0, matches[0].Index);
 
         for (int i = 0; i < matches.Count; i++)
         {
@@ -456,7 +480,7 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
             sections[id] = body.Substring(start, end - start).Trim();
         }
 
-        return sections;
+        return (preamble, sections);
     }
 
     private static async Task<List<string>> GetDependenciesAsync(string csprojPath, CancellationToken ct)

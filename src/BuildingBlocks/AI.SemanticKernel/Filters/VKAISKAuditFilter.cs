@@ -24,7 +24,7 @@ public sealed class VKAISKAuditFilter(ILogger<VKAISKAuditFilter> logger) : IFunc
     public async Task OnPromptRenderAsync(PromptRenderContext context, Func<PromptRenderContext, Task> next)
     {
         await next(context).ConfigureAwait(false);
-        
+
         // Audit logic here (e.g., recording rendered prompt for compliance)
     }
 }

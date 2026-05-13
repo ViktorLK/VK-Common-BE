@@ -3,18 +3,21 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using VK.Blocks.AI.SemanticKernel.DependencyInjection.Internal;
+using Microsoft.SemanticKernel.PromptTemplates.Handlebars;
+using Microsoft.SemanticKernel.PromptTemplates.Liquid;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 
 namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 /// <summary>
-/// Industrial implementation of <see cref="IVKAISKKernelFactory"/>.
+/// Industrial implementation of <see cref="IAISKKernelFactory"/>.
 /// Handles the complex weaving of AI connectors and plugins.
 /// </summary>
 internal sealed class AISKKernelFactory(
-    IAISKOptionsProvider optionsProvider,
+    IVKAISKOptionsProvider optionsProvider,
     IOptions<VKAIOptions> globalOptions,
+    IVKChatOptionsProvider chatOptions,
+    IOptions<VKEmbeddingOptions> embeddingOptions,
     IHttpClientFactory httpClientFactory,
     IServiceProvider serviceProvider) : IAISKKernelFactory
 {
@@ -23,40 +26,32 @@ internal sealed class AISKKernelFactory(
     {
         var options = optionsProvider.GetOptions();
         var globalAiOptions = globalOptions.Value;
+        var chatFeatureOptions = chatOptions.GetOptions();
+        var embeddingFeatureOptions = embeddingOptions.Value;
         var httpClient = httpClientFactory.CreateClient(AISKConstants.HttpClientName);
 
         IKernelBuilder builder = Microsoft.SemanticKernel.Kernel.CreateBuilder();
 
-        // Since VKAISKOptions no longer provides ModelId, we look for global AI options.
-        // In a real multi-feature scenario, the Kernel might be built per-feature or with multiple services.
-        // For the default kernel, we use the global provider and its typical model naming convention.
-        string modelId = globalAiOptions.Provider switch
+        // 1. Register Template Factory (Industrial DNA: Specialized Engines)
+        switch (options.TemplateFormat)
         {
-            VKAIProviderType.OpenAI => VKAIModelIds.OpenAI.Gpt4O,
-            VKAIProviderType.AzureOpenAI => VKAIModelIds.OpenAI.Gpt4O,
-            VKAIProviderType.Google => VKAIModelIds.Google.Gemini15Flash,
-            _ => VKAIModelIds.OpenAI.Gpt4O
-        };
+            case AISKTemplateFormat.Handlebars:
+                builder.Services.AddSingleton<IPromptTemplateFactory, HandlebarsPromptTemplateFactory>();
+                break;
+            case AISKTemplateFormat.Liquid:
+                builder.Services.AddSingleton<IPromptTemplateFactory, LiquidPromptTemplateFactory>();
+                break;
+        }
 
-        // 1. Register AI Services based on ServiceType
-        if (options.ServiceType.Equals(nameof(VKAIProviderType.AzureOpenAI), StringComparison.OrdinalIgnoreCase))
+        // 2. Register AI Services (Multi-Provider Support)
+        if (chatFeatureOptions.Enabled)
         {
-            builder.RegisterAzureOpenAI(options, modelId, isChat: true, httpClient);
-            builder.RegisterAzureOpenAI(options, modelId, isChat: false, httpClient);
+            builder.RegisterChatService(options, chatFeatureOptions, httpClient);
         }
-        else if (options.ServiceType.Equals(nameof(VKAIProviderType.Google), StringComparison.OrdinalIgnoreCase))
+
+        if (embeddingFeatureOptions.Enabled)
         {
-            builder.RegisterGoogleAI(options, modelId, isChat: true, httpClient);
-            builder.RegisterGoogleAI(options, VKAIModelIds.Google.Embedding.TextEmbedding004, isChat: false, httpClient);
-        }
-        else if (options.ServiceType.Equals(nameof(VKAIProviderType.Ollama), StringComparison.OrdinalIgnoreCase))
-        {
-            builder.RegisterOllama(options, modelId);
-        }
-        else
-        {
-            // Default to OpenAI
-            builder.RegisterOpenAI(options, modelId, httpClient);
+            builder.RegisterEmbeddingService(options, embeddingFeatureOptions, httpClient);
         }
 
         // 2. Register Dynamic Plugins from DI container

@@ -1,20 +1,10 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel;
 
 /// <summary>
 /// Builder for configuring the Semantic Kernel building block.
 /// </summary>
-public interface IVKAISKBuilder
+public interface IVKAISKBuilder : IVKBlockBuilder<VKAISKBlock>
 {
-    /// <summary>
-    /// Gets the service collection.
-    /// </summary>
-    IServiceCollection Services { get; }
-
-    /// <summary>
-    /// Gets the configuration.
-    /// </summary>
-    IConfiguration Configuration { get; }
 }

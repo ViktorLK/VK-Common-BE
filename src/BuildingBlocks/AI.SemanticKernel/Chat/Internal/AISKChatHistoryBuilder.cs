@@ -6,14 +6,14 @@ namespace VK.Blocks.AI.SemanticKernel.Chat.Internal;
 /// <summary>
 /// Builder for AISK ChatHistory.
 /// </summary>
-internal static class AISKChatHistoryBuilder
+public static class AISKChatHistoryBuilder
 {
     /// <summary>
     /// Builds a AISK <see cref="ChatHistory"/> from VK chat messages.
     /// </summary>
     /// <param name="messages">The messages.</param>
     /// <returns>The chat history.</returns>
-    internal static ChatHistory Build(IEnumerable<VKChatMessage> messages)
+    public static ChatHistory Build(IEnumerable<VKChatMessage> messages)
     {
         ChatHistory history = [];
         foreach (VKChatMessage message in messages)

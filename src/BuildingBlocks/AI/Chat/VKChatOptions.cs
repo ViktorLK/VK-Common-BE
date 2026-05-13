@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Chat feature.
 /// </summary>
-public sealed record VKChatOptions : IVKAIConnectionSettings, IVKAIGovernanceSettings, IVKGenerationSettings, IVKBlockOptions
+public sealed record VKChatOptions : IVKAIProviderSettings, IVKAIGovernanceSettings, IVKGenerationSettings, IVKToggleableBlockOptions
 {
     /// <summary>
     /// The configuration section name for Chat options.
@@ -29,6 +29,11 @@ public sealed record VKChatOptions : IVKAIConnectionSettings, IVKAIGovernanceSet
     /// <inheritdoc />
     public string? ModelId { get; init; }
 
+    /// <inheritdoc />
+    public VKSensitiveString? ApiKey { get; init; }
+
+    /// <inheritdoc />
+    public string? Endpoint { get; init; }
     // --- Resilience ---
 
     /// <inheritdoc />

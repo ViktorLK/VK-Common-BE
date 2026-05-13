@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -10,7 +11,9 @@ namespace VK.Blocks.AI.Chat.Internal;
 /// </summary>
 internal static class ChatFeatureRegistration
 {
-    public static IVKAIBuilder Register(IVKAIBuilder builder)
+    public static IVKAIBuilder Register(
+        IVKAIBuilder builder,
+        Func<VKChatOptions, VKChatOptions>? transform = null)
     {
         IServiceCollection services = builder.Services;
 
@@ -22,7 +25,7 @@ internal static class ChatFeatureRegistration
 
         // 2. Options Registration
         // Note: Features use the parent block's configuration to resolve their sub-options.
-        VKChatOptions options = services.AddVKBlockOptions<VKChatOptions>(builder.Configuration!);
+        VKChatOptions options = services.AddVKBlockOptions<VKChatOptions>(builder.Configuration!, transform);
 
         // 3. Mark-Self
         services.AddVKBlockMarker<ChatFeature>();

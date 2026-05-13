@@ -16,4 +16,9 @@ public static class VKEmbeddingErrors
     /// Error returned when the input is invalid.
     /// </summary>
     public static readonly VKError InvalidInput = new("AI.Embeddings.InvalidInput", "The embedding input is invalid.");
+
+    /// <summary>
+    /// Error returned when the embedding feature is disabled in configuration.
+    /// </summary>
+    public static readonly VKError FeatureDisabled = new("AI.Embeddings.FeatureDisabled", "The embedding feature is disabled.");
 }

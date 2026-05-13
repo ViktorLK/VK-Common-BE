@@ -13,21 +13,6 @@ internal sealed class AISKOptionsValidator : IValidateOptions<VKAISKOptions>
     {
         VKGuard.NotNull(options);
 
-        if (!options.Enabled)
-        {
-            return ValidateOptionsResult.Success;
-        }
-
-        if (string.IsNullOrWhiteSpace(options.ApiKey) && !options.ServiceType.Equals("Ollama", System.StringComparison.OrdinalIgnoreCase))
-        {
-            return ValidateOptionsResult.Fail($"{nameof(VKAISKOptions.ApiKey)} is required when AISK is enabled.");
-        }
-
-        if (options.ServiceType.Equals("AzureOpenAI", System.StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(options.Endpoint))
-        {
-            return ValidateOptionsResult.Fail($"{nameof(VKAISKOptions.Endpoint)} is required for AzureOpenAI service type.");
-        }
-
         return ValidateOptionsResult.Success;
     }
 }

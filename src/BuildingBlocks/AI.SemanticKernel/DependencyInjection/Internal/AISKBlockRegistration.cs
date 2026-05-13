@@ -1,88 +1,156 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using VK.Blocks.AI.SemanticKernel.Chat.Internal;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
 using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Plugins.Internal;
 using VK.Blocks.AI.SemanticKernel.Retrieval.Internal;
+using VK.Blocks.AI.SemanticKernel.Text.Internal;
+using VK.Blocks.AI.Text;
+using VK.Blocks.AI.Text.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.DependencyInjection.Internal;
 
 /// <summary>
-/// Principal registration logic for the Semantic Kernel building block.
+/// Industrial registration logic for the Semantic Kernel building block.
 /// </summary>
 internal static class AISKBlockRegistration
 {
     public static IVKAISKBuilder Register(
         IServiceCollection services,
-        IConfiguration configuration,
+        IConfiguration? configuration = null,
         Func<VKAISKOptions, VKAISKOptions>? configure = null)
     {
         VKGuard.NotNull(services);
 
-        IVKAISKBuilder builder = new AISKBlockBuilder(services, configuration);
+        var builder = new AISKBlockBuilder(services, configuration);
 
-        // 1. Check-Self & Prerequisite
+        // 1. Idempotency Check
         if (services.IsVKBlockRegistered<VKAISKBlock>())
         {
             return builder;
         }
 
-        // 2. Options Registration
-        VKAISKOptions options = services.AddVKBlockOptions(configuration, configure);
+        // 2. Initialize Options (dual-registration pattern)
+        var options = services.AddVKBlockOptions<VKAISKOptions>(
+            configuration!,
+            configure);
 
-        // Register core and feature sub-options
-        services.AddVKBlockOptions<VKAIOptions>(configuration);
-        services.AddVKBlockOptions<VKChatOptions>(configuration);
-        services.AddVKBlockOptions<VKEmbeddingOptions>(configuration);
-        services.AddVKBlockOptions<VKRetrievalOptions>(configuration);
-
-        // 3. Mark-Self
+        // 3. Register Marker (Source Generated Metadata)
         services.AddVKBlockMarker<VKAISKBlock>();
 
         // 4. Options Validation
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<VKAISKOptions>, AISKOptionsValidator>());
 
-        // 5. Diagnostics handled by Source Generator
-
-        // 6. Feature Toggle
-        if (!options.Enabled)
-        {
-            return builder;
-        }
-
-        // 7. Diagnostics Filters
+        // 5. Diagnostics Filters (Level 1)
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IFunctionInvocationFilter, AISKDiagnosticsFilter>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPromptRenderFilter, AISKDiagnosticsFilter>());
 
-        // 8. Dynamic Options Provider
-        services.TryAddScoped<DefaultAISKOptionsProvider>();
-        services.TryAddScoped<IAISKOptionsProvider, DefaultAISKOptionsProvider>();
-        services.TryAddScoped<IAISKKernelFactory, AISKKernelFactory>();
+        // 6. Dynamic Options Provider (Public Interface)
+        services.TryAddScoped<IVKAISKOptionsProvider, VKAISKDefaultOptionsProvider>();
 
-        // 9. Core Services
-        RegisterCoreServices(services);
+        // 7. Plugin Providers (Internal)
+        services.TryAddSingleton<IAISKPluginProvider, AISKConfigPluginProvider>();
+
+        // 8. Infrastructure (Required for caching)
+        services.AddMemoryCache();
+
+        // 9. Kernel Factory (Internal with optional Caching decorator)
+        services.TryAddScoped<IAISKKernelFactory, AISKKernelFactory>();
+        if (options.EnableKernelCaching)
+        {
+            services.Decorate<IAISKKernelFactory, AISKCachedKernelFactory>();
+        }
+
+        // 10. Core Services
+        RegisterCoreServices(services, configuration);
 
         return builder;
     }
 
-    private static void RegisterCoreServices(IServiceCollection services)
+    private static void RegisterCoreServices(IServiceCollection services, IConfiguration? configuration)
     {
         // 1. HttpClient with Resilience
         services.AddHttpClient(AISKConstants.HttpClientName)
-            .AddStandardResilienceHandler();
+            .AddStandardResilienceHandler()
+            .Configure(ConfigureResilience);
 
         // 2. Kernel Registration (Delegated to Factory)
         services.TryAddScoped(sp => sp.GetRequiredService<IAISKKernelFactory>().CreateKernel());
 
-        // 3. Feature Registrations (Generic Version)
-        services.TryAddScoped<IVKChatEngine, AISKChatEngine>();
-        services.TryAddScoped<IVKEmbeddingEngine, AISKEmbeddingEngine>();
-        services.TryAddScoped<AISKRetrievalEngine>();
+        // 3. Feature Registrations with No-Op fallbacks
+        
+        // Chat
+        var chatOptions = services.AddVKBlockOptions<VKChatOptions>(configuration!);
+        if (chatOptions.Enabled)
+        {
+            services.TryAddScoped<IVKChatEngine, AISKChatEngine>();
+        }
+        else
+        {
+            services.TryAddScoped<IVKChatEngine, NoOpAISKChatEngine>();
+        }
+
+        // Embedding
+        var embedOptions = services.AddVKBlockOptions<VKEmbeddingOptions>(configuration!);
+        if (embedOptions.Enabled)
+        {
+            services.TryAddScoped<IVKEmbeddingEngine, AISKEmbeddingEngine>();
+        }
+        else
+        {
+            services.TryAddScoped<IVKEmbeddingEngine, NoOpAISKEmbeddingEngine>();
+        }
+
+        // Retrieval
+        var retrievalOptions = services.AddVKBlockOptions<VKRetrievalOptions>(configuration!);
+        if (retrievalOptions.Enabled)
+        {
+            services.TryAddScoped<IVKRetrievalEngine, AISKRetrievalEngine>();
+        }
+        else
+        {
+            services.TryAddScoped<IVKRetrievalEngine, NoOpAISKRetrievalEngine>();
+        }
+
+        // Text
+        var textOptions = services.AddVKBlockOptions<VKTextOptions>(configuration!);
+        if (textOptions.Enabled)
+        {
+            services.TryAddScoped<IVKTextEngine, AISKTextEngine>();
+        }
+        else
+        {
+            services.TryAddScoped<IVKTextEngine, NoOpVKTextEngine>();
+        }
+    }
+
+    private static void ConfigureResilience(HttpStandardResilienceOptions options, IServiceProvider sp)
+    {
+        var chatOptions = sp.GetRequiredService<IOptions<VKChatOptions>>().Value;
+        var globalOptions = sp.GetRequiredService<IOptions<VKAIOptions>>().Value;
+
+        // 1. Retry Policy
+        var retryCount = chatOptions.RetryCount ?? globalOptions.RetryCount;
+        options.Retry.MaxRetryAttempts = retryCount;
+
+        // 2. Total Request Timeout
+        var timeout = chatOptions.Timeout ?? globalOptions.Timeout;
+        options.TotalRequestTimeout.Timeout = timeout;
+
+        // 3. Circuit Breaker
+        var cbThreshold = chatOptions.CircuitBreakerThreshold ?? globalOptions.CircuitBreakerThreshold;
+        options.CircuitBreaker.MinimumThroughput = cbThreshold * 10; // Simple mapping
+
+        var cbBreakDuration = chatOptions.CircuitBreakerBreakDuration ?? globalOptions.CircuitBreakerBreakDuration;
+        options.CircuitBreaker.BreakDuration = cbBreakDuration;
     }
 }

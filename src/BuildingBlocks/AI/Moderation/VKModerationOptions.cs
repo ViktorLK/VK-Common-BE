@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Moderation feature.
 /// </summary>
-public sealed record VKModerationOptions : IVKAIConnectionSettings, IVKAIGovernanceSettings, IVKBlockOptions
+public sealed record VKModerationOptions : IVKAIProviderSettings, IVKAIGovernanceSettings, IVKToggleableBlockOptions
 {
     /// <summary>
     /// The configuration section name for Moderation options.
@@ -27,6 +27,12 @@ public sealed record VKModerationOptions : IVKAIConnectionSettings, IVKAIGoverna
 
     /// <inheritdoc />
     public string? ModelId { get; init; }
+
+    /// <inheritdoc />
+    public VKSensitiveString? ApiKey { get; init; }
+
+    /// <inheritdoc />
+    public string? Endpoint { get; init; }
 
     // --- Resilience ---
 

@@ -5,5 +5,8 @@ namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 /// </summary>
 internal interface IAISKKernelFactory
 {
+    /// <summary>
+    /// Creates a new Kernel instance using the resolved options.
+    /// </summary>
     Microsoft.SemanticKernel.Kernel CreateKernel();
 }

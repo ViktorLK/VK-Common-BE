@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
@@ -9,36 +10,51 @@ namespace VK.Blocks.AI.Audio.Internal;
 /// </summary>
 internal static class AudioFeatureRegistration
 {
-    public static IVKAIBuilder Register(IVKAIBuilder builder)
+    public static IVKAIBuilder RegisterSpeech(
+        IVKAIBuilder builder,
+        Func<VKAudioSpeechOptions, VKAudioSpeechOptions>? transform = null)
     {
         IServiceCollection services = builder.Services;
 
-        // 1. Idempotency Check
-        if (services.IsVKBlockRegistered<AudioFeature>())
+        if (services.IsVKBlockRegistered<AudioSpeechFeature>())
         {
             return builder;
         }
 
-        // 2. Options Registration
-        VKAudioSpeechOptions speechOptions = services.AddVKBlockOptions<VKAudioSpeechOptions>(builder.Configuration!);
-        VKAudioTranscriptionOptions transcriptionOptions = services.AddVKBlockOptions<VKAudioTranscriptionOptions>(builder.Configuration!);
-
-        // 3. Mark-Self
-        services.AddVKBlockMarker<AudioFeature>();
-
-        // 4. Options Validation
+        VKAudioSpeechOptions options = services.AddVKBlockOptions<VKAudioSpeechOptions>(builder.Configuration!, transform);
+        services.AddVKBlockMarker<AudioSpeechFeature>();
         services.TryAddEnumerableSingleton<IValidateOptions<VKAudioSpeechOptions>, AudioSpeechOptionsValidator>();
+
+        if (!options.Enabled)
+        {
+            return builder;
+        }
+
+        // Feature services registration
+        return builder;
+    }
+
+    public static IVKAIBuilder RegisterTranscription(
+        IVKAIBuilder builder,
+        Func<VKAudioTranscriptionOptions, VKAudioTranscriptionOptions>? transform = null)
+    {
+        IServiceCollection services = builder.Services;
+
+        if (services.IsVKBlockRegistered<AudioTranscriptionFeature>())
+        {
+            return builder;
+        }
+
+        VKAudioTranscriptionOptions options = services.AddVKBlockOptions<VKAudioTranscriptionOptions>(builder.Configuration!, transform);
+        services.AddVKBlockMarker<AudioTranscriptionFeature>();
         services.TryAddEnumerableSingleton<IValidateOptions<VKAudioTranscriptionOptions>, AudioTranscriptionOptionsValidator>();
 
-        // 5. Feature Toggles
-        if (!speechOptions.Enabled && !transcriptionOptions.Enabled)
+        if (!options.Enabled)
         {
             return builder;
         }
 
-        // 6. Core Services
-        // Implementations would go here.
-
+        // Feature services registration
         return builder;
     }
 }

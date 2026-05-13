@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
@@ -9,7 +10,9 @@ namespace VK.Blocks.AI.Embeddings.Internal;
 /// </summary>
 internal static class EmbeddingsFeatureRegistration
 {
-    public static IVKAIBuilder Register(IVKAIBuilder builder)
+    public static IVKAIBuilder Register(
+        IVKAIBuilder builder,
+        Func<VKEmbeddingOptions, VKEmbeddingOptions>? transform = null)
     {
         IServiceCollection services = builder.Services;
 
@@ -20,7 +23,7 @@ internal static class EmbeddingsFeatureRegistration
         }
 
         // 2. Options Registration
-        VKEmbeddingOptions options = services.AddVKBlockOptions<VKEmbeddingOptions>(builder.Configuration!);
+        VKEmbeddingOptions options = services.AddVKBlockOptions<VKEmbeddingOptions>(builder.Configuration!, transform);
 
         // 3. Mark-Self
         services.AddVKBlockMarker<EmbeddingsFeature>();

@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Audio Speech (TTS) feature.
 /// </summary>
-public sealed record VKAudioSpeechOptions : IVKAIConnectionSettings, IVKAIGovernanceSettings, IVKBlockOptions
+public sealed record VKAudioSpeechOptions : IVKAIProviderSettings, IVKAIGovernanceSettings, IVKToggleableBlockOptions
 {
     /// <summary>
     /// The configuration section name for Audio Speech options.
@@ -27,6 +27,12 @@ public sealed record VKAudioSpeechOptions : IVKAIConnectionSettings, IVKAIGovern
 
     /// <inheritdoc />
     public string? ModelId { get; init; }
+
+    /// <inheritdoc />
+    public VKSensitiveString? ApiKey { get; init; }
+
+    /// <inheritdoc />
+    public string? Endpoint { get; init; }
 
     // --- Resilience ---
 

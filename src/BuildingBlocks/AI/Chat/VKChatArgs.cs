@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Arguments for chat execution.
 /// Following AP.05: Hierarchical configuration pattern.
 /// </summary>
-public sealed record VKChatArgs : IVKAIArgs, IVKAIConnectionSettings, IVKGenerationSettings, IVKArgs<VKChatArgs>
+public sealed record VKChatArgs : IVKAIArgs, IVKAIProviderOverrides, IVKGenerationSettings, IVKArgs<VKChatArgs>
 {
     /// <summary>
     /// Gets an empty set of arguments (no overrides).
@@ -31,6 +31,12 @@ public sealed record VKChatArgs : IVKAIArgs, IVKAIConnectionSettings, IVKGenerat
     public string? ModelId { get; init; }
 
     /// <inheritdoc />
+    public VKSensitiveString? ApiKey { get; init; }
+
+    /// <inheritdoc />
+    public string? Endpoint { get; init; }
+
+    /// <inheritdoc />
     public TimeSpan? Timeout { get; init; }
 
     /// <summary>
@@ -40,4 +46,7 @@ public sealed record VKChatArgs : IVKAIArgs, IVKAIConnectionSettings, IVKGenerat
 
     /// <inheritdoc />
     public IDictionary<string, object> Context { get; init; } = new Dictionary<string, object>();
+
+    /// <inheritdoc />
+    public string? UserId { get; init; }
 }

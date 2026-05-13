@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Arguments for moderation execution.
 /// Following AP.05: Hierarchical configuration pattern.
 /// </summary>
-public sealed record VKModerationArgs : IVKAIArgs, IVKAIConnectionSettings, IVKArgs<VKModerationArgs>
+public sealed record VKModerationArgs : IVKAIArgs, IVKAIProviderOverrides, IVKArgs<VKModerationArgs>
 {
     /// <summary>
     /// Gets an empty set of arguments (no overrides).
@@ -22,6 +22,12 @@ public sealed record VKModerationArgs : IVKAIArgs, IVKAIConnectionSettings, IVKA
     public string? ModelId { get; init; }
 
     /// <inheritdoc />
+    public VKSensitiveString? ApiKey { get; init; }
+
+    /// <inheritdoc />
+    public string? Endpoint { get; init; }
+
+    /// <inheritdoc />
     public TimeSpan? Timeout { get; init; }
 
     /// <summary>
@@ -31,4 +37,7 @@ public sealed record VKModerationArgs : IVKAIArgs, IVKAIConnectionSettings, IVKA
 
     /// <inheritdoc />
     public IDictionary<string, object> Context { get; init; } = new Dictionary<string, object>();
+
+    /// <inheritdoc />
+    public string? UserId { get; init; }
 }

@@ -1,3 +1,6 @@
+using System.Net.Http;
+using Microsoft.SemanticKernel;
+
 namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 /// <summary>
@@ -6,5 +9,51 @@ namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 /// </summary>
 internal static partial class AISKProviderRegistrar
 {
-    // Common helper methods can go here if needed in the future.
+    internal static void RegisterChatService(
+        this IKernelBuilder builder,
+        VKAISKOptions aiskOptions,
+        IVKAIProviderSettings connectionSettings,
+        HttpClient? httpClient)
+    {
+        switch (connectionSettings.Provider)
+        {
+            case VKAIProviderType.AzureOpenAI:
+                builder.RegisterAzureOpenAIChat(aiskOptions, connectionSettings, httpClient);
+                break;
+            case VKAIProviderType.Google:
+                builder.RegisterGoogleAIChat(aiskOptions, connectionSettings, httpClient);
+                break;
+            case VKAIProviderType.Ollama:
+                builder.RegisterOllamaChat(aiskOptions, connectionSettings);
+                break;
+            case VKAIProviderType.OpenAI:
+            default:
+                builder.RegisterOpenAIChat(aiskOptions, connectionSettings, httpClient);
+                break;
+        }
+    }
+
+    internal static void RegisterEmbeddingService(
+        this IKernelBuilder builder,
+        VKAISKOptions aiskOptions,
+        IVKAIProviderSettings connectionSettings,
+        HttpClient? httpClient)
+    {
+        switch (connectionSettings.Provider)
+        {
+            case VKAIProviderType.AzureOpenAI:
+                builder.RegisterAzureOpenAIEmbedding(aiskOptions, connectionSettings, httpClient);
+                break;
+            case VKAIProviderType.Google:
+                builder.RegisterGoogleAIEmbedding(aiskOptions, connectionSettings, httpClient);
+                break;
+            case VKAIProviderType.Ollama:
+                builder.RegisterOllamaEmbedding(aiskOptions, connectionSettings);
+                break;
+            case VKAIProviderType.OpenAI:
+            default:
+                builder.RegisterOpenAIEmbedding(aiskOptions, connectionSettings, httpClient);
+                break;
+        }
+    }
 }

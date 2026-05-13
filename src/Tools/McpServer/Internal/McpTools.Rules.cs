@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ModelContextProtocol.Server;
@@ -10,17 +11,27 @@ namespace VK.Tools.McpServer.Internal;
 internal sealed partial class McpTools
 {
     [McpServerTool]
-    [Description("Retrieves the detailed specification of a specific VK.Blocks architectural rule by its logical ID (e.g., 'CS.01', 'OR.01').")]
+    [Description("Retrieves the detailed specifications of VK.Blocks architectural rules by their logical IDs (e.g., 'CS.01', 'OR.01'). Supports comma-separated IDs for batch retrieval.")]
     public static async Task<string> VKGetArchitecturalRule(
-        [Description("The logical ID of the rule to retrieve (e.g., 'CS.01').")] string ruleId,
+        [Description("The logical ID(s) of the rules to retrieve (e.g., 'CS.01' or 'BB.01,BB.02').")] string ruleIds,
         CancellationToken ct)
     {
-        var result = await GetRuleContentInternal(ruleId, ct).ConfigureAwait(false);
-        if (result == null)
+        var ids = ruleIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToArray();
+        if (ids.Length == 0)
         {
-            return $"[Error] Rule ID '{ruleId}' not found in any definition file.";
+            return "[Error] No rule IDs provided.";
         }
-        return result;
+
+        var results = new System.Collections.Generic.List<string>();
+        foreach (var id in ids)
+        {
+            var result = await GetRuleContentInternal(id, ct).ConfigureAwait(false);
+            results.Add(result ?? $"[Error] Rule ID '{id}' not found in any definition file.");
+        }
+
+        return string.Join("\n\n---\n\n", results);
     }
 
     private static async Task<string?> GetRuleContentInternal(string ruleId, CancellationToken ct)
@@ -47,8 +58,27 @@ internal sealed partial class McpTools
                 if (startIndex == -1)
                     continue;
 
-                // Find the start of the next header (###)
-                var nextHeaderIndex = content.IndexOf("### ", startIndex + targetHeader.Length, StringComparison.OrdinalIgnoreCase);
+                // Find the start of the next header (exactly ### followed by a space)
+                // We skip the current header by starting the search after the current line
+                var lineEndIndex = content.IndexOf('\n', startIndex);
+                if (lineEndIndex == -1) lineEndIndex = startIndex + targetHeader.Length;
+
+                var nextHeaderIndex = -1;
+                var searchIndex = lineEndIndex;
+                while ((searchIndex = content.IndexOf("### ", searchIndex, StringComparison.OrdinalIgnoreCase)) != -1)
+                {
+                    // Ensure it's exactly ### (Level 3), not #### (Level 4+)
+                    if (searchIndex == 0 || content[searchIndex - 1] == '\n')
+                    {
+                        // Check if it's ####
+                        if (content.Length > searchIndex + 4 && content[searchIndex + 3] != '#')
+                        {
+                            nextHeaderIndex = searchIndex;
+                            break;
+                        }
+                    }
+                    searchIndex += 4;
+                }
 
                 string ruleContent;
                 if (nextHeaderIndex != -1)

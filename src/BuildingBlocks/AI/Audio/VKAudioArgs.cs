@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Arguments for audio execution (Transcription/Speech).
 /// Following AP.05: Hierarchical configuration pattern.
 /// </summary>
-public sealed record VKAudioArgs : IVKAIArgs, IVKAIConnectionSettings, IVKArgs<VKAudioArgs>
+public sealed record VKAudioArgs : IVKAIArgs, IVKAIProviderOverrides, IVKArgs<VKAudioArgs>
 {
     /// <summary>
     /// Gets an empty set of arguments (no overrides).
@@ -20,6 +20,12 @@ public sealed record VKAudioArgs : IVKAIArgs, IVKAIConnectionSettings, IVKArgs<V
 
     /// <inheritdoc />
     public string? ModelId { get; init; }
+
+    /// <inheritdoc />
+    public VKSensitiveString? ApiKey { get; init; }
+
+    /// <inheritdoc />
+    public string? Endpoint { get; init; }
 
     /// <inheritdoc />
     public TimeSpan? Timeout { get; init; }
@@ -36,4 +42,7 @@ public sealed record VKAudioArgs : IVKAIArgs, IVKAIConnectionSettings, IVKArgs<V
 
     /// <inheritdoc />
     public IDictionary<string, object> Context { get; init; } = new Dictionary<string, object>();
+
+    /// <inheritdoc />
+    public string? UserId { get; init; }
 }

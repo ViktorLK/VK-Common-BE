@@ -8,14 +8,23 @@ A lightweight, high-speed audit that uses **only `list_dir` and `grep_search`** 
 
 **Reference modules (= "correct" baseline)**: `Authentication`, `Authorization`
 
-## Step 1: Identify the Target & Load Context
+## Step 1: Identify the Target & Bootstrap Context (PS.04)
 
-- Determine the **absolute path** of the BuildingBlock module to audit from the user's input.
-- If not provided, ask: `"Which module would you like me to fast-audit?"`
-- **Mandatory (PS.04)**: Call `vk_get_module_context(path)` to load localized prompts and rules.
-- Extract the `moduleName` from the path (e.g., `"Blob"`, `"ExceptionHandling"`).
+1. Determine the **absolute path** of the BuildingBlock module to audit from the user's input.
+2. If not provided, ask: `"Which module would you like me to fast-audit?"`
+3. **Mandatory**: Call `vk_get_module_context(path)` to load localized prompts and rules.
+   - This typically loads core "Type A" rules (CS.01, AP.01, etc.) via `.prompts/industrial-dna.md`.
 
-## Step 2: Structural Checks (list_dir only)
+## Step 2: Rule Differential Loading (L3 Verification)
+
+1. **Scan Context**: Review the rules already provided in the flattened module context from `vk_get_module_context`.
+2. **Top-up**: Identify rules that are MISSING from the context but required for this audit:
+    - **Required**: `BB.01, AP.03, BB.02, BB.03`
+    - **Action**: Call `vk_get_architectural_rule` ONLY for the IDs not already present in the "Active Rule Set" section of the context.
+3. **Output**: `Audit Load: [BB.01:L3, AP.03:L3, BB.02:L3, BB.03:L3] | Status: Verified ✅`
+   - *(Note: Indicate which rules were confirmed from context vs. fetched via top-up)*
+
+## Step 3: Structural Checks (list_dir only)
 
 Run `list_dir` on the module root and key subdirectories. Check the following:
 
@@ -28,7 +37,7 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 | S-05 | BB.01 | 🔴 | Marker file exists at module root | `VK{Module}Block.cs` or similar `*Block.cs` at root level |
 | S-06 | BB.01 | 🟡 | Options NOT scattered across multiple folders | Options files should be co-located (not split between `Options/`, `DependencyInjection/`, `Features/` simultaneously) |
 
-## Step 3: Marker Checks (grep_search on *Block.cs)
+## Step 4: Marker Checks (grep_search on *Block.cs)
 
 | ID | Rule | Tier | Check | grep Query | Pass Condition |
 |:---|:-----|:-----|:------|:-----------|:---------------|
@@ -37,7 +46,7 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 | M-03 | BB.02 | 🔴 | `sealed partial class` declaration | `sealed partial class` in `*Block.cs` | Both `sealed` and `partial` present |
 | M-04 | BB.02 | 🟡 | Dependencies declared (non-Core modules only) | `Dependencies` in `*Block.cs` | Found (skip for Core) |
 
-## Step 4: DI Registration Checks (grep_search in DependencyInjection/)
+## Step 5: DI Registration Checks (grep_search in DependencyInjection/)
 
 | ID | Rule | Tier | Check | grep Query | Pass Condition |
 |:---|:-----|:-----|:------|:-----------|:---------------|
@@ -47,8 +56,9 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 | D-04 | AP.02 | 🔴 | Uses `TryAdd` pattern | `TryAdd` | Found |
 | D-05 | AP.02 | 🔴 | No direct `Add` registration | `services.Add(Singleton\|Scoped\|Transient)` (regex) | **NOT found** = Pass |
 | D-06 | BB.03 | 🟡 | Wrapper → Internal delegation exists | `BlockRegistration.Register` in Extensions file | Found |
+| D-07 | BB.03 | 🔴 | Wrapper Method Naming Pattern | `AddVK.*Block` | Found |
 
-## Step 5: Options Checks (grep_search)
+## Step 6: Options Checks (grep_search)
 
 | ID | Rule | Tier | Check | grep Query | Pass Condition |
 |:---|:-----|:-----|:------|:-----------|:---------------|
@@ -57,7 +67,7 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 | O-03 | AP.04 | 🟡 | `SectionName` is defined | `SectionName` in Options files | Found |
 | O-04 | BB.05 | 🔴 | NOT `sealed class` (legacy) | `sealed class.*IVKBlockOptions` | **NOT found** = Pass |
 
-## Step 6: Implementation Pattern Checks (grep_search, module-wide)
+## Step 7: Implementation Pattern Checks (grep_search, module-wide)
 
 | ID | Rule | Tier | Check | grep Query | Pass Condition |
 |:---|:-----|:-----|:------|:-----------|:---------------|
@@ -73,7 +83,7 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 | I-10 | CS.06 | 🔴 | Core: JSON Serializer usage | `JsonSerializer\.(Serialize\|Deserialize)` | **NOT found** = Pass |
 | I-11 | CS.02 | 🟡 | Dependency Pollution Check | `using Microsoft\.EntityFrameworkCore;` or `StackExchange\.Redis` | **NOT found** in Application logic (e.g. `Features/`, `Internal/` outside of Persistence/Infrastructure boundaries) |
 
-## Step 7: Naming & Visibility Checks (AP.03)
+## Step 8: Naming & Visibility Checks (AP.03)
 
 | ID | Rule | Tier | Check | grep Query (regex) | Pass Condition |
 |:---|:-----|:-----|:------|:-----------|:---------------|
@@ -81,7 +91,7 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 | N-02 | AP.03 | 🟡 | Level 2+ types are `internal` | `public (class\|interface\|record\|struct)` | **NOT found** in `Internal/` or deep dirs |
 | N-03 | AP.03 | 🟡 | Deep namespaces use matching path | `namespace (?!.*\.Internal)` | **NOT found** in `*/Internal/*` |
 
-## Step 8: Output the Report
+## Step 9: Output the Report
 
 Every response MUST start with the **Handshake**:
 `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`

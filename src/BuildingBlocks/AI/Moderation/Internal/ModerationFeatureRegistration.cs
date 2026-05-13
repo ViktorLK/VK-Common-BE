@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
@@ -9,7 +10,9 @@ namespace VK.Blocks.AI.Moderation.Internal;
 /// </summary>
 internal static class ModerationFeatureRegistration
 {
-    public static IVKAIBuilder Register(IVKAIBuilder builder)
+    public static IVKAIBuilder Register(
+        IVKAIBuilder builder,
+        Func<VKModerationOptions, VKModerationOptions>? transform = null)
     {
         IServiceCollection services = builder.Services;
 
@@ -20,7 +23,7 @@ internal static class ModerationFeatureRegistration
         }
 
         // 2. Options Registration
-        VKModerationOptions options = services.AddVKBlockOptions<VKModerationOptions>(builder.Configuration!);
+        VKModerationOptions options = services.AddVKBlockOptions<VKModerationOptions>(builder.Configuration!, transform);
 
         // 3. Mark-Self
         services.AddVKBlockMarker<ModerationFeature>();
