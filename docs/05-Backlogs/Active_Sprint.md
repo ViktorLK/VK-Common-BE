@@ -83,3 +83,17 @@
 
 ## 📋 AI.Core Tasks
 - [ ] [AI.CORE-001: Implement Metadata dictionary in IVKAIProviderSettings for provider-specific connection parameters](./AI.Core/001-implement-metadata-dictionary-in-ivkaiprovidersettings-for-provider-specific-connection-parameters.md)
+
+- [ ] [AI.CORE-002: Industrialize Token Counter Implementation](./AI.Core/002-industrialize-token-counter-implementation.md)
+## 📋 Labs.PWP Tasks
+- [ ] [LABS.PWP-001: Implement SensorController and Bio-Feedback Normalization](./Labs.PWP/001-implement-sensorcontroller-and-bio-feedback-normalization.md)
+- [ ] [LABS.PWP-002: Replace hardcoded Sentiment Analysis with dynamic evaluation](./Labs.PWP/002-replace-hardcoded-sentiment-analysis-with-dynamic-evaluation.md)
+- [ ] [LABS.PWP-003: Implement Granular Message Management (Edit/Delete)](./Labs.PWP/003-implement-granular-message-management-(edit-delete).md)
+- [ ] [LABS.PWP-004: Implement SignalR for Real-time Proactive Push](./Labs.PWP/004-implement-signalr-for-real-time-proactive-push.md)
+
+- [ ] [LABS.PWP-005: Modernize Cognitive Service Model Resolution](./Labs.Pwp/005-modernize-cognitive-service-model-resolution.md)
+- [ ] [LABS.PWP-006: Migrate Persona and Lore to SQLite Database](./Labs.Pwp/006-migrate-persona-and-lore-to-sqlite-database.md)
+## 📋 PWP Tasks
+- [ ] [PWP-001: [PWP] Upgrade Tokenizer Implementation](./PWP/001-[pwp]-upgrade-tokenizer-implementation.md)
+- [ ] [PWP-002: [PWP] SignalR Real-time Integration](./PWP/002-[pwp]-signalr-real-time-integration.md)
+- [ ] [PWP-003: [PWP] Proactive Engine Implementation](./PWP/003-[pwp]-proactive-engine-implementation.md)

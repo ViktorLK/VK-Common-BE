@@ -1,9 +1,9 @@
-namespace VK.Blocks.AI.SemanticKernel;
+namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 /// <summary>
 /// Defines a factory for creating Semantic Kernel instances.
 /// </summary>
-public interface IVKAISKKernelFactory
+internal interface IAISKKernelFactory
 {
     /// <summary>
     /// Creates a new Kernel instance using the resolved options.

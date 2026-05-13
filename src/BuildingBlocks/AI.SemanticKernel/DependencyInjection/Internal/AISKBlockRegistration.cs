@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -8,6 +9,7 @@ using Microsoft.SemanticKernel;
 using VK.Blocks.AI.SemanticKernel.Chat.Internal;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
+using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 using VK.Blocks.AI.SemanticKernel.Plugins.Internal;
 using VK.Blocks.AI.SemanticKernel.Retrieval.Internal;
 using VK.Blocks.AI.SemanticKernel.Text.Internal;
@@ -18,7 +20,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.SemanticKernel.DependencyInjection.Internal;
 
 /// <summary>
-/// Principal registration logic for the Semantic Kernel building block.
+/// Industrial registration logic for the Semantic Kernel building block.
 /// </summary>
 internal static class AISKBlockRegistration
 {
@@ -29,41 +31,44 @@ internal static class AISKBlockRegistration
     {
         VKGuard.NotNull(services);
 
-        IVKAISKBuilder builder = new AISKBlockBuilder(services, configuration);
+        var builder = new AISKBlockBuilder(services, configuration);
 
-        // 1. Check-Self & Prerequisite
+        // 1. Idempotency Check
         if (services.IsVKBlockRegistered<VKAISKBlock>())
         {
             return builder;
         }
 
-        // 2. Options Registration
-        VKAISKOptions options = services.AddVKBlockOptions(configuration!, configure);
+        // 2. Initialize Options (dual-registration pattern)
+        var options = services.AddVKBlockOptions<VKAISKOptions>(
+            configuration!,
+            configure);
 
-        // Register core and feature sub-options
-        services.AddVKBlockOptions<VKAIOptions>(configuration!);
-        services.AddVKBlockOptions<VKChatOptions>(configuration!);
-        services.AddVKBlockOptions<VKEmbeddingOptions>(configuration!);
-        services.AddVKBlockOptions<VKRetrievalOptions>(configuration!);
-
-        // 3. Mark-Self
+        // 3. Register Marker (Source Generated Metadata)
         services.AddVKBlockMarker<VKAISKBlock>();
 
         // 4. Options Validation
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<VKAISKOptions>, AISKOptionsValidator>());
 
-        // 5. Diagnostics handled by Source Generator
-
-        // 7. Diagnostics Filters
+        // 5. Diagnostics Filters (Level 1)
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IFunctionInvocationFilter, AISKDiagnosticsFilter>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPromptRenderFilter, AISKDiagnosticsFilter>());
 
-        // 8. Dynamic Options Provider
+        // 6. Dynamic Options Provider (Public Interface)
         services.TryAddScoped<IVKAISKOptionsProvider, VKAISKDefaultOptionsProvider>();
-        services.TryAddScoped<IVKAISKKernelFactory, VKAISKKernelFactory>();
 
-        // 9. Plugin Providers
-        services.TryAddSingleton<IVKAISKPluginProvider, AISKConfigPluginProvider>();
+        // 7. Plugin Providers (Internal)
+        services.TryAddSingleton<IAISKPluginProvider, AISKConfigPluginProvider>();
+
+        // 8. Infrastructure (Required for caching)
+        services.AddMemoryCache();
+
+        // 9. Kernel Factory (Internal with optional Caching decorator)
+        services.TryAddScoped<IAISKKernelFactory, AISKKernelFactory>();
+        if (options.EnableKernelCaching)
+        {
+            services.Decorate<IAISKKernelFactory, AISKCachedKernelFactory>();
+        }
 
         // 10. Core Services
         RegisterCoreServices(services, configuration);
@@ -73,15 +78,17 @@ internal static class AISKBlockRegistration
 
     private static void RegisterCoreServices(IServiceCollection services, IConfiguration? configuration)
     {
-        // 1. HttpClient with Resilience (Logic Down: Consuming VK Options)
+        // 1. HttpClient with Resilience
         services.AddHttpClient(AISKConstants.HttpClientName)
             .AddStandardResilienceHandler()
             .Configure(ConfigureResilience);
 
         // 2. Kernel Registration (Delegated to Factory)
-        services.TryAddScoped(sp => sp.GetRequiredService<IVKAISKKernelFactory>().CreateKernel());
+        services.TryAddScoped(sp => sp.GetRequiredService<IAISKKernelFactory>().CreateKernel());
 
         // 3. Feature Registrations with No-Op fallbacks
+        
+        // Chat
         var chatOptions = services.AddVKBlockOptions<VKChatOptions>(configuration!);
         if (chatOptions.Enabled)
         {
@@ -92,6 +99,7 @@ internal static class AISKBlockRegistration
             services.TryAddScoped<IVKChatEngine, NoOpAISKChatEngine>();
         }
 
+        // Embedding
         var embedOptions = services.AddVKBlockOptions<VKEmbeddingOptions>(configuration!);
         if (embedOptions.Enabled)
         {
@@ -102,6 +110,7 @@ internal static class AISKBlockRegistration
             services.TryAddScoped<IVKEmbeddingEngine, NoOpAISKEmbeddingEngine>();
         }
 
+        // Retrieval
         var retrievalOptions = services.AddVKBlockOptions<VKRetrievalOptions>(configuration!);
         if (retrievalOptions.Enabled)
         {
@@ -112,6 +121,7 @@ internal static class AISKBlockRegistration
             services.TryAddScoped<IVKRetrievalEngine, NoOpAISKRetrievalEngine>();
         }
 
+        // Text
         var textOptions = services.AddVKBlockOptions<VKTextOptions>(configuration!);
         if (textOptions.Enabled)
         {
@@ -123,10 +133,6 @@ internal static class AISKBlockRegistration
         }
     }
 
-    /// <summary>
-    /// Configures the standard resilience handler using VK.Blocks AI options.
-    /// Hierarchy: VKChatOptions (Feature-level) > VKAIOptions (Global-level).
-    /// </summary>
     private static void ConfigureResilience(HttpStandardResilienceOptions options, IServiceProvider sp)
     {
         var chatOptions = sp.GetRequiredService<IOptions<VKChatOptions>>().Value;
@@ -142,7 +148,7 @@ internal static class AISKBlockRegistration
 
         // 3. Circuit Breaker
         var cbThreshold = chatOptions.CircuitBreakerThreshold ?? globalOptions.CircuitBreakerThreshold;
-        options.CircuitBreaker.MinimumThroughput = cbThreshold;
+        options.CircuitBreaker.MinimumThroughput = cbThreshold * 10; // Simple mapping
 
         var cbBreakDuration = chatOptions.CircuitBreakerBreakDuration ?? globalOptions.CircuitBreakerBreakDuration;
         options.CircuitBreaker.BreakDuration = cbBreakDuration;

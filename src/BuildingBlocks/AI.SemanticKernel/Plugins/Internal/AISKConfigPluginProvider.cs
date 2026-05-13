@@ -5,12 +5,14 @@ using System.Reflection;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 
+using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+
 namespace VK.Blocks.AI.SemanticKernel.Plugins.Internal;
 
 /// <summary>
 /// A plugin provider that loads plugins based on <see cref="VKAISKOptions"/>.
 /// </summary>
-internal sealed class AISKConfigPluginProvider(IOptions<VKAISKOptions> options) : IVKAISKPluginProvider
+internal sealed class AISKConfigPluginProvider(IOptions<VKAISKOptions> options) : IAISKPluginProvider
 {
     private readonly VKAISKOptions _options = options.Value;
 

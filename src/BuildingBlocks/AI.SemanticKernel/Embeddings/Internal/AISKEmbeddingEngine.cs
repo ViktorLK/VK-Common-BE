@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -24,8 +25,9 @@ internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingOptions>, 
         Microsoft.SemanticKernel.Kernel kernel,
         IOptions<VKAIOptions> globalOptions,
         IOptions<VKEmbeddingOptions> options,
-        ILogger<AISKEmbeddingEngine> logger)
-        : base(kernel, globalOptions, options, logger)
+        ILogger<AISKEmbeddingEngine> logger,
+        TimeProvider? timeProvider = null)
+        : base(kernel, globalOptions, options, logger, timeProvider)
     {
         _defaultEmbeddingService = GetService<IEmbeddingGenerator<string, Embedding>>();
     }

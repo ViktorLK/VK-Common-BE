@@ -10,15 +10,21 @@ namespace VK.Blocks.AI.VectorStore.Diagnostics.Internal;
 [VKBlockDiagnostics<VKAIVectorStoreBlock>]
 internal static partial class AIVectorStoreDiagnostics
 {
-    private static readonly Histogram<double> SearchDuration = Meter!.CreateHistogram<double>(
-        "vk_ai_vector_search_duration",
-        "seconds",
-        "Duration of vector search operations");
+    private static readonly Histogram<double> SearchDuration;
+    private static readonly Counter<long> RecallHits;
 
-    private static readonly Counter<long> RecallHits = Meter!.CreateCounter<long>(
-        "vk_ai_vector_recall_hits",
-        "hits",
-        "Number of successful vector recalls");
+    static AIVectorStoreDiagnostics()
+    {
+        SearchDuration = Meter!.CreateHistogram<double>(
+            "vk_ai_vector_search_duration",
+            "seconds",
+            "Duration of vector search operations");
+
+        RecallHits = Meter!.CreateCounter<long>(
+            "vk_ai_vector_recall_hits",
+            "hits",
+            "Number of successful vector recalls");
+    }
 
     /// <summary>
     /// Records the duration of a search operation.

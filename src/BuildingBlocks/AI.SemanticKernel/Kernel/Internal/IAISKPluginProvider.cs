@@ -1,12 +1,12 @@
 using System;
 using Microsoft.SemanticKernel;
 
-namespace VK.Blocks.AI.SemanticKernel;
+namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 /// <summary>
 /// Defines a provider that can register plugins into a KernelBuilder.
 /// </summary>
-public interface IVKAISKPluginProvider
+internal interface IAISKPluginProvider
 {
     /// <summary>
     /// Registers plugins into the specified kernel builder.

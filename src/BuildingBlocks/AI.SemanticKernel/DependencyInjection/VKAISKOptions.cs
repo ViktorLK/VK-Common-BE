@@ -61,4 +61,10 @@ public sealed record VKAISKOptions : IVKBlockOptions
     /// Gets or sets the plugin options.
     /// </summary>
     public AISKPluginOptions Plugins { get; init; } = new();
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to enable native kernel caching.
+    /// Defaults to <c>true</c>.
+    /// </summary>
+    public bool EnableKernelCaching { get; init; } = true;
 }

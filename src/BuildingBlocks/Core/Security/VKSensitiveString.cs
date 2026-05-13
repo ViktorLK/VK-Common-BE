@@ -1,4 +1,6 @@
 using System;
+using System.ComponentModel;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -10,6 +12,7 @@ namespace VK.Blocks.Core;
 /// [OR.02] PII masked in logs.
 /// </summary>
 [JsonConverter(typeof(VKSensitiveStringJsonConverter))]
+[TypeConverter(typeof(VKSensitiveStringTypeConverter))]
 public readonly record struct VKSensitiveString
 {
     private readonly string _value;
@@ -66,6 +69,23 @@ public readonly record struct VKSensitiveString
         {
             // [OR.02] Always write mask to JSON
             writer.WriteStringValue(value.ToString());
+        }
+    }
+
+    private sealed class VKSensitiveStringTypeConverter : TypeConverter
+    {
+        public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType)
+        {
+            return sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+        }
+
+        public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
+        {
+            if (value is string s)
+            {
+                return new VKSensitiveString(s);
+            }
+            return base.ConvertFrom(context, culture, value);
         }
     }
 }

@@ -30,8 +30,9 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         Microsoft.SemanticKernel.Kernel kernel,
         IOptions<VKAIOptions> globalOptions,
         IOptions<VKChatOptions> chatOptions,
-        ILogger<AISKChatEngine> logger)
-        : base(kernel, globalOptions, chatOptions, logger)
+        ILogger<AISKChatEngine> logger,
+        TimeProvider? timeProvider = null)
+        : base(kernel, globalOptions, chatOptions, logger, timeProvider)
     {
         _chatCompletion = GetService<IChatCompletionService>();
     }
@@ -299,7 +300,6 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
 
         // 2. Resilience Overrides (Timeout integration is handled at the SK HttpClient level,
         // but we can pass it here for custom logic if needed).
-        // settings.ExtensionData["Timeout"] = GetEffectiveTimeout(args);
 
         // 3. Advanced Context Bag
         if (chatArgs is { Context.Count: > 0 })

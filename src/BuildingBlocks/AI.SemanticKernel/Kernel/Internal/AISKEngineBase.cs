@@ -5,75 +5,48 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 /// <summary>
-/// Base class for Semantic Kernel based AI engines with enhanced industrial capabilities.
+/// Base class for all Semantic Kernel based engines.
+/// Provides common orchestration, observability, and resilience logic.
 /// </summary>
-/// <typeparam name="TOptions">The specific feature options type.</typeparam>
-internal abstract class AISKEngineBase<TOptions>
-    where TOptions : class, IVKToggleableBlockOptions, IVKAIProviderSettings, IVKAIGovernanceSettings
+/// <typeparam name="TOptions">The feature options type.</typeparam>
+internal abstract class AISKEngineBase<TOptions> : AISKProviderBase
+    where TOptions : class, IVKAIProviderSettings, IVKAIGovernanceSettings, IVKToggleableBlockOptions, new()
 {
-    protected Microsoft.SemanticKernel.Kernel Kernel { get; }
     protected VKAIOptions GlobalOptions { get; }
     protected TOptions FeatureOptions { get; }
     protected ILogger Logger { get; }
+    protected TimeProvider TimeProvider { get; }
 
     protected AISKEngineBase(
         Microsoft.SemanticKernel.Kernel kernel,
         IOptions<VKAIOptions> globalOptions,
         IOptions<TOptions> featureOptions,
-        ILogger logger)
+        ILogger logger,
+        TimeProvider? timeProvider = null)
+        : base(kernel, featureOptions.Value.ModelId ?? "Unknown")
     {
-        Kernel = VKGuard.NotNull(kernel);
         GlobalOptions = VKGuard.NotNull(globalOptions?.Value);
         FeatureOptions = VKGuard.NotNull(featureOptions?.Value);
         Logger = VKGuard.NotNull(logger);
+        TimeProvider = timeProvider ?? TimeProvider.System;
     }
 
     /// <summary>
-    /// Resolves a service from the Kernel, supporting keyed services.
+    /// Gets a service from the kernel.
     /// </summary>
-    protected T GetService<T>(string? serviceId = null) where T : class
-        => serviceId is not null
-            ? Kernel.GetRequiredService<T>(serviceId)
-            : Kernel.GetRequiredService<T>();
+    protected TService GetService<TService>(string? serviceId = null) where TService : class
+    {
+        return Kernel.GetRequiredService<TService>(serviceId);
+    }
 
     /// <summary>
-    /// Calculates the effective timeout using: Args -> Feature -> Global priority.
-    /// </summary>
-    protected TimeSpan GetEffectiveTimeout(IVKAIArgs? args)
-        => args?.Timeout ?? FeatureOptions.Timeout ?? GlobalOptions.Timeout;
-
-    /// <summary>
-    /// Calculates the effective retry count.
-    /// </summary>
-    protected int GetEffectiveRetryCount(IVKAIArgs? args)
-        => FeatureOptions.RetryCount ?? GlobalOptions.RetryCount;
-
-    /// <summary>
-    /// Calculates the effective provider using: Args -> Feature -> Global priority.
-    /// </summary>
-    protected VKAIProviderType GetEffectiveProvider(IVKAIArgs? args)
-        => (args as IVKAIProviderOverrides)?.Provider ?? FeatureOptions.Provider ?? GlobalOptions.Provider;
-
-    /// <summary>
-    /// Calculates the effective model identifier using: Args -> Feature priority.
-    /// </summary>
-    protected string? GetEffectiveModelId(IVKAIArgs? args)
-        => (args as IVKAIProviderOverrides)?.ModelId ?? FeatureOptions.ModelId;
-
-    /// <summary>
-    /// Calculates the effective audit enabling flag using: Feature -> Global priority.
-    /// </summary>
-    protected bool GetEffectiveEnableAudit()
-        => FeatureOptions.EnableAudit ?? GlobalOptions.EnableAudit;
-
-    /// <summary>
-    /// Wraps an AI operation with unified error handling, logging, and timeout management.
     /// Checks if the feature is enabled before execution and applies the effective timeout.
     /// </summary>
     protected async Task<VKResult<T>> ExecuteAsync<T>(
@@ -88,15 +61,15 @@ internal abstract class AISKEngineBase<TOptions>
         }
 
         var timeout = GetEffectiveTimeout(args);
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(timeout);
+        using var timeoutCts = new CancellationTokenSource(timeout, TimeProvider);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
         try
         {
-            var result = await action(cts.Token).ConfigureAwait(false);
+            var result = await action(linkedCts.Token).ConfigureAwait(false);
             return VKResult.Success(result);
         }
-        catch (OperationCanceledException) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
             Logger.LogExecutionError(new TimeoutException($"AI operation timed out after {timeout.TotalSeconds}s"), "AI operation timed out.");
             return VKResult.Failure<T>(VKAIErrors.Timeout);
@@ -109,8 +82,7 @@ internal abstract class AISKEngineBase<TOptions>
     }
 
     /// <summary>
-    /// Wraps a streaming AI operation with timeout management.
-    /// Checks if the feature is enabled before execution.
+    /// Executes a streaming operation with feature enablement check and timeout.
     /// </summary>
     protected async IAsyncEnumerable<VKResult<T>> ExecuteStreamingAsync<T>(
         Func<CancellationToken, IAsyncEnumerable<T>> action,
@@ -125,19 +97,18 @@ internal abstract class AISKEngineBase<TOptions>
         }
 
         var timeout = GetEffectiveTimeout(args);
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        cts.CancelAfter(timeout);
+        using var timeoutCts = new CancellationTokenSource(timeout, TimeProvider);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
         IAsyncEnumerator<T>? enumerator = null;
         VKError? initError = null;
 
         try
         {
-            enumerator = action(cts.Token).GetAsyncEnumerator(cts.Token);
+            enumerator = action(linkedCts.Token).GetAsyncEnumerator(linkedCts.Token);
         }
         catch (Exception ex)
         {
-            Logger.LogExecutionError(ex, ex.Message);
             initError = AISKErrorMapper.Map(ex);
         }
 
@@ -147,46 +118,69 @@ internal abstract class AISKEngineBase<TOptions>
             yield break;
         }
 
-        if (enumerator == null)
-            yield break;
-
-        await using (enumerator.ConfigureAwait(false))
+        VKError? loopError = null;
+        while (true)
         {
-            while (true)
+            T? item = default;
+            try
             {
-                T? item = default;
-                VKError? iterationError = null;
-
-                try
+                if (!await enumerator!.MoveNextAsync().ConfigureAwait(false))
                 {
-                    if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
-                    {
-                        break;
-                    }
-                    item = enumerator.Current;
+                    break;
                 }
-                catch (OperationCanceledException) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
-                {
-                    Logger.LogExecutionError(new TimeoutException($"AI streaming operation timed out after {timeout.TotalSeconds}s"), "AI streaming operation timed out.");
-                    iterationError = VKAIErrors.Timeout;
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogExecutionError(ex, ex.Message);
-                    iterationError = AISKErrorMapper.Map(ex);
-                }
-
-                if (iterationError != null)
-                {
-                    yield return VKResult.Failure<T>(iterationError);
-                    yield break;
-                }
-
-                if (item != null)
-                {
-                    yield return VKResult.Success(item);
-                }
+                item = enumerator.Current;
             }
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                Logger.LogExecutionError(new TimeoutException($"AI operation timed out after {timeout.TotalSeconds}s"), "AI operation timed out.");
+                loopError = VKAIErrors.Timeout;
+                break;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogExecutionError(ex, ex.Message);
+                loopError = AISKErrorMapper.Map(ex);
+                break;
+            }
+
+            yield return VKResult.Success(item!);
         }
+
+        if (loopError != null)
+        {
+            yield return VKResult.Failure<T>(loopError);
+        }
+
+        if (enumerator != null)
+        {
+            await enumerator.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Gets the effective timeout from arguments or options.
+    /// </summary>
+    protected TimeSpan GetEffectiveTimeout(IVKAIArgs? args)
+    {
+        return args?.Timeout 
+            ?? FeatureOptions.Timeout 
+            ?? GlobalOptions.Timeout;
+    }
+
+    /// <summary>
+    /// Gets the effective model ID from arguments or options.
+    /// </summary>
+    protected string? GetEffectiveModelId(IVKAIArgs? args)
+    {
+        return (args as IVKAIProviderOverrides)?.ModelId 
+            ?? FeatureOptions.ModelId;
+    }
+
+    /// <summary>
+    /// Gets the effective audit enablement from arguments or options.
+    /// </summary>
+    protected bool GetEffectiveEnableAudit()
+    {
+        return FeatureOptions.EnableAudit ?? GlobalOptions.EnableAudit;
     }
 }

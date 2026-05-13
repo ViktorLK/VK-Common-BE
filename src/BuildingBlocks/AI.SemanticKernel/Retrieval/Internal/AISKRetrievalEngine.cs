@@ -18,8 +18,9 @@ internal sealed class AISKRetrievalEngine(
     Microsoft.SemanticKernel.Kernel kernel,
     IOptions<VKAIOptions> globalOptions,
     IOptions<VKRetrievalOptions> options,
-    ILogger<AISKRetrievalEngine> logger)
-    : AISKEngineBase<VKRetrievalOptions>(kernel, globalOptions, options, logger), IVKRetrievalEngine
+    ILogger<AISKRetrievalEngine> logger,
+    TimeProvider? timeProvider = null)
+    : AISKEngineBase<VKRetrievalOptions>(kernel, globalOptions, options, logger, timeProvider), IVKRetrievalEngine
 {
     /// <summary>
     /// Performs a semantic search using the kernel.

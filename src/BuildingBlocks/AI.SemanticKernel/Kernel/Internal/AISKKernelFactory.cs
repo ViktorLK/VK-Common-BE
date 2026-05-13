@@ -6,21 +6,20 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.PromptTemplates.Handlebars;
 using Microsoft.SemanticKernel.PromptTemplates.Liquid;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
-namespace VK.Blocks.AI.SemanticKernel;
+namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 
 /// <summary>
-/// Industrial implementation of <see cref="IVKAISKKernelFactory"/>.
+/// Industrial implementation of <see cref="IAISKKernelFactory"/>.
 /// Handles the complex weaving of AI connectors and plugins.
 /// </summary>
-public sealed class VKAISKKernelFactory(
+internal sealed class AISKKernelFactory(
     IVKAISKOptionsProvider optionsProvider,
     IOptions<VKAIOptions> globalOptions,
     IVKChatOptionsProvider chatOptions,
     IOptions<VKEmbeddingOptions> embeddingOptions,
     IHttpClientFactory httpClientFactory,
-    IServiceProvider serviceProvider) : IVKAISKKernelFactory
+    IServiceProvider serviceProvider) : IAISKKernelFactory
 {
     /// <inheritdoc />
     public Microsoft.SemanticKernel.Kernel CreateKernel()
@@ -45,11 +44,18 @@ public sealed class VKAISKKernelFactory(
         }
 
         // 2. Register AI Services (Multi-Provider Support)
-        builder.RegisterChatService(options, chatFeatureOptions, httpClient);
-        builder.RegisterEmbeddingService(options, embeddingFeatureOptions, httpClient);
+        if (chatFeatureOptions.Enabled)
+        {
+            builder.RegisterChatService(options, chatFeatureOptions, httpClient);
+        }
+
+        if (embeddingFeatureOptions.Enabled)
+        {
+            builder.RegisterEmbeddingService(options, embeddingFeatureOptions, httpClient);
+        }
 
         // 2. Register Dynamic Plugins from DI container
-        var pluginProviders = serviceProvider.GetServices<IVKAISKPluginProvider>();
+        var pluginProviders = serviceProvider.GetServices<IAISKPluginProvider>();
         foreach (var provider in pluginProviders)
         {
             provider.Register(builder, serviceProvider);

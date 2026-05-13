@@ -18,6 +18,8 @@
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" />
     <PackageReference Include="Microsoft.SemanticKernel.PromptTemplates.Handlebars" />
     <PackageReference Include="Microsoft.SemanticKernel.PromptTemplates.Liquid" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Scrutor" />
   </ItemGroup>
 
   <ItemGroup>

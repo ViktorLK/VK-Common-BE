@@ -10,25 +10,33 @@ namespace VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 [VKBlockDiagnostics<VKAISKBlock>]
 internal static partial class AISKMetrics
 {
-    private static readonly Histogram<double> ChatRequestDuration = Meter.CreateHistogram<double>(
-        AISKDiagnosticsConstants.Metrics.ChatRequestDuration,
-        unit: "s",
-        description: "Duration of AI chat requests.");
+    private static readonly Histogram<double> ChatRequestDuration;
+    private static readonly Counter<long> ChatTokenUsage;
+    private static readonly Histogram<double> EmbeddingGenerationDuration;
+    private static readonly Counter<long> EmbeddingItemsCount;
 
-    private static readonly Counter<long> ChatTokenUsage = Meter.CreateCounter<long>(
-        AISKDiagnosticsConstants.Metrics.ChatTokenUsage,
-        unit: "{tokens}",
-        description: "Total number of tokens consumed by AI chat requests.");
+    static AISKMetrics()
+    {
+        ChatRequestDuration = Meter.CreateHistogram<double>(
+            AISKDiagnosticsConstants.Metrics.ChatRequestDuration,
+            unit: "s",
+            description: "Duration of AI chat requests.");
 
-    private static readonly Histogram<double> EmbeddingGenerationDuration = Meter.CreateHistogram<double>(
-        AISKDiagnosticsConstants.Metrics.EmbeddingGenerationDuration,
-        unit: "s",
-        description: "Duration of embedding generation requests.");
+        ChatTokenUsage = Meter.CreateCounter<long>(
+            AISKDiagnosticsConstants.Metrics.ChatTokenUsage,
+            unit: "{tokens}",
+            description: "Total number of tokens consumed by AI chat requests.");
 
-    private static readonly Counter<long> EmbeddingItemsCount = Meter.CreateCounter<long>(
-        AISKDiagnosticsConstants.Metrics.EmbeddingItemsCount,
-        unit: "{items}",
-        description: "Total number of items processed for embeddings.");
+        EmbeddingGenerationDuration = Meter.CreateHistogram<double>(
+            AISKDiagnosticsConstants.Metrics.EmbeddingGenerationDuration,
+            unit: "s",
+            description: "Duration of embedding generation requests.");
+
+        EmbeddingItemsCount = Meter.CreateCounter<long>(
+            AISKDiagnosticsConstants.Metrics.EmbeddingItemsCount,
+            unit: "{items}",
+            description: "Total number of items processed for embeddings.");
+    }
 
     /// <summary>
     /// Records the duration of a chat request.

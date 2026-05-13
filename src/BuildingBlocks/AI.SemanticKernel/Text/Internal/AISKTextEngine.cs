@@ -30,8 +30,9 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
         Microsoft.SemanticKernel.Kernel kernel,
         IOptions<VKAIOptions> globalOptions,
         IOptions<VKTextOptions> textOptions,
-        ILogger<AISKTextEngine> logger)
-        : base(kernel, globalOptions, textOptions, logger)
+        ILogger<AISKTextEngine> logger,
+        TimeProvider? timeProvider = null)
+        : base(kernel, globalOptions, textOptions, logger, timeProvider)
     {
         _textGeneration = kernel.Services.GetServices<ITextGenerationService>().LastOrDefault();
         _chatCompletion = kernel.Services.GetServices<IChatCompletionService>().LastOrDefault();
