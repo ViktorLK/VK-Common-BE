@@ -91,6 +91,10 @@ graph TB
 src/BuildingBlocks/AI/
 ├── VKAIBlock.cs                     # Block Marker (Source Generated)
 ├── Audio/                           # 🔊 Speech & Transcription
+│   ├── IVKAudioSpeechEngine.cs      # TTS Contract
+│   ├── IVKAudioTranscriptionEngine.cs # STT Contract
+│   ├── IVKAudioSpeechOptionsProvider.cs
+│   ├── IVKAudioTranscriptionOptionsProvider.cs
 │   ├── VKAudioArgs.cs
 │   ├── VKAudioSpeechOptions.cs
 │   ├── VKAudioTranscriptionOptions.cs
@@ -101,7 +105,6 @@ src/BuildingBlocks/AI/
 │   ├── VKChatArgs.cs
 │   ├── VKChatErrors.cs              # Error Constants (CS.01)
 │   ├── VKChatOptions.cs
-│   ├── VKChatSession.cs             # Stateful Session Helper
 │   └── Internal/                    # DefaultChatEngine & Registration
 ├── Common/                          # 🔗 Shared Abstractions
 │   ├── IVKAIArgs.cs                 # Args Pattern Base
@@ -151,7 +154,6 @@ src/BuildingBlocks/AI/
 ### 🤖 プロバイダー非依存チャットエンジン
 - `IVKChatEngine` による統一的な会話 API（同期 / ストリーミング）
 - `VKResult<VKChatMessage>` パターンによる型安全なエラーハンドリング
-- `VKChatSession` によるステートフルな会話管理
 
 ### 🎨 マルチモーダルメッセージ
 - `IVKChatMessagePart` Composite パターン

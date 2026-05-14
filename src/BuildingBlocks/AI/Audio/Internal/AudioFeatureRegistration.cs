@@ -31,6 +31,8 @@ internal static class AudioFeatureRegistration
         }
 
         // Feature services registration
+        services.AddScoped<IVKAudioSpeechOptionsProvider, VKAudioSpeechDefaultOptionsProvider>();
+
         return builder;
     }
 
@@ -55,6 +57,8 @@ internal static class AudioFeatureRegistration
         }
 
         // Feature services registration
+        services.AddScoped<IVKAudioTranscriptionOptionsProvider, VKAudioTranscriptionDefaultOptionsProvider>();
+
         return builder;
     }
 }

@@ -43,8 +43,8 @@ internal static class AIBlockRegistration
         // (Automatically handled by [VKBlockDiagnostics] Source Generator)
 
         // 7. Core Services
-        services.TryAddScoped<IVKChatOptionsProvider, VKChatDefaultOptionsProvider>();
-        
+        services.TryAddScoped<IVKChatOptionsProvider, DefaultChatOptionsProvider>();
+
         // Feature services are registered via builder extension methods (e.g., .AddVKChat())
 
         return builder;

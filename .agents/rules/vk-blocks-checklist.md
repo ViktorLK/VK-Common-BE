@@ -40,7 +40,8 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **BB.02**   |     | `[VKBlockMarker]` on `sealed partial class` in module root. Source-generated.                     |
 | **BB.03**   | 🟡  | DI order: Check → Options → Mark → Validate → Diag → Toggle → Services.                           |
 | **BB.04**   |     | `[VKBlockDiagnostics]` attribute. `DiagnosticsConstants.cs` for semantic tokens.                  |
-| **BB.05**   |     | Options = `sealed record` + `init`. `Func<T,T>` transform. `IValidateOptions`.                    |
+| **BB.05**   |     | Options = `sealed record` + `init`. `Func<T,T> transform`. `IValidateOptions`.                    |
+| **BB.06**   |     | Modular Feature Pattern. `[VKFeatureMarker]` + Chained Builder + Hierarchical Options.           |
 | **PS.01**   |     | Implementation plans MUST include Architecture Decision Audit section.                            |
 | **PS.02**   |     | Walkthrough MUST link ADR if one was planned. Verify decision traceability.                       |
 | **PS.03**   |     | Complex/experimental features → RFC-first in `docs/06-RFCs/` before backlog.                      |
@@ -73,7 +74,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **Async / streaming code**      | CS.03                         |
 | **New file or folder creation** | AP.03, BB.01 (Naming)         |
 | **Industrialization / Audit**   | BB.01 (Full Structure)        |
-| **DI registration**             | BB.03, AP.02                  |
+| **DI registration**             | BB.03, AP.02, BB.06           |
 | **Options / Config class**      | AP.04, BB.05, AP.05           |
 | **DB / EF Core queries**        | CS.04, CS.05, OR.02           |
 | **Logging / Metrics**           | OR.01, BB.04                  |
@@ -104,7 +105,9 @@ When initiating a specific audit workflow, the following rules **MUST** be full-
 ## Output Protocol
 
 - **Micro-Handshake**: Every response MUST start with a single-line status:
-  `Active: [L1+L2:{Module}] | Context: {Path} | Sync: Ready`
+  `Active: [L1+L2:{Module}] | Context: {Path} | Sync: [L3:RuleID,...]`
+- **Sync Requirement**: The `Sync` section MUST list ALL Rule IDs that were full-loaded via `vk_get_architectural_rule` in the current turn or conversation history.
+- **Hard-Lock**: If a rule required by an L3 Scenario (from the table above) is NOT listed in the current `Sync` status, you are STRICTLY PROHIBITED from providing code or executing tool calls for that scenario.
 - **Context Awareness**: If the target module changes, you MUST re-run `vk_get_module_context` and update the handshake.
 - **Code**: Production-ready C# 12+ only. English comments/messages.
 - **Decision Point Tags**: Tag `// [RuleID]` at feature boundaries only:

@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.AI.Agents.Internal;
 using VK.Blocks.AI.Audio.Internal;
 using VK.Blocks.AI.Chat.Internal;
 using VK.Blocks.AI.DependencyInjection.Internal;
@@ -145,8 +146,18 @@ public static class VKAIBlockExtensions
     }
 
     /// <summary>
-    /// Automatically enables all standard core AI features.
+    /// Adds the Agents feature to the AI building block.
     /// </summary>
+    /// <param name="builder">The AI block builder.</param>
+    /// <returns>The AI block builder.</returns>
+    public static IVKAIBuilder AddVKAgents(this IVKAIBuilder builder)
+    {
+        VKGuard.NotNull(builder);
+        return AgentsFeatureRegistration.Register(builder);
+    }
+
+    /// <summary>
+    /// Automatically enables all standard core AI features.
     /// <param name="builder">The AI block builder.</param>
     /// <returns>The AI block builder.</returns>
     public static IVKAIBuilder AddVKDefaultFeatures(this IVKAIBuilder builder)
@@ -159,6 +170,7 @@ public static class VKAIBlockExtensions
             .AddVKAudioSpeech()
             .AddVKAudioTranscription()
             .AddVKModeration()
-            .AddVKTokenics();
+            .AddVKTokenics()
+            .AddVKAgents();
     }
 }
