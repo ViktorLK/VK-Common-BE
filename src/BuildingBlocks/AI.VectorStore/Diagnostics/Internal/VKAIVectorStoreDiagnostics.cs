@@ -8,20 +8,20 @@ namespace VK.Blocks.AI.VectorStore.Diagnostics.Internal;
 /// Provides diagnostic metrics for the Vector Store building block.
 /// </summary>
 [VKBlockDiagnostics<VKAIVectorStoreBlock>]
-internal static partial class AIVectorStoreDiagnostics
+public static partial class VKAIVectorStoreDiagnostics
 {
     private static readonly Histogram<double> SearchDuration;
     private static readonly Counter<long> RecallHits;
 
-    static AIVectorStoreDiagnostics()
+    static VKAIVectorStoreDiagnostics()
     {
         SearchDuration = Meter!.CreateHistogram<double>(
-            "vk_ai_vector_search_duration",
+            VKAIVectorStoreDiagnosticsConstants.Metrics.SearchDuration,
             "seconds",
             "Duration of vector search operations");
 
         RecallHits = Meter!.CreateCounter<long>(
-            "vk_ai_vector_recall_hits",
+            VKAIVectorStoreDiagnosticsConstants.Metrics.RecallHits,
             "hits",
             "Number of successful vector recalls");
     }
@@ -31,7 +31,7 @@ internal static partial class AIVectorStoreDiagnostics
     /// </summary>
     public static void RecordSearchDuration(double seconds, string? modelId = null)
     {
-        SearchDuration.Record(seconds, new TagList { { "model_id", modelId ?? "unknown" } });
+        SearchDuration.Record(seconds, new TagList { { VKAIVectorStoreDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" } });
     }
 
     /// <summary>

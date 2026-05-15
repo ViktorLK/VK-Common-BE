@@ -12,6 +12,7 @@ using VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
 using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 using VK.Blocks.AI.SemanticKernel.Plugins.Internal;
 using VK.Blocks.AI.SemanticKernel.Retrieval.Internal;
+using VK.Blocks.AI.SemanticKernel.Agents.Internal;
 using VK.Blocks.AI.SemanticKernel.Text.Internal;
 using VK.Blocks.AI.Text;
 using VK.Blocks.AI.Text.Internal;
@@ -119,6 +120,18 @@ internal static class AISKBlockRegistration
         else
         {
             services.TryAddScoped<IVKRetrievalEngine, NoOpAISKRetrievalEngine>();
+        }
+
+        // Agents
+        var agentOptions = services.AddVKBlockOptions<VKAgentOptions>(configuration!);
+        if (agentOptions.Enabled)
+        {
+            services.TryAddSingleton<AISKAgentToolAdapter>();
+            services.TryAddTransient<IVKAgent>(sp => new AISKAgent(
+                sp.GetRequiredService<Microsoft.SemanticKernel.Kernel>(),
+                sp.GetRequiredService<IOptions<VKAISKOptions>>().Value.DeploymentName ?? "Unknown",
+                "DefaultAgent",
+                sp.GetRequiredService<IOptions<VKAgentOptions>>()));
         }
 
         // Text

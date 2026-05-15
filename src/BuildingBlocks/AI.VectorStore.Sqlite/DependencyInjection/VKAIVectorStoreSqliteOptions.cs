@@ -24,4 +24,16 @@ public sealed record VKAIVectorStoreSqliteOptions : IVKBlockOptions
     /// Required for sqlite-vec virtual table initialization.
     /// </summary>
     public int EmbeddingDimension { get; init; } = 1536;
+
+    /// <summary>
+    /// Gets the default search limit if not specified in search args.
+    /// Following AP.05 hierarchical pattern.
+    /// </summary>
+    public int DefaultSearchLimit { get; init; } = 5;
+
+    /// <summary>
+    /// Gets the default minimum similarity score if not specified in search args.
+    /// Following AP.05 hierarchical pattern.
+    /// </summary>
+    public float DefaultMinScore { get; init; } = 0.7f;
 }

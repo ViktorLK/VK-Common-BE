@@ -6,16 +6,15 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.SemanticKernel.Retrieval.Internal;
 
 /// <summary>
-/// A No-Op implementation of the retrieval engine used when the feature is disabled.
+/// A no-op implementation of the retrieval engine for the Semantic Kernel block.
 /// </summary>
 internal sealed class NoOpAISKRetrievalEngine : IVKRetrievalEngine
 {
-    /// <inheritdoc />
-    public Task<VKResult<IEnumerable<string>>> SearchAsync(
+    public async Task<VKResult<IEnumerable<string>>> SearchAsync(
         string query,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(VKResult.Failure<IEnumerable<string>>(VKRetrievalErrors.FeatureDisabled));
+        return await Task.FromResult(VKResult.Success<IEnumerable<string>>([])).ConfigureAwait(false);
     }
 }

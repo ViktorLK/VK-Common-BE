@@ -20,12 +20,12 @@ public sealed record VKAIVectorStoreOptions : IVKBlockOptions
     public VKAIVectorStoreType Type { get; init; } = VKAIVectorStoreType.InMemory;
 
     /// <summary>
-    /// Gets the connection string or endpoint for the vector store.
+    /// Gets the default maximum number of results to return.
     /// </summary>
-    public string? Connection { get; init; }
+    public int DefaultLimit { get; init; } = 5;
 
     /// <summary>
-    /// Gets the API key if required.
+    /// Gets the default minimum similarity score (0.0 to 1.0).
     /// </summary>
-    public string? ApiKey { get; init; }
+    public float DefaultMinScore { get; init; } = 0.7f;
 }

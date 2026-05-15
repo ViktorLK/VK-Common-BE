@@ -6,11 +6,8 @@ internal sealed class AIVectorStoreOptionsValidator : IValidateOptions<VKAIVecto
 {
     public ValidateOptionsResult Validate(string? name, VKAIVectorStoreOptions options)
     {
-        if (options.Enabled && options.Type != VKAIVectorStoreType.InMemory && string.IsNullOrWhiteSpace(options.Connection))
-        {
-            return ValidateOptionsResult.Fail("Connection string is required for non-InMemory vector stores.");
-        }
-
+        // Global validation logic here.
+        // Specific connection validation is now handled by provider-specific validators.
         return ValidateOptionsResult.Success;
     }
 }

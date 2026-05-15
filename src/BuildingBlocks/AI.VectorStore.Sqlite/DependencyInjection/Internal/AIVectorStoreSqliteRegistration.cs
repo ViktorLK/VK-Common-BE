@@ -1,13 +1,10 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.VectorStore.Sqlite.DependencyInjection.Internal;
-using VK.Blocks.AI.VectorStore.Sqlite.Internal;
-using VK.Blocks.Core;
-using VK.Blocks.AI.VectorStore;
 using Polly;
+using Polly.CircuitBreaker;
 using Polly.Retry;
+using VK.Blocks.AI.VectorStore.Sqlite.VectorStore.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore.Sqlite.DependencyInjection.Internal;
 
@@ -21,6 +18,13 @@ internal static class AIVectorStoreSqliteRegistration
         IVKAIVectorStoreBuilder builder,
         Func<VKAIVectorStoreSqliteOptions, VKAIVectorStoreSqliteOptions>? transform)
     {
+        // 0. [BB.03] Strategy Check (Root-Driven Switching)
+        var rootOptions = builder.Services.GetVKServiceInstance<VKAIVectorStoreOptions>();
+        if (rootOptions?.Type != VKAIVectorStoreType.Sqlite)
+        {
+            return builder;
+        }
+
         // 1. Check-Self (Idempotency)
         if (builder.Services.IsVKBlockRegistered<VKAIVectorStoreSqliteBlock>())
         {
@@ -46,6 +50,8 @@ internal static class AIVectorStoreSqliteRegistration
         }
 
         // 7. Core Services (Using TryAdd pattern - AP.02)
+        builder.WithScoped<VKAIVectorStoreBlock, IVKAIVectorStore, AIVectorStoreSqliteDatabase>();
+
         builder.Services.AddResiliencePipeline("AI.VectorStore.Sqlite", (resilienceBuilder) =>
         {
             resilienceBuilder.AddRetry(new RetryStrategyOptions
@@ -54,9 +60,15 @@ internal static class AIVectorStoreSqliteRegistration
                 BackoffType = DelayBackoffType.Exponential,
                 UseJitter = true
             });
-        });
 
-        builder.Services.TryAddScoped<IVKAIVectorDatabase, AIVectorStoreSqliteDatabase>();
+            resilienceBuilder.AddCircuitBreaker(new CircuitBreakerStrategyOptions
+            {
+                FailureRatio = 0.5,
+                SamplingDuration = TimeSpan.FromSeconds(30),
+                MinimumThroughput = 10,
+                BreakDuration = TimeSpan.FromSeconds(15)
+            });
+        });
 
         return builder;
     }

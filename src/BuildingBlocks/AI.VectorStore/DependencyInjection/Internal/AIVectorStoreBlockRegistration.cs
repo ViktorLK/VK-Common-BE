@@ -1,9 +1,7 @@
+using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.VectorStore.Databases;
-using VK.Blocks.AI.VectorStore.Databases.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore.DependencyInjection.Internal;
@@ -35,21 +33,14 @@ internal static class AIVectorStoreBlockRegistration
         services.AddVKBlockMarker<VKAIVectorStoreBlock>();
 
         // 4. [BB.03] Validate Options
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<VKAIVectorStoreOptions>, AIVectorStoreOptionsValidator>());
+        services.TryAddEnumerableSingleton<IValidateOptions<VKAIVectorStoreOptions>, AIVectorStoreOptionsValidator>();
 
         var builder = new AIVectorStoreBlockBuilder(services, configuration);
 
-        // 5. [BB.03] Feature Toggle
+        // 6. [BB.03] Feature Toggle
         if (!options.Enabled)
         {
             return builder;
-        }
-
-        // 6. [BB.03] Register Core Services (Providers)
-        // Automatically add the configured database provider based on options
-        if (options.Type == VKAIVectorStoreType.InMemory)
-        {
-            builder.AddInMemoryDatabase();
         }
 
         return builder;

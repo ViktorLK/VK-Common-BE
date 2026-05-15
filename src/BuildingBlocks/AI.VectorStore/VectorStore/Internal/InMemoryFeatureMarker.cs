@@ -1,6 +1,6 @@
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.VectorStore.Databases.Internal;
+namespace VK.Blocks.AI.VectorStore.VectorStore.Internal;
 
 /// <summary>
 /// Marker class for the In-Memory feature.

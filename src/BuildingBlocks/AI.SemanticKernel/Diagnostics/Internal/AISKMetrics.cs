@@ -18,22 +18,22 @@ internal static partial class AISKMetrics
     static AISKMetrics()
     {
         ChatRequestDuration = Meter.CreateHistogram<double>(
-            AISKDiagnosticsConstants.Metrics.ChatRequestDuration,
+            VKAISKDiagnosticsConstants.Metrics.ChatRequestDuration,
             unit: "s",
             description: "Duration of AI chat requests.");
 
         ChatTokenUsage = Meter.CreateCounter<long>(
-            AISKDiagnosticsConstants.Metrics.ChatTokenUsage,
+            VKAISKDiagnosticsConstants.Metrics.ChatTokenUsage,
             unit: "{tokens}",
             description: "Total number of tokens consumed by AI chat requests.");
 
         EmbeddingGenerationDuration = Meter.CreateHistogram<double>(
-            AISKDiagnosticsConstants.Metrics.EmbeddingGenerationDuration,
+            VKAISKDiagnosticsConstants.Metrics.EmbeddingGenerationDuration,
             unit: "s",
             description: "Duration of embedding generation requests.");
 
         EmbeddingItemsCount = Meter.CreateCounter<long>(
-            AISKDiagnosticsConstants.Metrics.EmbeddingItemsCount,
+            VKAISKDiagnosticsConstants.Metrics.EmbeddingItemsCount,
             unit: "{items}",
             description: "Total number of items processed for embeddings.");
     }
@@ -45,7 +45,7 @@ internal static partial class AISKMetrics
     {
         ChatRequestDuration.Record(durationSeconds, new TagList
         {
-            { AISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
+            { VKAISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
         });
     }
 
@@ -56,7 +56,7 @@ internal static partial class AISKMetrics
     {
         EmbeddingGenerationDuration.Record(durationSeconds, new TagList
         {
-            { AISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
+            { VKAISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
         });
     }
 
@@ -67,7 +67,7 @@ internal static partial class AISKMetrics
     {
         EmbeddingItemsCount.Add(count, new TagList
         {
-            { AISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
+            { VKAISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" }
         });
     }
 
@@ -76,19 +76,19 @@ internal static partial class AISKMetrics
     /// </summary>
     public static void RecordTokenUsage(string? modelId, int promptTokens, int completionTokens)
     {
-        var tags = new TagList { { AISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" } };
+        var tags = new TagList { { VKAISKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" } };
 
         if (promptTokens > 0)
         {
             var pTags = tags;
-            pTags.Add(AISKDiagnosticsConstants.Tags.TokenType, "prompt");
+            pTags.Add(VKAISKDiagnosticsConstants.Tags.TokenType, "prompt");
             ChatTokenUsage.Add(promptTokens, pTags);
         }
 
         if (completionTokens > 0)
         {
             var cTags = tags;
-            cTags.Add(AISKDiagnosticsConstants.Tags.TokenType, "completion");
+            cTags.Add(VKAISKDiagnosticsConstants.Tags.TokenType, "completion");
             ChatTokenUsage.Add(completionTokens, cTags);
         }
     }

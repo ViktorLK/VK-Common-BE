@@ -1,11 +1,13 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
-namespace VK.Blocks.AI.VectorStore.Sqlite.Internal;
+namespace VK.Blocks.AI.VectorStore.Sqlite.VectorStore.Internal;
 
 /// <summary>
 /// Structured logging for the SQLite Vector Store.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Generated boilerplate by LoggerMessage source generator")]
 internal static partial class AIVectorStoreSqliteLog
 {
     [LoggerMessage(Level = LogLevel.Information, Message = "Initialized SQLite vector database at {Connection}")]
