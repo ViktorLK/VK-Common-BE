@@ -1,4 +1,7 @@
-namespace VK.Blocks.AI.VectorStore;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace VK.Blocks.AI.VectorStore.Contracts;
 
 /// <summary>
 /// Represents strongly-typed metadata for a vector record.

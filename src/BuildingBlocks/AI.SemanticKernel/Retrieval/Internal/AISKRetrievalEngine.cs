@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.AI;
 
 namespace VK.Blocks.AI.SemanticKernel.Retrieval.Internal;
 
@@ -34,10 +35,7 @@ internal sealed class AISKRetrievalEngine(
 
         return await ExecuteAsync(async (ct) =>
         {
-            // This is a placeholder for actual vector search logic.
-            // In a real implementation, you would use Kernel.GetRequiredService<IVectorStoreRecordCollection<...>>()
-            // or the older SemanticMemory system.
-
+            // Placeholder for native SK retrieval logic
             Logger.LogRetrievalSearch(query);
 
             IEnumerable<string> results = [];

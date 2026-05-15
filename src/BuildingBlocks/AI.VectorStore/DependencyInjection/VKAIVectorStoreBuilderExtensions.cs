@@ -1,6 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
-using VK.Blocks.AI.VectorStore.Databases;
-using VK.Blocks.AI.VectorStore.Databases.Internal;
+using VK.Blocks.AI.VectorStore.Retrieval.Internal;
+using VK.Blocks.AI.VectorStore.VectorStore.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore;
@@ -21,9 +20,18 @@ public static class VKAIVectorStoreBuilderExtensions
     /// </summary>
     /// <typeparam name="TImplementation">The type of the implementation.</typeparam>
     public static IVKAIVectorStoreBuilder AddDatabaseProvider<TImplementation>(this IVKAIVectorStoreBuilder builder)
-        where TImplementation : class, IVKAIVectorDatabase
+        where TImplementation : class, IVKAIVectorStore
     {
-        builder.WithScoped<VKAIVectorStoreBlock, IVKAIVectorDatabase, TImplementation>();
+        builder.WithScoped<VKAIVectorStoreBlock, IVKAIVectorStore, TImplementation>();
         return builder;
+    }
+
+    /// <summary>
+    /// Adds high-level Retrieval features (Chunks, Loaders, RAG Bridge) to the vector store.
+    /// </summary>
+    public static IVKAIVectorStoreBuilder AddVKRetrieval(this IVKAIVectorStoreBuilder builder)
+    {
+        VKGuard.NotNull(builder);
+        return RetrievalFeatureRegistration.Register(builder);
     }
 }

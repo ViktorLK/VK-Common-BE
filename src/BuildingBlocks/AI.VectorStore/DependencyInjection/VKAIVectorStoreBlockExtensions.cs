@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,7 @@ public static class VKAIVectorStoreBlockExtensions
     /// [WRAPPER] pattern for IConfiguration-based registration.
     /// </summary>
     public static IVKAIVectorStoreBuilder AddVKAIVectorStoreBlock(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration)
         => AIVectorStoreBlockRegistration.Register(services, configuration);
 

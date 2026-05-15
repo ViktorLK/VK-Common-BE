@@ -1,12 +1,11 @@
-namespace VK.Blocks.AI.VectorStore;
+namespace VK.Blocks.AI.VectorStore.Contracts;
 
 /// <summary>
-/// Represents a raw record in the vector database.
+/// Represents a record retrieved from a vector store.
 /// </summary>
-public sealed record VKAIVectorRecord
-{
-    public required string Id { get; init; }
-    public required string Content { get; init; }
-    public required VKAIVectorMetadata Metadata { get; init; }
-    public float? Score { get; init; }
-}
+/// <typeparam name="T">The type of the document.</typeparam>
+public sealed record VKAIVectorRecord<T>(
+    string Id,
+    T Document,
+    float Score
+);

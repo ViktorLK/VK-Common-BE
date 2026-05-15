@@ -1,4 +1,6 @@
-namespace VK.Blocks.AI.VectorStore;
+using System.Collections.Generic;
+
+namespace VK.Blocks.AI.VectorStore.Contracts;
 
 /// <summary>
 /// Arguments for vector search operations.

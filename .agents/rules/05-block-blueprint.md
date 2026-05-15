@@ -19,10 +19,11 @@ Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Gener
 - `Contracts/`: Cross-boundary public contracts (e.g., Integration Events, external DTOs).
 - `DependencyInjection/`:
     - `VK{ModuleName}BlockExtensions.cs`: **Public entry point** (Wrapper).
+    - `IVK{ModuleName}Builder.cs`: **Public builder interface** (Industrial DSL).
     - `VK{ModuleName}Options.cs`: **Public configuration** (Sealed Record).
     - `Internal/`:
         - `{ModuleName}BlockRegistration.cs`: **Principal registration logic**.
-        - `{ModuleName}BlockBuilder.cs`: Custom builder implementation.
+        - `{ModuleName}BlockBuilder.cs`: **Custom builder implementation**.
         - `{ModuleName}OptionsValidator.cs`: Options validation logic.
 - `Diagnostics/`:
     - `DiagnosticsConstants.cs`: Semantic tokens.
@@ -40,7 +41,7 @@ Each module MUST define a sealed partial class decorated with the `[VKBlockMarke
 
 ### BB.03 — Idempotent DI Registration (Wrapper vs Core)
 
-#### 18.1 Public Wrapper
+#### Public Wrapper
 
 The public extension class MUST delegate to the internal registration class.
 
@@ -54,19 +55,20 @@ public static class VK{ModuleName}BlockExtensions
 }
 ```
 
-#### 18.2 Internal Core (Registration Sequence)
+#### Internal Core (Registration Sequence)
 
 **STRICT CONSTRAINT**: The entire registration flow MUST be synchronous. Executing I/O operations (e.g., database calls, network requests) or using blocking async calls (`Task.Wait()`, `.GetAwaiter().GetResult()`) inside DI extensions is STRICTLY PROHIBITED as it leads to startup deadlocks and thread pool starvation.
 
 The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow this exact order:
 
-1.  **Check-Self & Prerequisite**: `if (services.IsVKBlockRegistered<{ModuleName}Block>()) return builder;` (This smart check automatically validates dependencies).
+1.  **Check-Self & Prerequisite**: `if (services.IsVKBlockRegistered<{ModuleName}Block>()) return builder;` (Includes `VKGuard` boundary checks for parameters).
 2.  **Options Registration**: `var options = services.AddVKBlockOptions<VK{ModuleName}Options>(configuration);`
 3.  **Mark-Self**: `services.AddVKBlockMarker<{ModuleName}Block>();` (MUST be called BEFORE early exit).
 4.  **Options Validation**: `services.TryAddEnumerableSingleton<IValidateOptions<VK{ModuleName}Options>, {ModuleName}OptionsValidator>();`
-5.  **Diagnostics/Static Metadata**: Register ActivitySource/Meter/SecurityMetadata.
-6.  **Feature Toggle**: `if (!options.Enabled) return builder;`
-7.  **Core Services**: Register the actual feature logic using idempotent `TryAdd` patterns. PROHIBIT synchronous blocking calls (e.g. `.Result`, `.Wait()`) during service registration to avoid deadlocks during container composition.
+5.  **Diagnostics & Metadata**: Register `IVKSecurityMetadataProvider` and `ActivitySource`/`Meter`.
+6.  **Core Services**: Register actual logic using idempotent `TryAdd` patterns.
+7.  **SG Integration**: `services.AddGenerated{ModuleName}Handlers();` (If using Source Generators for Handlers/Validators).
+8.  **Feature Toggle**: `if (!options.Enabled) return builder;`
 
 ### BB.04 — Diagnostics Blueprint
 
@@ -83,5 +85,11 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 - **SectionName**: Formatted according to AP.04.
 - **Validation**: MUST have a corresponding `IValidateOptions` implementation.
 
+### BB.06 — Modular Feature Pattern
 
+Complex blocks containing multiple independent features MUST follow this sub-registration pattern:
 
+- **Feature Marker**: Define an internal marker class decorated with `[VKFeatureMarker("FeatureName", typeof(VKParentBlock))]`.
+- **Chained Builder**: Use extension methods on `IVK{ModuleName}Builder` to add features (e.g., `builder.AddFeatureA()`).
+- **Idempotent Feature Registration**: Each feature registration method MUST check its own `[VKFeatureMarker]` before proceeding.
+- **Hierarchical Options**: Feature options MUST reside under the parent block's configuration section (e.g., `VK:Blocks:Parent:Feature`).

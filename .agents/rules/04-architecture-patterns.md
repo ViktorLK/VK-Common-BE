@@ -1,4 +1,4 @@
-﻿---
+---
 trigger: model_decision
 ---
 
@@ -29,6 +29,9 @@ trigger: model_decision
 - **Dependency Validation**: Modules MUST declare and automatically validate their prerequisite blocks (e.g., Core, Infrastructure) before registering themselves.
 - **Marker Types**: Each module MUST use a strongly typed marker (`[VKBlockMarker]`) to track its registration state and dependencies.
 - **Safe Registration**: Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`). Direct `AddSingleton` is PROHIBITED.
+- **Provider Overrides (Standard Pattern)**: 
+    - Each module MUST provide strongly-typed override interfaces via its custom builder (e.g., `.AddXxxProvider<T>()`).
+    - Implementation MUST use `builder.WithScoped<TMarker, TService, TImplementation>()` or similar to ensure atomic replacement within the block context.
 - **Implementation Delegation**: For the exact execution order and implementation sequence of this policy, you MUST strictly follow **BB.03** in `05-block-blueprint.md`.
 
 ### AP.03 — Structural Organization

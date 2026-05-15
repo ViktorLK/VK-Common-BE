@@ -8,12 +8,17 @@ namespace VK.Blocks.AI;
 public static class VKRetrievalErrors
 {
     /// <summary>
-    /// Error returned when the retrieval search fails.
+    /// Error returned when the vector store is not available.
     /// </summary>
-    public static readonly VKError SearchFailed = new("AI.Retrieval.SearchFailed", "The retrieval search failed.");
+    public static readonly VKError StoreUnavailable = new("AI.Retrieval.StoreUnavailable", "The vector store is not available.");
 
     /// <summary>
-    /// Error returned when the retrieval feature is disabled in configuration.
+    /// Error returned when the document loading fails.
     /// </summary>
-    public static readonly VKError FeatureDisabled = new("AI.Retrieval.FeatureDisabled", "The retrieval feature is disabled.");
+    public static readonly VKError LoadingFailed = new("AI.Retrieval.LoadingFailed", "The document loading failed.");
+
+    /// <summary>
+    /// Error returned when the retrieval feature is disabled.
+    /// </summary>
+    public static readonly VKError FeatureDisabled = new("AI.Retrieval.Disabled", "The retrieval feature is disabled.");
 }
