@@ -11,21 +11,21 @@ namespace VK.Blocks.AI.Text.Internal;
 public sealed class NoOpVKTextEngine : IVKTextEngine
 {
     /// <inheritdoc />
-    public Task<VKResult<string>> GenerateAsync(
+    public Task<VKResult<VKTextResponse>> GenerateAsync(
         string prompt,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(VKResult.Failure<string>(VKTextErrors.FeatureDisabled));
+        return Task.FromResult(VKResult.Failure<VKTextResponse>(VKTextErrors.FeatureDisabled));
     }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<VKResult<string>> GenerateStreamingAsync(
+    public async IAsyncEnumerable<VKResult<VKTextResponse>> GenerateStreamingAsync(
         string prompt,
         IVKAIArgs? args = null,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        yield return VKResult.Failure<string>(VKTextErrors.FeatureDisabled);
-        await Task.CompletedTask;
+        yield return VKResult.Failure<VKTextResponse>(VKTextErrors.FeatureDisabled);
+        await Task.CompletedTask.ConfigureAwait(false);
     }
 }

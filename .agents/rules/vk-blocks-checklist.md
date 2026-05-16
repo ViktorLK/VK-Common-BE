@@ -24,6 +24,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **CS.04**   |     | `AsNoTracking` default. No loop queries. Pagination mandatory. `Span`/`ArrayPool` for buffers.    |
 | **CS.05**   |     | `IAuditable`/`ISoftDelete` via Interceptors + Global Filters. No manual logic.                    |
 | **CS.06**   | 🔴  | No `Guid.NewGuid()`/`DateTime.UtcNow`. Use `IVKGuidGenerator`/`TimeProvider`/`IVKJsonSerializer`. |
+| **CS.07**   | 🔴  | `GetRequiredService` only for dependencies. No `GetService` returns null.                         |
 | **OR.01**   |     | `[LoggerMessage]` SG only. No `logger.LogXxx()`. Structured templates. TraceId mandatory.         |
 | **OR.02**   |     | `TenantId` via EF Global Filter. No bypass. PII masked in logs.                                   |
 | **OR.03**   |     | Polly on ALL external calls. Retry(3x) + CircuitBreaker + explicit Timeout.                       |
@@ -31,17 +32,20 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **DL.02**   | 🟡  | No placeholder code. No `// TODO`. Must compile immediately.                                      |
 | **DL.03**   | 🟡  | Interface/pattern change detected → prompt ADR before continuing.                                 |
 | **DL.04**   | 🟡  | `// TODO` or roadmap detected → prompt backlog sync via `VKAddBacklogItem`.                       |
+| **DL.05**   | 🟡  | Source Generator hooks (partial methods/classes) MUST be tagged with [SG Hook/Marker/etc]. |
 | **AP.01**   | 🔴  | `sealed` default. `required` keyword. `VKGuard` at boundaries. No `default!`.                     |
 | **AP.02**   |     | `TryAdd` only. Idempotent registration. Marker-based dependency validation.                       |
 | **AP.03**   | 🟡  | L1:public+VK prefix. L2+:internal+Deep NS (No VK prefix per BB.01).     |
 | **AP.04**   |     | `IVKBlockOptions` + zero-reflection. Immutable after init. Dual-registration pattern.             |
-| **AP.05**   |     | `Args` pattern: `args?.Prop ?? _options.Prop`. Global default + local override.                   |
-| **BB.01**   |     | Vertical slice folders. `{Feature}/Internal/`. No type-driven grouping.                           |
+| **AP.05**   |     | Args pattern: Strict Overrides Contract. Strictly derived from IVK...Overrides interfaces. |
+| **BB.01**   |     | Vertical slice (Features at root). Foundations in `Common/` (Mandatory).           |
 | **BB.02**   |     | `[VKBlockMarker]` on `sealed partial class` in module root. Source-generated.                     |
 | **BB.03**   | 🟡  | DI order: Check → Options → Mark → Validate → Diag → Toggle → Services.                           |
 | **BB.04**   |     | `[VKBlockDiagnostics]` attribute. `DiagnosticsConstants.cs` for semantic tokens.                  |
 | **BB.05**   |     | Options = `sealed record` + `init`. `Func<T,T> transform`. `IValidateOptions`.                    |
 | **BB.06**   |     | Modular Feature Pattern. `[VKFeatureMarker]` + Chained Builder + Hierarchical Options.           |
+| **BB.07**   | 🟡  | Options Isolation: One class, one file. No nesting in interfaces/handlers.                        |
+| **BB.08**   | 🔴  | Implicit Dependency: Sub-features MUST pull-up parent pillar registration (SG automated).        |
 | **PS.01**   |     | Implementation plans MUST include Architecture Decision Audit section.                            |
 | **PS.02**   |     | Walkthrough MUST link ADR if one was planned. Verify decision traceability.                       |
 | **PS.03**   |     | Complex/experimental features → RFC-first in `docs/06-RFCs/` before backlog.                      |
@@ -60,7 +64,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 4. **Immediate Correction**: If a non-waived violation is detected, stop and fix it immediately.
 
 **Type A IDs**: CS.01, CS.03, CS.06, AP.01, PS.04, PS.05
-**Type B IDs**: AP.03, BB.03, DL.02, DL.03, DL.04
+**Type B IDs**: AP.03, BB.03, DL.02, DL.03, DL.04, DL.05
 
 ---
 

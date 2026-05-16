@@ -55,3 +55,10 @@ trigger: model_decision
 - **Time**: Use `TimeProvider` (injected) instead of `DateTime.UtcNow` or `DateTimeOffset.Now`.
 - **Serialization**: Use `IVKJsonSerializer` (injected) for all JSON operations to ensure consistent behavior and standard options.
 
+
+### CS.07 — Dependency Resolution
+
+- **Mandatory Registration**: ALWAYS use `GetRequiredService<T>()` or `GetRequiredService(Type)` when retrieving services from `IServiceProvider` that are expected to be registered.
+- **Prohibit GetService**: The use of `GetService<T>()` or `GetService(Type)` is STRICTLY PROHIBITED for required dependencies, as it returns `null` and violates the deterministic failure principle.
+- **Optional Services**: For truly optional services, use `GetServices<T>()` and check for an empty collection, or explicitly document why `GetService` is used with a null-coalescing fallback (e.g., `sp.GetService<T>() ?? Default`).
+- **Fail Fast**: Prefer container-level failure over manual null checks in application logic.

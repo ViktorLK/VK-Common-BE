@@ -1,4 +1,4 @@
-﻿---
+---
 trigger: model_decision
 ---
 
@@ -60,4 +60,19 @@ Interrupt the current flow and ask:
 > Should I generate an atomic task in `docs/05-Backlogs/` using `VKAddBacklogItem`?"
 
 If confirmed → collect title, description, and module from context and execute the tool.
+
+### DL.05 — Source Generator Documentation
+
+**Mandatory Tagging** — ALL code elements that interact with or are driven by Source Generators MUST be documented with specific tags:
+
+- **`[SG Hook]`**: Used for `partial` methods implemented manually to extend generated logic (e.g., `RegisterServices`, `ValidateCustom`).
+  - *Format*: `// [SG Hook] - This method is called by the Source Generator to inject manual [logic type] logic.`
+- **[SG Marker]**: Used for classes decorated with architectural markers (e.g., `[VKBlockMarker]`).
+  - *Format*: `// [SG Marker] - This attribute triggers the Source Generator to generate module metadata and base implementation.`
+- **[SG Diagnostics]**: Used for classes decorated with diagnostics markers (e.g., `[VKBlockDiagnostics]`).
+  - *Format*: `// [SG Diagnostics] - This attribute triggers the Source Generator to generate ActivitySource and Meter.`
+- **[SG Logger]**: Used for `partial` classes containing `[LoggerMessage]` definitions.
+  - *Format*: `// [SG Logger] - This class is automatically implemented by the Source Generator for high-performance logging.`
+
+Goal: Ensure clarity regarding which parts of the codebase are manually maintained versus automatically extended by tooling.
 

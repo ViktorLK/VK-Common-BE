@@ -36,16 +36,23 @@ trigger: model_decision
 
 ### AP.03 — Structural Organization
 
-#### Depth-Based Visibility & Naming Convention
+#### Semantic Visibility & Naming Convention
 
-- **Level 1 (Public API Surface)**:
-    - **Location**: Any `.cs` file in a first-level folder (e.g., `ApiKeys/`) MUST be declared as `public`.
-    - **Namespace**: MUST use the library's flat root namespace (e.g., `namespace VK.Blocks.Authentication;`).
-    - **Naming**: MUST use the **`VK` prefix** for all public types (e.g., `VKApiKeyOptions`, `IVKApiKeyStore`) to prevent naming collisions in the flattened namespace.
-- **Level 2+ (Encapsulated Internals)**:
-    - **Location**: Any `.cs` file in a second-level or deeper folder (e.g., `ApiKeys/Internal/`, `ApiKeys/Persistence/`) MUST be declared as `internal`.
-    - **Namespace**: MUST use the exact matching folder namespace (e.g., `namespace VK.Blocks.Authentication.ApiKeys.Internal;`).
-    - **Naming**: MUST **NOT use the `VK` prefix** (e.g., `ApiKeyValidator`, NOT `VKApiKeyValidator`). Internal classification is handled by the namespace and directory depth.
+- **Internal Scoping (`Internal/`)**:
+    - **Location**: Any `.cs` file within an `Internal/` folder at any depth (e.g., `ApiKeys/Internal/`).
+    - **Visibility**: MUST be declared as `internal`.
+    - **Namespace**: MUST use the exact matching folder namespace.
+    - **Naming**: MUST **NOT use the `VK` prefix**.
+- **Internal Shared Foundation (`Common/Shared/`)**:
+    - **Location**: Dedicated for types shared across multiple features within the same block.
+    - **Visibility**: MUST be declared as `internal`.
+    - **Namespace**: SHOULD use the library's flat root namespace (e.g., `namespace VK.Blocks.AI;`).
+    - **Naming**: MUST **NOT use the `VK` prefix**.
+- **Public API Surface (`Common/Contracts/` & Foundations)**:
+    - **Location**: Dedicated for types exposed to other BuildingBlocks or the Application layer.
+    - **Visibility**: MUST be declared as `public`.
+    - **Namespace**: MUST use the library's flat root namespace (e.g., `namespace VK.Blocks.AI;`).
+    - **Naming**: MUST use the **`VK` prefix** (e.g., `VKAIUsage`).
 - **NO Type-Driven Folders**: Avoid grouping by technical type at the root level (e.g., separating all Handlers from Requirements).
 - **Folder Naming**: Folder names MUST be noun-based and domain-driven.
   ✅ ApiKeys/Internal/
@@ -80,13 +87,18 @@ trigger: model_decision
 - **Dual-Registration**: The framework MUST maintain an **Idempotent Dual-Registration Pattern** (IOptions + Singleton) to allow synchronous access to options during startup.
 - **Implementation Delegation**: For the exact structure, naming conventions, and validation setup of Options classes, you MUST strictly follow **BB.05** in `05-block-blueprint.md`.
 
-### AP.05 — Hierarchical Configuration Pattern (Args Pattern)
+### AP.05 — Strict Overrides Contract (Mode B)
 
-- **Pattern**: Any behavioral setting that can change per-request (e.g., Timeout, TTL, Temperature) MUST follow the **"Global Default + Local Override"** pattern.
+- **Pattern**: Behavioral settings that change per-request MUST follow a **"Strict Contractual Isolation"** model to prevent accidental exposure of system-level configurations.
 - **Components**:
-    - **Global Defaults**: Defined in the module's `IVKBlockOptions` class (e.g., `VKAgentOptions.MaxIterations`).
-    - **Local Overrides**: Defined in a dedicated `XxxArgs` record (e.g., `VKAgentArgs.MaxIterations`) and passed as an optional method argument.
-- **Merging Priority**: The implementation MUST merge these values using the null-coalescing priority: **`args?.Property ?? _options.Property`**.
-- **Naming**: Overriding records MUST be named with the **`Args` suffix** (e.g., `VKChatArgs`, `VKRagArgs`).
+    - **Global Settings (`IVK...Settings`)**: Defined on `Options` classes. Groups all configuration parameters.
+    - **Local Overrides (`IVK...Overrides`)**: A separate interface defining ONLY the subset of properties permitted for request-level modification.
+    - **Generated Args (`XxxArgs`)**: A source-generated record that strictly implements the Overrides interface.
+- **Contract-First Automation**:
+    - The Source Generator MUST automatically identify the relationship: `IVK...Settings` -> `IVK...Overrides`.
+    - **Strict Subset**: `Args` properties MUST be derived EXCLUSIVELY from the Overrides interface members. 
+    - **Security by Default**: Properties present in `Options` but absent in the `Overrides` interface are automatically excluded. Manual `[VKIgnoreArgs]` is prohibited in favor of this protocol-based exclusion.
+- **Merging Priority**: The implementation MUST use the null-coalescing merge: **`args?.Property ?? _options.Property`**.
+- **Naming**: Overriding records MUST use the **`Args` suffix** (e.g., `VKChatArgs`).
 
 

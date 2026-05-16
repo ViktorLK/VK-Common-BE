@@ -30,6 +30,9 @@
 - [ ] [AI-008: Implement Liquid-based Prompt Templating System](./AI/008-implement-liquid-based-prompt-templating-system.md)
 - [ ] [AI-009: Build Automated AI Evaluation Framework](./AI/009-build-automated-ai-evaluation-framework.md)
 - [ ] [AI-010: Industrialize AI Text/Embedding Response Models for Tokenics Visibility](./AI/010-industrialize-ai-text-embedding-response-models-for-tokenics-visibility.md)
+- [ ] [AI-011: Add ReturnSchema to IVKAgentTool](./AI/011-add-returnschema-to-ivkagenttool.md)
+- [ ] [AI-012: Support Streaming results in IVKAgentTool](./AI/012-support-streaming-results-in-ivkagenttool.md)
+- [ ] [AI-013: Support Prompt-as-a-Tool implementation](./AI/013-support-prompt-as-a-tool-implementation.md)
 ## 🔐 Authorization Tasks
 - [ ] [AUTHORIZATION-001: Authorization DI Normalization](./Authorization/001-di-normalization.md)
 - [ ] [AUTHORIZATION-002: API Gateway Integration (YARP-Ocelot)](./Authorization/002-api-gateway-integration-(yarp-ocelot).md)

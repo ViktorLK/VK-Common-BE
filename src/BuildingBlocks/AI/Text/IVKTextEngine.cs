@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Text;
+namespace VK.Blocks.AI;
 
 /// <summary>
 /// Defines the contract for a provider-agnostic text generation engine.
@@ -16,8 +16,8 @@ public interface IVKTextEngine
     /// <param name="prompt">The input prompt.</param>
     /// <param name="args">Optional execution arguments.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A result containing the generated text.</returns>
-    Task<VKResult<string>> GenerateAsync(
+    /// <returns>A result containing the generated text response.</returns>
+    Task<VKResult<VKTextResponse>> GenerateAsync(
         string prompt,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default);
@@ -29,7 +29,7 @@ public interface IVKTextEngine
     /// <param name="args">Optional execution arguments.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>An async enumerable of streaming text responses.</returns>
-    IAsyncEnumerable<VKResult<string>> GenerateStreamingAsync(
+    IAsyncEnumerable<VKResult<VKTextResponse>> GenerateStreamingAsync(
         string prompt,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default);

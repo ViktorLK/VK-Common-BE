@@ -16,4 +16,9 @@ public static class VKAgentErrors
     /// Error returned when the maximum number of iterations is reached.
     /// </summary>
     public static readonly VKError MaxIterationsReached = new("AI.Agents.MaxIterationsReached", "The agent reached the maximum number of iterations.");
+
+    /// <summary>
+    /// Error returned when the agent task times out.
+    /// </summary>
+    public static readonly VKError Timeout = new("AI.Agents.Timeout", "The agent execution timed out.", VKErrorType.Timeout);
 }
