@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using VK.Blocks.AI;
 using VK.Blocks.AI.VectorStore.Contracts;
 using VK.Blocks.AI.VectorStore.Diagnostics.Internal;
 using VK.Blocks.Core;
@@ -16,7 +17,7 @@ internal sealed class AIVectorStoreInMemoryDatabase : IVKAIVectorStore
 {
     private readonly IVKJsonSerializer _jsonSerializer;
     private readonly VKAIVectorStoreOptions _options;
-    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, (VKEmbeddingVector Vector, string DataJson)>> _collections = new();
+    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, (VKEmbeddingsVector Vector, string DataJson)>> _collections = new();
 
     public AIVectorStoreInMemoryDatabase(
         IVKJsonSerializer jsonSerializer,
@@ -34,19 +35,19 @@ internal sealed class AIVectorStoreInMemoryDatabase : IVKAIVectorStore
 
     #region Generic Internal Implementation
 
-    internal VKResult UpsertGeneric<T>(string collectionName, string id, T document, VKEmbeddingVector vector) where T : class
+    internal VKResult UpsertGeneric<T>(string collectionName, string id, T document, VKEmbeddingsVector vector) where T : class
     {
         VKGuard.NotNullOrWhiteSpace(id);
         VKGuard.NotNull(document);
         VKGuard.NotNull(vector);
 
-        var collection = _collections.GetOrAdd(collectionName, _ => new ConcurrentDictionary<string, (VKEmbeddingVector, string)>());
+        var collection = _collections.GetOrAdd(collectionName, _ => new ConcurrentDictionary<string, (VKEmbeddingsVector, string)>());
         collection[id] = (vector, _jsonSerializer.Serialize(document));
 
         return VKResult.Success();
     }
 
-    internal VKResult<IEnumerable<VKAIVectorRecord<T>>> SearchGeneric<T>(string collectionName, VKEmbeddingVector vector, VKAIVectorSearchArgs args) where T : class
+    internal VKResult<IEnumerable<VKAIVectorRecord<T>>> SearchGeneric<T>(string collectionName, VKEmbeddingsVector vector, VKAIVectorSearchArgs args) where T : class
     {
         VKGuard.NotNull(vector);
         VKGuard.NotNull(args);

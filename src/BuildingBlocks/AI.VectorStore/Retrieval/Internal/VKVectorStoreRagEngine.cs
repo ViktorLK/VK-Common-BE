@@ -18,14 +18,17 @@ internal sealed record VKVectorDocument(string Content, VKAIVectorMetadata Metad
 /// Industrial implementation of AI retrieval store using a Vector Store backend.
 /// Acts as a bridge between high-level AI models and low-level Vector Engine.
 /// </summary>
-internal sealed class VKVectorStoreRagEngine(IVKAIVectorStore vectorStore) : IVKRetrievalStore
+internal sealed class VKVectorStoreRagEngine(
+    IVKAIVectorStore vectorStore,
+    IVKUserContext userContext) : IVKRetrievalStore
 {
     private readonly IVKAIVectorStore _vectorStore = VKGuard.NotNull(vectorStore);
+    private readonly IVKUserContext _userContext = VKGuard.NotNull(userContext);
     private const string CollectionName = "ai.retrieval";
 
     public async Task<VKResult> UpsertAsync(
         IEnumerable<VKDocumentChunk> chunks,
-        IEnumerable<VKEmbeddingVector> embeddings,
+        IEnumerable<VKEmbeddingsVector> embeddings,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(chunks);
@@ -53,7 +56,7 @@ internal sealed class VKVectorStoreRagEngine(IVKAIVectorStore vectorStore) : IVK
     }
 
     public async Task<VKResult<IEnumerable<VKVectorSearchResult>>> SearchAsync(
-        VKEmbeddingVector embedding,
+        VKEmbeddingsVector embedding,
         VKRetrievalArgs? args = null,
         CancellationToken cancellationToken = default)
     {
@@ -61,7 +64,7 @@ internal sealed class VKVectorStoreRagEngine(IVKAIVectorStore vectorStore) : IVK
 
         var limit = args?.TopK ?? 5;
         var minScore = args?.MinScore ?? 0.7f;
-        var tenantId = args?.TenantId ?? "Default";
+        var tenantId = _userContext.TenantId ?? "Default";
 
         var searchArgs = new VKAIVectorSearchArgs
         {

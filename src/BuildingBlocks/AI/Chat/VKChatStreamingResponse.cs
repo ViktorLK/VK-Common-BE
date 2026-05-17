@@ -33,6 +33,11 @@ public sealed record VKChatStreamingResponse
     public bool IsFinal { get; init; }
 
     /// <summary>
+    /// Gets the token usage information for the request (usually provided in the final chunk).
+    /// </summary>
+    public VKAIUsage? Usage { get; init; }
+
+    /// <summary>
     /// Gets additional metadata for the chunk.
     /// </summary>
     public IDictionary<string, object?>? Metadata { get; init; }

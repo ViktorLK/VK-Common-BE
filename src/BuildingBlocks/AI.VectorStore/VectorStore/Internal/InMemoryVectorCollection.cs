@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using VK.Blocks.AI;
 using VK.Blocks.AI.VectorStore.Contracts;
 using VK.Blocks.Core;
 
@@ -18,14 +19,14 @@ internal sealed class InMemoryVectorCollection<T>(
     public Task<VKResult> UpsertAsync(
         string id,
         T document,
-        VKEmbeddingVector vector,
+        VKEmbeddingsVector vector,
         CancellationToken cancellationToken = default)
     {
         return Task.FromResult(database.UpsertGeneric(Name, id, document, vector));
     }
 
     public Task<VKResult<IEnumerable<VKAIVectorRecord<T>>>> SearchAsync(
-        VKEmbeddingVector vector,
+        VKEmbeddingsVector vector,
         VKAIVectorSearchArgs args,
         CancellationToken cancellationToken = default)
     {

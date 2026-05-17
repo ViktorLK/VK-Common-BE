@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VK.Blocks.AI.Chat.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -8,13 +7,9 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Chat feature.
 /// </summary>
-public sealed record VKChatOptions : IVKAIProviderSettings, IVKAIGovernanceSettings, IVKGenerationSettings, IVKToggleableBlockOptions
+[VKFeature(typeof(VKAIBlock), GenerateArgs = true, GenerateValidator = true)]
+public sealed partial record VKChatOptions : IVKChatSettings, IVKToggleableBlockOptions
 {
-    /// <summary>
-    /// The configuration section name for Chat options.
-    /// </summary>
-    public static string SectionName => $"{VKAIOptions.SectionName}:{ChatConstants.FeatureName}";
-
     /// <summary>
     /// Gets or sets a value indicating whether Chat feature is enabled.
     /// Defaults to true.
@@ -84,12 +79,12 @@ public sealed record VKChatOptions : IVKAIProviderSettings, IVKAIGovernanceSetti
     /// <summary>
     /// Gets or sets the frequency penalty.
     /// </summary>
-    public float FrequencyPenalty { get; init; } = 0.0f;
+    public float? FrequencyPenalty { get; init; } = 0.0f;
 
     /// <summary>
     /// Gets or sets the presence penalty.
     /// </summary>
-    public float PresencePenalty { get; init; } = 0.0f;
+    public float? PresencePenalty { get; init; } = 0.0f;
 
     /// <summary>
     /// Gets or sets the maximum tokens to generate.
@@ -114,10 +109,27 @@ public sealed record VKChatOptions : IVKAIProviderSettings, IVKAIGovernanceSetti
     /// <summary>
     /// Gets or sets the stop sequences.
     /// </summary>
-    public IReadOnlyList<string> StopSequences { get; init; } = [];
+    public IReadOnlyList<string>? StopSequences { get; init; } = [];
 
     /// <summary>
     /// Gets or sets a value indicating whether streaming is enabled.
     /// </summary>
-    public bool StreamingEnabled { get; init; } = true;
+    public bool? StreamingEnabled { get; init; } = true;
+
+    /// <summary>
+    /// Gets or sets the default system prompt.
+    /// If provided, it will be injected as the first message if no system message exists in history.
+    /// </summary>
+    public string? DefaultSystemPrompt { get; init; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of history messages to retain.
+    /// If null, no trimming is performed.
+    /// </summary>
+    public int? MaxHistoryMessages { get; init; }
+
+    /// <summary>
+    /// Gets or sets the tools available for the chat engine.
+    /// </summary>
+    public IReadOnlyList<IVKAtomicTool>? Tools { get; init; } = [];
 }

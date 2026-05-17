@@ -280,11 +280,17 @@ dotnet_diagnostic.IDE0073.severity = none    # Require file header (noisy)
 # Nullable の警告を統一
 dotnet_diagnostic.CS8629.severity = warning
 
+# VK.Blocks Namespace Governance (IDE0130)
 [*.cs]
 dotnet_diagnostic.IDE0130.severity = warning
 
-[src/BuildingBlocks/*/*/*.cs]
+# Public Contract Amnesty: Allow logical flat namespaces for public VK/IVK components
+[src/BuildingBlocks/**/{IVK*,VK*}.cs]
 dotnet_diagnostic.IDE0130.severity = none
+
+# Internal Discipline: Enforce strict physical-to-logical alignment for implementation details
+[src/BuildingBlocks/**/Internal/**/*.cs]
+dotnet_diagnostic.IDE0130.severity = error
 
 [**/*Tests.cs]
 # xUnit1030: Do not use ConfigureAwait(false) in test methods

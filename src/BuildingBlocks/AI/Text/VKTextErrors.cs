@@ -1,6 +1,6 @@
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Text;
+namespace VK.Blocks.AI;
 
 /// <summary>
 /// Error constants for the text generation feature.

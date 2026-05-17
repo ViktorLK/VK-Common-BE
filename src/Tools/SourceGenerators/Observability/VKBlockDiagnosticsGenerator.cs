@@ -140,7 +140,7 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
             var ver = attr.NamedArguments.FirstOrDefault(x => x.Key == "Version").Value.Value?.ToString();
             var optional = (bool)(attr.NamedArguments.FirstOrDefault(x => x.Key == "IsOptional").Value.Value ?? true);
 
-            var parentTypeName = parentSymbol.ToDisplayString();
+            var parentTypeName = parentSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var classSymbolInner = (INamedTypeSymbol)ctx.TargetSymbol;
 
             var fName = ExtractBlockName(classSymbolInner.Name);
@@ -148,7 +148,7 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
             return new FeatureMarkerInfo(
                 Namespace: classSymbolInner.ContainingNamespace.ToDisplayString(),
                 ClassName: classSymbolInner.Name,
-                Identifier: $"$\"{{{parentTypeName}.BlockIdentifier}}.{id}\"",
+                Identifier: $"{parentTypeName}.BlockIdentifier + \".{id}\"",
                 BlockName: $"\"{fName}\"",
                 Version: ver is not null ? $"\"{ver}\"" : null,
                 Modifiers: GetModifiers(classSymbolInner),
@@ -165,7 +165,7 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
         if (attr.AttributeClass is { IsGenericType: true, TypeArguments.Length: 1 })
         {
             var typeArg = attr.AttributeClass.TypeArguments[0];
-            var typeName = typeArg.ToDisplayString();
+            var typeName = typeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
             blockExpression = $"{typeName}.BlockIdentifier";
             versionExpression = $"{typeName}.BlockVersion";

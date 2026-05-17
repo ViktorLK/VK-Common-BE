@@ -1,44 +1,32 @@
-using VK.Blocks.AI.Tokenics.Internal;
+using System;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
 
 /// <summary>
-/// Configuration settings for the Tokenics feature.
+/// Configuration settings for the Tokenics feature Hub.
 /// </summary>
-public sealed record VKTokenicsOptions : IVKAIQuotaSettings, IVKToggleableBlockOptions
+[VKFeature(typeof(VKAIBlock))]
+public sealed partial record VKTokenicsOptions : IVKToggleableBlockOptions
 {
     /// <summary>
-    /// The configuration section name for Tokenics options.
+    /// Gets or sets a value indicating whether Tokenics feature is enabled.
+    /// Defaults to false.
     /// </summary>
-    public static string SectionName => $"{VKAIOptions.SectionName}:{TokenicsConstants.FeatureName}";
+    public bool Enabled { get; init; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether Tokenics feature is enabled.
-    /// Defaults to true.
+    /// Gets or sets the execution timeout for tokenics operations.
     /// </summary>
-    public bool Enabled { get; init; } = true;
-
-    // --- Quota ---
-
-    /// <inheritdoc />
-    public long? GlobalTokenLimit { get; init; }
-
-    /// <inheritdoc />
-    public long? MonthlyTokenBudget { get; init; }
-
-    /// <inheritdoc />
-    public int? RateLimitPerMinute { get; init; }
+    public TimeSpan? Timeout { get; init; }
 
     /// <summary>
     /// Gets or sets a value indicating whether to enable metric export for token usage.
-    /// Defaults to true.
     /// </summary>
-    public bool EnableMetricExport { get; init; } = true;
+    public bool EnableMetrics { get; init; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to enable detailed tracking (by model, tenant, user).
-    /// Defaults to false.
+    /// Gets or sets a value indicating whether to enable detailed audit logging for token usage.
     /// </summary>
-    public bool EnableDetailedTracking { get; init; } = false;
+    public bool EnableAuditLog { get; init; } = false;
 }

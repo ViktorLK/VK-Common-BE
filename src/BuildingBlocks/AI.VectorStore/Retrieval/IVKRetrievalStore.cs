@@ -20,7 +20,7 @@ public interface IVKRetrievalStore
     /// <returns>The result.</returns>
     Task<VKResult> UpsertAsync(
         IEnumerable<VKDocumentChunk> chunks,
-        IEnumerable<VKEmbeddingVector> embeddings,
+        IEnumerable<VKEmbeddingsVector> embeddings,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -31,7 +31,7 @@ public interface IVKRetrievalStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The search results.</returns>
     Task<VKResult<IEnumerable<VKVectorSearchResult>>> SearchAsync(
-        VKEmbeddingVector embedding,
+        VKEmbeddingsVector embedding,
         VKRetrievalArgs? args = null,
         CancellationToken cancellationToken = default);
 }
