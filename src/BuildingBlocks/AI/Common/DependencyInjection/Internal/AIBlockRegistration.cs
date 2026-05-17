@@ -25,7 +25,7 @@ internal static class AIBlockRegistration
         }
 
         // 2. Options Registration [BB.06]
-        _ = services.AddVKBlockOptions<VKAIOptions>(configuration!, transform);
+        VKAIOptions options = services.AddVKBlockOptions<VKAIOptions>(configuration!, transform);
 
         // 3. Mark-Self (Metadata) [AP.02]
         services.AddVKBlockMarker<VKAIBlock>();
@@ -33,7 +33,13 @@ internal static class AIBlockRegistration
         // 4. Initialize Builder
         var builder = new AIBlockBuilder(services, configuration);
 
-        // 5. Default Feature Opt-in
+        // 5. Early Return Check
+        if (!options.Enabled)
+        {
+            return builder;
+        }
+
+        // 6. Default Feature Opt-in
         // Automatically enable core defaults (Provider, Retry, etc.)
         return builder.AddVKDefaults();
     }

@@ -5,8 +5,7 @@ namespace VK.Blocks.AI;
 /// </summary>
 public interface IVKContentOverrides :
     IVKAIProviderOverrides,
-    IVKAIResilienceOverrides,
-    IVKAIQuotaOverrides
+    IVKAIGovernanceOverrides
 {
     /// <summary>
     /// Gets a value indicating whether to automatically block requests that fail moderation.

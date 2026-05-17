@@ -5,8 +5,7 @@ namespace VK.Blocks.AI;
 /// </summary>
 public interface IVKInjectionOverrides :
     IVKAIProviderOverrides,
-    IVKAIResilienceOverrides,
-    IVKAIQuotaOverrides
+    IVKAIGovernanceOverrides
 {
     /// <summary>
     /// Gets the threshold for blocking a request based on confidence score.

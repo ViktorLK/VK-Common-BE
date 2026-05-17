@@ -40,7 +40,7 @@ internal sealed class NoOpVKSpeechEngine : IVKSpeechEngine
         _ = args;
         _ = cancellationToken;
 
-        yield return await Task.FromResult(System.Array.Empty<byte>());
+        yield return await Task.FromResult(System.Array.Empty<byte>()).ConfigureAwait(false);
     }
 
     // [SG Hook]

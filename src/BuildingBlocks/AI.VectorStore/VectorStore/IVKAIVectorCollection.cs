@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using VK.Blocks.AI;
 using VK.Blocks.AI.VectorStore.Contracts;
 using VK.Blocks.Core;
 
@@ -24,14 +25,14 @@ public interface IVKAIVectorCollection<T> where T : class
     Task<VKResult> UpsertAsync(
         string id,
         T document,
-        VKEmbeddingVector vector,
+        VKEmbeddingsVector vector,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Searches for similar documents based on a query vector.
     /// </summary>
     Task<VKResult<IEnumerable<VKAIVectorRecord<T>>>> SearchAsync(
-        VKEmbeddingVector vector,
+        VKEmbeddingsVector vector,
         VKAIVectorSearchArgs args,
         CancellationToken cancellationToken = default);
 

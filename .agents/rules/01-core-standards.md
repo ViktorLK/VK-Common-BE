@@ -1,5 +1,5 @@
 ---
-trigger: model_decision
+trigger: manual
 ---
 
 # VK.Blocks: Core Standards (CS)
@@ -12,8 +12,6 @@ trigger: model_decision
 - **Error Constants Hierarchy**: Define error codes using the `{ModuleName}.{Category}.{Reason}` format (e.g., `Auth.ApiKey.Invalid`). Use a global `VKCoreErrors` class for shared cross-block errors, and an `Internal/Errors.cs` class for block-specific errors to prevent constant sprawl.
 - Infrastructure Layer: exceptions ARE allowed, but MUST be caught at the boundary and mapped to `Result<T>`.
 - Follow RFC 7807 for HTTP error responses.
-- NEVER throw exceptions across layer boundaries.
-  Exceptions MUST be caught and mapped to Result<T> at the Infrastructure boundary.
 - Result<T> MUST carry structured Error objects, never raw strings or Exception objects.
 
 ### CS.02 — Layer Dependencies
@@ -26,7 +24,7 @@ trigger: model_decision
 
 - Use `async/await` + `CancellationToken` for ALL I/O operations.
 - NO `.Result`, `.Wait()`, or blocking calls.
-- Prefer `ValueTask<T>` over `Task<T>` for interfaces and hot-path methods where synchronous completion is the common case (cache hits, in-memory checks). Avoid `ValueTask` when the operation is always async or may be awaited multiple times.
+- Prefer `ValueTask<T>` over `Task<T>` for **internal** hot-path methods where synchronous completion is the common case (cache hits, in-memory checks). **Public API interfaces (`IVK...`) MUST use `Task<T>`** to prevent consumer-side misuse (double-await, premature access). Avoid `ValueTask` when the operation is always async or may be awaited multiple times.
 - ALL `await` calls within BuildingBlock/library code MUST use `.ConfigureAwait(false)` to prevent synchronization-context deadlocks.
 - **Exception**: DO NOT use `.ConfigureAwait(false)` in Test methods (xUnit). Test code should maintain the synchronization context for stable assertion handling and parallelism management.
 - **Enforcement**: Configure `.editorconfig` (e.g., `dotnet_diagnostic.xUnit1030.severity = error`) or use custom analyzers to automatically prevent IDE auto-completion from injecting `.ConfigureAwait(false)` into test projects.
@@ -54,7 +52,6 @@ trigger: model_decision
 - **GUIDs**: Use `IVKGuidGenerator` (injected) instead of `Guid.NewGuid()`.
 - **Time**: Use `TimeProvider` (injected) instead of `DateTime.UtcNow` or `DateTimeOffset.Now`.
 - **Serialization**: Use `IVKJsonSerializer` (injected) for all JSON operations to ensure consistent behavior and standard options.
-
 
 ### CS.07 — Dependency Resolution
 

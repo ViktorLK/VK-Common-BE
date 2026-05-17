@@ -1,12 +1,12 @@
 ---
-trigger: model_decision
+trigger: manual
 ---
 
 # VK.Blocks: Architecture & Design Patterns (AP)
 
 ### AP.01 — Modern C# Semantics
 
-- **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required.
+- **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required. `sealed partial class` is permitted when Source Generator integration requires it (e.g., `[VKBlockMarker]`, `[VKFeatureMarker]`, `[VKBlockDiagnostics]`).
 - **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality. Use `with` expressions for non-destructive mutation instead of manual copy constructors.
 - **Required Properties**: Use `required` keyword for all non-nullable properties in `record` or DTO types to ensure compile-time safety. STRICTLY PROHIBIT the use of `default!` for property initialization.
 - **Modern C# Idioms**: Use C# 12+ features (Collection expressions `[]`, Primary constructors) where appropriate. STRICTLY ADHERE to the project's `.editorconfig` for formatting rules (e.g., preference for explicit types over `var` for built-in types).
@@ -26,13 +26,9 @@ trigger: model_decision
 ### AP.02 — Service Registration Policy
 
 - **Idempotency**: All building block registrations MUST be strictly idempotent. Registering the same block multiple times must be safe and have no side effects.
-- **Dependency Validation**: Modules MUST declare and automatically validate their prerequisite blocks (e.g., Core, Infrastructure) before registering themselves.
-- **Marker Types**: Each module MUST use a strongly typed marker (`[VKBlockMarker]`) to track its registration state and dependencies.
 - **Safe Registration**: Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`). Direct `AddSingleton` is PROHIBITED.
-- **Provider Overrides (Standard Pattern)**: 
-    - Each module MUST provide strongly-typed override interfaces via its custom builder (e.g., `.AddXxxProvider<T>()`).
-    - Implementation MUST use `builder.WithScoped<TMarker, TService, TImplementation>()` or similar to ensure atomic replacement within the block context.
-- **Implementation Delegation**: For the exact execution order and implementation sequence of this policy, you MUST strictly follow **BB.03** in `05-block-blueprint.md`.
+- **Marker & Dependency Validation**: Via `[VKBlockMarker]`. See **BB.02** for marker spec, **BB.03** for execution order.
+- **Provider Overrides**: Strongly-typed override interfaces via builder (e.g., `.AddXxxProvider<T>()`). See **BB.03** for implementation.
 
 ### AP.03 — Structural Organization
 
@@ -85,7 +81,7 @@ trigger: model_decision
 - **Strict Contracts**: ALL building block Options classes MUST implement `IVKBlockOptions` to support the zero-reflection pattern.
 - **Immutability**: Configuration objects MUST be immutable after initialization.
 - **Dual-Registration**: The framework MUST maintain an **Idempotent Dual-Registration Pattern** (IOptions + Singleton) to allow synchronous access to options during startup.
-- **Implementation Delegation**: For the exact structure, naming conventions, and validation setup of Options classes, you MUST strictly follow **BB.05** in `05-block-blueprint.md`.
+- **Implementation Delegation**: For exact structure (`sealed record` + `init`), naming (`VK` prefix), transform (`Func<T,T>`), and validation (`IValidateOptions`), strictly follow **BB.05**.
 
 ### AP.05 — Strict Overrides Contract (Mode B)
 
@@ -96,9 +92,7 @@ trigger: model_decision
     - **Generated Args (`XxxArgs`)**: A source-generated record that strictly implements the Overrides interface.
 - **Contract-First Automation**:
     - The Source Generator MUST automatically identify the relationship: `IVK...Settings` -> `IVK...Overrides`.
-    - **Strict Subset**: `Args` properties MUST be derived EXCLUSIVELY from the Overrides interface members. 
+    - **Strict Subset**: `Args` properties MUST be derived EXCLUSIVELY from the Overrides interface members.
     - **Security by Default**: Properties present in `Options` but absent in the `Overrides` interface are automatically excluded. Manual `[VKIgnoreArgs]` is prohibited in favor of this protocol-based exclusion.
 - **Merging Priority**: The implementation MUST use the null-coalescing merge: **`args?.Property ?? _options.Property`**.
 - **Naming**: Overriding records MUST use the **`Args` suffix** (e.g., `VKChatArgs`).
-
-

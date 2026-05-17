@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Common.Diagnostics.Internal;
+using VK.Blocks.AI.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Chat.Internal;
@@ -55,9 +56,10 @@ internal sealed partial class BasicChat : IVKChat
 
         // 1. Audit Start (PII Masking check)
         bool enableAudit = (args is IVKAIAuditSettings a ? a.EnableAudit : null) ?? _options.EnableAudit ?? _globalOptions.EnableAudit;
-        if (enableAudit)
+        if (enableAudit && _logger.IsEnabled(LogLevel.Information))
         {
-            ChatLog.ChatRequestStarted(_logger, tenantId, traceId, prompt);
+            var maskedInput = ChatLog.MaskInput(prompt);
+            ChatLog.ChatRequestStarted(_logger, tenantId, traceId, maskedInput);
         }
 
         // 2. Hierarchical Timeout
@@ -100,10 +102,14 @@ internal sealed partial class BasicChat : IVKChat
             ChatLog.ChatRequestTimedOut(_logger, tenantId, traceId, effectiveTimeout.TotalMilliseconds);
             return VKResult.Failure<VKChatResponse>(VKAIErrors.Timeout);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             ChatLog.UnexpectedChatError(_logger, tenantId, traceId, ex);
-            throw;
+            return VKResult.Failure<VKChatResponse>(VKChatErrors.ExecutionError);
         }
         finally
         {
@@ -116,28 +122,111 @@ internal sealed partial class BasicChat : IVKChat
     }
 
     /// <inheritdoc />
-    public IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
+    public async IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
         string prompt,
         IEnumerable<VKChatMessage>? history = null,
         IVKAIArgs? args = null,
-        CancellationToken cancellationToken = default)
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         VKGuard.NotNullOrWhiteSpace(prompt);
 
+        using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.ChatRequest);
+        var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
+        var tenantId = _userContext.TenantId ?? "default";
+
         // Audit Start for Streaming
         bool enableAudit = (args is IVKAIAuditSettings a ? a.EnableAudit : null) ?? _options.EnableAudit ?? _globalOptions.EnableAudit;
-        if (enableAudit)
+        if (enableAudit && _logger.IsEnabled(LogLevel.Information))
         {
-            var traceId = Activity.Current?.TraceId.ToString() ?? "none";
-            var tenantId = _userContext.TenantId ?? "default";
-            ChatLog.ChatRequestStarted(_logger, tenantId, traceId, prompt);
+            var maskedInput = ChatLog.MaskInput(prompt);
+            ChatLog.ChatRequestStarted(_logger, tenantId, traceId, maskedInput);
         }
 
+        var effectiveTimeout = args?.Timeout ?? _options.Timeout ?? _globalOptions.Timeout;
         var messages = PrepareMessages(prompt, history, args);
 
-        // Note: Streaming audit completion is more complex as it happens chunk by chunk.
-        // For now we log the start.
-        return _engine.SendStreamingAsync(messages, args, cancellationToken);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(effectiveTimeout);
+
+        IAsyncEnumerator<VKResult<VKChatStreamingResponse>>? enumerator = null;
+        VKResult<VKChatStreamingResponse>? errorResult = null;
+        try
+        {
+            enumerator = _engine.SendStreamingAsync(messages, args, cts.Token).GetAsyncEnumerator(cts.Token);
+        }
+        catch (Exception ex)
+        {
+            ChatLog.UnexpectedChatError(_logger, tenantId, traceId, ex);
+            errorResult = VKResult.Failure<VKChatStreamingResponse>(VKChatErrors.ExecutionError);
+        }
+
+        if (errorResult is not null)
+        {
+            yield return errorResult;
+            yield break;
+        }
+
+        if (enumerator is null)
+        {
+            yield break;
+        }
+
+        await using (enumerator)
+        {
+            while (true)
+            {
+                VKResult<VKChatStreamingResponse>? current = null;
+                bool hasNext = false;
+                VKResult<VKChatStreamingResponse>? streamError = null;
+                bool shouldRethrow = false;
+                Exception? userCancelEx = null;
+
+                try
+                {
+                    hasNext = await enumerator.MoveNextAsync().ConfigureAwait(false);
+                    if (hasNext)
+                    {
+                        current = enumerator.Current;
+                    }
+                }
+                catch (OperationCanceledException) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+                {
+                    ChatLog.ChatRequestTimedOut(_logger, tenantId, traceId, effectiveTimeout.TotalMilliseconds);
+                    streamError = VKResult.Failure<VKChatStreamingResponse>(VKAIErrors.Timeout);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    userCancelEx = ex;
+                    shouldRethrow = true;
+                }
+                catch (Exception ex)
+                {
+                    ChatLog.UnexpectedChatError(_logger, tenantId, traceId, ex);
+                    streamError = VKResult.Failure<VKChatStreamingResponse>(VKChatErrors.ExecutionError);
+                }
+
+                if (shouldRethrow && userCancelEx is not null)
+                {
+                    throw userCancelEx;
+                }
+
+                if (streamError is not null)
+                {
+                    yield return streamError;
+                    yield break;
+                }
+
+                if (!hasNext)
+                {
+                    break;
+                }
+
+                if (current is not null)
+                {
+                    yield return current;
+                }
+            }
+        }
     }
 
     private List<VKChatMessage> PrepareMessages(
@@ -158,21 +247,9 @@ internal sealed partial class BasicChat : IVKChat
 
         if (_options.MaxHistoryMessages.HasValue && messages.Count > _options.MaxHistoryMessages.Value)
         {
-            TrimHistory(messages, _options.MaxHistoryMessages.Value);
+            ChatHistoryHelper.TrimHistory(messages, _options.MaxHistoryMessages.Value);
         }
 
         return messages;
-    }
-
-    private static void TrimHistory(List<VKChatMessage> history, int maxMessages)
-    {
-        var systemPrompt = history.FirstOrDefault(m => m.Role == VKChatRole.System);
-        int startIndex = systemPrompt is not null ? 1 : 0;
-        int removeCount = history.Count - maxMessages;
-
-        if (removeCount > 0)
-        {
-            history.RemoveRange(startIndex, Math.Min(removeCount, history.Count - startIndex));
-        }
     }
 }

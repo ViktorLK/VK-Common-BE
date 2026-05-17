@@ -5,8 +5,7 @@ namespace VK.Blocks.AI;
 /// </summary>
 public interface IVKTextOverrides :
     IVKAIProviderOverrides,
-    IVKAIResilienceOverrides,
-    IVKAIQuotaOverrides
+    IVKAIGovernanceOverrides
 {
     /// <summary>
     /// Gets the temperature for generation (0.0 to 1.0).

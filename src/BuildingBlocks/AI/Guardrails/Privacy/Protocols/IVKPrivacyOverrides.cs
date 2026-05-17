@@ -5,8 +5,7 @@ namespace VK.Blocks.AI;
 /// </summary>
 public interface IVKPrivacyOverrides :
     IVKAIProviderOverrides,
-    IVKAIResilienceOverrides,
-    IVKAIQuotaOverrides
+    IVKAIGovernanceOverrides
 {
     /// <summary>
     /// Gets the list of PII types to detect.

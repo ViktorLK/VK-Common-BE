@@ -1,7 +1,7 @@
 using System;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI;
+namespace VK.Blocks.AI.Common.Shared;
 
 /// <summary>
 /// Provides unified mapping of provider-specific exceptions to VK.Blocks.AI errors.

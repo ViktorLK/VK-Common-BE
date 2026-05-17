@@ -41,5 +41,7 @@ public sealed partial record VKRetrievalOptions : IVKRetrievalSettings, IVKToggl
 
     // --- Retrieval Specific ---
     public int? TopK { get; init; } = 5;
-    public float? MinSimilarity { get; init; }
+    public float? MinScore { get; init; }
+    public bool? EnableTemporalWeighting { get; init; }
+    public double? DecayRate { get; init; }
 }

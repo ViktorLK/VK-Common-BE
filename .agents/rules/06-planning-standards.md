@@ -1,5 +1,5 @@
 ---
-trigger: model_decision
+trigger: manual
 ---
 
 # VK.Blocks: Planning & Decision Standards (PS)

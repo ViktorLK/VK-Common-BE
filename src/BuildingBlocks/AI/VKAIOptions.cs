@@ -13,4 +13,9 @@ public sealed partial record VKAIOptions : IVKBlockOptions
     /// The configuration section name for AI options.
     /// </summary>
     public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:{VKAIBlock.BlockName}";
+
+    /// <summary>
+    /// Gets or sets a value indicating whether AI features are enabled.
+    /// </summary>
+    public bool Enabled { get; init; } = true;
 }

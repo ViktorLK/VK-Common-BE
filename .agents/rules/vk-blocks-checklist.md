@@ -24,8 +24,8 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **CS.04**   |     | `AsNoTracking` default. No loop queries. Pagination mandatory. `Span`/`ArrayPool` for buffers.    |
 | **CS.05**   |     | `IAuditable`/`ISoftDelete` via Interceptors + Global Filters. No manual logic.                    |
 | **CS.06**   | 🔴  | No `Guid.NewGuid()`/`DateTime.UtcNow`. Use `IVKGuidGenerator`/`TimeProvider`/`IVKJsonSerializer`. |
-| **CS.07**   | 🔴  | `GetRequiredService` only for dependencies. No `GetService` returns null.                         |
-| **OR.01**   |     | `[LoggerMessage]` SG only. No `logger.LogXxx()`. Structured templates. TraceId mandatory.         |
+| **CS.07**   | 🔴  | `GetRequiredService` default. `GetService` only with documented fallback (`?? default`).          |
+| **OR.01**   | 🔴  | `[LoggerMessage]` SG only. No `logger.LogXxx()`. Structured templates. TraceId mandatory.         |
 | **OR.02**   |     | `TenantId` via EF Global Filter. No bypass. PII masked in logs.                                   |
 | **OR.03**   |     | Polly on ALL external calls. Retry(3x) + CircuitBreaker + explicit Timeout.                       |
 | **DL.01**   |     | Tests: Happy / NotFound / PermissionFail / InfraFailure. `{Method}_{Scenario}_{Expected}`.        |
@@ -45,7 +45,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **BB.05**   |     | Options = `sealed record` + `init`. `Func<T,T> transform`. `IValidateOptions`.                    |
 | **BB.06**   |     | Modular Feature Pattern. `[VKFeatureMarker]` + Chained Builder + Hierarchical Options.           |
 | **BB.07**   | 🟡  | Options Isolation: One class, one file. No nesting in interfaces/handlers.                        |
-| **BB.08**   | 🔴  | Implicit Dependency: Sub-features MUST pull-up parent pillar registration (SG automated).        |
+| **BB.08**   | 🟡  | Implicit Dependency: Sub-features MUST pull-up parent pillar registration (SG automated).        |
 | **PS.01**   |     | Implementation plans MUST include Architecture Decision Audit section.                            |
 | **PS.02**   |     | Walkthrough MUST link ADR if one was planned. Verify decision traceability.                       |
 | **PS.03**   |     | Complex/experimental features → RFC-first in `docs/06-RFCs/` before backlog.                      |
@@ -58,13 +58,13 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 
 > Rules marked 🔴 (Type A) and 🟡 (Type B) are the core constraints. They follow this enforcement logic:
 
-1. **Type A (Logic Bottom Line - 🔴)**: **Zero Tolerance, No Exceptions**. These govern stability and determinism (CS.01, CS.03, CS.06, AP.01, PS.04, PS.05). They MUST be followed even in Labs or experimental contexts.
-2. **Type B (Industrial Habits - 🟡)**: **Zero Tolerance by Default**. These govern naming, organization, and process (AP.03, BB.03, DL.02, DL.03, DL.04). They can be **waived** only in `src/Labs` or when a Layer 2/3 prompt explicitly grants permission to deviate.
+1. **Type A (Logic Bottom Line - 🔴)**: **Zero Tolerance, No Exceptions**. These govern stability and determinism (CS.01, CS.03, CS.06, CS.07, OR.01, AP.01, PS.04, PS.05). They MUST be followed even in Labs or experimental contexts.
+2. **Type B (Industrial Habits - 🟡)**: **Zero Tolerance by Default**. These govern naming, organization, and process (AP.03, BB.03, BB.07, BB.08, DL.02, DL.03, DL.04, DL.05). They can be **waived** only in `src/Labs` or when a Layer 2/3 prompt explicitly grants permission to deviate.
 3. **Audit Flagging**: Every violation MUST produce `🚩 [RuleID] {rationale}`. For Type B wavers, the rationale should cite the permission (e.g., `🚩 [AP.03] Bypassed per LAB01`).
 4. **Immediate Correction**: If a non-waived violation is detected, stop and fix it immediately.
 
-**Type A IDs**: CS.01, CS.03, CS.06, AP.01, PS.04, PS.05
-**Type B IDs**: AP.03, BB.03, DL.02, DL.03, DL.04, DL.05
+**Type A IDs**: CS.01, CS.03, CS.06, CS.07, OR.01, AP.01, PS.04, PS.05
+**Type B IDs**: AP.03, BB.03, BB.07, BB.08, DL.02, DL.03, DL.04, DL.05
 
 ---
 
@@ -85,41 +85,26 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **External HTTP / SDK calls**   | OR.03                         |
 | **Test creation**               | DL.01                         |
 | **Block marker / diagnostics**  | BB.02, BB.04                  |
+| **Feature marker / sub-reg**    | BB.06, BB.08                  |
+| **Options isolation**           | BB.07                         |
+| **Public API interface change** | AP.03 (Versioning)            |
 | **Implementation plan**         | PS.01, PS.03                  |
 | **Walkthrough**                 | PS.02                         |
 | **Module-specific work**        | `vk_get_module_context(path)` |
-
----
-
-### Audit Mode Linkage (Full-Load Mandatory)
-
-When initiating a specific audit workflow, the following rules **MUST** be full-loaded via `vk_get_architectural_rule` at Step 1:
-
-| Workflow | Mandatory L3 Full-Load Subset |
-| :--- | :--- |
-| **`/vk-audit-fast`** | BB.01, AP.03, BB.02, BB.03 |
-| **`/vk-audit-architecture`** | BB.01, AP.03, BB.02, BB.03, BB.04, BB.05, AP.02, CS.02 |
-| **`/vk-audit-semantic`** | CS.01, CS.03, AP.01, CS.06, OR.01 |
-
-> [!IMPORTANT]
-> The Audit Score calculation is invalid if the mandatory rules above were not cited/verified against their L3 source text.
+| **`/vk-audit-fast`**            | BB.01, AP.03, BB.02, BB.03    |
+| **`/vk-audit-architecture`**    | BB.01, AP.03, BB.02, BB.03, BB.04, BB.05, AP.02, CS.02 |
+| **`/vk-audit-semantic`**        | CS.01, CS.03, AP.01, CS.06, OR.01 |
 
 ---
 
 ## Output Protocol
 
-- **Micro-Handshake**: Every response MUST start with a single-line status:
-  `Active: [L1+L2:{Module}] | Context: {Path} | Sync: [L3:RuleID,...]`
-- **Sync Requirement**: The `Sync` section MUST list ALL Rule IDs that were full-loaded via `vk_get_architectural_rule` in the current turn or conversation history.
-- **Hard-Lock**: If a rule required by an L3 Scenario (from the table above) is NOT listed in the current `Sync` status, you are STRICTLY PROHIBITED from providing code or executing tool calls for that scenario.
-- **Context Awareness**: If the target module changes, you MUST re-run `vk_get_module_context` and update the handshake.
-- **Code**: Production-ready C# 12+ only. English comments/messages.
-- **Decision Point Tags**: Tag `// [RuleID]` at feature boundaries only:
-  sealed declarations, VKGuard calls, ConfigureAwait, Result returns,
-  and DI registration points. Pure logic lines are exempt.
-- **PS.04 + L3 Independence**: vk_get_module_context called via PS.04
-  does NOT satisfy L3 scenario triggers. Both MUST execute independently.
-- **Audit by Exception**:
-    - ✅ All rules followed → `Audit: ✅ All constraints satisfied.`
-    - 🚩 Any rule bypassed → `Audit: 🚩 [RuleID] {Specific rationale}`
-- **Self-Correction**: If you realize a violation occurred after outputting code, immediately provide a revised snippet and a `🚩` audit item.
+- **Handshake**: `Active: [L1+L2:{Module}] | Context: {Path} | Sync: [L3:RuleID,...]` — MUST be the very first line of the final response (no intermediate tool outputs).
+- **Sync**: MUST list ALL Rule IDs full-loaded via `vk_get_architectural_rule` (current turn + history).
+- **Hard-Lock**: Missing L3 Sync for a scenario → code/tool output PROHIBITED.
+- **Context Switch**: Module change → re-run `vk_get_module_context` + update handshake.
+- **Code**: C# 12+. English only.
+- **Tags**: `// [RuleID]` at feature boundaries (sealed, VKGuard, ConfigureAwait, Result, DI). Pure logic exempt.
+- **PS.04 ≠ L3**: `vk_get_module_context` does NOT satisfy L3 triggers. Both MUST execute independently.
+- **Audit**: ✅ compliant → `Audit: ✅` / 🚩 violation → `Audit: 🚩 [RuleID] {rationale}`. Self-correct immediately.
+

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Cognitive.Memory.Internal;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Cognitive.DependencyInjection.Internal;
+namespace VK.Blocks.AI.Cognitive.Common.DependencyInjection.Internal;
 
 internal static class VKAICognitiveBlockRegistration
 {
@@ -29,14 +29,14 @@ internal static class VKAICognitiveBlockRegistration
         // 4. Options Validation
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<VKAICognitiveOptions>, VKAICognitiveOptionsValidator>());
 
-        // 5. Feature Toggle
+        // 5. Early Return Check
         if (!options.Enabled)
         {
             return builder;
         }
 
         // 6. Core Services
-        services.TryAddScoped<IVKRealityLedger, VKAICognitiveRealityLedger>();
+        services.TryAddScoped<IVKRealityLedger, BasicRealityLedger>();
 
         return builder;
     }

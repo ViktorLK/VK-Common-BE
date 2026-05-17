@@ -1,5 +1,5 @@
 ---
-trigger: model_decision
+trigger: manual
 ---
 
 # VK.Blocks: Development Lifecycle (DL)
@@ -48,7 +48,7 @@ Goal: Ensure _why this change was made_ is captured in real time, not reconstruc
 **Trigger Conditions** — Proactively prompt when ANY of the following occurs:
 
 - A `README.md` is created or updated with a "Future Roadmap", "Roadmap", or "今後の展望" section.
-- A `// TODO`, `// FIXME`, or `// DEBT` comment is introduced into the source code.
+- A `// TODO`, `// FIXME`, or `// DEBT` comment is **discovered in existing code** during review or audit (DL.02 prohibits introducing new ones).
 - A technical improvement is identified but deferred (e.g., "non-urgent refactoring").
 - A technical debt item is discussed during the conversation.
 
@@ -66,13 +66,12 @@ If confirmed → collect title, description, and module from context and execute
 **Mandatory Tagging** — ALL code elements that interact with or are driven by Source Generators MUST be documented with specific tags:
 
 - **`[SG Hook]`**: Used for `partial` methods implemented manually to extend generated logic (e.g., `RegisterServices`, `ValidateCustom`).
-  - *Format*: `// [SG Hook] - This method is called by the Source Generator to inject manual [logic type] logic.`
+    - _Format_: `// [SG Hook] - This method is called by the Source Generator to inject manual [logic type] logic.`
 - **[SG Marker]**: Used for classes decorated with architectural markers (e.g., `[VKBlockMarker]`).
-  - *Format*: `// [SG Marker] - This attribute triggers the Source Generator to generate module metadata and base implementation.`
+    - _Format_: `// [SG Marker] - This attribute triggers the Source Generator to generate module metadata and base implementation.`
 - **[SG Diagnostics]**: Used for classes decorated with diagnostics markers (e.g., `[VKBlockDiagnostics]`).
-  - *Format*: `// [SG Diagnostics] - This attribute triggers the Source Generator to generate ActivitySource and Meter.`
+    - _Format_: `// [SG Diagnostics] - This attribute triggers the Source Generator to generate ActivitySource and Meter.`
 - **[SG Logger]**: Used for `partial` classes containing `[LoggerMessage]` definitions.
-  - *Format*: `// [SG Logger] - This class is automatically implemented by the Source Generator for high-performance logging.`
+    - _Format_: `// [SG Logger] - This class is automatically implemented by the Source Generator for high-performance logging.`
 
 Goal: Ensure clarity regarding which parts of the codebase are manually maintained versus automatically extended by tooling.
-

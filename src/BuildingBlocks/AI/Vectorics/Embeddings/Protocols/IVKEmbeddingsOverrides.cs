@@ -5,8 +5,7 @@ namespace VK.Blocks.AI;
 /// </summary>
 public interface IVKEmbeddingsOverrides :
     IVKAIProviderOverrides,
-    IVKAIResilienceOverrides,
-    IVKAIQuotaOverrides
+    IVKAIGovernanceOverrides
 {
     /// <summary>
     /// Gets the dimensions of the embedding vectors.

@@ -1,5 +1,5 @@
 ---
-trigger: model_decision
+trigger: manual
 ---
 
 # VK.Blocks: Building Block Blueprint (BB)
@@ -76,7 +76,7 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 
 - **Metadata**: Register an `ISecurityMetadataProvider` (if applicable) to provide version info to diagnostics.
 - **Diagnostics Class**: Annotated with `[VKBlockDiagnostics(typeof({ModuleName}Block))]`.
-- **Constants**: Defined in `DiagnosticsConstants.cs`.
+- **Constants**: Defined in `{ModuleName}DiagnosticsConstants.cs` (`internal static class`). Naming follows AP.03 Internal convention (no `VK` prefix).
 
 ### BB.05 — Options Architecture
 
@@ -100,11 +100,13 @@ Complex blocks containing multiple independent features MUST follow this sub-reg
 ### BB.07 — Options Isolation (One Class, One File)
 
 To maintain vertical slice integrity and prevent structural rot:
+
 - **No Nesting**: Options classes MUST reside in their own dedicated `.cs` files at the root of their functional module.
 - **Strict Prohibition**: It is STRICTLY PROHIBITED to nest Options records within interface files, internal handler files, or other shared classes.
 
 ### BB.08 — Implicit Dependency (Automated Pull-up)
 
 Sub-features MUST ensure their architectural hierarchy is preserved:
+
 - **Parent First**: Every sub-feature's `Register` method MUST call its parent pillar's registration logic if the pillar is not yet registered.
 - **Source Generation Implementation**: This logic SHOULD be automated via the Source Generator based on the `[VKFeature]` parent type metadata.

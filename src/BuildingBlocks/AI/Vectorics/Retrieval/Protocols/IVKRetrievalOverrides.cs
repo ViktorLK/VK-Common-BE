@@ -5,8 +5,7 @@ namespace VK.Blocks.AI;
 /// </summary>
 public interface IVKRetrievalOverrides :
     IVKAIProviderOverrides,
-    IVKAIResilienceOverrides,
-    IVKAIQuotaOverrides
+    IVKAIGovernanceOverrides
 {
     /// <summary>
     /// Gets the number of results to retrieve.
@@ -14,7 +13,17 @@ public interface IVKRetrievalOverrides :
     int? TopK { get; init; }
 
     /// <summary>
-    /// Gets the minimum similarity threshold.
+    /// Gets the minimum score threshold.
     /// </summary>
-    float? MinSimilarity { get; init; }
+    float? MinScore { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether to enable temporal weighting.
+    /// </summary>
+    bool? EnableTemporalWeighting { get; init; }
+
+    /// <summary>
+    /// Gets the decay rate for temporal weighting.
+    /// </summary>
+    double? DecayRate { get; init; }
 }

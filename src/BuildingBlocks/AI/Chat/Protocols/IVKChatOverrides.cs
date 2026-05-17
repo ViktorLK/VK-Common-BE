@@ -3,7 +3,9 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Defines chat-specific parameters that can be overridden at the request level.
 /// </summary>
-public interface IVKChatOverrides
+public interface IVKChatOverrides :
+    IVKAIProviderOverrides,
+    IVKAIGovernanceOverrides
 {
     /// <summary>
     /// Gets the temperature for generation (0.0 to 1.0).

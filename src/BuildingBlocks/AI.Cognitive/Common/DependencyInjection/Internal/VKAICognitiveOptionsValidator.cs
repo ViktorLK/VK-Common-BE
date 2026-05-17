@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace VK.Blocks.AI.Cognitive.DependencyInjection.Internal;
+namespace VK.Blocks.AI.Cognitive.Common.DependencyInjection.Internal;
 
 /// <summary>
 /// Validator for AI Cognitive options.

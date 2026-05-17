@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Common.Diagnostics.Internal;
+using VK.Blocks.AI.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Agents.Internal;
@@ -82,9 +83,10 @@ internal sealed class BasicAgent : IVKAgent
         var timeout = effectiveOptions.Timeout ?? _globalOptions.Timeout;
 
         bool enableAudit = (args is IVKAIAuditSettings a ? a.EnableAudit : null) ?? effectiveOptions.EnableAudit ?? _globalOptions.EnableAudit;
-        if (enableAudit)
+        if (enableAudit && _logger.IsEnabled(LogLevel.Information))
         {
-            AgentsLog.AgentTaskStarted(_logger, tenantId, traceId, Name, effectiveOptions.LogToolData ? input : "[REDACTED]");
+            var taskInput = effectiveOptions.LogToolData ? input : "[REDACTED]";
+            AgentsLog.AgentTaskStarted(_logger, tenantId, traceId, Name, taskInput);
         }
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -113,7 +115,7 @@ internal sealed class BasicAgent : IVKAgent
                 // Trim history to stay within context limits (Industrial Safety)
                 if (effectiveOptions.MaxHistoryMessages.HasValue && history.Count > effectiveOptions.MaxHistoryMessages.Value)
                 {
-                    TrimHistory(history, effectiveOptions.MaxHistoryMessages.Value);
+                    ChatHistoryHelper.TrimHistory(history, effectiveOptions.MaxHistoryMessages.Value);
                 }
 
                 // Merge Chat Args (L3) with Chat Options (L2) and inject Tools
@@ -185,9 +187,13 @@ internal sealed class BasicAgent : IVKAgent
             }
             return VKResult.Failure<string>(VKAgentErrors.MaxIterationsReached);
         }
-        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        catch (OperationCanceledException) when (cts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
         {
             return VKResult.Failure<string>(VKAgentErrors.Timeout);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (Exception ex)
         {
@@ -313,19 +319,5 @@ internal sealed class BasicAgent : IVKAgent
         }
     }
 
-    private static void TrimHistory(List<VKChatMessage> history, int maxMessages)
-    {
-        if (history.Count <= maxMessages)
-            return;
 
-        // Keep the System Prompt (usually at index 0)
-        var systemPrompt = history.FirstOrDefault(m => m.Role == VKChatRole.System);
-        int startIndex = systemPrompt is not null ? 1 : 0;
-        int removeCount = history.Count - maxMessages;
-
-        if (removeCount > 0)
-        {
-            history.RemoveRange(startIndex, removeCount);
-        }
-    }
 }
