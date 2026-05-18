@@ -6,8 +6,9 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Interface for managing knowledge/worldbook entries.
-/// Decouples Knowledge logic from specific business applications (Foundation-ization).
+/// Knowledge: Manages Lorebooks and static facts to eliminate hallucinations.
+/// Metaphor: Library - The external brain's knowledge repository.
+/// Value: Project document retrieval (Industrial) and the World Setting Book (PWP).
 /// </summary>
 public interface IVKKnowledgeManager
 {

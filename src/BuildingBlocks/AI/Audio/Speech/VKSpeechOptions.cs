@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Audio Speech (TTS) feature.
 /// </summary>
 [VKFeature(typeof(AudioFeature), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKSpeechOptions : IVKSpeechSettings, IVKToggleableBlockOptions
+public sealed partial record VKSpeechOptions : IVKSpeechOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Speech feature is enabled.

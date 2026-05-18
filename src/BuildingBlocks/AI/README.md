@@ -1,4 +1,4 @@
-# VK.Blocks.AI
+﻿# VK.Blocks.AI
 
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -206,7 +206,7 @@ AI/
 ```csharp
 // 1. Feature の定義 — 属性を付与するだけで登録・バリデーション・Args が自動生成
 [VKFeature(typeof(VKAIBlock), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKChatOptions : IVKChatSettings, IVKToggleableBlockOptions
+public sealed partial record VKChatOptions : IVKChatOptions, IVKToggleableBlockOptions
 {
     public bool Enabled { get; init; } = true;
     public string? ModelId { get; init; }
@@ -371,6 +371,25 @@ services.AddSingleton<IVKChatEngine, MyCustomChatEngine>();
 
 > [!NOTE]
 > デフォルトでは全 Engine に `NoOp` 実装が `TryAdd` で登録されています。カスタム実装を先に登録するか、`Replace` を使用してください。
+
+---
+
+## 🏛️ アーキテクチャ監査
+
+最新の監査レポートは [AI_20260516.md](/docs/04-AuditReports/AI/AI_20260516.md) を参照してください。
+
+| 項目                | 結果                     |
+| ------------------- | ------------------------ |
+| **総合スコア**      | 88 / 100                 |
+| **Fast Audit**      | 34.5/35 (98.6%)          |
+| **DI Registration** | ✅ PASS (BB.03 完全準拠) |
+| **重大な懸念事項**  | 2 件 (CS.01, CS.03)      |
+
+### 監査による改善提案
+
+- `BasicChat.SendAsync` の汎用例外を `VKResult.Failure<T>` にマッピング (CS.01)
+- `BasicAgent.ExecuteAsync` の CancellationToken ユーザー/タイムアウト区別を追加 (CS.03)
+- `SendStreamingAsync` に Timeout 制御を適用
 
 ---
 

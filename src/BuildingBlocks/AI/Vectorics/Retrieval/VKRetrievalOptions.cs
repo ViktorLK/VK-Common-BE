@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Retrieval feature.
 /// </summary>
 [VKFeature(typeof(VectoricsFeature), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKRetrievalOptions : IVKRetrievalSettings, IVKToggleableBlockOptions
+public sealed partial record VKRetrievalOptions : IVKRetrievalOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Retrieval feature is enabled.

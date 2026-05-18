@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// Options for the text generation feature.
 /// </summary>
 [VKFeature(typeof(VKAIBlock), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKTextOptions : IVKTextSettings, IVKToggleableBlockOptions
+public sealed partial record VKTextOptions : IVKTextOptions
 {
     /// <inheritdoc />
     public bool Enabled { get; init; } = true;

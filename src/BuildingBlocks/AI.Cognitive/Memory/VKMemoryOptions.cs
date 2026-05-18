@@ -5,13 +5,9 @@ namespace VK.Blocks.AI.Cognitive;
 /// <summary>
 /// Configuration settings for the Memory feature.
 /// </summary>
-public sealed record VKMemoryOptions : IVKBlockOptions
+[VKFeature(typeof(VKAICognitiveBlock), GenerateArgs = true, GenerateValidator = true)]
+public sealed partial record VKMemoryOptions : IVKMemoryOptions
 {
-    /// <summary>
-    /// The configuration section name for Memory options.
-    /// </summary>
-    public static string SectionName => VKAICognitiveOptions.SectionName + ":" + VKAICognitiveOptions.MemorySection;
-
     /// <summary>
     /// Gets or sets a value indicating whether Memory feature is enabled.
     /// Defaults to true.
@@ -21,17 +17,17 @@ public sealed record VKMemoryOptions : IVKBlockOptions
     /// <summary>
     /// Gets or sets the default relevance threshold for memory search.
     /// </summary>
-    public float DefaultMinScore { get; init; } = 0.7f;
+    public float? DefaultMinScore { get; init; } = 0.7f;
 
     /// <summary>
     /// Gets or sets the token threshold to trigger context summarization.
     /// </summary>
-    public int SummaryTriggerTokenThreshold { get; init; } = 2048;
+    public int? SummaryTriggerTokenThreshold { get; init; } = 2048;
 
     /// <summary>
     /// Gets or sets the target token count for memory summaries.
     /// </summary>
-    public int SummaryTargetTokens { get; init; } = 512;
+    public int? SummaryTargetTokens { get; init; } = 512;
 
     /// <summary>
     /// Gets or sets the retention period for biometric/sensory memory.
@@ -55,7 +51,19 @@ public sealed record VKMemoryOptions : IVKBlockOptions
     /// <summary>
     /// Gets or sets the maximum number of long-term memory entries to inject into context.
     /// </summary>
-    public int MaxMemoryEntriesToInject { get; init; } = 5;
+    public int? MaxMemoryEntriesToInject { get; init; } = 5;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to enable automatic memory pruning background worker.
+    /// Defaults to true.
+    /// </summary>
+    public bool EnableAutomaticPruning { get; init; } = true;
+
+    /// <summary>
+    /// Gets or sets the automatic memory pruning interval in minutes.
+    /// Defaults to 60.
+    /// </summary>
+    public int AutomaticPruningIntervalMinutes { get; init; } = 60;
 
     /// <summary>
     /// Gets or sets the type of memory store to use.

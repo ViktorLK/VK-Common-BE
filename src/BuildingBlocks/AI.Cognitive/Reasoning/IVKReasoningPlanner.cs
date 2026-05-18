@@ -5,7 +5,9 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Defines the interface for decomposing a high-level goal into a sequence of executable reasoning steps.
+/// Reasoning: Executes CoT (Chain of Thought), task decomposition, and self-reflection.
+/// Metaphor: Thought - Logical deduction and self-audit.
+/// Value: Complex problem solving (Industrial) and introspection (PWP).
 /// </summary>
 public interface IVKReasoningPlanner
 {

@@ -5,7 +5,9 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Defines the interface for orchestrating user intents and routing them to appropriate handlers.
+/// Orchestration: Intent arbitration, agent collaboration, and tool scheduling.
+/// Metaphor: Nexus - The commander of behavior and decisions.
+/// Value: Plugin scheduling (Industrial) and the balance between instinct and reason (PWP).
 /// </summary>
 public interface IVKIntentNexus
 {

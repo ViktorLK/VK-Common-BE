@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Common.Diagnostics.Internal;
-using VK.Blocks.AI.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Chat.Internal;
@@ -55,7 +54,7 @@ internal sealed partial class BasicChat : IVKChat
         bool isSuccess = false;
 
         // 1. Audit Start (PII Masking check)
-        bool enableAudit = (args is IVKAIAuditSettings a ? a.EnableAudit : null) ?? _options.EnableAudit ?? _globalOptions.EnableAudit;
+        bool enableAudit = (args is IVKAIAuditOptions a ? a.EnableAudit : null) ?? _options.EnableAudit ?? _globalOptions.EnableAudit;
         if (enableAudit && _logger.IsEnabled(LogLevel.Information))
         {
             var maskedInput = ChatLog.MaskInput(prompt);
@@ -89,7 +88,7 @@ internal sealed partial class BasicChat : IVKChat
 
             if (result.IsSuccess && result.Value.Usage is not null)
             {
-                var providerSettings = args as IVKAIProviderSettings;
+                var providerSettings = args as IVKAIProviderOptions;
                 var provider = providerSettings?.Provider?.ToString() ?? _options.Provider?.ToString() ?? "unknown";
                 var model = providerSettings?.ModelId ?? _options.ModelId ?? "unknown";
                 AiDiagnostics.RecordTokenUsage(provider, model, (long)result.Value.Usage.TotalTokens, tenantId: tenantId);
@@ -114,7 +113,7 @@ internal sealed partial class BasicChat : IVKChat
         finally
         {
             sw.Stop();
-            var providerSettings = args as IVKAIProviderSettings;
+            var providerSettings = args as IVKAIProviderOptions;
             var provider = providerSettings?.Provider?.ToString() ?? _options.Provider?.ToString() ?? "unknown";
             var model = providerSettings?.ModelId ?? _options.ModelId ?? "unknown";
             AiDiagnostics.RecordChatRequest(provider, model, isSuccess, sw.Elapsed.TotalMilliseconds, tenantId);
@@ -135,7 +134,7 @@ internal sealed partial class BasicChat : IVKChat
         var tenantId = _userContext.TenantId ?? "default";
 
         // Audit Start for Streaming
-        bool enableAudit = (args is IVKAIAuditSettings a ? a.EnableAudit : null) ?? _options.EnableAudit ?? _globalOptions.EnableAudit;
+        bool enableAudit = (args is IVKAIAuditOptions a ? a.EnableAudit : null) ?? _options.EnableAudit ?? _globalOptions.EnableAudit;
         if (enableAudit && _logger.IsEnabled(LogLevel.Information))
         {
             var maskedInput = ChatLog.MaskInput(prompt);

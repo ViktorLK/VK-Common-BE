@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using VK.Blocks.Core;
-using VK.Blocks.AI.VectorStore;
 
 namespace VK.Blocks.AI.Cognitive;
 
@@ -42,7 +41,7 @@ public sealed record VKCognitivePipelineArgs : IVKAIArgs, IVKArgs<VKCognitivePip
     /// <summary>
     /// Gets the agent execution arguments (Act stage).
     /// </summary>
-    public VKAgentArgs? ActionArgs { get; init; }
+    public VKAgentsArgs? ActionArgs { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether to skip the Recall stage.

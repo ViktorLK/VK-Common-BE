@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Cognitive;
 /// Cognitive-aware arguments for chat execution.
 /// Following AP.05: Hierarchical configuration pattern.
 /// </summary>
-public sealed record VKCognitiveChatArgs : IVKAIArgs, IVKGenerationSettings, IVKArgs<VKCognitiveChatArgs>
+public sealed record VKCognitiveChatArgs : IVKAIArgs, IVKGenerationOptions, IVKArgs<VKCognitiveChatArgs>
 {
     /// <summary>
     /// Gets an empty set of arguments (no overrides).

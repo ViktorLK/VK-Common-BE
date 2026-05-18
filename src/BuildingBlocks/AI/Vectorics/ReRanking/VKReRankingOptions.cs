@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Re-Ranking feature.
 /// </summary>
 [VKFeature(typeof(VectoricsFeature), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKReRankingOptions : IVKReRankingSettings, IVKToggleableBlockOptions
+public sealed partial record VKReRankingOptions : IVKReRankingOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Re-Ranking feature is enabled.

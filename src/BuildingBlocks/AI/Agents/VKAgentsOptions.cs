@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Agents feature.
 /// </summary>
 [VKFeature(typeof(VKAIBlock), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKAgentsOptions : IVKAgentsSettings, IVKToggleableBlockOptions, IVKAIAuditSettings
+public sealed partial record VKAgentsOptions : IVKAgentsOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Agents feature is enabled.

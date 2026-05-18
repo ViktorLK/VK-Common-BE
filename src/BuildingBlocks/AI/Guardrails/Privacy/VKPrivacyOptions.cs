@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Privacy Guard (PII detection) feature.
 /// </summary>
 [VKFeature(typeof(GuardrailsFeature), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKPrivacyOptions : IVKPrivacySettings, IVKToggleableBlockOptions
+public sealed partial record VKPrivacyOptions : IVKPrivacyOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Privacy Guard feature is enabled.

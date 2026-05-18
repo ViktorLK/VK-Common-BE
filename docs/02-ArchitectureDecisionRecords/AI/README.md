@@ -46,6 +46,14 @@
 
 ---
 
+#### [ADR-015: Rename IVKxxxSettings interfaces to IVKxxxOptions in AI module](./adr-015-rename-ivkxxxsettings-interfaces-to-ivkxxxoptions-in-ai-module.md)
+
+**Status**: ✅ Accepted  
+**概要**: AIモジュール内のすべての設定インターフェース（IVKxxxSettings）を統一的な Options 命名規則（IVKxxxOptions）へとリネームし、アーキテクチャ標準に完全整合させます。  
+**キーワード**: Options Suffix, Naming Convention, Symmetry
+
+---
+
 ### Observability & Cost Control
 
 #### [ADR-006: Unified Token Usage Tracking and Cost Observation](./adr-006-unified-token-usage-tracking-and-cost-observation.md)
@@ -81,6 +89,14 @@
 **Status**: 📝 Draft  
 **概要**: 入出力の安全性（不適切コンテンツの遮断）を、Decorator パターンを用いてエンジンから独立して自動的に適用するガバナンス機構を定義します。  
 **キーワード**: Governance, Content Filter, Decorator Pattern
+
+---
+
+#### [ADR-014: Standardize AI Overrides Inheritance to IVKAIGovernanceOverrides](./adr-014-standardize-ai-overrides-inheritance-to-ivkaigovernanceoverrides.md)
+
+**Status**: ✅ Accepted  
+**概要**: 各サブ機能のオーバーライド用インターフェースが統合ガバナンス（IVKAIGovernanceOverrides）を継承するように統一し、安全フィルターや監査ログのリクエストレベルでの動的トグルを完全補完します。  
+**キーワード**: Overrides, Symmetry, AP.05 Contract
 
 ---
 
@@ -125,6 +141,7 @@
 ### アーキテクチャとポータビリティの理解用
 1. **ADR-001**: なぜ AI ライブラリにおいてプロバイダー抽象化が不可欠なのか、その背景とトレードオフを理解するために最初に読んでください。
 2. **ADR-005**: 柔軟な設定管理を実現するための「継承から組合せへ」の転換理由と、その実装方針を理解するために読んでください。
+3. **ADR-015**: 設定インターフェース命名のOptionsサフィックス標準化について理解するために読んでください。
 
 ### 運用、コスト、レジリエンスの理解用
 1. **ADR-006**: 産業レベルの AI 運用に不可欠なトークン管理とコスト制御の考え方を理解するために読んでください。
@@ -133,9 +150,10 @@
 ### 品質管理とガバナンスの理解用
 1. **ADR-008**: 企業レベルで必須となる安全性（検閲）の自動化とガバナンス戦略について理解するために読んでください。
 2. **ADR-012**: 非決定的な AI システムの品質をどのように「数値」で保証し、継続的デリバリーを実現するかを理解するために読んでください。
+3. **ADR-014**: 静的解析による安全なオプション制御（AP.05）と、Settings側とOverrides側の美しい対称設計について理解するために読んでください。
 
 ## 🔗 関連ドキュメント
 - [AI Module Manifest](../../../src/BuildingBlocks/AI/module-manifest.md)
 
-**Last Updated**: 2026-05-11  
-**Total ADRs**: 13
+**Last Updated**: 2026-05-18  
+**Total ADRs**: 15
