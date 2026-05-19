@@ -11,7 +11,7 @@ public class VKCoreBlockTests
         // Assert
         block.Name.Should().Be("Core");
         block.Identifier.Should().Be("VK.Blocks.Core");
-        block.Version.Should().Be("1.0.0");
+        block.Version.Should().Be("0.9.0");
         block.Dependencies.Should().BeEmpty();
         block.ActivitySourceName.Should().Be("VK.Blocks.Core");
         block.MeterName.Should().Be("VK.Blocks.Core");

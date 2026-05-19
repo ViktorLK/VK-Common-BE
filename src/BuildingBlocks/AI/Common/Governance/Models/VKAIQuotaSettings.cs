@@ -3,7 +3,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Provides a base implementation for AI quota settings.
 /// </summary>
-public sealed record VKAIQuotaSettings : IVKAIQuotaSettings
+public sealed record VKAIQuotaSettings : IVKAIQuotaOptions
 {
     /// <inheritdoc />
     public long? GlobalTokenLimit { get; init; }

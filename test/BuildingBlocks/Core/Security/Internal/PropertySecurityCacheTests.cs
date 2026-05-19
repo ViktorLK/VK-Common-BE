@@ -1,4 +1,4 @@
-using VK.Blocks.Core.Security.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Core.UnitTests.Security.Internal;
 
@@ -23,31 +23,44 @@ public class PropertySecurityCacheTests
     [Fact]
     public void HasSensitiveProperties_WhenPropertiesHaveAttributes_ReturnsTrue()
     {
-        PropertySecurityCache<SecureModel>.HasSensitiveProperties.Should().BeTrue();
+        VKPropertySecurityCache.HasSensitiveProperties<SecureModel>().Should().BeTrue();
     }
 
     [Fact]
     public void HasSensitiveProperties_WhenNoAttributes_ReturnsFalse()
     {
-        PropertySecurityCache<NonSecureModel>.HasSensitiveProperties.Should().BeFalse();
+        VKPropertySecurityCache.HasSensitiveProperties<NonSecureModel>().Should().BeFalse();
     }
 
     [Fact]
     public void GetLevel_ReturnsCorrectLevel()
     {
-        PropertySecurityCache<SecureModel>.GetLevel(nameof(SecureModel.NormalProperty)).Should().Be(SecurityLevel.None);
-        PropertySecurityCache<SecureModel>.GetLevel(nameof(SecureModel.SensitiveProperty)).Should().Be(SecurityLevel.Sensitive);
-        PropertySecurityCache<SecureModel>.GetLevel(nameof(SecureModel.RedactedProperty)).Should().Be(SecurityLevel.Redacted);
-        PropertySecurityCache<SecureModel>.GetLevel("NonExistent").Should().Be(SecurityLevel.None);
+        VKPropertySecurityCache.GetLevel<SecureModel>(nameof(SecureModel.NormalProperty)).Should().Be(VKSecurityLevel.None);
+        VKPropertySecurityCache.GetLevel<SecureModel>(nameof(SecureModel.SensitiveProperty)).Should().Be(VKSecurityLevel.Sensitive);
+        VKPropertySecurityCache.GetLevel<SecureModel>(nameof(SecureModel.RedactedProperty)).Should().Be(VKSecurityLevel.Redacted);
+        VKPropertySecurityCache.GetLevel<SecureModel>("NonExistent").Should().Be(VKSecurityLevel.None);
     }
 
     [Fact]
     public void SensitivePropertyNames_ContainsExpectedNames()
     {
-        var names = PropertySecurityCache<SecureModel>.SensitivePropertyNames.ToList();
+        var names = VKPropertySecurityCache.GetSensitivePropertyNames<SecureModel>().ToList();
 
         names.Should().Contain(nameof(SecureModel.SensitiveProperty));
         names.Should().Contain(nameof(SecureModel.RedactedProperty));
         names.Should().NotContain(nameof(SecureModel.NormalProperty));
+    }
+
+    [Fact]
+    public void NonGenericMethods_ReturnSameResultsAsGeneric()
+    {
+        // HasSensitiveProperties(Type)
+        VKPropertySecurityCache.HasSensitiveProperties(typeof(SecureModel)).Should().BeTrue();
+        VKPropertySecurityCache.HasSensitiveProperties(typeof(NonSecureModel)).Should().BeFalse();
+
+        // GetLevel(Type, string)
+        VKPropertySecurityCache.GetLevel(typeof(SecureModel), nameof(SecureModel.SensitiveProperty)).Should().Be(VKSecurityLevel.Sensitive);
+        VKPropertySecurityCache.GetLevel(typeof(SecureModel), nameof(SecureModel.RedactedProperty)).Should().Be(VKSecurityLevel.Redacted);
+        VKPropertySecurityCache.GetLevel(typeof(SecureModel), nameof(SecureModel.NormalProperty)).Should().Be(VKSecurityLevel.None);
     }
 }

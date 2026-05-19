@@ -13,9 +13,14 @@ public sealed record VKKnowledgeEntry
     public required string Id { get; init; }
 
     /// <summary>
-    /// Gets the keys that trigger this entry.
+    /// Gets a value indicating whether this entry is active and enabled for retrieval.
     /// </summary>
-    public IEnumerable<string> Keys { get; init; } = [];
+    public bool IsEnabled { get; init; } = true;
+
+    /// <summary>
+    /// Gets the structured keys that trigger this entry.
+    /// </summary>
+    public IReadOnlyList<VKKnowledgeKey> Keys { get; init; } = [];
 
     /// <summary>
     /// Gets the content of the entry.
@@ -28,8 +33,17 @@ public sealed record VKKnowledgeEntry
     public VKKnowledgeTriggerType TriggerType { get; init; } = VKKnowledgeTriggerType.Keyword;
 
     /// <summary>
-    /// Gets the weight of this entry for conflict resolution.
-    /// Higher weight entries take precedence.
+    /// Gets the optional developer memo or description about this entry.
     /// </summary>
-    public int Weight { get; init; } = 0;
+    public string? Memo { get; init; }
+
+    /// <summary>
+    /// Gets the prompt-weaving and recursion limit configuration.
+    /// Defaults to <see cref="VKKnowledgeWeavingRules.Default"/>.
+    /// <remarks>
+    /// DB Mapping: Configured as an EF Core Owned Type via <c>OwnsOne(e => e.Weaving)</c>
+    /// to flatten fields into the same table or store as a JSON column (Value Object design).
+    /// </remarks>
+    /// </summary>
+    public VKKnowledgeWeavingRules Weaving { get; init; } = VKKnowledgeWeavingRules.Default;
 }

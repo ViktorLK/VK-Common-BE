@@ -5,7 +5,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Provides a base implementation for AI resilience settings.
 /// </summary>
-public sealed record VKAIResilienceSettings : IVKAIResilienceSettings
+public sealed record VKAIResilienceSettings : IVKAIResilienceOptions
 {
     /// <inheritdoc />
     public TimeSpan? Timeout { get; init; }

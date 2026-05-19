@@ -1,8 +1,6 @@
 using System;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Cognitive.Agents.Internal;
 using VK.Blocks.AI.Cognitive.Common.DependencyInjection.Internal;
 using VK.Blocks.AI.Cognitive.Knowledge.Internal;
@@ -29,8 +27,7 @@ public static class VKAICognitiveBuilderExtensions
         Func<VKAICognitiveDefaultsOptions, VKAICognitiveDefaultsOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        var adapter = new CognitiveAIBuilderAdapter(builder.Services, builder.Configuration);
-        AICognitiveDefaultsFeature.Register(adapter, transform);
+        AICognitiveDefaultsFeature.Register(builder, transform);
         return builder;
     }
 
@@ -42,8 +39,7 @@ public static class VKAICognitiveBuilderExtensions
         Func<VKMemoryOptions, VKMemoryOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        var adapter = new CognitiveAIBuilderAdapter(builder.Services, builder.Configuration);
-        MemoryFeature.Register(adapter, transform);
+        MemoryFeature.Register(builder, transform);
         return builder;
     }
 
@@ -55,8 +51,7 @@ public static class VKAICognitiveBuilderExtensions
         Func<VKPersonaOptions, VKPersonaOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        var adapter = new CognitiveAIBuilderAdapter(builder.Services, builder.Configuration);
-        PersonaFeature.Register(adapter, transform);
+        PersonaFeature.Register(builder, transform);
         return builder;
     }
 
@@ -68,8 +63,7 @@ public static class VKAICognitiveBuilderExtensions
         Func<VKKnowledgeOptions, VKKnowledgeOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        var adapter = new CognitiveAIBuilderAdapter(builder.Services, builder.Configuration);
-        KnowledgeFeature.Register(adapter, transform);
+        KnowledgeFeature.Register(builder, transform);
         return builder;
     }
 
@@ -100,8 +94,7 @@ public static class VKAICognitiveBuilderExtensions
         Func<VKOrchestrationOptions, VKOrchestrationOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        var adapter = new CognitiveAIBuilderAdapter(builder.Services, builder.Configuration);
-        OrchestrationFeature.Register(adapter, transform);
+        OrchestrationFeature.Register(builder, transform);
         return builder;
     }
 
@@ -113,8 +106,7 @@ public static class VKAICognitiveBuilderExtensions
         Func<VKCognitiveAgentsOptions, VKCognitiveAgentsOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        var adapter = new CognitiveAIBuilderAdapter(builder.Services, builder.Configuration);
-        CognitiveAgentsFeature.Register(adapter, transform);
+        CognitiveAgentsFeature.Register(builder, transform);
         return builder;
     }
 
@@ -126,8 +118,7 @@ public static class VKAICognitiveBuilderExtensions
         Func<VKPresenceOptions, VKPresenceOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        var adapter = new CognitiveAIBuilderAdapter(builder.Services, builder.Configuration);
-        PresenceFeature.Register(adapter, transform);
+        PresenceFeature.Register(builder, transform);
         return builder;
     }
 
@@ -139,8 +130,7 @@ public static class VKAICognitiveBuilderExtensions
         Func<VKReasoningOptions, VKReasoningOptions>? transform = null)
     {
         VKGuard.NotNull(builder);
-        var adapter = new CognitiveAIBuilderAdapter(builder.Services, builder.Configuration);
-        ReasoningFeature.Register(adapter, transform);
+        ReasoningFeature.Register(builder, transform);
         return builder;
     }
 
@@ -159,14 +149,5 @@ public static class VKAICognitiveBuilderExtensions
             .AddVKAgents()
             .AddVKPresence()
             .AddVKReasoning();
-    }
-
-    /// <summary>
-    /// Adapter class to bridge IVKAICognitiveBuilder to IVKAIBuilder for features using [VKFeature].
-    /// </summary>
-    private sealed class CognitiveAIBuilderAdapter(IServiceCollection services, IConfiguration? configuration) : IVKAIBuilder
-    {
-        public IServiceCollection Services { get; } = services;
-        public IConfiguration? Configuration { get; } = configuration;
     }
 }

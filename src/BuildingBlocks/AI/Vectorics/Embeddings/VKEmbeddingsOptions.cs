@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Embeddings feature.
 /// </summary>
 [VKFeature(typeof(VectoricsFeature), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKEmbeddingsOptions : IVKEmbeddingsSettings, IVKToggleableBlockOptions
+public sealed partial record VKEmbeddingsOptions : IVKEmbeddingsOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Embeddings feature is enabled.

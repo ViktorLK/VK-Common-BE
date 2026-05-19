@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace VK.Blocks.Core.UnitTests.DependencyInjection;
 
@@ -26,7 +26,7 @@ public class VKBlockMarkerTests
         var dep = new MockMarker("Dep");
         var root = (IVKBlockMarker)new MockMarker("Root", [dep]);
 
-        // Register internal identity marker (Rule 13)
+        // Register internal identity marker (AP.02)
         _services.AddSingleton(new VK.Blocks.Core.DependencyInjection.Internal.BlockRuntimeMarker("Dep"));
 
         // Act & Assert
@@ -44,7 +44,7 @@ public class VKBlockMarkerTests
         markerA.SetDependencies([markerB]);
         markerB.SetDependencies([markerA]);
 
-        // Register internal identity markers (Rule 13)
+        // Register internal identity markers (AP.02)
         _services.AddSingleton(new VK.Blocks.Core.DependencyInjection.Internal.BlockRuntimeMarker("A"));
         _services.AddSingleton(new VK.Blocks.Core.DependencyInjection.Internal.BlockRuntimeMarker("B"));
 
@@ -76,3 +76,4 @@ public class VKBlockMarkerTests
         }
     }
 }
+

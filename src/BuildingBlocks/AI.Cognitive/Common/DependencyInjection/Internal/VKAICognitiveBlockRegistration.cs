@@ -36,7 +36,7 @@ internal static class VKAICognitiveBlockRegistration
         }
 
         // 6. Core Services
-        services.TryAddScoped<IVKRealityLedger, BasicRealityLedger>();
+        services.TryAddScoped<IVKMemoryLedger, BasicMemoryLedger>();
 
         return builder;
     }

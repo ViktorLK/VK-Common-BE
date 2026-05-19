@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Common.Diagnostics.Internal;
-using VK.Blocks.AI.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Agents.Internal;
@@ -82,7 +81,7 @@ internal sealed class BasicAgent : IVKAgent
         var effectiveOptions = args.Merge(_options);
         var timeout = effectiveOptions.Timeout ?? _globalOptions.Timeout;
 
-        bool enableAudit = (args is IVKAIAuditSettings a ? a.EnableAudit : null) ?? effectiveOptions.EnableAudit ?? _globalOptions.EnableAudit;
+        bool enableAudit = (args is IVKAIAuditOptions a ? a.EnableAudit : null) ?? effectiveOptions.EnableAudit ?? _globalOptions.EnableAudit;
         if (enableAudit && _logger.IsEnabled(LogLevel.Information))
         {
             var taskInput = effectiveOptions.LogToolData ? input : "[REDACTED]";

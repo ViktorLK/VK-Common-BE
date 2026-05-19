@@ -1,4 +1,4 @@
-# VK.Blocks.AI
+﻿# VK.Blocks.AI
 
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -26,7 +26,7 @@
 ### 利用シーン
 
 - **Persona (自我: アイデンティティ一貫性)** や **Knowledge (資産: 世界設定・事実管理)** を活用したキャラクターAI を構築する場合
-- **Memory (帳簿: 長短期対話の永続化)** や **Engram (代謝: 記憶減衰・忘却制御)** による文脈継続が必要な場合
+- **Memory (帳簿: 長短期対話の永続化)** による文脈継続が必要な場合
 - **Orchestration (中枢: 意図仲裁・協調制御)** による Intent 解析・Goal 管理が必要な場合
 - **Presence (覚知: リアルタイム状況・環境知覚)** や **Reasoning (思考: CoT・内省)** を組み合わせた高度なエージェントを構築する場合
 
@@ -206,7 +206,7 @@ AI/
 ```csharp
 // 1. Feature の定義 — 属性を付与するだけで登録・バリデーション・Args が自動生成
 [VKFeature(typeof(VKAIBlock), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKChatOptions : IVKChatSettings, IVKToggleableBlockOptions
+public sealed partial record VKChatOptions : IVKChatOptions, IVKToggleableBlockOptions
 {
     public bool Enabled { get; init; } = true;
     public string? ModelId { get; init; }

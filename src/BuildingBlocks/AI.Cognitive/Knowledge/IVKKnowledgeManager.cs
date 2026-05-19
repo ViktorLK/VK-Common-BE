@@ -6,8 +6,9 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Interface for managing knowledge/worldbook entries.
-/// Decouples Knowledge logic from specific business applications (Foundation-ization).
+/// Knowledge: Manages Lorebooks and static facts to eliminate hallucinations.
+/// Metaphor: Library - The external brain's knowledge repository.
+/// Value: Project document retrieval (Industrial) and the World Setting Book (PWP).
 /// </summary>
 public interface IVKKnowledgeManager
 {
@@ -40,5 +41,20 @@ public interface IVKKnowledgeManager
     Task<VKResult> DeleteEntryAsync(
         string entryId,
         string? themeId = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records the triggered knowledge entries in a session, setting their cooldown and sticky turns.
+    /// </summary>
+    Task<VKResult> RecordTriggersAsync(
+        string sessionId,
+        IEnumerable<string> triggeredEntryIds,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Advances the conversation turn for a session, decrementing remaining cooldown and sticky turns.
+    /// </summary>
+    Task<VKResult> AdvanceSessionTurnAsync(
+        string sessionId,
         CancellationToken cancellationToken = default);
 }

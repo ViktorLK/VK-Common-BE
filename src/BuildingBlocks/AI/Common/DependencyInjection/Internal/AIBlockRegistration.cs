@@ -21,7 +21,7 @@ internal static class AIBlockRegistration
         // 1. Check-Self (Idempotency) [AP.02]
         if (services.IsVKBlockRegistered<VKAIBlock>())
         {
-            return new AIBlockBuilder(services, configuration);
+            return new AIBlockBuilder(services, configuration.GetSection(VKBlocksConstants.VKBlocksConfigPrefix));
         }
 
         // 2. Options Registration [BB.06]
@@ -31,7 +31,7 @@ internal static class AIBlockRegistration
         services.AddVKBlockMarker<VKAIBlock>();
 
         // 4. Initialize Builder
-        var builder = new AIBlockBuilder(services, configuration);
+        var builder = new AIBlockBuilder(services, configuration.GetSection(VKBlocksConstants.VKBlocksConfigPrefix));
 
         // 5. Early Return Check
         if (!options.Enabled)

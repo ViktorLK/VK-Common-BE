@@ -4,7 +4,12 @@ using System.Collections.Generic;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Represents an entry in AI memory.
+/// Infrastructure Persistence DTO: Represents a static entry in the AI Reality Ledger.
+/// <para>
+/// This is the lowest-level physical storage model. Unlike a <see cref="VKMemoryTrace"/>, 
+/// an Entry is mathematically cold—it does not decay and has no biological activation. 
+/// It serves purely as the immutable, objective audit log of what actually happened.
+/// </para>
 /// </summary>
 public sealed record VKMemoryEntry
 {

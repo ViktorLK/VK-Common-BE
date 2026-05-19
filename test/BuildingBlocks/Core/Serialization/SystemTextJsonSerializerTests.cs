@@ -1,4 +1,5 @@
-using VK.Blocks.Core.Serialization.Internal;
+using global::VK.Blocks.Core.Serialization.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Core.UnitTests.Serialization;
 

@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Token Limiting and Quota feature.
 /// </summary>
 [VKFeature(typeof(TokenicsFeature), GenerateValidator = true)]
-public sealed partial record VKQuotasOptions : IVKAIQuotaSettings, IVKToggleableBlockOptions
+public sealed partial record VKQuotasOptions : IVKAIQuotaOptions, IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Token Limiting is enabled.

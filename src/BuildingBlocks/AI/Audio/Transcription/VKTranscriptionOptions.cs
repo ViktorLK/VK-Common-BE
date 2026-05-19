@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Audio Transcription feature.
 /// </summary>
 [VKFeature(typeof(AudioFeature), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKTranscriptionOptions : IVKTranscriptionSettings, IVKToggleableBlockOptions
+public sealed partial record VKTranscriptionOptions : IVKTranscriptionOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Transcription feature is enabled.

@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// Configuration settings for the Chat feature.
 /// </summary>
 [VKFeature(typeof(VKAIBlock), GenerateArgs = true, GenerateValidator = true)]
-public sealed partial record VKChatOptions : IVKChatSettings, IVKToggleableBlockOptions
+public sealed partial record VKChatOptions : IVKChatOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Chat feature is enabled.

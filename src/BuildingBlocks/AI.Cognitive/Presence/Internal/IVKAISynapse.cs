@@ -5,8 +5,9 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Cognitive.Presence.Internal;
 
 /// <summary>
-/// Defines a synapse that can modify AI requests before they are processed by the engine.
-/// Useful for injecting global context, biological signals, or safety filters.
+/// Presence: Manages real-time Context Window and metadata awareness.
+/// Metaphor: Awareness - Sensory presence and working memory of the "Now".
+/// Value: Session state management (Industrial) and presence/environmental perception (PWP).
 /// </summary>
 internal interface IVKAISynapse // [AP.03]
 {

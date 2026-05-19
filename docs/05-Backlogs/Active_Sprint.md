@@ -17,6 +17,7 @@
 - [ ] [CORE-013: Implement standard IOptions Bridge Wrapper for ADR-016](./Core/013-implement-standard-ioptions-bridge-wrapper-for-adr-016.md)
 - [ ] [CORE-014: Refactor Legacy Exception Throw Sites in Core Library](./Core/014-refactor-legacy-exception-throw-sites-in-core-library.md)
 - [ ] [CORE-015: Refactor Configuration Section Naming to Namespace-Underscore Pattern](./Core/015-refactor-configuration-section-naming-to-namespace-underscore-pattern.md)
+- [ ] [CORE-016: Optimize configuration path resolution in VKFeatureGenerator](./Core/016-optimize-configuration-path-resolution-in-vkfeaturegenerator.md)
 ## 🧠 AI Tasks
 - [ ] [AI-001: Deep Recall Mechanism](./AI/001-deep-recall-mechanism.md)
 - [ ] [AI-002: Configure AI.SemanticKernel Builder](./AI/002-semantic-kernel-builder.md)
@@ -33,6 +34,7 @@
 - [ ] [AI-011: Add ReturnSchema to IVKAgentTool](./AI/011-add-returnschema-to-ivkagenttool.md)
 - [ ] [AI-012: Support Streaming results in IVKAgentTool](./AI/012-support-streaming-results-in-ivkagenttool.md)
 - [ ] [AI-013: Support Prompt-as-a-Tool implementation](./AI/013-support-prompt-as-a-tool-implementation.md)
+- [ ] [AI-014: Clean up or integrate unused memory schemas (VKMemoryFragment, VKMemorySynapse, VKMemorySynopsis)](./AI/014-clean-up-or-integrate-unused-memory-schemas-(vkmemoryfragment,-vkmemorysynapse,-vkmemorysynopsis).md)
 ## 🔐 Authorization Tasks
 - [ ] [AUTHORIZATION-001: Authorization DI Normalization](./Authorization/001-di-normalization.md)
 - [ ] [AUTHORIZATION-002: API Gateway Integration (YARP-Ocelot)](./Authorization/002-api-gateway-integration-(yarp-ocelot).md)
@@ -85,7 +87,7 @@
 - [ ] [VALIDATION.WEB-001: Enhance Validation.Web Options and Diagnostics](./Validation.Web/001-enhance-validationweb-options-and-diagnostics.md)
 
 ## 📋 AI.Core Tasks
-- [ ] [AI.CORE-001: Implement Metadata dictionary in IVKAIProviderSettings for provider-specific connection parameters](./AI.Core/001-implement-metadata-dictionary-in-ivkaiprovidersettings-for-provider-specific-connection-parameters.md)
+- [ ] [AI.CORE-001: Implement Metadata dictionary in IVKAIProviderOptions for provider-specific connection parameters](./AI.Core/001-implement-metadata-dictionary-in-ivkaiprovidersettings-for-provider-specific-connection-parameters.md)
 
 - [ ] [AI.CORE-002: Industrialize Token Counter Implementation](./AI.Core/002-industrialize-token-counter-implementation.md)
 ## 📋 Labs.PWP Tasks
@@ -100,3 +102,10 @@
 - [ ] [PWP-001: [PWP] Upgrade Tokenizer Implementation](./PWP/001-[pwp]-upgrade-tokenizer-implementation.md)
 - [ ] [PWP-002: [PWP] SignalR Real-time Integration](./PWP/002-[pwp]-signalr-real-time-integration.md)
 - [ ] [PWP-003: [PWP] Proactive Engine Implementation](./PWP/003-[pwp]-proactive-engine-implementation.md)
+
+## 📋 AI.Cognitive Tasks
+- [ ] [AI.COGNITIVE-001: Implement Narrative Session Clock Ticking (AdvanceTurnAsync)](./AI.Cognitive/001-implement-narrative-session-clock-ticking-(advanceturnasync).md)
+- [ ] [AI.COGNITIVE-002: Implement Dynamic Knowledge Weaver (IVKKnowledgeWeaver)](./AI.Cognitive/002-implement-dynamic-knowledge-weaver-(ivkknowledgeweaver).md)
+
+## 🔐 Auth Tasks
+- [ ] [AUTH-001: Audit Commit aa832af89a41f065792ddecf22d65ce3ed57013a in Authentication](./Auth/001-audit-commit-aa832af89a41f065792ddecf22d65ce3ed57013a-in-authentication.md)

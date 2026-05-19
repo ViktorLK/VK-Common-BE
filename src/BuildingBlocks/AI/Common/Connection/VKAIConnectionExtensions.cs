@@ -16,7 +16,7 @@ public static class VKAIConnectionExtensions
     /// <param name="overrides">The optional request-level overrides (e.g., from Args).</param>
     /// <returns>A <see cref="VKResult{T}"/> containing the resolved contract or an error.</returns>
     public static VKResult<VKAIResolvedContract> ResolveConnection(
-        this IVKAIProviderSettings settings,
+        this IVKAIProviderOptions settings,
         VKAIDefaultsOptions globalOptions,
         IVKAIProviderOverrides? overrides = null)
     {

@@ -5,13 +5,9 @@ namespace VK.Blocks.AI.Cognitive;
 /// <summary>
 /// Configuration settings for the Persona feature.
 /// </summary>
-public sealed record VKPersonaOptions : IVKBlockOptions
+[VKFeature(typeof(VKAICognitiveBlock), GenerateArgs = true, GenerateValidator = true)]
+public sealed partial record VKPersonaOptions : IVKPersonaOptions
 {
-    /// <summary>
-    /// The configuration section name for Persona options.
-    /// </summary>
-    public static string SectionName => VKAICognitiveOptions.SectionName + ":" + VKAICognitiveOptions.PersonaSection;
-
     /// <summary>
     /// Gets or sets a value indicating whether Persona feature is enabled.
     /// Defaults to true.
@@ -23,7 +19,13 @@ public sealed record VKPersonaOptions : IVKBlockOptions
     /// </summary>
     public string? DefaultPersonaId { get; init; }
 
-    public int PersonaReservedTokens { get; init; } = 512;
-    public bool AllowDynamicPersonaSwitching { get; init; } = true;
+    /// <summary>
+    /// Gets the reserved tokens for persona context.
+    /// </summary>
+    public int? PersonaReservedTokens { get; init; } = 512;
 
+    /// <summary>
+    /// Gets a value indicating whether dynamic persona switching is allowed.
+    /// </summary>
+    public bool? AllowDynamicPersonaSwitching { get; init; } = true;
 }

@@ -1,6 +1,24 @@
-using VK.Blocks.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace VK.Blocks.AI.Cognitive.Persona.Internal;
 
-[VKFeatureMarker(PersonaConstants.FeatureName, typeof(VKAIBlock))]
-internal sealed partial class PersonaFeature;
+/// <summary>
+/// Persona feature marker and registration hub.
+/// </summary>
+internal sealed partial class PersonaFeature
+{
+    // [SG Hook]
+    static partial void RegisterCustom(IServiceCollection services, VKPersonaOptions options)
+    {
+        _ = options;
+        services.TryAddScoped<IVKPersonaCodex, BasicPersonaCodex>();
+    }
+
+    // [SG Hook]
+    static partial void ValidateCustom(VKPersonaOptions options, System.Collections.Generic.List<string> failures)
+    {
+        _ = options;
+        _ = failures;
+    }
+}
