@@ -1,14 +1,18 @@
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Represents the narrative and turn-based activation rules component (attachment) 
+/// Represents the narrative and turn-based activation rules component (attachment)
 /// associated with a generic knowledge entry.
 /// Follows AP.01 (Sealed Record) and AP.03.
 /// </summary>
 public sealed record VKKnowledgeNarrativeRules
 {
     /// <summary>
-    /// Gets the foreign key referencing the core VKKnowledgeEntry.Id.
+    /// Gets the foreign key referencing the core <see cref="VKKnowledgeEntry.Id"/>.
+    /// <remarks>
+    /// DB Mapping: Acts as both the Primary Key and Foreign Key in the narrative store table,
+    /// establishing a stateful 1:1 relationship with the factual entry.
+    /// </remarks>
     /// </summary>
     public required string KnowledgeId { get; init; }
 
@@ -44,9 +48,4 @@ public sealed record VKKnowledgeNarrativeRules
     /// Entry will only activate if a random roll is within this threshold. Defaults to 100.
     /// </summary>
     public int Probability { get; init; } = 100;
-
-    /// <summary>
-    /// Gets the maximum allowed recursive match jump depth for this entry.
-    /// </summary>
-    public int MaxRecursionLevel { get; init; } = 0;
 }

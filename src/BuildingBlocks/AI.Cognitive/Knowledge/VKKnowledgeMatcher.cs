@@ -46,6 +46,18 @@ public static class VKKnowledgeMatcher
 
     private static Func<string, bool> CompileMatcher(VKKnowledgeEntry entry)
     {
+        if (entry.TriggerType == VKKnowledgeTriggerType.Constant)
+        {
+            // Constant entries are always active and ignore keys
+            return static _ => true;
+        }
+
+        if (entry.TriggerType == VKKnowledgeTriggerType.Semantic)
+        {
+            // Semantic entries are resolved via vector similarity search, not keyword ASTs
+            return static _ => false;
+        }
+
         var primaryKeys = entry.Keys.Where(k => !k.IsFilter).ToList();
         var filterKeys = entry.Keys.Where(k => k.IsFilter).ToList();
 
@@ -135,7 +147,7 @@ public static class VKKnowledgeMatcher
         if (key.IsRegex)
         {
             var pattern = key.Text;
-            var options = RegexOptions.IgnoreCase;
+            var options = key.CaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
 
             // SillyTavern style regex /pattern/flags
             if (pattern.StartsWith('/') && pattern.LastIndexOf('/') > 0)
@@ -179,11 +191,36 @@ public static class VKKnowledgeMatcher
             );
         }
 
+        if (key.MatchWholeWord)
+        {
+            var pattern = $@"\b{Regex.Escape(key.Text)}\b";
+            var options = key.CaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
+
+            try
+            {
+                _ = new Regex(pattern, options, TimeSpan.FromMilliseconds(100));
+            }
+            catch
+            {
+                return Expression.Constant(false);
+            }
+
+            return Expression.Call(
+                RegexIsMatchMethod,
+                contextParam,
+                Expression.Constant(pattern),
+                Expression.Constant(options),
+                Expression.Constant(TimeSpan.FromMilliseconds(100))
+            );
+        }
+
+        var comparison = key.CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
         return Expression.Call(
             contextParam,
             StringContainsMethod,
             Expression.Constant(key.Text),
-            Expression.Constant(StringComparison.OrdinalIgnoreCase)
+            Expression.Constant(comparison)
         );
     }
 }

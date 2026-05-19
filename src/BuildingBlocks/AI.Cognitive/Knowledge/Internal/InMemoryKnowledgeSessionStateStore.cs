@@ -35,4 +35,23 @@ internal sealed class InMemoryKnowledgeSessionStateStore : IVKKnowledgeSessionSt
         _store[(state.SessionId, state.KnowledgeId)] = state;
         return Task.FromResult(VKResult.Success());
     }
+
+    public Task<VKResult<System.Collections.Generic.IEnumerable<VKKnowledgeSessionState>>> GetSessionStatesAsync(
+        string sessionId,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        VKGuard.NotNullOrWhiteSpace(sessionId);
+
+        var list = new System.Collections.Generic.List<VKKnowledgeSessionState>();
+        foreach (var s in _store.Values)
+        {
+            if (s.SessionId.Equals(sessionId, System.StringComparison.OrdinalIgnoreCase))
+            {
+                list.Add(s);
+            }
+        }
+
+        return Task.FromResult(VKResult.Success<System.Collections.Generic.IEnumerable<VKKnowledgeSessionState>>(list));
+    }
 }

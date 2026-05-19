@@ -1,7 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using VK.Blocks.Core.Guids.Internal;
-using VK.Blocks.Core.Serialization.Internal;
+using VK.Blocks.Core;
+using global::VK.Blocks.Core.Guids.Internal;
+using global::VK.Blocks.Core.Serialization.Internal;
 
 namespace VK.Blocks.Core.UnitTests.DependencyInjection;
 

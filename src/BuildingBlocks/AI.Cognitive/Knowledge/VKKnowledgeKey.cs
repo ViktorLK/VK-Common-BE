@@ -25,4 +25,14 @@ public sealed record VKKnowledgeKey
     /// Gets the logical combination rules used when matching multiple keys.
     /// </summary>
     public VKKnowledgeFilterLogic Logic { get; init; } = VKKnowledgeFilterLogic.AndAny;
+
+    /// <summary>
+    /// Gets a value indicating whether this key must match as a whole word (using word boundaries \b).
+    /// </summary>
+    public bool MatchWholeWord { get; init; } = false;
+
+    /// <summary>
+    /// Gets a value indicating whether the match is case-sensitive.
+    /// </summary>
+    public bool CaseSensitive { get; init; } = false;
 }

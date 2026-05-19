@@ -120,6 +120,15 @@
 
 ---
 
-**Last Updated**: 2026-04-25  
-**Total ADRs**: 16
+#### [ADR-017: Options Registration Robustness and Double Binding Elimination](./adr-017-options-registration-robustness-and-double-binding-elimination.md)
+
+**Status**: ✅ Accepted  
+**概要**: `AddVKBlockOptions` における二重バインディングの冗長性を排除し、`TryAddSingleton` を `Replace` に置き換えることで DI コンテナ登録の順序依存の脆弱性を完全解消。  
+**キーワード**: Options Pattern, DI Registration Order, Double Binding, Robustness
+
+---
+
+**Last Updated**: 2026-05-19  
+**Total ADRs**: 17
+
 

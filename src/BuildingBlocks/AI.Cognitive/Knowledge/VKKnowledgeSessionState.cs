@@ -27,6 +27,11 @@ public sealed record VKKnowledgeSessionState
     public int CooldownRemainingTurns { get; init; } = 0;
 
     /// <summary>
+    /// Gets the remaining delay turns before this entry becomes active.
+    /// </summary>
+    public int DelayRemainingTurns { get; init; } = 0;
+
+    /// <summary>
     /// Gets the global turn index when this knowledge entry was last triggered.
     /// </summary>
     public int LastTriggeredTurnIndex { get; init; } = -1;

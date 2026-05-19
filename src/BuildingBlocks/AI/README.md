@@ -26,7 +26,7 @@
 ### 利用シーン
 
 - **Persona (自我: アイデンティティ一貫性)** や **Knowledge (資産: 世界設定・事実管理)** を活用したキャラクターAI を構築する場合
-- **Memory (帳簿: 長短期対話の永続化)** や **Engram (代謝: 記憶減衰・忘却制御)** による文脈継続が必要な場合
+- **Memory (帳簿: 長短期対話の永続化)** による文脈継続が必要な場合
 - **Orchestration (中枢: 意図仲裁・協調制御)** による Intent 解析・Goal 管理が必要な場合
 - **Presence (覚知: リアルタイム状況・環境知覚)** や **Reasoning (思考: CoT・内省)** を組み合わせた高度なエージェントを構築する場合
 
@@ -371,25 +371,6 @@ services.AddSingleton<IVKChatEngine, MyCustomChatEngine>();
 
 > [!NOTE]
 > デフォルトでは全 Engine に `NoOp` 実装が `TryAdd` で登録されています。カスタム実装を先に登録するか、`Replace` を使用してください。
-
----
-
-## 🏛️ アーキテクチャ監査
-
-最新の監査レポートは [AI_20260516.md](/docs/04-AuditReports/AI/AI_20260516.md) を参照してください。
-
-| 項目                | 結果                     |
-| ------------------- | ------------------------ |
-| **総合スコア**      | 88 / 100                 |
-| **Fast Audit**      | 34.5/35 (98.6%)          |
-| **DI Registration** | ✅ PASS (BB.03 完全準拠) |
-| **重大な懸念事項**  | 2 件 (CS.01, CS.03)      |
-
-### 監査による改善提案
-
-- `BasicChat.SendAsync` の汎用例外を `VKResult.Failure<T>` にマッピング (CS.01)
-- `BasicAgent.ExecuteAsync` の CancellationToken ユーザー/タイムアウト区別を追加 (CS.03)
-- `SendStreamingAsync` に Timeout 制御を適用
 
 ---
 

@@ -1,4 +1,4 @@
-using VK.Blocks.Core.Utilities.Internal;
+using VK.Blocks.Core;
 namespace VK.Blocks.Core.UnitTests.Utilities.Internal;
 
 public class VKTypeMetadataCacheTests

@@ -1,4 +1,5 @@
-using VK.Blocks.Core.Guids.Internal;
+using global::VK.Blocks.Core.Guids.Internal;
+using VK.Blocks.Core;
 using VK.Blocks.Core.UnitTests.Utilities;
 
 namespace VK.Blocks.Core.UnitTests.Guids;

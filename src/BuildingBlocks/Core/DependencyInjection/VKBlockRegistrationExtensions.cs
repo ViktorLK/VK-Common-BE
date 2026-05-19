@@ -121,20 +121,43 @@ public static class VKBlockRegistrationExtensions
     {
         VKGuard.NotNull(services);
         VKGuard.NotNull(configuration);
+        VKGuard.Against(string.IsNullOrWhiteSpace(TOptions.SectionName), "Options SectionName cannot be null or empty.");
 
         // [IDEMPOTENCY CHECK] — Avoid unnecessary Bind and DI registration when already registered
         if (services.IsVKServiceRegistered<TOptions>())
         {
-            // Retrieve the already registered singleton instance to avoid re-binding
-            return services.GetVKServiceInstance<TOptions>()
+            var existingOptions = services.GetVKServiceInstance<TOptions>()
                    ?? throw VKDependencyException.DualRegistrationMissing(typeof(TOptions).Name);
+
+            // ADR-016: If a subsequent fluent transform is provided, apply it to the existing instance
+            // and replace the registered singleton and OptionsFactory in the DI container.
+            if (transform != null)
+            {
+                var transformedOptions = transform(existingOptions);
+
+                // NOTE (CONCURRENCY & THREAD-SAFETY WARNING):
+                // IServiceCollection is not thread-safe and is strictly intended for single-threaded configuration.
+                // These two 'Replace' operations are non-atomic. In highly dynamic, multi-threaded registration contexts,
+                // there is a temporary race-condition window where direct injection (resolving transformedOptions)
+                // and IOptions/IOptionsFactory injection (resolving existingOptions) might become desynchronized.
+                // Reconfiguration/fluent transforms MUST only occur during the synchronous single-threaded Startup/Configure phase.
+                services.Replace(ServiceDescriptor.Singleton(transformedOptions));
+                services.Replace(ServiceDescriptor.Singleton<IOptionsFactory<TOptions>>(sp =>
+                    new VKBlockOptionsFactory<TOptions>(transformedOptions, sp.GetServices<IValidateOptions<TOptions>>())));
+
+                return transformedOptions;
+            }
+
+
+            return existingOptions;
         }
 
         // A. BINDING OPTIMIZATION
         // Following .NET 10 best practices, use .Get<T>() which is more friendly to records and init properties
         // as it handles the instantiation process via the Binder.
-        var options = configuration.GetSection(TOptions.SectionName).Get<TOptions>()
-                      ?? new TOptions();
+        var targetConfig = configuration.GetSection(TOptions.SectionName);
+
+        var options = targetConfig.Get<TOptions>() ?? new TOptions();
 
         if (transform != null)
         {
@@ -146,18 +169,20 @@ public static class VKBlockRegistrationExtensions
         // Registering this early ensures that IsVKServiceRegistered returns true for subsequent calls.
         services.TryAddSingleton(options);
 
-        // 2. Standard Options registration (Sync IOptions<T> with the Singleton instance)
-        // ADR-016: Since the instance is immutable, we must provide it directly to the Options system.
-        services.TryAddSingleton<IOptions<TOptions>>(new OptionsWrapper<TOptions>(options));
+        // 2. Custom Factory registration to handle immutable transforms + all validations across IOptions, Snapshot, Monitor
+        // ADR-016: Since the instance is immutable, we register a custom factory that returns the pre-bound,
+        // pre-transformed instance and triggers all registered validation rules.
+        // NOTE (DI REGISTRATION ORDER ROBUSTNESS): We use 'Replace' instead of 'TryAddSingleton' to eliminate order-dependency
+        // fragility, ensuring our custom factory overrides the default one even if AddOptions was called elsewhere beforehand.
+        services.Replace(ServiceDescriptor.Singleton<IOptionsFactory<TOptions>>(sp =>
+            new VKBlockOptionsFactory<TOptions>(options, sp.GetServices<IValidateOptions<TOptions>>())));
+
 
         // 3. Validation infrastructure (Still needed for startup check)
         services.AddOptions<TOptions>()
-            .Bind(configuration.GetSection(TOptions.SectionName))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         return options;
     }
-
 }
-

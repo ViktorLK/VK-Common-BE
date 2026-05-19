@@ -1,4 +1,5 @@
-using VK.Blocks.Core.Identity.Internal;
+using global::VK.Blocks.Core.Identity.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Core.UnitTests.Identity.Internal;
 

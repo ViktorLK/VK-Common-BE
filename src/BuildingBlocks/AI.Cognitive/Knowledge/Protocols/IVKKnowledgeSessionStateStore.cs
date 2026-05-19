@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
@@ -22,5 +23,12 @@ public interface IVKKnowledgeSessionStateStore
     /// </summary>
     Task<VKResult> SaveStateAsync(
         VKKnowledgeSessionState state,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves all active session states for a specific session.
+    /// </summary>
+    Task<VKResult<IEnumerable<VKKnowledgeSessionState>>> GetSessionStatesAsync(
+        string sessionId,
         CancellationToken cancellationToken = default);
 }

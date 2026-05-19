@@ -42,4 +42,19 @@ public interface IVKKnowledgeManager
         string entryId,
         string? themeId = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Records the triggered knowledge entries in a session, setting their cooldown and sticky turns.
+    /// </summary>
+    Task<VKResult> RecordTriggersAsync(
+        string sessionId,
+        IEnumerable<string> triggeredEntryIds,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Advances the conversation turn for a session, decrementing remaining cooldown and sticky turns.
+    /// </summary>
+    Task<VKResult> AdvanceSessionTurnAsync(
+        string sessionId,
+        CancellationToken cancellationToken = default);
 }
