@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.VectorStore.Diagnostics.Internal;
+namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>
 /// Provides diagnostic metrics for the Vector Store building block.

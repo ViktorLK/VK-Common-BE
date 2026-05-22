@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.VectorStore.DependencyInjection.Internal;
+namespace VK.Blocks.AI.VectorStore.Common.DependencyInjection.Internal;
 
 /// <summary>
 /// Principal registration logic for the AI Vector Store building block.

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace VK.Blocks.AI.VectorStore.DependencyInjection.Internal;
+namespace VK.Blocks.AI.VectorStore.Common.DependencyInjection.Internal;
 
 internal sealed class AIVectorStoreOptionsValidator : IValidateOptions<VKAIVectorStoreOptions>
 {

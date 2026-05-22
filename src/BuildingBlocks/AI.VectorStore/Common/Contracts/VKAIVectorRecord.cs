@@ -1,4 +1,4 @@
-namespace VK.Blocks.AI.VectorStore.Contracts;
+namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>
 /// Represents a record retrieved from a vector store.

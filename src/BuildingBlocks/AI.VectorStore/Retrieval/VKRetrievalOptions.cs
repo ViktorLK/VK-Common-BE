@@ -1,4 +1,3 @@
-using VK.Blocks.AI.VectorStore;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore;

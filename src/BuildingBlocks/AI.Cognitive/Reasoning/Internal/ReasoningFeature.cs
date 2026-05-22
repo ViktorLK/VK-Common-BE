@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace VK.Blocks.AI.Cognitive.Reasoning.Internal;
 
@@ -11,7 +12,8 @@ internal sealed partial class ReasoningFeature
 {
     static partial void RegisterCustom(IServiceCollection services, VKReasoningOptions options) // [SG Hook]
     {
-        // Placeholder for registering custom reasoning planners
+        services.TryAddSingleton<IVKIntentNexus, DefaultIntentOrchestrator>();
+        services.TryAddSingleton<IVKIntentArbiter, DefaultIntentArbiter>();
     }
 
     static partial void ValidateCustom(VKReasoningOptions options, List<string> failures) // [SG Hook]
