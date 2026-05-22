@@ -1,5 +1,3 @@
-using VK.Blocks.AI.VectorStore.Contracts;
-
 namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>

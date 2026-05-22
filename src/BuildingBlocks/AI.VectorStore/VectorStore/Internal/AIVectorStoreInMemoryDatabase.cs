@@ -3,9 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using VK.Blocks.AI;
-using VK.Blocks.AI.VectorStore.Contracts;
-using VK.Blocks.AI.VectorStore.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore.VectorStore.Internal;

@@ -2,9 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using VK.Blocks.AI;
-using VK.Blocks.AI.VectorStore;
-using VK.Blocks.AI.VectorStore.Contracts;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore;
@@ -75,7 +72,7 @@ internal sealed class VKVectorStoreRagEngine(
 
         var collection = _vectorStore.Collection<VKVectorDocument>(CollectionName);
         var result = await collection.SearchAsync(embedding, searchArgs, cancellationToken).ConfigureAwait(false);
-        
+
         if (result.IsFailure)
         {
             return VKResult.Failure<IEnumerable<VKVectorSearchResult>>(result.Errors);

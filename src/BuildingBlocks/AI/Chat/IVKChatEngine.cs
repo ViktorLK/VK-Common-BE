@@ -43,6 +43,19 @@ public interface IVKChatEngine
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Sends a context payload containing messages and caching options to the chat engine.
+    /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
+    /// </summary>
+    Task<VKResult<VKChatResponse>> SendAsync(
+        VKContextPayload payload,
+        IVKAIArgs? args = null,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(payload);
+        return SendAsync(payload.Messages, args, cancellationToken);
+    }
+
+    /// <summary>
     /// Sends a list of messages to the chat engine and streams the assistant response back in chunks.
     /// </summary>
     /// <param name="messages">The conversation history.</param>
@@ -61,4 +74,17 @@ public interface IVKChatEngine
         IEnumerable<VKChatMessage> messages,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a context payload containing messages and caching options to the chat engine and streams response.
+    /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
+    /// </summary>
+    IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
+        VKContextPayload payload,
+        IVKAIArgs? args = null,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(payload);
+        return SendStreamingAsync(payload.Messages, args, cancellationToken);
+    }
 }

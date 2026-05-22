@@ -3,17 +3,33 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Options contract for the Presence feature.
+/// Defines the public contract interface for Core Presence configuration options.
+/// Follows AP.01, AP.03.
 /// </summary>
 public interface IVKPresenceOptions : IVKToggleableBlockOptions
 {
     /// <summary>
-    /// Gets the sentiment sensitivity threshold.
+    /// Gets the default token limit for sliding window truncation.
     /// </summary>
-    float SentimentThreshold { get; }
+    int DefaultTokenLimit { get; }
 
     /// <summary>
-    /// Gets the default environmental scenario context.
+    /// Gets the warning threshold ratio before triggering compression or warnings.
     /// </summary>
-    string? Scenario { get; }
+    float TruncationThreshold { get; }
+
+    /// <summary>
+    /// Gets the maximum request-level token quota limit.
+    /// </summary>
+    int MaxRequestTokenQuota { get; }
+
+    /// <summary>
+    /// Gets the safety token margin buffer before triggering absolute window clipping.
+    /// </summary>
+    int SafetyMarginTokens { get; }
+
+    /// <summary>
+    /// Gets the environmental label (e.g. "Development", "Staging", "Production").
+    /// </summary>
+    string Environment { get; }
 }

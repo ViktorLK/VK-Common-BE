@@ -1,35 +1,47 @@
-using System;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Options for the Presence (Sentiment &amp; Emotional Awareness) feature.
+/// Configuration options for the Core Presence (Working Memory & Context Window management) feature.
+/// Follows AP.01, AP.03, and BB.07.
 /// </summary>
-[VKFeature(typeof(VKAICognitiveBlock), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(VKAICognitiveBlock), GenerateArgs = true, GenerateValidator = true, Namespace = "VK.Blocks.AI.Cognitive.Presence")]
 public sealed partial record VKPresenceOptions : IVKPresenceOptions
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets or sets a value indicating whether Core Presence tracking is enabled.
+    /// Defaults to true.
+    /// </summary>
     public bool Enabled { get; init; } = true;
 
-    /// <inheritdoc />
-    public float SentimentThreshold { get; init; } = 0.5f;
-
-    /// <inheritdoc />
-    public string? Scenario { get; init; } = "Default";
+    /// <summary>
+    /// Gets or sets the default token limit for sliding window truncation.
+    /// Defaults to 32,768 tokens.
+    /// </summary>
+    public int DefaultTokenLimit { get; init; } = 32768;
 
     /// <summary>
-    /// Gets a value indicating whether proactive background heartbeat check is enabled.
+    /// Gets or sets the warning threshold ratio (0.0 to 1.0) before triggering warning notifications or compression.
+    /// Defaults to 0.8 (80% of capacity).
     /// </summary>
-    public bool ProactiveEnabled { get; init; } = false;
+    public float TruncationThreshold { get; init; } = 0.8f;
 
     /// <summary>
-    /// Gets the interval at which inactivity checks are run.
+    /// Gets or sets the maximum request-level token quota limit.
+    /// Defaults to 8192 tokens.
     /// </summary>
-    public TimeSpan CheckInterval { get; init; } = TimeSpan.FromSeconds(30);
+    public int MaxRequestTokenQuota { get; init; } = 8192;
 
     /// <summary>
-    /// Gets the threshold of inactivity after which proactive pulse is triggered.
+    /// Gets or sets the safety token margin buffer before triggering absolute window clipping.
+    /// Defaults to 512 tokens.
     /// </summary>
-    public TimeSpan InactivityThreshold { get; init; } = TimeSpan.FromMinutes(5);
+    public int SafetyMarginTokens { get; init; } = 512;
+
+    /// <summary>
+    /// Gets or sets the environmental label (e.g. "Development", "Staging", "Production").
+    /// Defaults to "Production".
+    /// </summary>
+    public string Environment { get; init; } = "Production";
 }
