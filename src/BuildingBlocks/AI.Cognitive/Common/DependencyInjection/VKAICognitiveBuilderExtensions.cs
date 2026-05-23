@@ -1,14 +1,14 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Cognitive.Agents.Internal;
 using VK.Blocks.AI.Cognitive.Common.DependencyInjection.Internal;
 using VK.Blocks.AI.Cognitive.Knowledge.Internal;
 using VK.Blocks.AI.Cognitive.Memory.Internal;
 using VK.Blocks.AI.Cognitive.Orchestration.Internal;
 using VK.Blocks.AI.Cognitive.Persona.Internal;
-using VK.Blocks.AI.Cognitive.Presence.Internal;
 using VK.Blocks.AI.Cognitive.Reasoning.Internal;
+using VK.Blocks.AI.Cognitive.Presence.Internal;
+using VK.Blocks.AI.Cognitive.Weaving.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive;
@@ -78,7 +78,7 @@ public static class VKAICognitiveBuilderExtensions
         // Register default thread-safe in-memory stores and providers
         services.TryAddSingleton<IVKKnowledgeNarrativeStore, InMemoryKnowledgeNarrativeStore>();
         services.TryAddScoped<IVKKnowledgeSessionStateStore, InMemoryKnowledgeSessionStateStore>();
-        services.TryAddScoped<IVKKnowledgeSessionProvider, DefaultKnowledgeSessionProvider>();
+        services.TryAddScoped<IVKKnowledgeSessionProvider, BasicKnowledgeSessionProvider>();
 
         // Decorate the core IVKKnowledgeManager with the Narrative rules decorator
         services.Decorate<IVKKnowledgeManager, BasicKnowledgeNarrativeManager>();
@@ -99,30 +99,6 @@ public static class VKAICognitiveBuilderExtensions
     }
 
     /// <summary>
-    /// Adds the Agents feature to the AI Cognitive building block.
-    /// </summary>
-    public static IVKAICognitiveBuilder AddVKAgents(
-        this IVKAICognitiveBuilder builder,
-        Func<VKCognitiveAgentsOptions, VKCognitiveAgentsOptions>? transform = null)
-    {
-        VKGuard.NotNull(builder);
-        CognitiveAgentsFeature.Register(builder, transform);
-        return builder;
-    }
-
-    /// <summary>
-    /// Adds the Presence feature to the AI Cognitive building block.
-    /// </summary>
-    public static IVKAICognitiveBuilder AddVKPresence(
-        this IVKAICognitiveBuilder builder,
-        Func<VKPresenceOptions, VKPresenceOptions>? transform = null)
-    {
-        VKGuard.NotNull(builder);
-        PresenceFeature.Register(builder, transform);
-        return builder;
-    }
-
-    /// <summary>
     /// Adds the Reasoning feature to the AI Cognitive building block.
     /// </summary>
     public static IVKAICognitiveBuilder AddVKReasoning(
@@ -135,6 +111,28 @@ public static class VKAICognitiveBuilderExtensions
     }
 
     /// <summary>
+    /// Adds the Core Presence feature to the AI Cognitive building block.
+    /// </summary>
+    public static IVKAICognitiveBuilder AddVKPresence(
+        this IVKAICognitiveBuilder builder,
+        Func<VKPresenceOptions, VKPresenceOptions>? transform = null)
+    {
+        VKGuard.NotNull(builder);
+        PresenceFeature.Register(builder, transform);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds the Prompt Weaving Engine and Pipeline to the AI Cognitive building block.
+    /// </summary>
+    public static IVKAICognitiveBuilder AddVKWeaving(this IVKAICognitiveBuilder builder, Action<VKWeavingOptions>? configure = null)
+    {
+        VKGuard.NotNull(builder);
+        WeavingFeature.Register(builder, configure);
+        return builder;
+    }
+
+    /// <summary>
     /// Automatically enables all standard AI Cognitive features.
     /// </summary>
     public static IVKAICognitiveBuilder AddVKDefaultFeatures(this IVKAICognitiveBuilder builder)
@@ -142,12 +140,18 @@ public static class VKAICognitiveBuilderExtensions
         VKGuard.NotNull(builder);
         return builder
             .AddVKDefaults()
-            .AddVKMemory()
-            .AddVKPersona()
-            .AddVKKnowledge()
-            .AddVKOrchestration()
-            .AddVKAgents()
+
+            // 🔴 Core Hub
             .AddVKPresence()
-            .AddVKReasoning();
+            .AddVKOrchestration()
+
+            // 🟡 Standard Plugins
+            .AddVKReasoning()
+            .AddVKWeaving()
+            .AddVKKnowledge()
+
+            // 🟢 Business Plugins
+            .AddVKMemory()
+            .AddVKPersona();
     }
 }

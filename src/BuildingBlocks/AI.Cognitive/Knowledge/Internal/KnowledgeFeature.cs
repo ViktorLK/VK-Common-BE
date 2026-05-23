@@ -13,7 +13,6 @@ internal sealed partial class KnowledgeFeature
     {
         _ = options;
         services.TryAddScoped<IVKKnowledgeManager, BasicKnowledgeManager>();
-        services.TryAddSingleton<IVKKnowledgeWeaver, BasicKnowledgeWeaver>();
     }
 
     // [SG Hook]

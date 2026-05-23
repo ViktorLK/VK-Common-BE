@@ -28,4 +28,19 @@ internal static partial class VKAICognitiveLog
         Level = LogLevel.Error,
         Message = "Cognitive Agent {Name} encountered an unexpected execution error.")]
     internal static partial void UnexpectedExecutionError(this ILogger logger, string name, System.Exception ex);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Cognitive Pipeline interceptor '{InterceptorType}' failed during background execution of OnAfterChatAsync for Session: {SessionId}")]
+    internal static partial void LogInterceptorBackgroundError(this ILogger logger, string interceptorType, string sessionId, System.Exception ex);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Unexpected error occurred while processing Audit Synapse queue.")]
+    internal static partial void LogQueueProcessingError(this ILogger logger, System.Exception ex);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "TokenUsage metadata is missing for Session: {SessionId}. Falling back to local text token counting, which may cause severe under-billing for reasoning models.")]
+    internal static partial void LogMissingUsageMetadataWarning(this ILogger logger, string sessionId);
 }

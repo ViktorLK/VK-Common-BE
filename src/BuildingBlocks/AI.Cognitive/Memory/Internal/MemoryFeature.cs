@@ -13,8 +13,8 @@ internal sealed partial class MemoryFeature
     static partial void RegisterCustom(IServiceCollection services, VKMemoryOptions options)
     {
         services.TryAddScoped<IVKMemoryLedger, BasicMemoryLedger>();
-        services.TryAddScoped<IVKMemoryEchoes, BasicMemoryEchoes>();
-        services.TryAddScoped<IVKMemorySummarizer, BasicMemorySummarizer>();
+        services.TryAddScoped<IVKMemoryEchoes, VectorMemoryEchoes>();
+        services.TryAddScoped<IVKMemorySummarizer, DefaultMemorySummarizer>();
 
         // Default local-first in-memory engines
         services.TryAddSingleton<IVKMemoryGraph, BasicMemoryGraph>();

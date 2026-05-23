@@ -91,7 +91,13 @@ internal sealed class BasicMemoryPruner : BackgroundService, IVKMemoryPruner
             foreach (var entry in memories.Where(m => m.Category != VKMemoryCategory.Persona && m.Category != VKMemoryCategory.LongTerm))
             {
                 double ageDays = Math.Max(0.0, (now - entry.CreatedAt).TotalDays);
-                double decayedImportance = entry.Importance * Math.Pow(2, -ageDays / _options.HalfLifeDays);
+                double halfLifeMultiplier = 1.0;
+                if (entry.Metadata.TryGetValue("HalfLifeMultiplier", out var hlmStr) && double.TryParse(hlmStr, out var hlm))
+                {
+                    halfLifeMultiplier = hlm;
+                }
+                double effectiveHalfLife = _options.HalfLifeDays * halfLifeMultiplier;
+                double decayedImportance = entry.Importance * Math.Pow(2, -ageDays / effectiveHalfLife);
                 decayedImportance = Math.Clamp(decayedImportance, 0.0, 1.0);
 
                 if (Math.Abs(decayedImportance - entry.Importance) > 0.05)
