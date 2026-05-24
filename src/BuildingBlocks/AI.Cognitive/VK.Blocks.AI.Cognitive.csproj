@@ -12,5 +12,15 @@
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
     <ProjectReference Include="..\AI\VK.Blocks.AI.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>VK.Blocks.AI.Cognitive.UnitTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AI.VectorStore\VK.Blocks.AI.VectorStore.csproj" />
+  </ItemGroup>
 </Project>
 

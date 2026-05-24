@@ -63,7 +63,7 @@ internal sealed class AuditSynapseWorker : BackgroundService
             try
             {
                 var auditEvent = await _queue.DequeueAsync(stoppingToken).ConfigureAwait(false); // [CS.03]
-                
+
                 // Create a fresh scope for executing interceptors safely
                 using var scope = _serviceProvider.CreateScope();
                 var interceptors = scope.ServiceProvider.GetRequiredService<IEnumerable<IVKCognitivePipelineInterceptor>>();

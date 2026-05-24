@@ -1,3 +1,4 @@
+using VK.Blocks.Core.Diagnostics;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
@@ -6,9 +7,9 @@ namespace VK.Blocks.AI.Cognitive;
 public static class VKMemoryDiagnosticTokens
 {
     // Logs (Event IDs)
-    public const int MemorySummarizationFailedEventId = 300;
-    public const int MemoryPrunedEventId = 301;
-    public const int MemorySummarizedEventId = 302;
+    public const int MemorySummarizationFailedEventId = VKDiagnosticOffsets.AI_Cognitive_Memory + 1;
+    public const int MemoryPrunedEventId = VKDiagnosticOffsets.AI_Cognitive_Memory + 2;
+    public const int MemorySummarizedEventId = VKDiagnosticOffsets.AI_Cognitive_Memory + 3;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

@@ -1,3 +1,4 @@
+using VK.Blocks.Core.Diagnostics;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
@@ -6,8 +7,8 @@ namespace VK.Blocks.AI.Cognitive;
 public static class VKPresenceDiagnosticTokens
 {
     // Logs (Event IDs)
-    public const int PresenceInitializedEventId = 600;
-    public const int QuotaExceededEventId = 601;
+    public const int PresenceInitializedEventId = VKDiagnosticOffsets.AI_Cognitive_Presence + 1;
+    public const int QuotaExceededEventId = VKDiagnosticOffsets.AI_Cognitive_Presence + 2;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

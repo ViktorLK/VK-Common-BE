@@ -15,7 +15,7 @@ internal sealed class BasicPromptScorer : IVKPromptScorer
         foreach (var fragment in fragments)
         {
             // Base scoring strategy. Extensible down the line.
-            double score = fragment.GroupWeight + (100 - fragment.Priority); 
+            double score = fragment.GroupWeight + (100 - fragment.Priority);
             scored.Add(new VKScoredFragment
             {
                 Fragment = fragment,

@@ -132,6 +132,13 @@
 - [ ] [AI.COGNITIVE-001: Implement Narrative Session Clock Ticking (AdvanceTurnAsync)](<./AI.Cognitive/001-implement-narrative-session-clock-ticking-(advanceturnasync).md>)
 - [ ] [AI.COGNITIVE-002: Implement Dynamic Knowledge Weaver (IVKKnowledgeWeaver)](<./AI.Cognitive/002-implement-dynamic-knowledge-weaver-(ivkknowledgeweaver).md>)
 
+- [ ] [AI.COGNITIVE-001: Promote IVKPersonaExampleStore to AI.Cognitive](./AI.Cognitive/001-promote-ivkpersonaexamplestore-to-aicognitive.md)
 ## 🔐 Auth Tasks
 
 - [ ] [AUTH-001: Audit Commit aa832af89a41f065792ddecf22d65ce3ed57013a in Authentication](./Auth/001-audit-commit-aa832af89a41f065792ddecf22d65ce3ed57013a-in-authentication.md)
+
+## 📋 Labs.PersonaWeavePulsar Tasks
+- [ ] [LABS.PERSONAWEAVEPULSAR-001: Consolidate PwpChatEndpoint (SSE) into ChatController](./Labs.PersonaWeavePulsar/001-consolidate-pwpchatendpoint-(sse)-into-chatcontroller.md)
+
+## 📋 BuildingBlocks.AI Tasks
+- [ ] [BUILDINGBLOCKS.AI-001: Audit and Fix Feature Toggle (Enabled) Orthogonality](./BuildingBlocks.AI/001-audit-and-fix-feature-toggle-(enabled)-orthogonality.md)

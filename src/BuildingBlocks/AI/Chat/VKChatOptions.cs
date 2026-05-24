@@ -64,6 +64,11 @@ public sealed partial record VKChatOptions : IVKChatOptions
     /// <inheritdoc />
     public bool? EnableContentFilter { get; init; }
 
+    /// <summary>
+    /// Gets or sets whether to log the fully rendered prompt sent to the LLM.
+    /// </summary>
+    public bool EnablePromptLogging { get; init; } = false;
+
     // --- Chat Specific ---
 
     /// <summary>

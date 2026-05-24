@@ -6,8 +6,8 @@ using VK.Blocks.AI.Cognitive.Knowledge.Internal;
 using VK.Blocks.AI.Cognitive.Memory.Internal;
 using VK.Blocks.AI.Cognitive.Orchestration.Internal;
 using VK.Blocks.AI.Cognitive.Persona.Internal;
-using VK.Blocks.AI.Cognitive.Reasoning.Internal;
 using VK.Blocks.AI.Cognitive.Presence.Internal;
+using VK.Blocks.AI.Cognitive.Reasoning.Internal;
 using VK.Blocks.AI.Cognitive.Weaving.Internal;
 using VK.Blocks.Core;
 
@@ -81,7 +81,7 @@ public static class VKAICognitiveBuilderExtensions
         services.TryAddScoped<IVKKnowledgeSessionProvider, BasicKnowledgeSessionProvider>();
 
         // Decorate the core IVKKnowledgeManager with the Narrative rules decorator
-        services.Decorate<IVKKnowledgeManager, BasicKnowledgeNarrativeManager>();
+        services.Decorate<IVKKnowledgeStore, BasicKnowledgeNarrativeStore>();
 
         return builder;
     }

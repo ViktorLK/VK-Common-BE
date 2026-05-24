@@ -154,7 +154,7 @@ internal sealed class PresenceTracker : IVKPresenceTracker
 
         var tenantId = _userContext.TenantId ?? "Default";
         var userId = _userContext.UserId ?? "Anonymous";
-        
+
         // Fetch dynamic token quota per user/tenant
         var quotaResult = await _quotaProvider.GetQuotaAsync(tenantId, userId, cancellationToken).ConfigureAwait(false);
         if (quotaResult.IsFailure)

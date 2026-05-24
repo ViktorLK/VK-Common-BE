@@ -32,19 +32,20 @@ internal sealed class BasicBudgetTruncator : IVKBudgetTruncator
         }
 
         var allowedBudget = budgetPlan.AvailableHistoryLimit;
-        
+
         // Split fragments into non-history and history. For simplicity, assume all fragments have tokens counted.
         // In reality, this requires distinguishing history vs knowledge.
         int nonHistoryTokens = 0;
         var nonHistoryFragments = pruned.Where(p => !p.Fragment.Id.StartsWith("chat_")).ToList();
-        
+
         foreach (var f in nonHistoryFragments)
         {
             nonHistoryTokens += tokenMeter.CountTokens(f.Fragment.Content);
         }
 
         int remainingHistoryBudget = allowedBudget - nonHistoryTokens;
-        if (remainingHistoryBudget < 0) remainingHistoryBudget = 0;
+        if (remainingHistoryBudget < 0)
+            remainingHistoryBudget = 0;
 
         var historyFragments = pruned.Where(p => p.Fragment.Id.StartsWith("chat_"))
                                      .OrderBy(p => p.Fragment.Depth) // Order by depth to keep most recent
@@ -69,7 +70,7 @@ internal sealed class BasicBudgetTruncator : IVKBudgetTruncator
                     // Everything from current index in historyFragments to the end is evicted.
                     // But remember we ordered by depth (most recent first). So the ones that don't fit are the oldest!
                     var evictedMsg = new VKChatMessage { Role = VKChatRole.User, Content = hf.Fragment.Content };
-                    
+
                     var evictionEvent = new VKMemoryEvictionEvent
                     {
                         SessionId = context.Pipeline.SessionId,

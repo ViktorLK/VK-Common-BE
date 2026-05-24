@@ -14,8 +14,9 @@ internal sealed partial class ChatFeature
     static partial void RegisterCustom(IServiceCollection services, VKChatOptions options)
     {
         _ = options;
-        services.TryAddSingleton<IVKChatEngine, NoOpVKChatEngine>();
-        services.TryAddSingleton<IVKChat, BasicChat>();
+        services.TryAddScoped<IVKChatEngine, NoOpVKChatEngine>();
+        services.TryAddScoped<IVKChat, BasicChat>();
+        services.TryAddScoped<VK.Blocks.AI.IVKChatOptionsProvider, ChatDefaultOptionsProvider>();
     }
 
     // [SG Hook] Optional validation hook

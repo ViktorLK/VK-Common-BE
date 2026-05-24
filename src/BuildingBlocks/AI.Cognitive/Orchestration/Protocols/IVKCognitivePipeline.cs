@@ -46,4 +46,3 @@ public interface IVKCognitivePipeline
         throw new System.NotImplementedException("Streaming execution is not implemented on this pipeline.");
     }
 }
-

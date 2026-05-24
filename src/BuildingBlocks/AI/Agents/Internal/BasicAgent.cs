@@ -165,17 +165,43 @@ internal sealed class BasicAgent : IVKAgent
 
                 // Execute tool calls with throttling
                 var toolCallsToExecute = assistantMessage.ToolCalls.Take(effectiveOptions.MaxToolCallsPerIteration).ToList();
+                var skippedToolCalls = assistantMessage.ToolCalls.Skip(effectiveOptions.MaxToolCallsPerIteration).ToList();
 
                 if (effectiveOptions.AllowParallelToolCalls)
                 {
-                    var tasks = toolCallsToExecute.Select(tc => ExecuteToolWithRetryAsync(tc, context, history, effectiveOptions, tenantId, traceId, cts.Token));
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                    var tasks = toolCallsToExecute.Select(tc => ExecuteToolWithRetryAsync(tc, context, effectiveOptions, tenantId, traceId, cts.Token));
+                    var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+                    foreach (var res in results)
+                    {
+                        if (res.Message is not null)
+                            history.Add(res.Message);
+                        if (res.ToolResult is not null)
+                        {
+                            lock (context.ToolCallHistory)
+                            { context.ToolCallHistory.Add(res.ToolResult); }
+                        }
+                    }
                 }
                 else
                 {
                     foreach (var toolCall in toolCallsToExecute)
                     {
-                        await ExecuteToolWithRetryAsync(toolCall, context, history, effectiveOptions, tenantId, traceId, cts.Token).ConfigureAwait(false);
+                        var res = await ExecuteToolWithRetryAsync(toolCall, context, effectiveOptions, tenantId, traceId, cts.Token).ConfigureAwait(false);
+                        if (res.Message is not null)
+                            history.Add(res.Message);
+                        if (res.ToolResult is not null)
+                        {
+                            lock (context.ToolCallHistory)
+                            { context.ToolCallHistory.Add(res.ToolResult); }
+                        }
+                    }
+                }
+
+                if (skippedToolCalls.Any())
+                {
+                    foreach (var skipped in skippedToolCalls)
+                    {
+                        AddToolErrorToHistory(history, skipped.Id, skipped.Name, "Execution skipped due to MaxToolCallsPerIteration limit.");
                     }
                 }
             }
@@ -192,10 +218,12 @@ internal sealed class BasicAgent : IVKAgent
         }
         catch (OperationCanceledException)
         {
+            cts.Cancel();
             throw;
         }
         catch (Exception ex)
         {
+            cts.Cancel();
             AgentsLog.UnexpectedExecutionError(_logger, tenantId, traceId, Name, ex);
             return VKResult.Failure<string>(VKAgentErrors.ExecutionFailed);
         }
@@ -206,10 +234,9 @@ internal sealed class BasicAgent : IVKAgent
         }
     }
 
-    private async Task ExecuteToolWithRetryAsync(
+    private async Task<(VKChatMessage? Message, VKAtomicToolResult? ToolResult)> ExecuteToolWithRetryAsync(
         VKToolCall toolCall,
         VKAgentExecutionContext context,
-        List<VKChatMessage> history,
         VKAgentsOptions options,
         string tenantId,
         string traceId,
@@ -218,8 +245,15 @@ internal sealed class BasicAgent : IVKAgent
         var tool = Tools.FirstOrDefault(t => t.Manifest.Metadata.Name == toolCall.Name);
         if (tool is null)
         {
-            AddToolErrorToHistory(history, toolCall.Id, toolCall.Name, $"Tool '{toolCall.Name}' not found.");
-            return;
+            var errorResult = new VKToolResult
+            {
+                CallId = toolCall.Id,
+                Name = toolCall.Name,
+                Content = string.Empty,
+                IsSuccess = false,
+                ErrorMessage = $"Tool '{toolCall.Name}' not found."
+            };
+            return (new VKChatMessage { Role = VKChatRole.Tool, ToolResult = errorResult }, null);
         }
 
         AgentsLog.ToolCallStarted(_logger, tenantId, traceId, Name, tool.Manifest.Metadata.Name, toolCall.Id);
@@ -243,6 +277,7 @@ internal sealed class BasicAgent : IVKAgent
             if (executingContext.Cancel && executingContext.Result is not null)
             {
                 toolResult = executingContext.Result;
+                break;
             }
             else
             {
@@ -290,15 +325,7 @@ internal sealed class BasicAgent : IVKAgent
         AgentsLog.ToolCallCompleted(_logger, tenantId, traceId, Name, tool.Manifest.Metadata.Name, toolCall.Id, toolResult.IsSuccess);
         AiDiagnostics.RecordToolCall(Name, tool.Manifest.Metadata.Name, toolResult.IsSuccess, tenantId);
 
-        lock (history)
-        {
-            history.Add(new VKChatMessage { Role = VKChatRole.Tool, ToolResult = vkToolResult });
-
-            if (toolResult.IsSuccess)
-            {
-                context.ToolCallHistory.Add(toolResult.Value);
-            }
-        }
+        return (new VKChatMessage { Role = VKChatRole.Tool, ToolResult = vkToolResult }, toolResult.IsSuccess ? toolResult.Value : null);
     }
 
     private static void AddToolErrorToHistory(List<VKChatMessage> history, string callId, string toolName, string errorMessage)
@@ -317,6 +344,4 @@ internal sealed class BasicAgent : IVKAgent
             history.Add(new VKChatMessage { Role = VKChatRole.Tool, ToolResult = errorResult });
         }
     }
-
-
 }

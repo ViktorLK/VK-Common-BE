@@ -1,3 +1,4 @@
+using VK.Blocks.Core.Diagnostics;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
@@ -6,9 +7,9 @@ namespace VK.Blocks.AI.Cognitive;
 public static class VKWeavingDiagnosticTokens
 {
     // Logs (Event IDs)
-    public const int WeavingInitializedEventId = 100;
-    public const int TokenLimitWarningEventId = 101;
-    public const int TapestryWeavedEventId = 102;
+    public const int WeavingInitializedEventId = VKDiagnosticOffsets.AI_Cognitive_Weaving + 1;
+    public const int TokenLimitWarningEventId = VKDiagnosticOffsets.AI_Cognitive_Weaving + 2;
+    public const int TapestryWeavedEventId = VKDiagnosticOffsets.AI_Cognitive_Weaving + 3;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

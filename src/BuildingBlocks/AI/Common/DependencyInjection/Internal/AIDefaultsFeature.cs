@@ -12,7 +12,7 @@ internal sealed partial class AIDefaultsFeature
     // [SG Hook]
     static partial void RegisterCustom(IServiceCollection services, VKAIDefaultsOptions options)
     {
-        // Add shared infrastructure here if needed
+        Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<VK.Blocks.AI.IVKEngineRouter, VK.Blocks.AI.Common.Routing.Internal.NoOpVKEngineRouter>(services);
     }
 
     /// <summary>Add global validation logic here</summary>

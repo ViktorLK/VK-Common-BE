@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VK.Blocks.Core;
 
 // // [AP.03] Public contract in root namespace carrying VK prefix
 namespace VK.Blocks.AI.Cognitive;
@@ -14,7 +13,7 @@ public sealed record VKWeavingOptions : IVKWeavingOptions
     public static string SectionName => "VKBlocks:AI:Cognitive:Weaving";
 
     public int MaxTokenLimit { get; init; } = 8192;
-    
+
     public bool StripThinkTags { get; init; } = true;
     public bool EnableSemanticPruning { get; init; } = true;
 
@@ -26,7 +25,7 @@ public sealed record VKWeavingOptions : IVKWeavingOptions
     /// <summary>
     /// Defines the tier rendering order mapped to the active Intent.
     /// </summary>
-    public IReadOnlyDictionary<VKIntent, IReadOnlyList<VKPromptTierType>> LayoutStrategies { get; init; } 
+    public IReadOnlyDictionary<VKIntent, IReadOnlyList<VKPromptTierType>> LayoutStrategies { get; init; }
         = new Dictionary<VKIntent, IReadOnlyList<VKPromptTierType>>
         {
             { VKIntent.Chat, new[] { VKPromptTierType.SystemInstructions, VKPromptTierType.Knowledge, VKPromptTierType.ChatHistory } },

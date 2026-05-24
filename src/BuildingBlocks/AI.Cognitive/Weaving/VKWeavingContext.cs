@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using VK.Blocks.Core;
 
 // // [AP.03] Public contract in root namespace carrying VK prefix
 namespace VK.Blocks.AI.Cognitive;

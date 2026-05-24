@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -45,13 +44,15 @@ internal sealed class BasicTapestryWeaver : IVKTapestryWeaver
                 var systemTiers = formatted.Where(f => f.TierType == VKPromptTierType.SystemInstructions).ToList();
                 foreach (var tier in systemTiers)
                 {
-                    if (systemInstructionsBuilder.Length > 0) systemInstructionsBuilder.AppendLine();
+                    if (systemInstructionsBuilder.Length > 0)
+                        systemInstructionsBuilder.AppendLine();
                     systemInstructionsBuilder.Append(tier.Content);
                 }
 
                 if (!string.IsNullOrWhiteSpace(context.Pipeline.SystemInstructions))
                 {
-                    if (systemInstructionsBuilder.Length > 0) systemInstructionsBuilder.AppendLine();
+                    if (systemInstructionsBuilder.Length > 0)
+                        systemInstructionsBuilder.AppendLine();
                     systemInstructionsBuilder.Append(context.Pipeline.SystemInstructions);
                 }
             }
@@ -61,7 +62,7 @@ internal sealed class BasicTapestryWeaver : IVKTapestryWeaver
                 var historyTiers = formatted.Where(f => f.TierType == VKPromptTierType.ChatHistory)
                                             .OrderByDescending(f => f.Depth)
                                             .ToList();
-                
+
                 foreach (var tier in historyTiers)
                 {
                     finalMessages.Add(new VKChatMessage { Role = tier.Role, Content = tier.Content });
@@ -71,7 +72,7 @@ internal sealed class BasicTapestryWeaver : IVKTapestryWeaver
             {
                 // Generalized appending for other tiers (Persona, Knowledge, Scenario, AuthorNote)
                 var specializedTiers = formatted.Where(f => f.TierType == tierType).ToList();
-                
+
                 foreach (var tier in specializedTiers)
                 {
                     // If it's defined as a system role internally, we can either append to system string or push as a system message

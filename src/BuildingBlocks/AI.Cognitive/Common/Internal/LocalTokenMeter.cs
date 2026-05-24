@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive.Common.Internal;
@@ -21,7 +20,7 @@ internal sealed class LocalTokenMeter : IVKTokenMeter
     // Conservative average characters per token to prevent under-estimation.
     private const double EnglishCharsPerToken = 3.0;
     private const double CjkCharsPerToken = 0.75;
-    
+
     // Standard OpenAI chat template overhead per message (e.g., "<|im_start|>role\ncontent<|im_end|>\n")
     private const int MessageOverheadTokens = 4;
 
@@ -68,7 +67,7 @@ internal sealed class LocalTokenMeter : IVKTokenMeter
 
             totalTokens += MessageOverheadTokens;
             totalTokens += CountTokens(message.Role.ToString());
-            
+
             if (!string.IsNullOrEmpty(message.Content))
             {
                 totalTokens += CountTokens(message.Content);

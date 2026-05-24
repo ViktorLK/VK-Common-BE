@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Cognitive.Memory.Diagnostics.Internal;
 using VK.Blocks.Core;
 

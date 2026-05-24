@@ -20,7 +20,7 @@ internal sealed class DefaultIntentArbiter : IVKIntentArbiter
         VKGuard.NotNull(candidates);
 
         var first = candidates.FirstOrDefault();
-        
+
         return Task.FromResult(VKResult.Success(new VKIntentContext
         {
             Intent = first == default ? VKIntent.Unknown : first,

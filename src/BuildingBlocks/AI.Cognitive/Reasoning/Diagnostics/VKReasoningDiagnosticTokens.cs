@@ -1,3 +1,4 @@
+using VK.Blocks.Core.Diagnostics;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
@@ -6,9 +7,9 @@ namespace VK.Blocks.AI.Cognitive;
 public static class VKReasoningDiagnosticTokens
 {
     // Logs (Event IDs)
-    public const int GoalDecompositionFailedEventId = 700;
-    public const int StepParsingFailedEventId = 701;
-    public const int PlanningCompletedEventId = 702;
+    public const int GoalDecompositionFailedEventId = VKDiagnosticOffsets.AI_Cognitive_Reasoning + 1;
+    public const int StepParsingFailedEventId = VKDiagnosticOffsets.AI_Cognitive_Reasoning + 2;
+    public const int PlanningCompletedEventId = VKDiagnosticOffsets.AI_Cognitive_Reasoning + 3;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

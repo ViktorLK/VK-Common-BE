@@ -1,3 +1,4 @@
+using VK.Blocks.Core.Diagnostics;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
@@ -6,8 +7,8 @@ namespace VK.Blocks.AI.Cognitive;
 public static class VKKnowledgeDiagnosticTokens
 {
     // Logs (Event IDs)
-    public const int KnowledgeInitializedEventId = 200;
-    public const int KnowledgeRetrievedEventId = 201;
+    public const int KnowledgeInitializedEventId = VKDiagnosticOffsets.AI_Cognitive_Knowledge + 1;
+    public const int KnowledgeRetrievedEventId = VKDiagnosticOffsets.AI_Cognitive_Knowledge + 2;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

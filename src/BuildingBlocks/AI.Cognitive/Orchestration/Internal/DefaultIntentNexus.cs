@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.AI;
-using VK.Blocks.Core;
 using VK.Blocks.AI.Cognitive.Orchestration.Diagnostics.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive.Orchestration.Internal;
 

@@ -1,3 +1,4 @@
+using VK.Blocks.Core.Diagnostics;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
@@ -6,8 +7,8 @@ namespace VK.Blocks.AI.Cognitive;
 public static class VKPersonaDiagnosticTokens
 {
     // Logs (Event IDs)
-    public const int PersonaLoadedEventId = 400;
-    public const int PersonaSaveFailedEventId = 401;
+    public const int PersonaLoadedEventId = VKDiagnosticOffsets.AI_Cognitive_Persona + 1;
+    public const int PersonaSaveFailedEventId = VKDiagnosticOffsets.AI_Cognitive_Persona + 2;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

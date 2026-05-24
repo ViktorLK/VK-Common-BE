@@ -12,6 +12,8 @@ public sealed record VKKnowledgeEntry
     /// </summary>
     public required string Id { get; init; }
 
+    public required string KnowledgeBookId { get; init; }
+
     /// <summary>
     /// Gets a value indicating whether this entry is active and enabled for retrieval.
     /// </summary>

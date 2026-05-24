@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>

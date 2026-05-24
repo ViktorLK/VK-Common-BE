@@ -12,7 +12,7 @@ internal sealed partial class PersonaFeature
     static partial void RegisterCustom(IServiceCollection services, VKPersonaOptions options)
     {
         _ = options;
-        services.TryAddScoped<IVKPersonaCodex, BasicPersonaCodex>();
+        services.TryAddScoped<IVKPersonaStore, InMemoryPersonaStore>();
     }
 
     // [SG Hook]

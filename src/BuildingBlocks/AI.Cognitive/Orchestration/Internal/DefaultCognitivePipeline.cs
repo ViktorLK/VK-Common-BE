@@ -12,7 +12,7 @@ namespace VK.Blocks.AI.Cognitive.Orchestration.Internal;
 /// <summary>
 /// A high-performance implementation of <see cref="IVKCognitivePipeline"/> that orchestrates the flow
 /// using the registered <see cref="IVKIntentNexus"/>, <see cref="IVKChatEngine"/>, and optional services
-/// like <see cref="IVKPersonaCodex"/>, <see cref="IVKMemoryEchoes"/>, <see cref="IVKReasoningPlanner"/>, and <see cref="IVKThoughtStream"/>.
+/// like <see cref="IVKPersonaStore"/>, <see cref="IVKMemoryEchoes"/>, <see cref="IVKReasoningPlanner"/>, and <see cref="IVKThoughtStream"/>.
 /// </summary>
 // [AP.03] Internal implementation is deep namespace and does not carry the VK prefix
 // [AP.01] Sealed default for classes
@@ -21,12 +21,12 @@ internal sealed class DefaultCognitivePipeline : IVKCognitivePipeline
     private readonly IVKIntentNexus _intentNexus;
     private readonly IVKChatEngine? _chatEngine;
     private readonly IEnumerable<IVKCognitivePipelineInterceptor> _interceptors;
-    private readonly IVKKnowledgeManager? _knowledgeManager;
+    private readonly IVKKnowledgeStore? _knowledgeManager;
     private readonly IVKPromptWeavingEngine? _promptWeavingEngine;
     private readonly IVKTokenMeter _tokenMeter;
     private readonly ILogger<DefaultCognitivePipeline>? _logger;
     private readonly IVKTenantContextAccessor? _tenantAccessor;
-    private readonly IVKPersonaCodex? _personaCodex;
+    private readonly IVKPersonaStore? _personaCodex;
     private readonly IVKPresetProvider? _presetProvider;
     private readonly IVKMemoryEchoes? _memoryEchoes;
     private readonly IVKReasoningPlanner? _reasoningPlanner;
@@ -52,11 +52,11 @@ internal sealed class DefaultCognitivePipeline : IVKCognitivePipeline
         IVKTokenMeter tokenMeter,
         IVKChatEngine? chatEngine,
         IEnumerable<IVKCognitivePipelineInterceptor>? interceptors,
-        IVKKnowledgeManager? knowledgeManager,
+        IVKKnowledgeStore? knowledgeManager,
         IVKPromptWeavingEngine? promptWeavingEngine,
         ILogger<DefaultCognitivePipeline>? logger = null,
         IVKTenantContextAccessor? tenantAccessor = null,
-        IVKPersonaCodex? personaCodex = null,
+        IVKPersonaStore? personaCodex = null,
         IVKPresetProvider? presetProvider = null,
         IVKMemoryEchoes? memoryEchoes = null,
         IVKReasoningPlanner? reasoningPlanner = null,
@@ -567,8 +567,7 @@ internal sealed class DefaultCognitivePipeline : IVKCognitivePipeline
         IEnumerable<VKKnowledgeEntry>? preRetrievedKnowledge = null;
         if (_knowledgeManager != null && !(pipelineContext.Args?.SkipRecall ?? false))
         {
-            var themeId = pipelineContext.Args?.Context != null && pipelineContext.Args.Context.TryGetValue("ThemeId", out var ctxThemeId) ? ctxThemeId?.ToString() : null;
-            var knowledgeResult = await _knowledgeManager.GetRelevantEntriesAsync(input, themeId, cancellationToken).ConfigureAwait(false); // [CS.03]
+            var knowledgeResult = await _knowledgeManager.GetRelevantEntriesAsync(input, cancellationToken).ConfigureAwait(false); // [CS.03]
             if (knowledgeResult.IsSuccess && knowledgeResult.Value is not null)
             {
                 preRetrievedKnowledge = knowledgeResult.Value;

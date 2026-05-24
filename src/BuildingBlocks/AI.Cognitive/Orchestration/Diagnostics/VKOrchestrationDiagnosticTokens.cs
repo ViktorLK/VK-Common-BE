@@ -1,3 +1,4 @@
+using VK.Blocks.Core.Diagnostics;
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
@@ -6,9 +7,9 @@ namespace VK.Blocks.AI.Cognitive;
 public static class VKOrchestrationDiagnosticTokens
 {
     // Logs (Event IDs)
-    public const int IntentRoutingFailedEventId = 500;
-    public const int PipelineStartedEventId = 501;
-    public const int PipelineCompletedEventId = 502;
+    public const int IntentRoutingFailedEventId = VKDiagnosticOffsets.AI_Cognitive_Orchestration + 1;
+    public const int PipelineStartedEventId = VKDiagnosticOffsets.AI_Cognitive_Orchestration + 2;
+    public const int PipelineCompletedEventId = VKDiagnosticOffsets.AI_Cognitive_Orchestration + 3;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

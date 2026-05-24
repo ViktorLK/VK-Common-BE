@@ -15,7 +15,7 @@ internal sealed partial class OrchestrationFeature
         services.TryAddScoped<IVKThoughtStream, DefaultThoughtStream>();
         services.TryAddScoped<IVKCognitivePipeline, DefaultCognitivePipeline>();
         services.TryAddScoped<IVKIntentNexus, DefaultIntentNexus>();
-        
+
         // Background Auditing
         services.TryAddSingleton<IVKAuditSynapseQueue, DefaultAuditSynapseQueue>();
         services.AddHostedService<AuditSynapseWorker>();

@@ -16,4 +16,9 @@ public interface IVKAgentsOverrides :
     /// Gets the maximum number of tool iterations.
     /// </summary>
     int? MaxIterations { get; init; }
+
+    /// <summary>
+    /// Gets the maximum number of tool calls per iteration.
+    /// </summary>
+    int? MaxToolCallsPerIteration { get; init; }
 }

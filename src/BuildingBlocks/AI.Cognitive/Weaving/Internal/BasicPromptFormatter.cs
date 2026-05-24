@@ -16,7 +16,7 @@ internal sealed class BasicPromptFormatter : IVKPromptFormatter<VKDefaultModelMa
         foreach (var item in truncated)
         {
             var fragment = item.Fragment;
-            
+
             // Standard formatting. Strip think tags if necessary.
             string content = fragment.Content;
             int thinkStart = content.IndexOf("<think>");
