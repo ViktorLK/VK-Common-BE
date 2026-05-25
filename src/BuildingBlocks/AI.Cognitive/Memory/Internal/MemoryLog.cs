@@ -86,4 +86,3 @@ internal static partial class MemoryLog
         Message = "Automatic memory metabolism background cycle stopped.")]
     public static partial void AutomaticMetabolismStopped(this ILogger logger);
 }
-

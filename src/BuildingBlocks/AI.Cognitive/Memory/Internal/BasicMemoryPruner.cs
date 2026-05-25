@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive.Memory.Internal;
@@ -16,9 +17,7 @@ namespace VK.Blocks.AI.Cognitive.Memory.Internal;
 /// </summary>
 internal sealed class BasicMemoryPruner : BackgroundService, IVKMemoryPruner
 {
-    private readonly IVKMemoryEchoes _echoes;
-    private readonly IVKMemoryLedger _realityLedger;
-    private readonly IVKMemorySummarizer _summarizer;
+    private readonly Microsoft.Extensions.DependencyInjection.IServiceScopeFactory _scopeFactory;
     private readonly IVKGuidGenerator _guidGenerator;
     private readonly TimeProvider _timeProvider;
     private readonly VKMemoryOptions _options;
@@ -33,17 +32,13 @@ internal sealed class BasicMemoryPruner : BackgroundService, IVKMemoryPruner
         });
 
     public BasicMemoryPruner(
-        IVKMemoryEchoes echoes,
-        IVKMemoryLedger realityLedger,
-        IVKMemorySummarizer summarizer,
+        Microsoft.Extensions.DependencyInjection.IServiceScopeFactory scopeFactory,
         IVKGuidGenerator guidGenerator,
         TimeProvider timeProvider,
         IOptions<VKMemoryOptions> options,
         ILogger<BasicMemoryPruner> logger)
     {
-        _echoes = VKGuard.NotNull(echoes);
-        _realityLedger = VKGuard.NotNull(realityLedger);
-        _summarizer = VKGuard.NotNull(summarizer);
+        _scopeFactory = VKGuard.NotNull(scopeFactory);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
         _timeProvider = VKGuard.NotNull(timeProvider);
         _options = VKGuard.NotNull(options.Value);
@@ -56,14 +51,18 @@ internal sealed class BasicMemoryPruner : BackgroundService, IVKMemoryPruner
         _triggerChannel.Writer.TryWrite(0);
     }
 
-    /// <inheritdoc />
     public async Task<VKResult> RunPruningCycleAsync(CancellationToken cancellationToken = default)
     {
         _logger.PruningManualStarted();
         try
         {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var echoes = scope.ServiceProvider.GetRequiredService<IVKMemoryEchoes>();
+            var realityLedger = scope.ServiceProvider.GetRequiredService<IVKMemoryLedger>();
+            var summarizer = scope.ServiceProvider.GetRequiredService<IVKMemorySummarizer>();
+
             var now = _timeProvider.GetUtcNow();
-            var allResult = await _echoes.SearchAsync(string.Empty, limit: int.MaxValue, minScore: 0.0f, cancellationToken).ConfigureAwait(false);
+            var allResult = await echoes.SearchAsync(string.Empty, limit: int.MaxValue, minScore: 0.0f, cancellationToken).ConfigureAwait(false);
             if (allResult.IsFailure)
             {
                 return VKResult.Failure(allResult.FirstError);
@@ -82,7 +81,7 @@ internal sealed class BasicMemoryPruner : BackgroundService, IVKMemoryPruner
 
             foreach (var noise in biometricNoise)
             {
-                await _echoes.RemoveAsync(noise.Id, cancellationToken).ConfigureAwait(false);
+                await echoes.RemoveAsync(noise.Id, cancellationToken).ConfigureAwait(false);
                 memories.Remove(noise);
                 prunedCount++;
             }
@@ -91,20 +90,26 @@ internal sealed class BasicMemoryPruner : BackgroundService, IVKMemoryPruner
             foreach (var entry in memories.Where(m => m.Category != VKMemoryCategory.Persona && m.Category != VKMemoryCategory.LongTerm))
             {
                 double ageDays = Math.Max(0.0, (now - entry.CreatedAt).TotalDays);
-                double decayedImportance = entry.Importance * Math.Pow(2, -ageDays / _options.HalfLifeDays);
+                double halfLifeMultiplier = 1.0;
+                if (entry.Metadata.TryGetValue("HalfLifeMultiplier", out var hlmStr) && double.TryParse(hlmStr, out var hlm))
+                {
+                    halfLifeMultiplier = hlm;
+                }
+                double effectiveHalfLife = _options.HalfLifeDays * halfLifeMultiplier;
+                double decayedImportance = entry.Importance * Math.Pow(2, -ageDays / effectiveHalfLife);
                 decayedImportance = Math.Clamp(decayedImportance, 0.0, 1.0);
 
                 if (Math.Abs(decayedImportance - entry.Importance) > 0.05)
                 {
                     var updated = entry with { Importance = (float)decayedImportance };
-                    await _echoes.RemoveAsync(entry.Id, cancellationToken).ConfigureAwait(false);
-                    await _echoes.SaveAsync(updated, cancellationToken).ConfigureAwait(false);
+                    await echoes.RemoveAsync(entry.Id, cancellationToken).ConfigureAwait(false);
+                    await echoes.SaveAsync(updated, cancellationToken).ConfigureAwait(false);
                     decayedCount++;
                 }
             }
 
             // Reload memories after updates to evaluate pruning candidates accurately
-            var postDecayResult = await _echoes.SearchAsync(string.Empty, limit: int.MaxValue, minScore: 0.0f, cancellationToken).ConfigureAwait(false);
+            var postDecayResult = await echoes.SearchAsync(string.Empty, limit: int.MaxValue, minScore: 0.0f, cancellationToken).ConfigureAwait(false);
             if (postDecayResult.IsFailure)
             {
                 return VKResult.Failure(postDecayResult.FirstError);
@@ -119,11 +124,10 @@ internal sealed class BasicMemoryPruner : BackgroundService, IVKMemoryPruner
             var shortTermCandidates = candidates.Where(c => c.Category == VKMemoryCategory.ShortTerm).ToList();
             var otherCandidates = candidates.Where(c => c.Category != VKMemoryCategory.ShortTerm).ToList();
 
-            // 3.1 Summarization Compression for low-importance ShortTerm memories
             if (shortTermCandidates.Count >= 3)
             {
                 var combinedContent = string.Join("\n---\n", shortTermCandidates.Select(x => x.Content));
-                var summaryResult = await _summarizer.SummarizeAsync(combinedContent, cancellationToken).ConfigureAwait(false);
+                var summaryResult = await summarizer.SummarizeAsync(combinedContent, cancellationToken).ConfigureAwait(false);
 
                 if (summaryResult.IsSuccess && !string.IsNullOrWhiteSpace(summaryResult.Value))
                 {
@@ -143,24 +147,23 @@ internal sealed class BasicMemoryPruner : BackgroundService, IVKMemoryPruner
                         }
                     };
 
-                    await _echoes.SaveAsync(summaryEntry, cancellationToken).ConfigureAwait(false);
+                    await echoes.SaveAsync(summaryEntry, cancellationToken).ConfigureAwait(false);
                     consolidatedCount++;
 
                     // Archive originals to reality ledger and remove
                     foreach (var orig in shortTermCandidates)
                     {
-                        await _realityLedger.RecordAsync(orig.Id, orig, cancellationToken).ConfigureAwait(false);
-                        await _echoes.RemoveAsync(orig.Id, cancellationToken).ConfigureAwait(false);
+                        await realityLedger.RecordAsync(orig.Id, orig, cancellationToken).ConfigureAwait(false);
+                        await echoes.RemoveAsync(orig.Id, cancellationToken).ConfigureAwait(false);
                         prunedCount++;
                     }
                 }
             }
 
-            // 3.2 Simple Archive for other low-importance entries
             foreach (var entry in otherCandidates)
             {
-                await _realityLedger.RecordAsync(entry.Id, entry, cancellationToken).ConfigureAwait(false);
-                await _echoes.RemoveAsync(entry.Id, cancellationToken).ConfigureAwait(false);
+                await realityLedger.RecordAsync(entry.Id, entry, cancellationToken).ConfigureAwait(false);
+                await echoes.RemoveAsync(entry.Id, cancellationToken).ConfigureAwait(false);
                 prunedCount++;
             }
 

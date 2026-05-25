@@ -15,7 +15,7 @@ internal static class VKAICognitiveBlockRegistration
         IConfiguration configuration,
         Func<VKAICognitiveOptions, VKAICognitiveOptions>? transform = null)
     {
-        var builder = new VKAICognitiveBlockBuilder(services, configuration);
+        var builder = new VKAICognitiveBlockBuilder(services, configuration.GetSection(VKBlocksConstants.VKBlocksConfigPrefix));
 
         if (services.IsVKBlockRegistered<VKAICognitiveBlock>())
         {

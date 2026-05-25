@@ -1,37 +1,66 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Microsoft.ML.Tokenizers;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Tokenics.Counting.Internal;
 
 /// <summary>
-/// A default heuristic-based tokenizer that estimates token count based on string length.
-/// Useful for general estimation when a model-specific tokenizer is not available.
+/// High-precision tokenizer based on Microsoft.ML.Tokenizers.
 /// </summary>
 internal sealed class DefaultTokenizer : IVKTokenizer
 {
-    private const float AverageCharsPerToken = 4.0f;
+    private readonly ConcurrentDictionary<string, Tokenizer> _tokenizers = new(StringComparer.OrdinalIgnoreCase);
+
+    private Tokenizer GetTokenizer(string? modelId)
+    {
+        var targetModel = string.IsNullOrWhiteSpace(modelId) ? "gpt-4" : modelId;
+
+        return _tokenizers.GetOrAdd(targetModel, model =>
+        {
+            try
+            {
+                return TiktokenTokenizer.CreateForModel(model);
+            }
+            catch
+            {
+                // Fallback to gpt-4 if the specific model isn't supported
+                return TiktokenTokenizer.CreateForModel("gpt-4");
+            }
+        });
+    }
 
     /// <inheritdoc />
     public int CountTokens(string text, string? modelId = null)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return 0;
+        }
 
-        // Simple heuristic: 1 token ~= 4 characters for English/Standard text.
-        return (int)Math.Ceiling(text.Length / AverageCharsPerToken);
+        var tokenizer = GetTokenizer(modelId);
+        return tokenizer.CountTokens(text);
     }
 
     /// <inheritdoc />
     public IReadOnlyList<int> Encode(string text, string? modelId = null)
     {
-        // Default implementation does not support ID encoding.
-        return [];
+        if (string.IsNullOrEmpty(text))
+        {
+            return [];
+        }
+
+        var tokenizer = GetTokenizer(modelId);
+        return tokenizer.EncodeToIds(text);
     }
 
     /// <inheritdoc />
     public string Decode(IEnumerable<int> tokens, string? modelId = null)
     {
-        // Default implementation does not support ID decoding.
-        return string.Empty;
+        VKGuard.NotNull(tokens);
+
+        var tokenizer = GetTokenizer(modelId);
+        return tokenizer.Decode(tokens);
     }
 }

@@ -54,6 +54,18 @@ trigger: manual
   ✅ ApiKeys/Internal/
   ❌ Features/HandleApiKeys/
 
+#### Implementation Naming Taxonomy
+
+For concrete implementation classes, strictly adhere to the following semantic prefixes to clearly communicate their capability, performance baseline, and engineering intent:
+
+| Prefix | Visibility | Performance & Technical Baseline | Engineering Intent & Context |
+| :--- | :--- | :--- | :--- |
+| **`Default`** | `internal sealed` | Production-grade, high-performance (e.g., `FrozenDictionary`, `ExpressionCompiler`). | **The Official Recommendation**. Use this for the standard, production-ready implementation. |
+| **`Basic`** | `internal sealed` | In-Memory / Single-node / No distributed protection mechanisms. | **Foundational / Lightweight**. Not designed to withstand high concurrency or distributed scale. |
+| **`NoOp`** | `internal sealed` | Zero-allocation, immediately returns `Result.Failure`. | **Graceful Disablement**. The feature is toggled off, but ensures the DI container remains stable. |
+| **`Composite`** | `internal sealed` | Aggregation of multiple implementations. | **Mediator / Aggregator**. Acts as a coordinator or conflict resolver across multiple providers. |
+| **`{Vendor}`** (e.g., `SK`, `Ef`) | `internal sealed` | Carries breaking-change risks aligned with vendor SDK upgrades. Focuses on the Anti-Corruption Layer. | **External Coupling**. Deeply coupled to an external dependency. Must be swappable via interfaces. |
+
 #### Interface Versioning (Public API)
 
 - **Backward Compatibility**: Once an interface (e.g., `IVK...`) is published as a Level 1 Public API, breaking changes to consumers MUST be avoided.

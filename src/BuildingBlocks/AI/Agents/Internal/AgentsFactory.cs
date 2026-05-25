@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Agents.Internal;
@@ -28,7 +31,23 @@ internal sealed class AgentsFactory : IVKAgentFactory
         VKGuard.NotNullOrWhiteSpace(description);
         VKGuard.NotNull(tools);
 
-        // Implementation details...
-        return null!; // Placeholder
+        var chatEngine = _serviceProvider.GetRequiredService<IVKChatEngine>();
+        var options = _serviceProvider.GetRequiredService<IOptions<VKAgentsOptions>>();
+        var globalOptions = _serviceProvider.GetRequiredService<IOptions<VKAIDefaultsOptions>>();
+        var userContext = _serviceProvider.GetRequiredService<IVKUserContext>();
+        var logger = _serviceProvider.GetRequiredService<ILogger<BasicAgent>>();
+        var filters = _serviceProvider.GetService<IEnumerable<IVKAtomicToolFilter>>();
+
+        return new BasicAgent(
+            name,
+            description,
+            tools,
+            metadata,
+            chatEngine,
+            options,
+            globalOptions,
+            userContext,
+            logger,
+            filters);
     }
 }

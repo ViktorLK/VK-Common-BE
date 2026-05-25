@@ -13,7 +13,7 @@ internal sealed partial class LimitingFeature
     static partial void RegisterCustom(IServiceCollection services, VKLimitingOptions options)
     {
         _ = options;
-        services.TryAddSingleton<IVKTokenRateLimiter, NoOpVKTokenRateLimiter>();
+        services.TryAddScoped<IVKTokenRateLimiter, DefaultTokenRateLimiter>();
     }
 
     /// <summary>Add limiting-specific validation logic here</summary>

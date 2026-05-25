@@ -118,8 +118,8 @@ public static class VKKnowledgeMatcher
     }
 
     private static Expression BuildGroupExpression(
-        ParameterExpression contextParam, 
-        VKKnowledgeFilterLogic logic, 
+        ParameterExpression contextParam,
+        VKKnowledgeFilterLogic logic,
         List<VKKnowledgeKey> keys)
     {
         if (keys.Count == 0)

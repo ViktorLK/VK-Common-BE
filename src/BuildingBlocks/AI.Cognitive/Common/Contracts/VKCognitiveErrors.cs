@@ -7,14 +7,27 @@ namespace VK.Blocks.AI.Cognitive;
 /// </summary>
 public static class VKCognitiveErrors
 {
-    /// <summary>
-    /// Errors related to general cognitive operations.
-    /// </summary>
-    public static class Internal
-    {
-        /// <summary>
-        /// Error returned when a cognitive operation fails unexpectedly.
-        /// </summary>
-        public static readonly VKError OperationFailed = new("AI.Cognitive.Internal.OperationFailed", "An unexpected error occurred during the cognitive operation.");
-    }
+    public static readonly VKError OperationFailed = VKError.Failure(
+        "AI.Cognitive.Internal.OperationFailed",
+        "An unexpected error occurred during the cognitive operation.");
+
+    public static readonly VKError PipelineFault = VKError.Failure(
+        "Cognitive.PipelineFault",
+        "An unexpected error occurred during cognitive pipeline orchestration.");
+
+    public static readonly VKError MemoryAccessFailed = VKError.Failure(
+        "Cognitive.MemoryAccessFailed",
+        "Failed to access or retrieve memory/knowledge echoes.");
+
+    public static readonly VKError IntentRoutingTimeout = VKError.Failure(
+        "Cognitive.IntentRoutingTimeout",
+        "The intent routing module timed out or failed to determine the user intent.");
+
+    public static readonly VKError InferenceTimeout = VKError.Failure(
+        "Cognitive.InferenceTimeout",
+        "The underlying LLM inference stream timed out.");
+
+    public static readonly VKError GovernanceRejected = VKError.Failure(
+        "Cognitive.GovernanceRejected",
+        "The request was rejected by early governance interceptors.");
 }

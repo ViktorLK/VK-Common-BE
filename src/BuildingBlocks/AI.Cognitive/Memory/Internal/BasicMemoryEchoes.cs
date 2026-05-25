@@ -44,7 +44,7 @@ internal sealed class BasicMemoryEchoes : IVKMemoryEchoes
         return Task.FromResult(VKResult.Success());
     }
 
-    public Task<VKResult<IEnumerable<VKMemoryQueryResult>>> SearchAsync(
+    public async Task<VKResult<IEnumerable<VKMemoryQueryResult>>> SearchAsync(
         string query,
         int limit = 5,
         float minScore = 0.7f,
@@ -54,12 +54,13 @@ internal sealed class BasicMemoryEchoes : IVKMemoryEchoes
         VKGuard.NotNull(query);
 
         var results = PerformSearch(query, limit, minScore, enableTemporal: true, decayRate: null);
+        await ReactivateEntriesAsync(results, cancellationToken).ConfigureAwait(false);
         _logger.MemorySearchCompleted(results.Count, query);
 
-        return Task.FromResult(VKResult.Success<IEnumerable<VKMemoryQueryResult>>(results));
+        return VKResult.Success<IEnumerable<VKMemoryQueryResult>>(results);
     }
 
-    public Task<VKResult<IEnumerable<VKMemoryQueryResult>>> SearchAsync(
+    public async Task<VKResult<IEnumerable<VKMemoryQueryResult>>> SearchAsync(
         string query,
         VKRetrievalArgs? args = null,
         CancellationToken cancellationToken = default)
@@ -73,9 +74,10 @@ internal sealed class BasicMemoryEchoes : IVKMemoryEchoes
         var decayRate = args?.EnableTemporalWeighting == true ? args.DecayRate : (double?)null;
 
         var results = PerformSearch(query, limit, minScore, enableTemporal, decayRate);
+        await ReactivateEntriesAsync(results, cancellationToken).ConfigureAwait(false);
         _logger.MemorySearchCompleted(results.Count, query);
 
-        return Task.FromResult(VKResult.Success<IEnumerable<VKMemoryQueryResult>>(results));
+        return VKResult.Success<IEnumerable<VKMemoryQueryResult>>(results);
     }
 
     public Task<VKResult<int>> PruneAsync(
@@ -104,7 +106,8 @@ internal sealed class BasicMemoryEchoes : IVKMemoryEchoes
 
             // Calculate decay
             var ageDays = Math.Max(0.0, (now - entry.CreatedAt).TotalDays);
-            var decayedImportance = entry.Importance * Math.Pow(2, -ageDays / halfLife);
+            var effectiveHalfLife = GetEffectiveHalfLife(entry, halfLife);
+            var decayedImportance = entry.Importance * Math.Pow(2, -ageDays / effectiveHalfLife);
 
             if (decayedImportance < minImportance || decayedImportance < _settings.PruningThreshold)
             {
@@ -166,7 +169,8 @@ internal sealed class BasicMemoryEchoes : IVKMemoryEchoes
                 var relevance = CalculateRelevance(entry, queryTokens);
 
                 var ageDays = Math.Max(0.0, (now - entry.CreatedAt).TotalDays);
-                var decay = Math.Pow(2, -ageDays / halfLife);
+                var effectiveHalfLife = GetEffectiveHalfLife(entry, halfLife);
+                var decay = Math.Pow(2, -ageDays / effectiveHalfLife);
                 var score = relevance * (float)(entry.Importance * decay);
 
                 return new VKMemoryQueryResult
@@ -207,9 +211,16 @@ internal sealed class BasicMemoryEchoes : IVKMemoryEchoes
             if (enableTemporal)
             {
                 var ageDays = Math.Max(0.0, (now - entry.CreatedAt).TotalDays);
+                var effectiveHalfLife = GetEffectiveHalfLife(entry, halfLife);
+                var halfLifeMultiplier = 1.0;
+                if (entry.Metadata.TryGetValue("HalfLifeMultiplier", out var hlmStr) && double.TryParse(hlmStr, out var hlm))
+                {
+                    halfLifeMultiplier = hlm;
+                }
+
                 var decay = decayRate.HasValue
-                    ? Math.Exp(-ageDays * decayRate.Value)
-                    : Math.Pow(2, -ageDays / halfLife);
+                    ? Math.Exp(-ageDays * (decayRate.Value / halfLifeMultiplier))
+                    : Math.Pow(2, -ageDays / effectiveHalfLife);
 
                 score = relevance * (float)(entry.Importance * decay);
             }
@@ -228,6 +239,57 @@ internal sealed class BasicMemoryEchoes : IVKMemoryEchoes
             .OrderByDescending(r => r.Score)
             .Take(limit)
             .ToList();
+    }
+
+    private double GetEffectiveHalfLife(VKMemoryEntry entry, double baseHalfLife)
+    {
+        if (entry.Metadata.TryGetValue("HalfLifeMultiplier", out var hlmStr) && double.TryParse(hlmStr, out var hlm))
+        {
+            return baseHalfLife * hlm;
+        }
+        return baseHalfLife;
+    }
+
+    private async Task ReactivateEntriesAsync(List<VKMemoryQueryResult> results, CancellationToken cancellationToken)
+    {
+        var now = _timeProvider.GetUtcNow();
+        for (int i = 0; i < results.Count; i++)
+        {
+            var r = results[i];
+            var entry = r.Entry;
+            if (entry.Category == VKMemoryCategory.Persona || entry.Category == VKMemoryCategory.LongTerm)
+            {
+                continue;
+            }
+
+            var accessCount = 0;
+            if (entry.Metadata.TryGetValue("AccessCount", out var acStr) && int.TryParse(acStr, out var ac))
+            {
+                accessCount = ac;
+            }
+
+            var newAccessCount = accessCount + 1;
+            var newImportance = Math.Min(1.0f, entry.Importance + 0.15f);
+            var newHalfLifeMultiplier = 1.0 + 0.5 * newAccessCount;
+
+            var updatedMetadata = new Dictionary<string, string>(entry.Metadata)
+            {
+                ["AccessCount"] = newAccessCount.ToString(),
+                ["HalfLifeMultiplier"] = newHalfLifeMultiplier.ToString("F2")
+            };
+
+            var updated = entry with
+            {
+                Importance = newImportance,
+                LastAccessedAt = now,
+                Metadata = updatedMetadata
+            };
+
+            await RemoveAsync(entry.Id, cancellationToken).ConfigureAwait(false);
+            await SaveAsync(updated, cancellationToken).ConfigureAwait(false);
+
+            results[i] = r with { Entry = updated };
+        }
     }
 
     private static float CalculateRelevance(VKMemoryEntry entry, HashSet<string> queryTokens)

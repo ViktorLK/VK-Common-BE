@@ -14,6 +14,7 @@ internal sealed partial class BudgetingFeature
     {
         _ = options;
         services.TryAddSingleton<IVKTokenBudgeter, DefaultTokenBudgeter>();
+        services.TryAddSingleton<IVKTokenUsageAggregator, DefaultTokenUsageAggregator>();
     }
 
     /// <summary>Add budgeting-specific validation logic here</summary>

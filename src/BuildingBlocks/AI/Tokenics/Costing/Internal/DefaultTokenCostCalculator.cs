@@ -20,7 +20,7 @@ internal sealed class DefaultTokenCostCalculator : IVKTokenCostCalculator
     };
 
     /// <inheritdoc />
-    public VKTokenCost CalculateCost(VKAIUsage usage, string modelId)
+    public VKTokenCost CalculateCost(VKAITokenUsage usage, string modelId)
     {
         if (string.IsNullOrEmpty(modelId))
         {

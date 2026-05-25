@@ -14,7 +14,7 @@ namespace VK.Blocks.AI.Vectorics.Embeddings.Internal;
 internal sealed class NoOpVKEmbeddingsEngine : IVKEmbeddingsEngine
 {
     // [SG Hook]
-    public Task<VKResult<IEnumerable<VKEmbeddingsVector>>> GetEmbeddingsAsync(
+    public Task<VKResult<VKEmbeddingsResponse>> GetEmbeddingsAsync(
         IEnumerable<string> inputs,
         VKEmbeddingsArgs? args = null,
         CancellationToken cancellationToken = default)
@@ -23,6 +23,11 @@ internal sealed class NoOpVKEmbeddingsEngine : IVKEmbeddingsEngine
         _ = cancellationToken;
 
         var result = inputs.Select(_ => new VKEmbeddingsVector { Values = ReadOnlyMemory<float>.Empty });
-        return Task.FromResult(VKResult.Success(result));
+        var response = new VKEmbeddingsResponse
+        {
+            Vectors = result.ToList(),
+            ModelId = "no-op"
+        };
+        return Task.FromResult(VKResult.Success(response));
     }
 }

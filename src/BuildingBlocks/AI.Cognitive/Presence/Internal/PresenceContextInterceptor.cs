@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Cognitive.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -104,7 +101,7 @@ internal sealed class PresenceContextInterceptor : IVKCognitivePipelineIntercept
 
         // Tier 6: Reasoning Guardrail (Step-by-step <thought> constraints)
         string thoughtGuardrail = "REASONING RULES:\n- Formulate your initial plan and analysis within <thought>...</thought> blocks before responding to the user.\n";
-        
+
         // Reassemble consolidated System Instruction with rigid [SYSTEM_ANCHOR] and guardrail
         string consolidatedSystemPrompt = $"{systemAnchor}{l1Constitution}\n{l2Capabilities}\n{l3Persona}\n{l4WorldContext}\n{thoughtGuardrail}";
         context.SystemInstructions = consolidatedSystemPrompt;

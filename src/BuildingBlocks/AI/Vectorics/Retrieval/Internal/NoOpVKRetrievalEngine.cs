@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
@@ -13,15 +12,16 @@ namespace VK.Blocks.AI.Vectorics.Retrieval.Internal;
 internal sealed class NoOpVKRetrievalEngine : IVKRetrievalEngine
 {
     // [SG Hook]
-    public Task<VKResult<IEnumerable<string>>> SearchAsync(
+    public Task<VKResult<IReadOnlyList<VKRetrievalResult>>> SearchAsync(
         string query,
-        IVKAIArgs? args = null,
+        VKRetrievalArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         _ = query;
         _ = args;
         _ = cancellationToken;
 
-        return Task.FromResult(VKResult.Success(Enumerable.Empty<string>()));
+        IReadOnlyList<VKRetrievalResult> emptyList = [];
+        return Task.FromResult(VKResult.Success(emptyList));
     }
 }

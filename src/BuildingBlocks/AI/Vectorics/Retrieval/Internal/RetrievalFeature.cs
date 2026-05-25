@@ -12,8 +12,8 @@ internal sealed partial class RetrievalFeature
     // [SG Hook]
     static partial void RegisterCustom(IServiceCollection services, VKRetrievalOptions options)
     {
-        _ = options;
         services.TryAddSingleton<IVKRetrievalEngine, NoOpVKRetrievalEngine>();
+        services.TryAddSingleton<IVKAIRagOrchestrator, VKAIRagOrchestrator>();
     }
 
     /// <summary>Add retrieval-specific validation logic here</summary>

@@ -12,8 +12,7 @@ internal sealed partial class KnowledgeFeature
     static partial void RegisterCustom(IServiceCollection services, VKKnowledgeOptions options)
     {
         _ = options;
-        services.TryAddScoped<IVKKnowledgeManager, BasicKnowledgeManager>();
-        services.TryAddSingleton<IVKKnowledgeWeaver, BasicKnowledgeWeaver>();
+        services.TryAddScoped<IVKKnowledgeStore, InMemoryKnowledgeStore>();
     }
 
     // [SG Hook]
