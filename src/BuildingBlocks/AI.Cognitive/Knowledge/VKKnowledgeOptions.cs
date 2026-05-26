@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive;

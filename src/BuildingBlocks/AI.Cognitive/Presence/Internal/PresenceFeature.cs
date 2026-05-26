@@ -41,9 +41,9 @@ internal sealed partial class PresenceFeature
         services.TryAddSingleton<IVKMemoryEvictionDispatcher>(dispatcher);
         services.TryAddSingleton(dispatcher.Reader);
 
-        // Register the core presence pipeline interceptors (Early Governance and Late Context)
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKCognitivePipelineInterceptor, PresenceGovernanceInterceptor>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKCognitivePipelineInterceptor, PresenceContextInterceptor>());
+        // Register the core presence pipeline stages (Early Governance and Late Context)
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKOrchestrationPipelineStage, PresenceGovernancePipelineStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKOrchestrationPipelineStage, PresenceContextPipelineStage>());
     }
 
     // [SG Hook]

@@ -18,7 +18,7 @@ public interface IVKPresenceAssembler
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result containing the compiled system instruction overlay prompt.</returns>
     Task<VKResult<string>> AssembleTapestryAsync(
-        VKCognitivePipelineContext pipelineContext,
+        VKOrchestrationPipelineContext pipelineContext,
         VKPresenceState coreState,
         CancellationToken cancellationToken = default); // [CS.03]
 }

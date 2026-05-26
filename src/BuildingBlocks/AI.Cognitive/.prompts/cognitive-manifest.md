@@ -33,3 +33,10 @@ This manifest governs all architectural, logical, and prompt engineering behavio
 ## COG06: Lorebook Context & Token Budget [uses: CS.04]
 - **Rule**: Lorebook fragments injected into the active context window by the **Knowledge** module must strictly adhere to the token budget.
 - **Enforcement**: Token budget overflow is treated as a fatal `VKResult` failure in the **Knowledge** module, never as a warning.
+
+## COG07: 3-Tier Prompt Formatting Strategy [standalone]
+- **Rule**: All prompt engineering within the cognitive engine must strictly adhere to the following 3-tier formatting strategy:
+  1. **Macro-Skeleton & Sovereignty Isolation (L1 Core Codex, L4 Scenario Knowledge)** $\rightarrow$ Exclusively use XML tags. Lock architectural invariants with `<system_codex>` and RAG-retrieved knowledge with `<knowledge_entries>`.
+  2. **Knowledge Expression & Rule Trees (L3 Soul Mirror Content)** $\rightarrow$ Exclusively use Markdown. Inside XML tags, utilize Markdown headers (e.g., `# Background`) and lists (e.g., `- Catchphrase`) for high signal-to-noise ratio content representation.
+  3. **Dynamic Variables & Immediate Tail-Anchoring (L5 Biological Pulse, Blue-Light Directives)** $\rightarrow$ Exclusively use Brackets/Braces. At the critical assembly point closest to the model's response generation (post User Input), utilize constructs like `[Author's Note: Focus on sensory details]` to enforce absolute attention lock.
+- **Enforcement**: All `IVKPromptFormatter` implementations must adhere to this typography. XML for structure, Markdown for content, brackets for immediate attention overrides.

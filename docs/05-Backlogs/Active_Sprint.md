@@ -38,6 +38,7 @@
 - [x] [AI-013: Support Prompt-as-a-Tool implementation](./.Archive/AI/013-support-prompt-as-a-tool-implementation.md)
 - [x] [AI-014: Clean up or integrate unused memory schemas (VKMemoryFragment, VKMemorySynapse, VKMemorySynopsis)](<./.Archive/AI/014-clean-up-or-integrate-unused-memory-schemas-(vkmemoryfragment,-vkmemorysynapse,-vkmemorysynopsis).md>)
 
+- [ ] [AI-016: Implement VK.Blocks.AI.RAG Enterprise Search and Retrieval Package](./AI/016-implement-vkblocksairag-enterprise-search-and-retrieval-package.md)
 ## 🔐 Authorization Tasks
 
 - [ ] [AUTHORIZATION-001: Authorization DI Normalization](./Authorization/001-di-normalization.md)

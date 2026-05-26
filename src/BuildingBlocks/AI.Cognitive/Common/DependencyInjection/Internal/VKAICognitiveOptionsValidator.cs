@@ -12,7 +12,7 @@ internal sealed class VKAICognitiveOptionsValidator : IValidateOptions<VKAICogni
     {
         if (options is null)
         {
-            return ValidateOptionsResult.Fail("Options cannot be null.");
+            ValidateOptionsResult.Fail("Options cannot be null.");
         }
 
         // Add specific validation logic here as the module grows.

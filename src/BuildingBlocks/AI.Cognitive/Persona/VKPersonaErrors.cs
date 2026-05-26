@@ -17,4 +17,8 @@ public static class VKPersonaErrors
     /// </summary>
     // [CS.01]
     public static readonly VKError AlreadyExists = new("AI.Persona.AlreadyExists", "The persona already exists.");
+
+    public static readonly VKError InvalidMetadataType = new("AI.Persona.InvalidMetadataType", "The metadata provided to the formatter was not of the expected Persona type.");
+    
+    public static readonly VKError FormattingFailed = new("AI.Persona.FormattingFailed", "An error occurred while formatting the persona anchor.");
 }

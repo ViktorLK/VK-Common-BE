@@ -12,24 +12,7 @@ namespace VK.Blocks.AI.Cognitive;
 /// </summary>
 public interface IVKKnowledgeStore
 {
-    /// <summary>
-    /// Retrieves relevant knowledge entries based on the provided context/input.
-    /// </summary>
     Task<VKResult<IEnumerable<VKKnowledgeEntry>>> GetRelevantEntriesAsync(
         string personaId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Adds or updates a knowledge entry.
-    /// </summary>
-    Task<VKResult> UpsertEntryAsync(
-        VKKnowledgeEntry entry,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Deletes a knowledge entry by ID.
-    /// </summary>
-    Task<VKResult> DeleteEntryAsync(
-        string entryId,
         CancellationToken cancellationToken = default);
 }

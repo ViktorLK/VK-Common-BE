@@ -14,6 +14,8 @@ internal sealed partial class ReasoningFeature
     {
         services.TryAddScoped<IVKReasoningPlanner, DefaultReasoningPlanner>();
         services.TryAddSingleton<IVKIntentArbiter, DefaultIntentArbiter>();
+
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKOrchestrationPipelineStage, DefaultReasoningPipelineStage>());
     }
 
     static partial void ValidateCustom(VKReasoningOptions options, List<string> failures) // [SG Hook]

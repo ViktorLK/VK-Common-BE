@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive;
@@ -15,17 +16,12 @@ public sealed partial record VKPersonaOptions : IVKPersonaOptions
     public bool Enabled { get; init; } = true;
 
     /// <summary>
-    /// Gets or sets the default persona identifier.
-    /// </summary>
-    public string? DefaultPersonaId { get; init; }
-
-    /// <summary>
     /// Gets the reserved tokens for persona context.
     /// </summary>
-    public int? PersonaReservedTokens { get; init; } = 512;
+    public int PersonaReservedTokens { get; init; } = 512;
 
     /// <summary>
     /// Gets a value indicating whether dynamic persona switching is allowed.
     /// </summary>
-    public bool? AllowDynamicPersonaSwitching { get; init; } = true;
+    public bool AllowDynamicPersonaSwitching { get; init; } = true;
 }
