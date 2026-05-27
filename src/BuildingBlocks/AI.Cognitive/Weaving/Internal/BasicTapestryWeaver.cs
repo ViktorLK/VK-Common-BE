@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
 
@@ -16,82 +17,132 @@ internal sealed class BasicTapestryWeaver : IVKTapestryWeaver
         _options = options?.Value ?? new VKWeavingOptions();
     }
 
-    public VKResult<VKPromptTapestry> Weave(IReadOnlyList<VKFormattedTier> formatted, VKWeavingContext context)
+    public async Task<VKResult<VKPromptTapestry>> WeaveAsync(IReadOnlyList<VKFormattedTier> formatted, VKOrchestrationPipelineContext context)
     {
         VKGuard.NotNull(formatted);
         VKGuard.NotNull(context);
 
-        var finalMessages = new List<VKChatMessage>();
-        var systemInstructionsBuilder = new StringBuilder();
-
-        // 1. Determine Tier Order based on Intent
-        var intentMode = context.Intent;
-        if (!_options.LayoutStrategies.TryGetValue(intentMode, out var tierOrder))
+        var systemBuilder = new StringBuilder();
+        void AppendSystem(string text)
         {
-            // Fallback to Chat order if missing
-            if (!_options.LayoutStrategies.TryGetValue(VKIntent.Chat, out tierOrder))
+            if (string.IsNullOrWhiteSpace(text)) return;
+            if (systemBuilder.Length > 0) systemBuilder.AppendLine();
+            systemBuilder.Append(text);
+        }
+
+        // --- Pass 1: Build Base Chat Timeline ---
+        // Ordered by descending depth (oldest first, e.g., 3, 2, 1, 0)
+        var historyTiers = formatted.Where(f => f.TierType == VKPromptTierType.ChatHistory)
+                                    .OrderByDescending(f => f.Depth)
+                                    .ToList();
+
+        // Use a list of wrappers to allow insertion and modification of messages
+        var timeline = historyTiers.Select(t => new TimelineEntry 
+        { 
+            Depth = t.Depth, 
+            Message = new VKChatMessage { Role = t.Role, Content = t.Content } 
+        }).ToList();
+
+        // --- Pass 2: Positional Injection ---
+        var nonHistory = formatted.Where(f => f.TierType != VKPromptTierType.ChatHistory).ToList();
+
+        // 2a. Global System Block Assembly (XML & Markdown Layers)
+        // Order: SystemInstructions -> BeforeDefs -> Persona -> AfterDefs -> BeforeExample -> AfterExample
+        var processedTiers = new HashSet<VKFormattedTier>();
+
+        // Core System Instructions
+        foreach (var tier in nonHistory.Where(f => f.TierType == VKPromptTierType.SystemInstructions))
+        {
+            AppendSystem(tier.Content);
+            processedTiers.Add(tier);
+        }
+
+        // Before Defs
+        foreach (var tier in nonHistory.Where(f => !processedTiers.Contains(f) && f.Position == VKKnowledgePositions.BeforeDefs && f.TierType != VKPromptTierType.Persona))
+        {
+            AppendSystem(tier.Content);
+            processedTiers.Add(tier);
+        }
+
+        // Persona (Forced to middle of system block if not explicitly placed elsewhere)
+        foreach (var tier in nonHistory.Where(f => !processedTiers.Contains(f) && f.TierType == VKPromptTierType.Persona))
+        {
+            AppendSystem(tier.Content);
+            processedTiers.Add(tier);
+        }
+
+        // Other Global System Placements
+        var globalPositions = new[] { 
+            VKKnowledgePositions.AfterDefs, 
+            VKKnowledgePositions.BeforeExampleMessages, 
+            VKKnowledgePositions.AfterExampleMessages 
+        };
+
+        foreach (var pos in globalPositions)
+        {
+            foreach (var tier in nonHistory.Where(f => !processedTiers.Contains(f) && f.Position == pos))
             {
-                tierOrder = new[] { VKPromptTierType.SystemInstructions, VKPromptTierType.Knowledge, VKPromptTierType.ChatHistory };
+                AppendSystem(tier.Content);
+                processedTiers.Add(tier);
             }
         }
 
-        // We will process tiers in the strict order defined by the template
-        foreach (var tierType in tierOrder)
+        // 2b. In-Chat Timeline Injection (Bracket & Meta Layers)
+        foreach (var tier in nonHistory.Where(f => !processedTiers.Contains(f)))
         {
-            // Special handling for SystemInstructions which aggregates base pipeline system instructions
-            if (tierType == VKPromptTierType.SystemInstructions)
-            {
-                var systemTiers = formatted.Where(f => f.TierType == VKPromptTierType.SystemInstructions).ToList();
-                foreach (var tier in systemTiers)
-                {
-                    if (systemInstructionsBuilder.Length > 0)
-                        systemInstructionsBuilder.AppendLine();
-                    systemInstructionsBuilder.Append(tier.Content);
-                }
+            int targetDepth = tier.Depth;
 
-                if (!string.IsNullOrWhiteSpace(context.Pipeline.SystemInstructions))
-                {
-                    if (systemInstructionsBuilder.Length > 0)
-                        systemInstructionsBuilder.AppendLine();
-                    systemInstructionsBuilder.Append(context.Pipeline.SystemInstructions);
-                }
+            // Handle special anchoring
+            if (tier.Position == VKKnowledgePositions.BeforeAuthorNote || tier.Position == VKKnowledgePositions.AfterAuthorNote)
+            {
+                targetDepth = 0; // Pin to the very bottom
             }
-            else if (tierType == VKPromptTierType.ChatHistory)
-            {
-                // History is strictly ordered by Depth (oldest first or newest last, typically descending depth = 3, 2, 1, 0)
-                var historyTiers = formatted.Where(f => f.TierType == VKPromptTierType.ChatHistory)
-                                            .OrderByDescending(f => f.Depth)
-                                            .ToList();
 
-                foreach (var tier in historyTiers)
-                {
-                    finalMessages.Add(new VKChatMessage { Role = tier.Role, Content = tier.Content });
-                }
+            if (tier.Position == VKKnowledgePositions.SystemAtDepth)
+            {
+                // Inject as a pure System message directly into the timeline before the target depth
+                var insertIndex = timeline.FindIndex(x => x.Depth == targetDepth);
+                var newEntry = new TimelineEntry { Depth = targetDepth, Message = new VKChatMessage { Role = VKChatRole.System, Content = tier.Content } };
+                
+                if (insertIndex >= 0) timeline.Insert(insertIndex, newEntry);
+                else timeline.Add(newEntry);
             }
             else
             {
-                // Generalized appending for other tiers (Persona, Knowledge, Scenario, AuthorNote)
-                var specializedTiers = formatted.Where(f => f.TierType == tierType).ToList();
+                // In-Chat Bracket Injection: append directly to the target depth's message
+                var targetEntry = timeline.FirstOrDefault(x => x.Depth == targetDepth);
+                string bracketPrefix = tier.TierType == VKPromptTierType.Knowledge ? "System Knowledge" : tier.TierType.ToString();
+                string bracketedNote = $"\n\n[{bracketPrefix}: {tier.Content}]";
 
-                foreach (var tier in specializedTiers)
+                if (targetEntry != null)
                 {
-                    // If it's defined as a system role internally, we can either append to system string or push as a system message
-                    // In most modern APIs (like OpenAI), system messages can only be at the top. 
-                    // However, we output ChatMessages, so we can preserve Role.
-                    finalMessages.Add(new VKChatMessage { Role = tier.Role, Content = tier.Content });
+                    targetEntry.Message = targetEntry.Message with { Content = targetEntry.Message.Content + bracketedNote };
+                }
+                else
+                {
+                    // Fallback if the history doesn't go that deep or is empty
+                    timeline.Add(new TimelineEntry { Depth = targetDepth, Message = new VKChatMessage { Role = VKChatRole.User, Content = bracketedNote.TrimStart() } });
                 }
             }
         }
 
-        // Combine the accumulated system instructions block
-        string finalSystemText = systemInstructionsBuilder.ToString().Trim();
+        // --- Pass 3: Final Assembly ---
+        var finalMessages = new List<VKChatMessage>();
+        
+        string finalSystemText = systemBuilder.ToString().Trim();
         if (!string.IsNullOrWhiteSpace(finalSystemText))
         {
-            // System instructions always go first in the final output array
-            finalMessages.Insert(0, new VKChatMessage { Role = VKChatRole.System, Content = finalSystemText });
+            finalMessages.Add(new VKChatMessage { Role = VKChatRole.System, Content = finalSystemText });
         }
 
-        // Ensure Tapestry Output
+        // Timeline is already in chronological order (descending depth means 3 -> 2 -> 1 -> 0)
+        // But we inserted SystemAtDepth before the element. We don't need to resort unless fallback additions broke the order.
+        // Re-sorting by depth descending to be absolutely safe
+        foreach (var entry in timeline.OrderByDescending(x => x.Depth))
+        {
+            finalMessages.Add(entry.Message);
+        }
+
         var tapestry = new VKPromptTapestry
         {
             Messages = finalMessages,
@@ -99,6 +150,12 @@ internal sealed class BasicTapestryWeaver : IVKTapestryWeaver
             TotalEstimatedTokens = 0 // Resolved post-weave if needed
         };
 
-        return VKResult.Success(tapestry);
+        return await Task.FromResult(VKResult.Success(tapestry));
+    }
+
+    private class TimelineEntry
+    {
+        public int Depth { get; set; }
+        public required VKChatMessage Message { get; set; }
     }
 }

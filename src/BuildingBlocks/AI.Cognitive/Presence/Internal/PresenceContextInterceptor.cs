@@ -19,8 +19,6 @@ internal sealed class PresenceContextInterceptor : IVKCognitivePipelineIntercept
     private readonly IVKPresenceTracker _presenceTracker;
     private readonly IVKPresenceAssembler _presenceAssembler;
     private readonly IVKTokenMeter _tokenMeter;
-    private readonly IVKConstitutionProvider _constitutionProvider;
-    private readonly IVKPresenceQuotaProvider _quotaProvider;
     private readonly IVKSystemTelemetry _systemTelemetry;
     private readonly ILogger<PresenceContextInterceptor>? _logger;
     private readonly TimeProvider? _timeProvider;
@@ -31,8 +29,6 @@ internal sealed class PresenceContextInterceptor : IVKCognitivePipelineIntercept
         IVKPresenceTracker presenceTracker,
         IVKPresenceAssembler presenceAssembler,
         IVKTokenMeter tokenMeter,
-        IVKConstitutionProvider constitutionProvider,
-        IVKPresenceQuotaProvider quotaProvider,
         IVKSystemTelemetry systemTelemetry,
         ILogger<PresenceContextInterceptor>? logger = null,
         TimeProvider? timeProvider = null)
@@ -41,15 +37,13 @@ internal sealed class PresenceContextInterceptor : IVKCognitivePipelineIntercept
         _presenceTracker = VKGuard.NotNull(presenceTracker);
         _presenceAssembler = VKGuard.NotNull(presenceAssembler);
         _tokenMeter = VKGuard.NotNull(tokenMeter);
-        _constitutionProvider = VKGuard.NotNull(constitutionProvider);
-        _quotaProvider = VKGuard.NotNull(quotaProvider);
         _systemTelemetry = VKGuard.NotNull(systemTelemetry);
         _logger = logger;
         _timeProvider = timeProvider;
     }
 
     public async Task<VKResult> OnBeforeChatAsync(
-        VKCognitivePipelineContext context,
+        VKOrchestrationPipelineContext context,
         CancellationToken cancellationToken = default)
     {
         // [AP.01] Boundary checks using VKGuard
@@ -93,25 +87,38 @@ internal sealed class PresenceContextInterceptor : IVKCognitivePipelineIntercept
             l2Capabilities = "CAPABILITIES / TOOLS SCHEMA:\n- Active tools are registered for downstream execution.\n";
         }
 
-        // Tier 3: L3 Identity (Ego/Persona style)
-        string l3Persona = string.IsNullOrEmpty(context.SystemInstructions) ? "ROLE:\n- General AI Assistant Expert.\n" : context.SystemInstructions;
-
         // Tier 4: L4 Context & World (DateTimeOffset, mediated variables, environmental tags, and RAG facts)
         string l4WorldContext = tapestryResult.Value;
 
         // Tier 6: Reasoning Guardrail (Step-by-step <thought> constraints)
         string thoughtGuardrail = "REASONING RULES:\n- Formulate your initial plan and analysis within <thought>...</thought> blocks before responding to the user.\n";
 
-        // Reassemble consolidated System Instruction with rigid [SYSTEM_ANCHOR] and guardrail
-        string consolidatedSystemPrompt = $"{systemAnchor}{l1Constitution}\n{l2Capabilities}\n{l3Persona}\n{l4WorldContext}\n{thoughtGuardrail}";
-        context.SystemInstructions = consolidatedSystemPrompt;
+        // Reassemble consolidated System Instruction with rigid [SYSTEM_ANCHOR] and guardrail (Ego/Persona is cleanly handled downstream by DefaultPersonaPromptExtractor)
+        string consolidatedSystemPrompt = $"{systemAnchor}{l1Constitution}\n{l2Capabilities}\n{l4WorldContext}\n{thoughtGuardrail}";
+
+        // Write back consolidated prompt to arguments so Weaving Stage can consume the dynamic tenant constitution
+        if (context.Args is not null)
+        {
+            context.Args = context.Args with
+            {
+                SystemInstructions = l1Constitution // TODO
+            };
+        }
 
         // 3. Expose Available Token Budget to Pipeline for final S6 Weaving
         int systemTokens = _tokenMeter.CountTokens(consolidatedSystemPrompt);
         int totalLimit = quota.TokenLimit;
         int safetyMargin = quota.SafetyMarginTokens;
 
-        context.AvailableHistoryBudget = totalLimit - systemTokens - safetyMargin;
+        context.TokenBudget = new VKTokenBudgetPlan
+        {
+            TotalContextLimit = totalLimit,
+            MaxResponseTokens = quota.MaxRequestTokenQuota,
+            ReservedSystemTokens = systemTokens,
+            AvailableHistoryLimit = totalLimit - systemTokens - safetyMargin,
+            AvailableKnowledgeLimit = 0, // Dynamic calculation placeholder
+            TokenMeterResolver = () => _tokenMeter
+        };
 
         // 4. Adaptive telemetry status stress checking and overrides
         if (context.Args is not null && await _systemTelemetry.IsProviderStressedAsync("AzureOpenAI", cancellationToken).ConfigureAwait(false)) // [CS.03] ConfigureAwait(false) strictly configured
@@ -127,7 +134,7 @@ internal sealed class PresenceContextInterceptor : IVKCognitivePipelineIntercept
     }
 
     public async Task<VKResult> OnAfterChatAsync(
-        VKCognitivePipelineContext context,
+        VKOrchestrationPipelineContext context,
         VKChatMessage chatResponse,
         CancellationToken cancellationToken = default)
     {
@@ -164,7 +171,7 @@ internal sealed class PresenceContextInterceptor : IVKCognitivePipelineIntercept
             {
                 _logger.LogMissingUsageMetadataWarning(context.SessionId);
             }
-            promptTokens = _tokenMeter.CountTokens(context.Messages);
+            promptTokens = _tokenMeter.CountTokens(context.Messages ?? []);
             completionTokens = _tokenMeter.CountTokens([chatResponse]);
         }
 

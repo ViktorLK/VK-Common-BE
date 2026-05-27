@@ -9,5 +9,5 @@ namespace VK.Blocks.AI.Cognitive;
 /// </summary>
 public interface IVKPromptScorer
 {
-    VKResult<IReadOnlyList<VKScoredFragment>> Score(IReadOnlyList<VKPromptFragment> fragments, VKWeavingContext context);
+    VKResult<IReadOnlyList<VKScoredFragment>> Score(IReadOnlyList<VKPromptFragment> fragments, VKOrchestrationPipelineContext context);
 }

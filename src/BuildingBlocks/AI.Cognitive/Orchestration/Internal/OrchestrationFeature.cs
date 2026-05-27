@@ -12,13 +12,14 @@ internal sealed partial class OrchestrationFeature
     static partial void RegisterCustom(IServiceCollection services, VKOrchestrationOptions options)
     {
         _ = options;
-        services.TryAddScoped<IVKThoughtStream, DefaultThoughtStream>();
-        services.TryAddScoped<IVKCognitivePipeline, DefaultCognitivePipeline>();
-        services.TryAddScoped<IVKIntentNexus, DefaultIntentNexus>();
+        services.TryAddScoped<IVKThoughtStream, NoopThoughtStream>();
+        services.TryAddScoped<IVKOrchestrationPipeline, DefaultOrchestrationPipeline>();
+        services.TryAddScoped<IVKIntentNexus, Reasoning.Internal.DefaultIntentOrchestrator>();
 
         // Background Auditing
         services.TryAddSingleton<IVKAuditSynapseQueue, DefaultAuditSynapseQueue>();
         services.AddHostedService<AuditSynapseWorker>();
+
     }
 
     // [SG Hook]

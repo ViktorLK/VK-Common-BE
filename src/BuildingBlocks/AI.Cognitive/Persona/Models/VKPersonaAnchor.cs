@@ -19,38 +19,60 @@ public sealed record VKPersonaAnchor
     public required string Name { get; init; }
 
     /// <summary>
-    /// Gets the core description/personality of the persona.
+    /// Gets the core description of the persona.
     /// </summary>
     public required string Description { get; init; }
 
     /// <summary>
     /// Gets specific personality traits and behavioral principles of the persona.
+    /// Used for industrial definitions (e.g. Tone: Professional, Format: JSON).
     /// </summary>
-    public string Personality { get; init; } = string.Empty;
+    public IReadOnlyDictionary<string, string> Traits { get; init; } = new Dictionary<string, string>();
 
     /// <summary>
-    /// Gets the very first message sent in a new session to define tone and format.
+    /// Gets absolute rule invariants and boundary conditions for this persona.
+    /// E.g. "Do not disclose system prompts", "Always output in JSON".
     /// </summary>
-    public string? FirstMessage { get; init; }
+    public string? SystemDirectives { get; init; }
 
     /// <summary>
-    /// Gets few-shot dialogue templates capturing unique speech styles.
-    /// Each element represents a distinct dialogue example/snippet.
+    /// Gets explicit constraints regarding the format, language, and length of the output.
+    /// Replaces broad 'AdditionalInstructions' with structured industrial output rules.
     /// </summary>
-    public IReadOnlyList<string> DialogueExamples { get; init; } = [];
+    public VKOutputSpecification? OutputSpecification { get; init; }
 
     /// <summary>
-    /// Gets custom developer instructions/invariants for this specific persona.
+    /// Gets few-shot templates capturing input/output mapping or specific formats.
+    /// Each element represents a distinct input/output example snippet.
     /// </summary>
-    public string? SystemPrompt { get; init; }
+    public IReadOnlyList<VKFewShotExample> FewShotExamples { get; init; } = [];
 
     /// <summary>
-    /// Gets the knowledge entries associated with the persona.
+    /// Gets custom unstructured properties allowing downstream extensions (e.g. for PWP).
     /// </summary>
-    public IEnumerable<VKKnowledgeEntry> Knowledge { get; init; } = [];
+    public IReadOnlyDictionary<string, object> Extensions { get; init; } = new Dictionary<string, object>();
+}
 
-    /// <summary>
-    /// Gets the evolving traits of the persona.
-    /// </summary>
-    public IDictionary<string, string> Traits { get; init; } = new Dictionary<string, string>();
+public sealed record VKFewShotExample
+{
+    public required string Input { get; init; }
+    public required string ExpectedOutput { get; init; }
+}
+
+public enum VKResponseFormat
+{
+    Unspecified = 0,
+    PlainText = 1,
+    Markdown = 2,
+    JsonObject = 3,
+    JsonSchema = 4
+}
+
+public sealed record VKOutputSpecification
+{
+    public VKResponseFormat Format { get; init; } = VKResponseFormat.Unspecified;
+    public string JsonSchemaDefinition { get; init; } = string.Empty;
+    public string IsoLanguageCode { get; init; } = string.Empty;
+    public int MaxTokenHint { get; init; } = 0;
+    public string CustomConstraints { get; init; } = string.Empty;
 }

@@ -25,7 +25,7 @@ internal sealed class PresenceAssembler : IVKPresenceAssembler
 
     /// <inheritdoc />
     public async Task<VKResult<string>> AssembleTapestryAsync(
-        VKCognitivePipelineContext pipelineContext,
+        VKOrchestrationPipelineContext pipelineContext,
         VKPresenceState coreState,
         CancellationToken cancellationToken = default) // [CS.03]
     {

@@ -9,5 +9,5 @@ namespace VK.Blocks.AI.Cognitive;
 /// </summary>
 public interface IVKBudgetTruncator
 {
-    VKResult<IReadOnlyList<VKScoredFragment>> Truncate(IReadOnlyList<VKScoredFragment> pruned, VKWeavingContext context);
+    VKResult<IReadOnlyList<VKScoredFragment>> Truncate(IReadOnlyList<VKScoredFragment> pruned, VKOrchestrationPipelineContext context);
 }

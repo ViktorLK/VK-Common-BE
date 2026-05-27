@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using VK.Blocks.Core;
 
 // // [AP.03] Public contract in root namespace carrying VK prefix
@@ -9,5 +10,5 @@ namespace VK.Blocks.AI.Cognitive;
 /// </summary>
 public interface IVKTapestryWeaver
 {
-    VKResult<VKPromptTapestry> Weave(IReadOnlyList<VKFormattedTier> formatted, VKWeavingContext context);
+    Task<VKResult<VKPromptTapestry>> WeaveAsync(IReadOnlyList<VKFormattedTier> formatted, VKOrchestrationPipelineContext context);
 }

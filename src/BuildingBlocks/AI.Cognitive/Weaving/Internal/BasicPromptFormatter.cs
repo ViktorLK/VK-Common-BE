@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using VK.Blocks.Core;
 
 // // [AP.03] Internal implementation inside Internal/ folder without VK prefix
@@ -6,7 +7,16 @@ namespace VK.Blocks.AI.Cognitive.Weaving.Internal;
 
 internal sealed class BasicPromptFormatter : IVKPromptFormatter<VKDefaultModelMarker>
 {
-    public VKResult<IReadOnlyList<VKFormattedTier>> Format(IReadOnlyList<VKScoredFragment> truncated, VKWeavingContext context)
+    private readonly IEnumerable<IVKPromptFormatter> _formatters;
+
+    public BasicPromptFormatter(IEnumerable<IVKPromptFormatter> formatters)
+    {
+        _formatters = VKGuard.NotNull(formatters);
+    }
+
+    public VKResult<IReadOnlyList<VKFormattedTier>> FormatContent(
+        IReadOnlyList<VKScoredFragment> truncated, 
+        VKOrchestrationPipelineContext context)
     {
         VKGuard.NotNull(truncated);
         VKGuard.NotNull(context);
@@ -17,7 +27,19 @@ internal sealed class BasicPromptFormatter : IVKPromptFormatter<VKDefaultModelMa
         {
             var fragment = item.Fragment;
 
-            // Standard formatting. Strip think tags if necessary.
+            // 1. Check if we have an IVKPromptFormatter for this fragment's type
+            var matchedFormatter = _formatters.FirstOrDefault(f => f.CanFormat(fragment));
+            if (matchedFormatter is not null)
+            {
+                var formatResult = matchedFormatter.Format(fragment, context);
+                if (formatResult.IsFailure)
+                {
+                    return VKResult.Failure<IReadOnlyList<VKFormattedTier>>(formatResult.FirstError);
+                }
+                fragment.Content = formatResult.Value;
+            }
+
+            // 2. Standard formatting. Strip think tags if necessary.
             string content = fragment.Content;
             int thinkStart = content.IndexOf("<think>");
             int thinkEnd = content.IndexOf("</think>");
@@ -46,4 +68,8 @@ internal sealed class BasicPromptFormatter : IVKPromptFormatter<VKDefaultModelMa
 
         return VKResult.Success<IReadOnlyList<VKFormattedTier>>(formattedTiers);
     }
+}
+public interface IVKPromptFormatter<TModel>
+{
+    VKResult<IReadOnlyList<VKFormattedTier>> FormatContent(IReadOnlyList<VKScoredFragment> truncated, VKOrchestrationPipelineContext context);
 }

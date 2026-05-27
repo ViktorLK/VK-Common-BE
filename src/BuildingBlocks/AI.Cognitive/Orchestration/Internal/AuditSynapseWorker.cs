@@ -64,10 +64,70 @@ internal sealed class AuditSynapseWorker : BackgroundService
             {
                 var auditEvent = await _queue.DequeueAsync(stoppingToken).ConfigureAwait(false); // [CS.03]
 
-                // Create a fresh scope for executing interceptors safely
+                // Create a fresh scope for executing interceptors and tracking safely
                 using var scope = _serviceProvider.CreateScope();
-                var interceptors = scope.ServiceProvider.GetRequiredService<IEnumerable<IVKCognitivePipelineInterceptor>>();
+                var presenceTracker = scope.ServiceProvider.GetService<IVKPresenceTracker>();
+                var tokenMeter = scope.ServiceProvider.GetService<IVKTokenMeter>();
 
+                if (presenceTracker != null && tokenMeter != null)
+                {
+                    try
+                    {
+                        int promptTokens = 0;
+                        int completionTokens = 0;
+
+                        var chatResponse = auditEvent.ChatResponse;
+                        if (chatResponse.Metadata != null)
+                        {
+                            if (chatResponse.Metadata.TryGetValue("TokenUsage", out var usageObj) && usageObj != null)
+                            {
+                                try
+                                {
+                                    dynamic usage = usageObj;
+                                    promptTokens = (int)(usage.PromptTokens ?? usage.InputTokens ?? 0);
+                                    int outTokens = (int)(usage.CompletionTokens ?? usage.OutputTokens ?? 0);
+                                    int reasoningTokens = (int)(usage.ReasoningTokens ?? 0);
+                                    completionTokens = outTokens + reasoningTokens;
+                                }
+                                catch
+                                {
+                                    // Best effort
+                                }
+                            }
+                        }
+
+                        if (promptTokens == 0 && completionTokens == 0)
+                        {
+                            promptTokens = tokenMeter.CountTokens(auditEvent.Context.Messages ?? []);
+                            completionTokens = tokenMeter.CountTokens([chatResponse]);
+                        }
+
+                        var trackingResult = await presenceTracker.RecordUsageAsync(
+                            auditEvent.Context.SessionId,
+                            promptTokens,
+                            completionTokens,
+                            stoppingToken).ConfigureAwait(false);
+
+                        if (trackingResult.IsFailure)
+                        {
+                            VKAICognitiveLog.LogInterceptorBackgroundError(
+                                _logger,
+                                "IVKPresenceTracker",
+                                auditEvent.Context.SessionId,
+                                new Exception(trackingResult.FirstError.Description));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        VKAICognitiveLog.LogInterceptorBackgroundError(
+                            _logger,
+                            "IVKPresenceTracker",
+                            auditEvent.Context.SessionId,
+                            ex);
+                    }
+                }
+
+                var interceptors = scope.ServiceProvider.GetRequiredService<IEnumerable<IVKCognitivePipelineInterceptor>>();
                 foreach (var interceptor in interceptors)
                 {
                     try

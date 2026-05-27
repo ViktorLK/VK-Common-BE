@@ -6,12 +6,17 @@ namespace VK.Blocks.AI.Cognitive;
 /// <summary>
 /// Represents the comprehensive result of a cognitive pipeline execution.
 /// </summary>
-public sealed record VKCognitiveResult
+public sealed record VKOrchestrationResult
 {
+    /// <summary>
+    /// Gets the final woven prompt tapestry (if produced by weaving stage).
+    /// </summary>
+    public VKPromptTapestry? Tapestry { get; init; }
+
     /// <summary>
     /// Gets the final output message or content from the agent (Act stage).
     /// </summary>
-    public required string Output { get; init; }
+    public string? Output { get; init; }
 
 
     /// <summary>

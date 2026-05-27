@@ -1,14 +1,15 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using VK.Blocks.Core;
 
 // // [AP.03] Internal implementation inside Internal/ folder without VK prefix
 namespace VK.Blocks.AI.Cognitive.Weaving.Internal;
 
+// [AP.01] sealed default implementation
 internal sealed class DefaultPromptWeavingEngine : IVKPromptWeavingEngine
 {
-    private readonly IVKPromptExtractor<IEnumerable<VKKnowledgeEntry>> _knowledgeExtractor;
-    private readonly IVKPromptExtractor<IEnumerable<VKChatMessage>> _chatExtractor;
+    private readonly IVKPromptExtractionCoordinator _extractorCoordinator;
     private readonly IVKPromptScorer _scorer;
     private readonly IVKPromptPruner _pruner;
     private readonly IVKBudgetTruncator _truncator;
@@ -16,16 +17,14 @@ internal sealed class DefaultPromptWeavingEngine : IVKPromptWeavingEngine
     private readonly IVKTapestryWeaver _weaver;
 
     public DefaultPromptWeavingEngine(
-        IVKPromptExtractor<IEnumerable<VKKnowledgeEntry>> knowledgeExtractor,
-        IVKPromptExtractor<IEnumerable<VKChatMessage>> chatExtractor,
+        IVKPromptExtractionCoordinator extractorCoordinator,
         IVKPromptScorer scorer,
         IVKPromptPruner pruner,
         IVKBudgetTruncator truncator,
         IVKPromptFormatter<VKDefaultModelMarker> formatter,
         IVKTapestryWeaver weaver)
     {
-        _knowledgeExtractor = VKGuard.NotNull(knowledgeExtractor);
-        _chatExtractor = VKGuard.NotNull(chatExtractor);
+        _extractorCoordinator = VKGuard.NotNull(extractorCoordinator);
         _scorer = VKGuard.NotNull(scorer);
         _pruner = VKGuard.NotNull(pruner);
         _truncator = VKGuard.NotNull(truncator);
@@ -33,28 +32,22 @@ internal sealed class DefaultPromptWeavingEngine : IVKPromptWeavingEngine
         _weaver = VKGuard.NotNull(weaver);
     }
 
-    public VKResult<VKPromptTapestry> WeavePrompt(VKWeavingContext context)
+    // Extract → Score&Sort → Prune → Arrange → Format → Truncate → Weave
+    public async Task<VKResult<VKPromptTapestry>> WeavePromptAsync(
+        VKOrchestrationPipelineContext context,
+        CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context);
 
-        var fragments = new List<VKPromptFragment>();
 
         // 1. Extraction Phase
-        if (context.Pipeline.KnowledgeEntries != null && context.Pipeline.KnowledgeEntries.Any())
+        var extractResult = await _extractorCoordinator.ExtractAllAsync(context, cancellationToken).ConfigureAwait(false);
+        if (extractResult.IsFailure)
         {
-            var knowledgeFragments = _knowledgeExtractor.Extract(context.Pipeline.KnowledgeEntries, context);
-            if (knowledgeFragments.IsFailure)
-                return VKResult.Failure<VKPromptTapestry>(knowledgeFragments.FirstError);
-            fragments.AddRange(knowledgeFragments.Value);
+            return VKResult.Failure<VKPromptTapestry>(extractResult.FirstError);
         }
-
-        if (context.Pipeline.Messages != null && context.Pipeline.Messages.Any())
-        {
-            var chatFragments = _chatExtractor.Extract(context.Pipeline.Messages, context);
-            if (chatFragments.IsFailure)
-                return VKResult.Failure<VKPromptTapestry>(chatFragments.FirstError);
-            fragments.AddRange(chatFragments.Value);
-        }
+        
+        List<VKPromptFragment> fragments = new(extractResult.Value);
 
         context.Fragments = fragments;
 
@@ -77,13 +70,13 @@ internal sealed class DefaultPromptWeavingEngine : IVKPromptWeavingEngine
         context.Truncated = truncatedResult.Value;
 
         // 5. Formatting Phase
-        var formattedResult = _formatter.Format(context.Truncated, context);
+        var formattedResult = _formatter.FormatContent(context.Truncated, context);
         if (formattedResult.IsFailure)
             return VKResult.Failure<VKPromptTapestry>(formattedResult.FirstError);
         context.Formatted = formattedResult.Value;
 
         // 6. Weaving Phase
-        var tapestryResult = _weaver.Weave(context.Formatted, context);
+        var tapestryResult = await _weaver.WeaveAsync(context.Formatted, context);
         if (tapestryResult.IsFailure)
             return VKResult.Failure<VKPromptTapestry>(tapestryResult.FirstError);
         context.Tapestry = tapestryResult.Value;

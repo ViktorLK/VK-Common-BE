@@ -26,6 +26,6 @@ public interface IVKAuditSynapseQueue
 /// </summary>
 public sealed record VKAuditSynapseEvent
 {
-    public required VKCognitivePipelineContext Context { get; init; }
+    public required VKOrchestrationPipelineContext Context { get; init; }
     public required VKChatMessage ChatResponse { get; init; }
 }

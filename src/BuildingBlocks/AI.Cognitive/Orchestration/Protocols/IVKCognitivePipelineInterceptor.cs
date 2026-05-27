@@ -24,7 +24,7 @@ public interface IVKCognitivePipelineInterceptor
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result indicating operation status.</returns>
     Task<VKResult> OnBeforeChatAsync(
-        VKCognitivePipelineContext context,
+        VKOrchestrationPipelineContext context,
         CancellationToken cancellationToken = default); // [CS.03]
 
     /// <summary>
@@ -36,7 +36,7 @@ public interface IVKCognitivePipelineInterceptor
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result indicating operation status.</returns>
     Task<VKResult> OnAfterChatAsync(
-        VKCognitivePipelineContext context,
+        VKOrchestrationPipelineContext context,
         VKChatMessage chatResponse,
         CancellationToken cancellationToken = default); // [CS.03]
 }

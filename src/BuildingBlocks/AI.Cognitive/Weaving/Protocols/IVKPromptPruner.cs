@@ -9,5 +9,5 @@ namespace VK.Blocks.AI.Cognitive;
 /// </summary>
 public interface IVKPromptPruner
 {
-    VKResult<IReadOnlyList<VKScoredFragment>> Prune(IReadOnlyList<VKScoredFragment> scored, VKWeavingContext context);
+    VKResult<IReadOnlyList<VKScoredFragment>> Prune(IReadOnlyList<VKScoredFragment> scored, VKOrchestrationPipelineContext context);
 }

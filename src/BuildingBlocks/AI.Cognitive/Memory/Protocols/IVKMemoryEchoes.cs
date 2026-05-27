@@ -76,4 +76,18 @@ public interface IVKMemoryEchoes
         IEnumerable<VKMemoryQueryResult> results,
         string query,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets recent memory entries chronologically. Usually used for short-term/chat history.
+    /// </summary>
+    /// <param name="sessionId">The session identifier.</param>
+    /// <param name="category">The memory category.</param>
+    /// <param name="limit">The maximum number of entries to retrieve.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A result containing the recent memory entries.</returns>
+    Task<VKResult<IReadOnlyList<VKMemoryEntry>>> GetRecentAsync(
+        string sessionId,
+        VKMemoryCategory category = VKMemoryCategory.ShortTerm,
+        int limit = 50,
+        CancellationToken cancellationToken = default);
 }

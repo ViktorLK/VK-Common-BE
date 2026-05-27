@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.AI.Cognitive.Common.DependencyInjection.Internal;
@@ -76,12 +77,12 @@ public static class VKAICognitiveBuilderExtensions
         var services = builder.Services;
 
         // Register default thread-safe in-memory stores and providers
-        services.TryAddSingleton<IVKKnowledgeNarrativeStore, InMemoryKnowledgeNarrativeStore>();
-        services.TryAddScoped<IVKKnowledgeSessionStateStore, InMemoryKnowledgeSessionStateStore>();
-        services.TryAddScoped<IVKKnowledgeSessionProvider, BasicKnowledgeSessionProvider>();
+        // services.TryAddSingleton<IVKKnowledgeNarrativeStore, InMemoryKnowledgeNarrativeStore>();
+        // services.TryAddScoped<IVKKnowledgeSessionStateStore, InMemoryKnowledgeSessionStateStore>();
+        // services.TryAddScoped<IVKKnowledgeSessionProvider, BasicKnowledgeSessionProvider>();
 
-        // Decorate the core IVKKnowledgeManager with the Narrative rules decorator
-        services.Decorate<IVKKnowledgeStore, BasicKnowledgeNarrativeStore>();
+        // // Decorate the core IVKKnowledgeManager with the Narrative rules decorator
+        // services.Decorate<IVKKnowledgeStore, BasicKnowledgeNarrativeStore>();
 
         return builder;
     }
@@ -153,5 +154,50 @@ public static class VKAICognitiveBuilderExtensions
             // 🟢 Business Plugins
             .AddVKMemory()
             .AddVKPersona();
+    }
+
+    public static IVKAICognitiveBuilder ReplaceExtractor<TDefault, TReplacement>(this IVKAICognitiveBuilder builder)
+        where TDefault : class, IVKPromptExtractor
+        where TReplacement : class, IVKPromptExtractor
+    {
+        return ReplaceImplementationInternal<IVKPromptExtractor, TDefault, TReplacement>(builder);
+    }
+
+    public static IVKAICognitiveBuilder ReplacePipelineStage<TDefault, TReplacement>(this IVKAICognitiveBuilder builder)
+        where TDefault : class, IVKOrchestrationPipelineStage
+        where TReplacement : class, IVKOrchestrationPipelineStage
+    {
+        return ReplaceImplementationInternal<IVKOrchestrationPipelineStage, TDefault, TReplacement>(builder);
+    }
+
+    public static IVKAICognitiveBuilder ReplaceFormatter<TDefault, TReplacement>(this IVKAICognitiveBuilder builder)
+        where TDefault : class, IVKPromptFormatter
+        where TReplacement : class, IVKPromptFormatter
+    {
+        return ReplaceImplementationInternal<IVKPromptFormatter, TDefault, TReplacement>(builder);
+    }
+
+    private static IVKAICognitiveBuilder ReplaceImplementationInternal<TService, TDefault, TReplacement>(IVKAICognitiveBuilder builder)
+        where TService : class
+        where TDefault : class, TService
+        where TReplacement : class, TService
+    {
+        VKGuard.NotNull(builder);
+
+        var defaultDescriptor = builder.Services.FirstOrDefault(d =>
+            d.ServiceType == typeof(TService) &&
+            (d.ImplementationType == typeof(TDefault) ||
+             d.ImplementationInstance?.GetType() == typeof(TDefault)))
+            ?? throw new InvalidOperationException($"Default implementation of type {typeof(TDefault).Name} for service {typeof(TService).Name} is not registered in the service collection.");
+
+        var replacementDescriptor = ServiceDescriptor.Describe(
+            typeof(TService),
+            typeof(TReplacement),
+             defaultDescriptor.Lifetime);
+
+        builder.Services.Remove(defaultDescriptor);
+        builder.Services.TryAddEnumerable(replacementDescriptor);
+
+        return builder;
     }
 }

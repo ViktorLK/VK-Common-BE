@@ -16,16 +16,18 @@ internal static class WeavingFeature
             services.Configure(configure);
         }
 
-        // Register default extractors
-        services.TryAddScoped<IVKPromptExtractor<IEnumerable<VKKnowledgeEntry>>, KnowledgeEntryExtractor>();
-        services.TryAddScoped<IVKPromptExtractor<IEnumerable<VKChatMessage>>, ChatMessageExtractor>();
+        // Register default extractors using non-generic IVKPromptExtractor
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPromptExtractor, ChatMessageExtractor>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPromptExtractor, PipelineSystemInstructionsExtractor>());
 
         // Register pipeline stages
+        services.TryAddScoped<IVKPromptExtractionCoordinator, BasicPromptExtractionCoordinator>();
         services.TryAddScoped<IVKPromptScorer, BasicPromptScorer>();
         services.TryAddScoped<IVKPromptPruner, BasicPromptPruner>();
         services.TryAddScoped<IVKBudgetTruncator, BasicBudgetTruncator>();
         services.TryAddScoped<IVKPromptFormatter<VKDefaultModelMarker>, BasicPromptFormatter>();
         services.TryAddScoped<IVKTapestryWeaver, BasicTapestryWeaver>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKOrchestrationPipelineStage, DefaultWeavingPipelineStage>());
 
         // Register orchestration engine
         services.TryAddScoped<IVKPromptWeavingEngine, DefaultPromptWeavingEngine>();

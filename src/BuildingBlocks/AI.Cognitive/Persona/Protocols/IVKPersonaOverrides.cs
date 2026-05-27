@@ -6,11 +6,6 @@ namespace VK.Blocks.AI.Cognitive;
 public interface IVKPersonaOverrides
 {
     /// <summary>
-    /// Gets the default persona identifier.
-    /// </summary>
-    string? DefaultPersonaId { get; init; }
-
-    /// <summary>
     /// Gets the reserved tokens for persona context.
     /// </summary>
     int? PersonaReservedTokens { get; init; }
