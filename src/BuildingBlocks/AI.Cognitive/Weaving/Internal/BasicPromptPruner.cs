@@ -7,7 +7,7 @@ namespace VK.Blocks.AI.Cognitive.Weaving.Internal;
 
 internal sealed class BasicPromptPruner : IVKPromptPruner
 {
-    public VKResult<IReadOnlyList<VKScoredFragment>> Prune(IReadOnlyList<VKScoredFragment> scored, VKWeavingContext context)
+    public VKResult<IReadOnlyList<VKScoredFragment>> Prune(IReadOnlyList<VKScoredFragment> scored, VKOrchestrationPipelineContext context)
     {
         VKGuard.NotNull(scored);
         VKGuard.NotNull(context);

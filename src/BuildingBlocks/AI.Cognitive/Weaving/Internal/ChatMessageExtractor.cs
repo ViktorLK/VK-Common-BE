@@ -1,24 +1,34 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using VK.Blocks.Core;
 
 // // [AP.03] Internal implementation inside Internal/ folder without VK prefix
 namespace VK.Blocks.AI.Cognitive.Weaving.Internal;
 
-internal sealed class ChatMessageExtractor : IVKPromptExtractor<IEnumerable<VKChatMessage>>
+// [AP.01] sealed default implementation
+internal sealed class ChatMessageExtractor : IVKPromptExtractor
 {
-    public VKResult<IReadOnlyList<VKPromptFragment>> Extract(IEnumerable<VKChatMessage> source, VKWeavingContext context)
+    public Task<VKResult<IReadOnlyList<VKPromptFragment>>> ExtractAsync(
+        VKOrchestrationPipelineContext context,
+        CancellationToken ct)
     {
-        VKGuard.NotNull(source);
+        // [AP.01]
         VKGuard.NotNull(context);
+
+        if (context.Messages is null)
+        {
+            IReadOnlyList<VKPromptFragment> empty = [];
+            return Task.FromResult(VKResult.Success(empty));
+        }
 
         var fragments = new List<VKPromptFragment>();
         int depth = 0; // Recent messages have lower depth in history typically.
 
-        foreach (var msg in source)
+        foreach (var msg in context.Messages)
         {
             fragments.Add(new VKPromptFragment
             {
-                Id = $"chat_{depth}",
                 Content = msg.Content,
                 Position = msg.Role == VKChatRole.System ? VKKnowledgePositions.BeforeDefs : VKKnowledgePositions.SystemAtDepth, // Mapped logic for roles
                 TierType = msg.Role == VKChatRole.System ? VKPromptTierType.SystemInstructions : VKPromptTierType.ChatHistory,
@@ -33,6 +43,7 @@ internal sealed class ChatMessageExtractor : IVKPromptExtractor<IEnumerable<VKCh
             depth++;
         }
 
-        return VKResult.Success<IReadOnlyList<VKPromptFragment>>(fragments);
+        IReadOnlyList<VKPromptFragment> resultList = fragments; // [AP.01]
+        return Task.FromResult(VKResult.Success(resultList));
     }
 }

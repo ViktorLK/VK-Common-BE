@@ -5,9 +5,10 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Cognitive.Orchestration.Internal;
 
 /// <summary>
-/// A default implementation of the thought stream gatekeeper that approves everything.
+/// A no-op/pass-through implementation of <see cref="IVKThoughtStream"/> that approves all thoughts.
+/// Ensures standard deterministic execution.
 /// </summary>
-internal sealed class DefaultThoughtStream : IVKThoughtStream
+internal sealed class NoopThoughtStream : IVKThoughtStream
 {
     public Task<VKResult<VKThoughtEvaluation>> EvaluateAsync(
         string reasoning,

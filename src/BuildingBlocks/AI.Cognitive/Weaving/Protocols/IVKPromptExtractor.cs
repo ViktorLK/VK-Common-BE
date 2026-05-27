@@ -1,13 +1,15 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-// // [AP.03] Public contract in root namespace carrying VK prefix
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// A generic interface to extract fragments from a specific source type.
+/// A non-generic interface to extract fragments from an orchestration pipeline context.
 /// </summary>
-public interface IVKPromptExtractor<in TSource>
+public interface IVKPromptExtractor
 {
-    VKResult<IReadOnlyList<VKPromptFragment>> Extract(TSource source, VKWeavingContext context);
+    // [CS.03] Async method signature standard returning Result pattern [CS.01]
+    Task<VKResult<IReadOnlyList<VKPromptFragment>>> ExtractAsync(VKOrchestrationPipelineContext context, CancellationToken ct);
 }

@@ -12,7 +12,7 @@ internal sealed partial class ReasoningFeature
 {
     static partial void RegisterCustom(IServiceCollection services, VKReasoningOptions options) // [SG Hook]
     {
-        services.TryAddScoped<IVKReasoningPlanner, DefaultReasoningPlanner>();
+        services.TryAddScoped<IVKReasoningPlanner, NoopReasoningPlanner>();
         services.TryAddSingleton<IVKIntentArbiter, DefaultIntentArbiter>();
 
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKOrchestrationPipelineStage, DefaultReasoningPipelineStage>());

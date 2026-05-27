@@ -1,13 +1,16 @@
-using System.Collections.Generic;
 using VK.Blocks.Core;
 
 // // [AP.03] Public contract in root namespace carrying VK prefix
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
-/// Converts raw truncated fragments into target model dialect specifications.
+/// A non-generic formatter to format raw fragments into model-specific string contents.
 /// </summary>
-public interface IVKPromptFormatter<TModel>
+public interface IVKPromptFormatter
 {
-    VKResult<IReadOnlyList<VKFormattedTier>> Format(IReadOnlyList<VKScoredFragment> truncated, VKWeavingContext context);
+    // Check if this formatter supports a given fragment or tier type
+    bool CanFormat(VKPromptFragment fragment);
+
+    // Format the fragment content using the pipeline context
+    VKResult<string> Format(VKPromptFragment fragment, VKOrchestrationPipelineContext context);
 }

@@ -181,8 +181,26 @@ internal sealed class BasicMemoryEchoes : IVKMemoryEchoes
             })
             .OrderByDescending(r => r.Score)
             .ToList();
-
         return Task.FromResult(VKResult.Success<IEnumerable<VKMemoryQueryResult>>(reRanked));
+    }
+
+    public Task<VKResult<IReadOnlyList<VKMemoryEntry>>> GetRecentAsync(
+        string sessionId,
+        VKMemoryCategory category = VKMemoryCategory.ShortTerm,
+        int limit = 50,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var entries = _memories
+            .Where(m => m.Category == category && 
+                        m.Metadata.TryGetValue("SessionId", out var sid) && 
+                        string.Equals(sid, sessionId, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(m => m.CreatedAt) // Oldest to newest chronological
+            .TakeLast(limit)
+            .ToList();
+
+        return Task.FromResult(VKResult.Success<IReadOnlyList<VKMemoryEntry>>(entries));
     }
 
     private List<VKMemoryQueryResult> PerformSearch(

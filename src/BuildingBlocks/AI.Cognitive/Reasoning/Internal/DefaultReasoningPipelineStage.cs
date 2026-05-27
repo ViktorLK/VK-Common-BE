@@ -31,6 +31,7 @@ internal sealed class DefaultReasoningPipelineStage : IVKOrchestrationPipelineSt
     {
         VKGuard.NotNull(context);
 
+        // TODO _intentNexus.Route
         // [CS.01] Directly returns a successful Chat intent context bypass intent nexus routing
         context.IntentContext = new VKIntentContext
         {

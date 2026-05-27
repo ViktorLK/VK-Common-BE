@@ -17,12 +17,17 @@ internal sealed class BasicBudgetTruncator : IVKBudgetTruncator
         _timeProvider = timeProvider;
     }
 
-    public VKResult<IReadOnlyList<VKScoredFragment>> Truncate(IReadOnlyList<VKScoredFragment> pruned, VKWeavingContext context)
+    public VKResult<IReadOnlyList<VKScoredFragment>> Truncate(IReadOnlyList<VKScoredFragment> pruned, VKOrchestrationPipelineContext context)
     {
         VKGuard.NotNull(pruned);
         VKGuard.NotNull(context);
 
-        var budgetPlan = context.Budget;
+        var budgetPlan = context.TokenBudget;
+        if (budgetPlan == null)
+        {
+            return VKResult.Success<IReadOnlyList<VKScoredFragment>>(pruned);
+        }
+
         var tokenMeter = budgetPlan.TokenMeterResolver?.Invoke();
 
         // If no token meter available or no history limit, pass-through
@@ -36,7 +41,7 @@ internal sealed class BasicBudgetTruncator : IVKBudgetTruncator
         // Split fragments into non-history and history. For simplicity, assume all fragments have tokens counted.
         // In reality, this requires distinguishing history vs knowledge.
         int nonHistoryTokens = 0;
-        var nonHistoryFragments = pruned.Where(p => !p.Fragment.Id.StartsWith("chat_")).ToList();
+        var nonHistoryFragments = pruned.Where(p => p.Fragment.TierType != VKPromptTierType.ChatHistory).ToList();
 
         foreach (var f in nonHistoryFragments)
         {
@@ -47,7 +52,7 @@ internal sealed class BasicBudgetTruncator : IVKBudgetTruncator
         if (remainingHistoryBudget < 0)
             remainingHistoryBudget = 0;
 
-        var historyFragments = pruned.Where(p => p.Fragment.Id.StartsWith("chat_"))
+        var historyFragments = pruned.Where(p => p.Fragment.TierType == VKPromptTierType.ChatHistory)
                                      .OrderBy(p => p.Fragment.Depth) // Order by depth to keep most recent
                                      .ToList();
 
@@ -73,9 +78,9 @@ internal sealed class BasicBudgetTruncator : IVKBudgetTruncator
 
                     var evictionEvent = new VKMemoryEvictionEvent
                     {
-                        SessionId = context.Pipeline.SessionId,
-                        TenantId = context.Pipeline.GovernanceSnapshot?.TenantId ?? "Default",
-                        UserId = context.Pipeline.GovernanceSnapshot?.UserId ?? "Anonymous",
+                        SessionId = context.SessionId,
+                        TenantId = context.GovernanceSnapshot?.TenantId ?? "Default",
+                        UserId = context.GovernanceSnapshot?.UserId ?? "Anonymous",
                         EvictedMessages = new List<VKChatMessage> { evictedMsg }, // Can aggregate all evicted here
                         OccurredAt = _timeProvider.GetUtcNow()
                     };

@@ -9,12 +9,11 @@ namespace VK.Blocks.AI.Cognitive;
 /// Defines the core protocol for "Embodied Intelligence" orchestration.
 /// Follows the standard cognitive flow: Sense -> Recall -> Think -> Act.
 /// </summary>
-public interface IVKCognitivePipeline
+public interface IVKOrchestrationPipeline
 {
     /// <summary>
     /// Executes the full cognitive pipeline for a given user input.
     /// </summary>
-    /// <param name="input">The raw input from the user or environment.</param>
     /// <param name="args">The pipeline arguments.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result containing the end-to-end cognitive output.</returns>
@@ -25,7 +24,7 @@ public interface IVKCognitivePipeline
     /// 3. Think: Apply persona logic, emotional state, and intent analysis.
     /// 4. Act: Execute agent actions or generate the final response.
     /// </remarks>
-    Task<VKResult<VKCognitiveResult>> ExecuteAsync(
+    Task<VKResult<VKOrchestrationResult>> ExecuteAsync(
         string input,
         VKCognitivePipelineArgs? args = null,
         CancellationToken cancellationToken = default);

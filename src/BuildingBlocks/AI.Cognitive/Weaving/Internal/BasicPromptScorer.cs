@@ -6,7 +6,7 @@ namespace VK.Blocks.AI.Cognitive.Weaving.Internal;
 
 internal sealed class BasicPromptScorer : IVKPromptScorer
 {
-    public VKResult<IReadOnlyList<VKScoredFragment>> Score(IReadOnlyList<VKPromptFragment> fragments, VKWeavingContext context)
+    public VKResult<IReadOnlyList<VKScoredFragment>> Score(IReadOnlyList<VKPromptFragment> fragments, VKOrchestrationPipelineContext context)
     {
         VKGuard.NotNull(fragments);
         VKGuard.NotNull(context);
