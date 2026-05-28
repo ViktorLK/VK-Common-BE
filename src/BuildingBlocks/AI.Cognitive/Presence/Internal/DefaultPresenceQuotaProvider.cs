@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Cognitive;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive.Presence.Internal;
@@ -11,11 +12,11 @@ namespace VK.Blocks.AI.Cognitive.Presence.Internal;
 /// </summary>
 internal sealed class DefaultPresenceQuotaProvider : IVKPresenceQuotaProvider
 {
-    private readonly VKPresenceOptions _options;
+    private readonly VKFramingOptions _framingOptions;
 
-    public DefaultPresenceQuotaProvider(IOptions<VKPresenceOptions> options)
+    public DefaultPresenceQuotaProvider(IOptions<VKFramingOptions> framingOptions)
     {
-        _options = VKGuard.NotNull(options).Value;
+        _framingOptions = VKGuard.NotNull(framingOptions).Value;
     }
 
     /// <inheritdoc />
@@ -26,9 +27,9 @@ internal sealed class DefaultPresenceQuotaProvider : IVKPresenceQuotaProvider
     {
         var quota = new VKPresenceQuota
         {
-            TokenLimit = _options.DefaultTokenLimit,
-            MaxRequestTokenQuota = _options.MaxRequestTokenQuota,
-            SafetyMarginTokens = _options.SafetyMarginTokens
+            TokenLimit = _framingOptions.DefaultTokenLimit,
+            MaxRequestTokenQuota = _framingOptions.MaxRequestTokenQuota,
+            SafetyMarginTokens = _framingOptions.SafetyMarginTokens
         };
 
         return Task.FromResult(VKResult.Success(quota));

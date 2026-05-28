@@ -2,15 +2,19 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using VK.Blocks.AI.Cognitive;
+using VK.Blocks.AI.Cognitive.Framing.Diagnostics.Internal;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Cognitive.Presence.Internal;
+namespace VK.Blocks.AI.Cognitive.Framing.Internal;
 
-internal sealed class PresenceContextPipelineStage : IVKOrchestrationPipelineStage
+internal sealed class DefaultFramingPipelineStage : IVKOrchestrationPipelineStage
 {
     private readonly IVKPresenceAssembler _presenceAssembler;
     private readonly IVKTokenMeter _tokenMeter;
     private readonly IVKSystemTelemetry _systemTelemetry;
+    private readonly ILogger<DefaultFramingPipelineStage> _logger;
     private readonly TimeProvider? _timeProvider;
 
     public int Order => 500; // Executes after early governance and RAG retrieval
@@ -21,15 +25,17 @@ internal sealed class PresenceContextPipelineStage : IVKOrchestrationPipelineSta
 
     public int? ParallelGroup => null;
 
-    public PresenceContextPipelineStage(
+    public DefaultFramingPipelineStage(
         IVKPresenceAssembler presenceAssembler,
         IVKTokenMeter tokenMeter,
         IVKSystemTelemetry systemTelemetry,
+        ILogger<DefaultFramingPipelineStage> logger,
         TimeProvider? timeProvider = null)
     {
         _presenceAssembler = VKGuard.NotNull(presenceAssembler);
         _tokenMeter = VKGuard.NotNull(tokenMeter);
         _systemTelemetry = VKGuard.NotNull(systemTelemetry);
+        _logger = VKGuard.NotNull(logger);
         _timeProvider = timeProvider;
     }
 
@@ -41,7 +47,7 @@ internal sealed class PresenceContextPipelineStage : IVKOrchestrationPipelineSta
         var snapshot = context.GovernanceSnapshot;
         if (snapshot is null)
         {
-            context.CriticalError = VKPipelineError.From<PresenceContextPipelineStage>(PresenceErrors.GovernanceSnapshotMissing.Description);
+            context.CriticalError = VKPipelineError.From<DefaultFramingPipelineStage>(FramingErrors.GovernanceSnapshotMissing.Description);
             return;
         }
 
@@ -49,6 +55,8 @@ internal sealed class PresenceContextPipelineStage : IVKOrchestrationPipelineSta
         var state = snapshot.State;
         string constitution = snapshot.Constitution;
         var quota = snapshot.Quota;
+
+        FramingDiagnostics.FramingPipelineStarted(_logger, tenantId, snapshot.UserId);
 
         // 1. Assemble tapestry prompt (environmental tags and mediated variables)
         var tapestryResult = await _presenceAssembler.AssembleTapestryAsync(
@@ -58,7 +66,7 @@ internal sealed class PresenceContextPipelineStage : IVKOrchestrationPipelineSta
 
         if (tapestryResult.IsFailure)
         {
-            context.CriticalError = VKPipelineError.From<PresenceContextPipelineStage>(tapestryResult.FirstError.Description);
+            context.CriticalError = VKPipelineError.From<DefaultFramingPipelineStage>(tapestryResult.FirstError.Description);
             return;
         }
 
@@ -82,15 +90,17 @@ internal sealed class PresenceContextPipelineStage : IVKOrchestrationPipelineSta
         // Tier 6: Reasoning Guardrail (Step-by-step <thought> constraints)
         string thoughtGuardrail = "REASONING RULES:\n- Formulate your initial plan and analysis within <thought>...</thought> blocks before responding to the user.\n";
 
-        // Reassemble consolidated System Instruction with rigid [SYSTEM_ANCHOR] and guardrail (Ego/Persona is cleanly handled downstream by DefaultPersonaPromptExtractor)
+        // Reassemble consolidated System Instruction (Ego/Persona is cleanly handled downstream by DefaultPersonaPromptExtractor)
         string consolidatedSystemPrompt = $"{systemAnchor}{l1Constitution}\n{l2Capabilities}\n{l4WorldContext}\n{thoughtGuardrail}";
 
-        // Write back consolidated prompt to arguments so Weaving Stage can consume the dynamic tenant constitution
+        // Write back consolidated prompt to arguments so Weaving Stage can consume it
         if (context.Args is not null)
         {
             context.Args = context.Args with
             {
-                SystemInstructions = l1Constitution //TODO
+                // [AP.05] During the dynamic prompt evaluation/trial phase, we deliberately restrict this to l1Constitution
+                // to optimize prompt adherence and avoid token bloat. Other elements are under consideration.
+                SystemInstructions = l1Constitution
             };
         }
 
@@ -112,11 +122,14 @@ internal sealed class PresenceContextPipelineStage : IVKOrchestrationPipelineSta
         // 4. Adaptive telemetry status stress checking and overrides
         if (context.Args is not null && await _systemTelemetry.IsProviderStressedAsync("AzureOpenAI", ct).ConfigureAwait(false))
         {
+            FramingDiagnostics.FramingFallbackTriggered(_logger, 2.0);
             context.Args = context.Args with
             {
                 Timeout = TimeSpan.FromSeconds(2)
             };
             context.Args.Context["ProviderFallbackEnabled"] = true;
         }
+
+        FramingDiagnostics.FramingPipelineCompleted(_logger, systemTokens, context.TokenBudget.AvailableHistoryLimit);
     }
 }

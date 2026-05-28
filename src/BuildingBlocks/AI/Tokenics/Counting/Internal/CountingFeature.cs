@@ -12,7 +12,7 @@ internal sealed partial class CountingFeature
     static partial void RegisterCustom(IServiceCollection services, VKCountingOptions options)
     {
         _ = options;
-        services.TryAddSingleton<IVKTokenizer, DefaultTokenizer>();
+        services.TryAddSingleton<IVKTokenCounter, DefaultTokenCounter>();
     }
 
     /// <summary>Add counting-specific validation logic here</summary>

@@ -10,17 +10,17 @@ namespace VK.Blocks.AI.Tokenics.Budgeting.Internal;
 /// </summary>
 internal sealed class DefaultTokenBudgeter : IVKTokenBudgeter
 {
-    private readonly IVKTokenizer _tokenizer;
+    private readonly IVKTokenCounter _tokenCounter;
 
-    public DefaultTokenBudgeter(IVKTokenizer tokenizer)
+    public DefaultTokenBudgeter(IVKTokenCounter tokenizer)
     {
-        _tokenizer = VKGuard.NotNull(tokenizer);
+        _tokenCounter = VKGuard.NotNull(tokenizer);
     }
 
     /// <inheritdoc />
     public int GetRemainingBudget(IEnumerable<VKChatMessage> history, int maxTokens, string? modelId = null)
     {
-        int usedTokens = history.Sum(m => _tokenizer.CountTokens(m.Content, modelId));
+        int usedTokens = history.Sum(m => _tokenCounter.CountTokens(m.Content, modelId));
         return Math.Max(0, maxTokens - usedTokens);
     }
 
@@ -32,7 +32,7 @@ internal sealed class DefaultTokenBudgeter : IVKTokenBudgeter
         string? modelId = null)
     {
         var messages = history.ToList();
-        int currentTotal = messages.Sum(m => _tokenizer.CountTokens(m.Content, modelId));
+        int currentTotal = messages.Sum(m => _tokenCounter.CountTokens(m.Content, modelId));
 
         if (currentTotal <= budget)
         {
@@ -53,7 +53,7 @@ internal sealed class DefaultTokenBudgeter : IVKTokenBudgeter
         var systemPrompt = messages.FirstOrDefault(m => m.Role == VKChatRole.System);
         var others = messages.Where(m => m.Role != VKChatRole.System).ToList();
 
-        int systemTokens = systemPrompt is not null ? _tokenizer.CountTokens(systemPrompt.Content, modelId) : 0;
+        int systemTokens = systemPrompt is not null ? _tokenCounter.CountTokens(systemPrompt.Content, modelId) : 0;
         int remainingBudget = budget - systemTokens;
 
         if (remainingBudget <= 0)
@@ -67,7 +67,7 @@ internal sealed class DefaultTokenBudgeter : IVKTokenBudgeter
         // Iterate from newest to oldest
         for (int i = others.Count - 1; i >= 0; i--)
         {
-            int tokens = _tokenizer.CountTokens(others[i].Content, modelId);
+            int tokens = _tokenCounter.CountTokens(others[i].Content, modelId);
             if (currentTokens + tokens <= remainingBudget)
             {
                 result.Insert(0, others[i]);
