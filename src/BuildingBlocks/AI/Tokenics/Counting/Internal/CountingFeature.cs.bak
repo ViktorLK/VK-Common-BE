@@ -1,7 +1,0 @@
-using VK.Blocks.AI.Tokenics.Internal;
-using VK.Blocks.Core;
-
-namespace VK.Blocks.AI.Tokenics.Counting.Internal;
-
-[VKFeatureMarker(TokenicsConstants.CountingFeatureName, typeof(VKAIBlock))]
-internal sealed partial class CountingFeature;

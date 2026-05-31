@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Cognitive;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive.Presence.Internal;
@@ -14,22 +16,27 @@ namespace VK.Blocks.AI.Cognitive.Presence.Internal;
 internal sealed class PresenceTracker : IVKPresenceTracker
 {
     private readonly TimeProvider _timeProvider; // [CS.06]
-    private readonly VKPresenceOptions _options;
+    private readonly VKPresenceOptions _presenceOptions;
+    private readonly VKFramingOptions _framingOptions;
     private readonly ILogger<PresenceTracker> _logger;
     private readonly IVKPresenceStateStore _stateStore;
     private readonly IVKUserContext _userContext;
     private readonly IVKPresenceQuotaProvider _quotaProvider;
+    
+
 
     public PresenceTracker(
         TimeProvider timeProvider,
-        IOptions<VKPresenceOptions> options,
+        IOptions<VKPresenceOptions> presenceOptions,
+        IOptions<VKFramingOptions> framingOptions,
         ILogger<PresenceTracker> logger,
         IVKPresenceStateStore stateStore,
         IVKUserContext userContext,
         IVKPresenceQuotaProvider quotaProvider)
     {
         _timeProvider = VKGuard.NotNull(timeProvider);
-        _options = VKGuard.NotNull(options).Value;
+        _presenceOptions = VKGuard.NotNull(presenceOptions).Value;
+        _framingOptions = VKGuard.NotNull(framingOptions).Value;
         _logger = VKGuard.NotNull(logger);
         _stateStore = VKGuard.NotNull(stateStore);
         _userContext = VKGuard.NotNull(userContext);
@@ -68,6 +75,9 @@ internal sealed class PresenceTracker : IVKPresenceTracker
         if (loadResult.IsSuccess)
         {
             var existingState = loadResult.Value;
+
+
+
             promptTokens = existingState.TotalPromptTokensUsed;
             completionTokens = existingState.TotalCompletionTokensUsed;
             turnCount = existingState.ActiveMessageCount / 2;
@@ -78,6 +88,12 @@ internal sealed class PresenceTracker : IVKPresenceTracker
         {
             activeWorldState = worldState;
         }
+        else if (loadResult.IsSuccess)
+        {
+            activeWorldState = loadResult.Value.WorldState;
+        }
+
+
 
         // Increment dialogue turn count
         turnCount++;
@@ -101,7 +117,7 @@ internal sealed class PresenceTracker : IVKPresenceTracker
         var quota = quotaResult.Value;
 
         var tokenLimit = quota.TokenLimit;
-        var thresholdTokens = (int)(tokenLimit * _options.TruncationThreshold);
+        var thresholdTokens = (int)(tokenLimit * _framingOptions.TruncationThreshold);
         var totalTokensUsed = promptTokens + completionTokens;
         var remainingBudget = Math.Max(0, thresholdTokens - totalTokensUsed);
 
@@ -119,7 +135,7 @@ internal sealed class PresenceTracker : IVKPresenceTracker
             RemainingTokenBudget = remainingBudget,
             RecentInput = input,
             WorldState = activeWorldState,
-            Environment = _options.Environment,
+            Environment = _framingOptions.Environment,
             PipelineStage = turnCount <= 1 ? "Initiation" : "Reasoning",
             MaxRequestTokenQuota = quota.MaxRequestTokenQuota,
             SafetyMarginTokens = quota.SafetyMarginTokens
@@ -188,7 +204,7 @@ internal sealed class PresenceTracker : IVKPresenceTracker
                 ActiveMessageCount = 0,
                 RemainingTokenBudget = quota.TokenLimit,
                 WorldState = VKWorldState.Default,
-                Environment = _options.Environment,
+                Environment = _framingOptions.Environment,
                 PipelineStage = "Initiation",
                 MaxRequestTokenQuota = quota.MaxRequestTokenQuota,
                 SafetyMarginTokens = quota.SafetyMarginTokens
@@ -199,7 +215,7 @@ internal sealed class PresenceTracker : IVKPresenceTracker
         int newCompletionTotal = existingState.TotalCompletionTokensUsed + completionTokens;
         int totalTokensUsed = newPromptTotal + newCompletionTotal;
         var tokenLimit = quota.TokenLimit;
-        var thresholdTokens = (int)(tokenLimit * _options.TruncationThreshold);
+        var thresholdTokens = (int)(tokenLimit * _framingOptions.TruncationThreshold);
         var remainingBudget = Math.Max(0, thresholdTokens - totalTokensUsed);
 
         var updatedState = existingState with
@@ -208,6 +224,8 @@ internal sealed class PresenceTracker : IVKPresenceTracker
             TotalCompletionTokensUsed = newCompletionTotal,
             RemainingTokenBudget = remainingBudget
         };
+
+
 
         var saveResult = await _stateStore.SaveStateAsync(key, updatedState, cancellationToken).ConfigureAwait(false); // [CS.03]
         if (saveResult.IsFailure)
@@ -256,7 +274,7 @@ internal sealed class PresenceTracker : IVKPresenceTracker
         var quota = quotaResult.Value;
 
         var tokenLimit = quota.TokenLimit;
-        var thresholdTokens = (int)(tokenLimit * _options.TruncationThreshold);
+        var thresholdTokens = (int)(tokenLimit * _framingOptions.TruncationThreshold);
         var totalTokensUsed = stats.TotalPromptTokensUsed + stats.TotalCompletionTokensUsed;
         var remainingBudget = Math.Max(0, thresholdTokens - totalTokensUsed);
 

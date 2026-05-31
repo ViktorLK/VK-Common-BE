@@ -43,7 +43,6 @@ internal sealed partial class PresenceFeature
 
         // Register the core presence pipeline stages (Early Governance and Late Context)
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKOrchestrationPipelineStage, PresenceGovernancePipelineStage>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKOrchestrationPipelineStage, PresenceContextPipelineStage>());
     }
 
     // [SG Hook]
@@ -51,15 +50,5 @@ internal sealed partial class PresenceFeature
     {
         VKGuard.NotNull(options);
         VKGuard.NotNull(failures);
-
-        if (options.DefaultTokenLimit <= 0)
-        {
-            failures.Add("VKPresenceOptions.DefaultTokenLimit must be greater than zero.");
-        }
-
-        if (options.TruncationThreshold <= 0.0f || options.TruncationThreshold > 1.0f)
-        {
-            failures.Add("VKPresenceOptions.TruncationThreshold must be between 0.0 and 1.0.");
-        }
     }
 }

@@ -34,16 +34,12 @@ internal sealed class DefaultPersonaFormatter : IVKPromptFormatter
             var sb = new StringBuilder(512);
 
             // 1. Macro Skeleton & Sovereignty (L1/L4) -> XML Tag
-            sb.AppendLine("<character_persona>");
-
-            // Provide explicit context to the LLM
-            sb.AppendLine("You must adopt the persona described below. Maintain this character's tone, traits, and background in all responses.");
-            sb.AppendLine();
+            sb.AppendLine("<persona>");
 
             // 2. Delegate the actual markdown content rendering to IVKPersonaRenderer
             sb.Append(_renderer.Render(persona));
 
-            sb.AppendLine("</character_persona>");
+            sb.AppendLine("</persona>");
 
             return VKResult.Success(sb.ToString());
         }

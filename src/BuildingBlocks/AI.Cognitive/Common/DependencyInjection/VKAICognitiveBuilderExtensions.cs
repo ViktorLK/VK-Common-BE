@@ -10,6 +10,7 @@ using VK.Blocks.AI.Cognitive.Persona.Internal;
 using VK.Blocks.AI.Cognitive.Presence.Internal;
 using VK.Blocks.AI.Cognitive.Reasoning.Internal;
 using VK.Blocks.AI.Cognitive.Weaving.Internal;
+using VK.Blocks.AI.Cognitive.Framing.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive;
@@ -69,25 +70,6 @@ public static class VKAICognitiveBuilderExtensions
     }
 
     /// <summary>
-    /// Decorates the core IVKKnowledgeManager with advanced narrative, stochastic and turn-timer rules.
-    /// </summary>
-    public static IVKAICognitiveBuilder WithVKKnowledgeNarrativeRules(this IVKAICognitiveBuilder builder)
-    {
-        VKGuard.NotNull(builder);
-        var services = builder.Services;
-
-        // Register default thread-safe in-memory stores and providers
-        // services.TryAddSingleton<IVKKnowledgeNarrativeStore, InMemoryKnowledgeNarrativeStore>();
-        // services.TryAddScoped<IVKKnowledgeSessionStateStore, InMemoryKnowledgeSessionStateStore>();
-        // services.TryAddScoped<IVKKnowledgeSessionProvider, BasicKnowledgeSessionProvider>();
-
-        // // Decorate the core IVKKnowledgeManager with the Narrative rules decorator
-        // services.Decorate<IVKKnowledgeStore, BasicKnowledgeNarrativeStore>();
-
-        return builder;
-    }
-
-    /// <summary>
     /// Adds the Orchestration feature to the AI Cognitive building block.
     /// </summary>
     public static IVKAICognitiveBuilder AddVKOrchestration(
@@ -124,6 +106,18 @@ public static class VKAICognitiveBuilderExtensions
     }
 
     /// <summary>
+    /// Adds the Cognitive Framing feature to the AI Cognitive building block.
+    /// </summary>
+    public static IVKAICognitiveBuilder AddVKFraming(
+        this IVKAICognitiveBuilder builder,
+        Func<VKFramingOptions, VKFramingOptions>? transform = null)
+    {
+        VKGuard.NotNull(builder);
+        FramingFeature.Register(builder, transform);
+        return builder;
+    }
+
+    /// <summary>
     /// Adds the Prompt Weaving Engine and Pipeline to the AI Cognitive building block.
     /// </summary>
     public static IVKAICognitiveBuilder AddVKWeaving(this IVKAICognitiveBuilder builder, Action<VKWeavingOptions>? configure = null)
@@ -144,6 +138,7 @@ public static class VKAICognitiveBuilderExtensions
 
             // 🔴 Core Hub
             .AddVKPresence()
+            .AddVKFraming()
             .AddVKOrchestration()
 
             // 🟡 Standard Plugins

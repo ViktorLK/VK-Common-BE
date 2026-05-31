@@ -9,14 +9,6 @@ namespace VK.Blocks.AI;
 public interface IVKTokenizer
 {
     /// <summary>
-    /// Counts the number of tokens in the given text for a specific model.
-    /// </summary>
-    /// <param name="text">The input text.</param>
-    /// <param name="modelId">The target model ID.</param>
-    /// <returns>The token count.</returns>
-    int CountTokens(string text, string? modelId = null);
-
-    /// <summary>
     /// Encodes text into a sequence of token IDs.
     /// </summary>
     /// <param name="text">The input text.</param>

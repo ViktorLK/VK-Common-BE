@@ -15,7 +15,6 @@ using VK.Blocks.AI.Tokenics.Costing.Internal;
 using VK.Blocks.AI.Tokenics.Counting.Internal;
 using VK.Blocks.AI.Tokenics.Internal;
 using VK.Blocks.AI.Tokenics.Limiting.Internal;
-using VK.Blocks.AI.Tokenics.Quotas.Internal;
 using VK.Blocks.AI.Vectorics.Embeddings.Internal;
 using VK.Blocks.AI.Vectorics.Internal;
 using VK.Blocks.AI.Vectorics.ReRanking.Internal;
@@ -226,17 +225,6 @@ public static class VKAIBuilderExtensions
     }
 
     /// <summary>
-    /// Adds the Token Quotas feature.
-    /// </summary>
-    public static IVKAIBuilder AddVKQuotas(
-        this IVKAIBuilder builder,
-        Func<VKQuotasOptions, VKQuotasOptions>? transform = null)
-    {
-        VKGuard.NotNull(builder);
-        return QuotasFeature.Register(builder, transform);
-    }
-
-    /// <summary>
     /// Adds the Token Budgeting feature.
     /// </summary>
     public static IVKAIBuilder AddVKBudgeting(
@@ -315,7 +303,6 @@ public static class VKAIBuilderExtensions
         builder.AddVKCounting();
         builder.AddVKCosting();
         builder.AddVKLimiting();
-        builder.AddVKQuotas();
         builder.AddVKBudgeting();
 
         return builder;
