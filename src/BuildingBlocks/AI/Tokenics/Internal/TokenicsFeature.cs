@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Tokenics.Counting.Internal;
 
 namespace VK.Blocks.AI.Tokenics.Internal;
 
@@ -11,7 +13,7 @@ internal sealed partial class TokenicsFeature
     // [SG Hook]
     static partial void RegisterCustom(IServiceCollection services, VKTokenicsOptions options)
     {
-        _ = services;
+        services.TryAddSingleton<IVKTokenCounter, DefaultTokenCounter>();
         _ = options;
     }
 

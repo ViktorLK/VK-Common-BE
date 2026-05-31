@@ -134,6 +134,7 @@
 - [ ] [AI.COGNITIVE-002: Implement Dynamic Knowledge Weaver (IVKKnowledgeWeaver)](<./AI.Cognitive/002-implement-dynamic-knowledge-weaver-(ivkknowledgeweaver).md>)
 
 - [ ] [AI.COGNITIVE-001: Promote IVKPersonaExampleStore to AI.Cognitive](./AI.Cognitive/001-promote-ivkpersonaexamplestore-to-aicognitive.md)
+- [ ] [AI.COGNITIVE-002: Integrate real intent routing in DefaultReasoningPipelineStage](./AI.Cognitive/002-integrate-real-intent-routing-in-defaultreasoningpipelinestage.md)
 ## 🔐 Auth Tasks
 
 - [ ] [AUTH-001: Audit Commit aa832af89a41f065792ddecf22d65ce3ed57013a in Authentication](./Auth/001-audit-commit-aa832af89a41f065792ddecf22d65ce3ed57013a-in-authentication.md)
