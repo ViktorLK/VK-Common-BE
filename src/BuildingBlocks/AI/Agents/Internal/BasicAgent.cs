@@ -27,6 +27,7 @@ internal sealed class BasicAgent : IVKAgent
     public BasicAgent(
         string name,
         string description,
+        string instructions,
         IEnumerable<IVKAtomicTool> tools,
         IReadOnlyDictionary<string, object>? metadata,
         IVKChatEngine chatEngine,
@@ -38,6 +39,7 @@ internal sealed class BasicAgent : IVKAgent
     {
         Name = VKGuard.NotNullOrWhiteSpace(name);
         Description = VKGuard.NotNullOrWhiteSpace(description);
+        Instructions = instructions ?? string.Empty;
         Tools = VKGuard.NotNull(tools).ToList();
         Metadata = metadata ?? new Dictionary<string, object>();
         _chatEngine = VKGuard.NotNull(chatEngine);
@@ -53,6 +55,9 @@ internal sealed class BasicAgent : IVKAgent
 
     /// <inheritdoc />
     public string Description { get; }
+
+    /// <inheritdoc />
+    public string Instructions { get; }
 
     /// <inheritdoc />
     public IReadOnlyList<IVKAtomicTool> Tools { get; }

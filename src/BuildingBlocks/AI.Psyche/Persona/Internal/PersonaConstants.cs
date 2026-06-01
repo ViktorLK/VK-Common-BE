@@ -6,7 +6,7 @@ internal static class PersonaConstants
     public static class MarkdownHeaders
     {
         public const string Name = "# Name";
-        public const string Background = "# Background";
+        public const string Identity = "# Identity";
         public const string Traits = "# Traits";
         public const string SystemDirectives = "# System Directives";
         public const string OutputSpecification = "# Output Specification";

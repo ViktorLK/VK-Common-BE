@@ -47,7 +47,8 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
                             (currentEntry.Position is VKKnowledgeAbsolutePosition currentAbs &&
                              siblingEntry.Position is VKKnowledgeAbsolutePosition siblingAbs &&
                              currentAbs.Role == siblingAbs.Role && currentAbs.Depth == siblingAbs.Depth)
-                        ))
+                        ) &&
+                        siblingEntry.Tag == currentEntry.Tag)
             .OrderBy(f => f.RenderOrder)
             .ToList();
 
@@ -66,9 +67,8 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
         try
         {
             var sb = new System.Text.StringBuilder();
-            string tag = fragment.Depth is not null
-                ? Weaving.Internal.PromptConstants.XmlTags.ImportantKnowledge
-                : Weaving.Internal.PromptConstants.XmlTags.Knowledge;
+            var firstEntry = (VKKnowledgeEntry)firstFragment.Metadata!;
+            string tag = firstEntry.Tag;
 
             sb.AppendLine($"<{tag}>");
 

@@ -21,6 +21,11 @@ public interface IVKAgent
     string Description { get; }
 
     /// <summary>
+    /// Gets the instructions (system prompt) for the agent.
+    /// </summary>
+    string Instructions { get; }
+
+    /// <summary>
     /// Gets the list of tools available to this agent.
     /// </summary>
     IReadOnlyList<IVKAtomicTool> Tools { get; }

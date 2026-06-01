@@ -58,7 +58,7 @@ public sealed record VKChatMessage
     /// Gets the name of the sender.
     /// Optional, but highly recommended for multi-user conversations or tool outputs.
     /// </summary>
-    public string? Name { get; init; }
+    public string? AuthorName { get; init; }
 
     /// <summary>
     /// Gets the specific model ID used to generate this message (if applicable).

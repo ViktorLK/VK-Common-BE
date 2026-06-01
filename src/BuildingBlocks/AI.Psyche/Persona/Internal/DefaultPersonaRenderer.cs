@@ -18,7 +18,7 @@ internal sealed class DefaultPersonaRenderer : IVKPersonaRenderer
 
         if (!string.IsNullOrWhiteSpace(persona.Description))
         {
-            sb.Append(PersonaConstants.MarkdownHeaders.Background).AppendLine().AppendLine(persona.Description).AppendLine();
+            sb.Append(PersonaConstants.MarkdownHeaders.Identity).AppendLine().AppendLine(persona.Description).AppendLine();
         }
 
         if (persona.Traits is not null && persona.Traits.Any())
