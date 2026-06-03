@@ -16,7 +16,7 @@ internal static class AISKErrorMapper
         return exception switch
         {
             HttpOperationException httpEx => MapHttpError(httpEx),
-            _ => VK.Blocks.AI.Internal.VKAIErrorMapper.Map(exception)
+            _ => VKAIErrorMapper.Map(exception)
         };
     }
 

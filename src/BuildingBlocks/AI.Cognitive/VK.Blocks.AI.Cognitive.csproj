@@ -11,6 +11,7 @@
     <PackageReference Include="Scrutor" />
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
     <ProjectReference Include="..\AI\VK.Blocks.AI.csproj" />
+    <ProjectReference Include="..\AI.Psyche\VK.Blocks.AI.Psyche.csproj" />
   </ItemGroup>
 
   <ItemGroup>

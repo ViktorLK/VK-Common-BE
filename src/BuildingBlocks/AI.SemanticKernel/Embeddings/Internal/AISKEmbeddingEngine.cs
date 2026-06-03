@@ -17,14 +17,14 @@ namespace VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
 /// <summary>
 /// AISK implementation of <see cref="IVKEmbeddingEngine"/>.
 /// </summary>
-internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingOptions>, IVKEmbeddingEngine
+internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingsOptions>, IVKEmbeddingsEngine
 {
     private readonly IEmbeddingGenerator<string, Embedding> _defaultEmbeddingService;
 
     public AISKEmbeddingEngine(
         Microsoft.SemanticKernel.Kernel kernel,
-        IOptions<VKAIOptions> globalOptions,
-        IOptions<VKEmbeddingOptions> options,
+        IOptions<VKAIDefaultsOptions> globalOptions,
+        IOptions<VKEmbeddingsOptions> options,
         ILogger<AISKEmbeddingEngine> logger,
         TimeProvider? timeProvider = null)
         : base(kernel, globalOptions, options, logger, timeProvider)
@@ -33,9 +33,9 @@ internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingOptions>, 
     }
 
     /// <inheritdoc />
-    public Task<VKResult<IEnumerable<VKEmbeddingVector>>> GetEmbeddingsAsync(
+    public Task<VKResult<VKEmbeddingsResponse>> GetEmbeddingsAsync(
         IEnumerable<string> inputs,
-        VKEmbeddingArgs? args = null,
+        VKEmbeddingsArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(inputs);
@@ -44,13 +44,17 @@ internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingOptions>, 
         {
             if (!inputs.Any())
             {
-                return Enumerable.Empty<VKEmbeddingVector>();
+                return new VKEmbeddingsResponse
+                {
+                    Vectors = [],
+                    ModelId = GetEffectiveModelId(args)
+                };
             }
 
             var stopwatch = Stopwatch.StartNew();
             var items = inputs.ToList();
             int totalCount = items.Count;
-            int batchSize = FeatureOptions.BatchSize;
+            int batchSize = FeatureOptions.BatchSize ?? 16;
 
             // Resolve Service
             var embeddingService = GetEmbeddingService(args);
@@ -63,14 +67,20 @@ internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingOptions>, 
                 Logger.LogChatAudit("GetEmbeddingsAsync", args?.UserId, modelId);
             }
 
-            List<VKEmbeddingVector> allResults = [];
+            List<VKEmbeddingsVector> allResults = [];
+            long totalInputTokens = 0;
 
             for (int i = 0; i < totalCount; i += batchSize)
             {
                 var batch = items.Skip(i).Take(batchSize).ToList();
                 var embeddings = await embeddingService.GenerateAsync(batch, cancellationToken: ct).ConfigureAwait(false);
 
-                allResults.AddRange(embeddings.Select(e => new VKEmbeddingVector { Values = e.Vector.ToArray() }));
+                allResults.AddRange(embeddings.Select(e => new VKEmbeddingsVector { Values = e.Vector.ToArray() }));
+
+                if (embeddings.Usage is { } usage)
+                {
+                    totalInputTokens += usage.InputTokenCount ?? 0;
+                }
 
                 Logger.LogEmbeddingBatchCompleted(modelId, batch.Count);
             }
@@ -80,17 +90,20 @@ internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingOptions>, 
             AISKMetrics.RecordEmbeddingDuration(duration, modelId);
             AISKMetrics.RecordEmbeddingItems(totalCount, modelId);
 
-            return (IEnumerable<VKEmbeddingVector>)allResults;
-        }, args, VKEmbeddingErrors.FeatureDisabled, cancellationToken);
+            var response = new VKEmbeddingsResponse
+            {
+                Vectors = allResults,
+                ModelId = modelId,
+                Usage = totalInputTokens > 0 ? new VKAITokenUsage { InputTokens = totalInputTokens } : null
+            };
+
+            return response;
+        }, args, VKEmbeddingsErrors.FeatureDisabled, cancellationToken);
     }
 
-    private IEmbeddingGenerator<string, Embedding> GetEmbeddingService(VKEmbeddingArgs? args)
+    private IEmbeddingGenerator<string, Embedding> GetEmbeddingService(VKEmbeddingsArgs? args)
     {
-        if (args is not null && !string.IsNullOrWhiteSpace(args.ServiceId))
-        {
-            return GetService<IEmbeddingGenerator<string, Embedding>>(args.ServiceId);
-        }
-
+        _ = args;
         return _defaultEmbeddingService;
     }
 }

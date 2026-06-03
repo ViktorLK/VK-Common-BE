@@ -1,20 +1,26 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Connectors.InMemory;
+using VK.Blocks.AI.SemanticKernel.Agents.Internal;
+using VK.Blocks.AI.SemanticKernel.Audio.Speech.Internal;
+using VK.Blocks.AI.SemanticKernel.Audio.Transcription.Internal;
 using VK.Blocks.AI.SemanticKernel.Chat.Internal;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
+using VK.Blocks.AI.SemanticKernel.Filters;
+using VK.Blocks.AI.SemanticKernel.Filters.Internal;
 using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 using VK.Blocks.AI.SemanticKernel.Plugins.Internal;
 using VK.Blocks.AI.SemanticKernel.Retrieval.Internal;
-using VK.Blocks.AI.SemanticKernel.Agents.Internal;
 using VK.Blocks.AI.SemanticKernel.Text.Internal;
-using VK.Blocks.AI.Text;
+using VK.Blocks.AI.SemanticKernel.Vectorics.ReRanking.Internal;
+using VK.Blocks.AI.SemanticKernel.Vectorics.SemanticCache.Internal;
 using VK.Blocks.AI.Text.Internal;
 using VK.Blocks.Core;
 
@@ -55,6 +61,23 @@ internal static class AISKBlockRegistration
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IFunctionInvocationFilter, AISKDiagnosticsFilter>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IPromptRenderFilter, AISKDiagnosticsFilter>());
 
+        // 5.5 Guardrails Filters
+        // Register the underlying engine for Privacy Filtering
+        services.TryAddScoped<IVKPrivacyFilter, RegexPrivacyFilter>();
+
+        // Register the underlying engine for Injection Detection
+        services.TryAddScoped<IVKInjectionDetector, RegexInjectionDetector>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IPromptRenderFilter, AISKPrivacyFilter>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IPromptRenderFilter, AISKInjectionFilter>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IFunctionInvocationFilter, VKSensitiveContentFilter>());
+
+        // 5.6 Tokenics Filter
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IPromptRenderFilter, AISKTokenicsFilter>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IFunctionInvocationFilter, AISKTokenicsFilter>());
+
+        // 5.7 Auto Function Invocation Filter (Phase 2: IAutoFunctionInvocationFilter)
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IAutoFunctionInvocationFilter, AISKAutoFunctionFilter>());
+
         // 6. Dynamic Options Provider (Public Interface)
         services.TryAddScoped<IVKAISKOptionsProvider, VKAISKDefaultOptionsProvider>();
 
@@ -70,6 +93,9 @@ internal static class AISKBlockRegistration
         {
             services.Decorate<IAISKKernelFactory, AISKCachedKernelFactory>();
         }
+
+        // 9.5 Modern Vector Store
+        services.TryAddSingleton<VectorStore, InMemoryVectorStore>();
 
         // 10. Core Services
         RegisterCoreServices(services, configuration);
@@ -88,68 +114,100 @@ internal static class AISKBlockRegistration
         services.TryAddScoped(sp => sp.GetRequiredService<IAISKKernelFactory>().CreateKernel());
 
         // 3. Feature Registrations with No-Op fallbacks
-        
+
         // Chat
         var chatOptions = services.AddVKBlockOptions<VKChatOptions>(configuration!);
         if (chatOptions.Enabled)
         {
-            services.TryAddScoped<IVKChatEngine, AISKChatEngine>();
+            services.Replace(ServiceDescriptor.Scoped<IVKChatEngine, AISKChatEngine>());
         }
         else
         {
-            services.TryAddScoped<IVKChatEngine, NoOpAISKChatEngine>();
+            services.Replace(ServiceDescriptor.Scoped<IVKChatEngine, NoOpAISKChatEngine>());
         }
 
         // Embedding
-        var embedOptions = services.AddVKBlockOptions<VKEmbeddingOptions>(configuration!);
+        var embedOptions = services.AddVKBlockOptions<VKEmbeddingsOptions>(configuration!);
         if (embedOptions.Enabled)
         {
-            services.TryAddScoped<IVKEmbeddingEngine, AISKEmbeddingEngine>();
+            services.Replace(ServiceDescriptor.Scoped<IVKEmbeddingsEngine, AISKEmbeddingEngine>());
         }
         else
         {
-            services.TryAddScoped<IVKEmbeddingEngine, NoOpAISKEmbeddingEngine>();
+            services.Replace(ServiceDescriptor.Scoped<IVKEmbeddingsEngine, NoOpAISKEmbeddingEngine>());
         }
 
         // Retrieval
         var retrievalOptions = services.AddVKBlockOptions<VKRetrievalOptions>(configuration!);
         if (retrievalOptions.Enabled)
         {
-            services.TryAddScoped<IVKRetrievalEngine, AISKRetrievalEngine>();
+            services.Replace(ServiceDescriptor.Scoped<IVKRetrievalEngine, AISKRetrievalEngine>());
         }
         else
         {
-            services.TryAddScoped<IVKRetrievalEngine, NoOpAISKRetrievalEngine>();
+            services.Replace(ServiceDescriptor.Scoped<IVKRetrievalEngine, NoOpAISKRetrievalEngine>());
+        }
+
+        // ReRanking
+        var reRankingOptions = services.AddVKBlockOptions<VKReRankingOptions>(configuration!);
+        if (reRankingOptions.Enabled)
+        {
+            services.Replace(ServiceDescriptor.Scoped<IVKReRanker, AISKReRankerEngine>());
+        }
+        else
+        {
+            services.Replace(ServiceDescriptor.Scoped<IVKReRanker, NoOpAISKReRankerEngine>());
         }
 
         // Agents
-        var agentOptions = services.AddVKBlockOptions<VKAgentOptions>(configuration!);
+        var agentOptions = services.AddVKBlockOptions<VKAgentsOptions>(configuration!);
         if (agentOptions.Enabled)
         {
             services.TryAddSingleton<AISKAgentToolAdapter>();
-            services.TryAddTransient<IVKAgent>(sp => new AISKAgent(
-                sp.GetRequiredService<Microsoft.SemanticKernel.Kernel>(),
-                sp.GetRequiredService<IOptions<VKAISKOptions>>().Value.DeploymentName ?? "Unknown",
-                "DefaultAgent",
-                sp.GetRequiredService<IOptions<VKAgentOptions>>()));
+            services.TryAddSingleton<IVKAgentFactory, AISKAgentFactory>();
+            services.TryAddScoped<IVKAgentGroup, AISKAgentGroupRunner>();
+
+            // Register built-in default tools
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKAtomicTool, VK.Blocks.AI.SemanticKernel.AtomicTools.Internal.WebSearchTool>());
         }
 
         // Text
         var textOptions = services.AddVKBlockOptions<VKTextOptions>(configuration!);
         if (textOptions.Enabled)
         {
-            services.TryAddScoped<IVKTextEngine, AISKTextEngine>();
+            services.Replace(ServiceDescriptor.Scoped<IVKTextEngine, AISKTextEngine>());
         }
         else
         {
-            services.TryAddScoped<IVKTextEngine, NoOpVKTextEngine>();
+            services.Replace(ServiceDescriptor.Scoped<IVKTextEngine, NoOpVKTextEngine>());
+        }
+
+        // Speech
+        var speechOptions = services.AddVKBlockOptions<VKSpeechOptions>(configuration!);
+        if (speechOptions.Enabled)
+        {
+            services.Replace(ServiceDescriptor.Scoped<IVKSpeechEngine, AISKSpeechEngine>());
+        }
+
+        // Transcription
+        var transcriptionOptions = services.AddVKBlockOptions<VKTranscriptionOptions>(configuration!);
+        if (transcriptionOptions.Enabled)
+        {
+            services.Replace(ServiceDescriptor.Scoped<IVKTranscriptionEngine, AISKTranscriptionEngine>());
+        }
+
+        // Semantic Cache
+        var semanticCacheOptions = services.AddVKBlockOptions<VKSemanticCacheOptions>(configuration!);
+        if (semanticCacheOptions.Enabled)
+        {
+            services.Replace(ServiceDescriptor.Scoped<IVKSemanticCache, AISKSemanticCache>());
         }
     }
 
     private static void ConfigureResilience(HttpStandardResilienceOptions options, IServiceProvider sp)
     {
         var chatOptions = sp.GetRequiredService<IOptions<VKChatOptions>>().Value;
-        var globalOptions = sp.GetRequiredService<IOptions<VKAIOptions>>().Value;
+        var globalOptions = sp.GetRequiredService<IOptions<VKAIDefaultsOptions>>().Value;
 
         // 1. Retry Policy
         var retryCount = chatOptions.RetryCount ?? globalOptions.RetryCount;

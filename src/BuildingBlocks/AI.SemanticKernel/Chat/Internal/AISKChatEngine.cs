@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -24,11 +25,13 @@ namespace VK.Blocks.AI.SemanticKernel.Chat.Internal;
 /// </summary>
 internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEngine
 {
+
+
     private readonly IChatCompletionService _chatCompletion;
 
     public AISKChatEngine(
         Microsoft.SemanticKernel.Kernel kernel,
-        IOptions<VKAIOptions> globalOptions,
+        IOptions<VKAIDefaultsOptions> globalOptions,
         IOptions<VKChatOptions> chatOptions,
         ILogger<AISKChatEngine> logger,
         TimeProvider? timeProvider = null)
@@ -38,10 +41,29 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
     }
 
     /// <inheritdoc />
-    public Task<VKResult<VKChatMessage>> SendAsync(
+    public Task<VKResult<VKChatResponse>> SendAsync(
         IEnumerable<VKChatMessage> messages,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default)
+    {
+        return SendAsyncInternal(messages, null, args, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<VKResult<VKChatResponse>> SendAsync(
+        VKContextPayload payload,
+        IVKAIArgs? args = null,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(payload);
+        return SendAsyncInternal(payload.Messages, payload, args, cancellationToken);
+    }
+
+    private Task<VKResult<VKChatResponse>> SendAsyncInternal(
+        IEnumerable<VKChatMessage> messages,
+        VKContextPayload? payload,
+        IVKAIArgs? args,
+        CancellationToken cancellationToken)
     {
         VKGuard.NotNull(messages);
 
@@ -50,7 +72,23 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
             var stopwatch = Stopwatch.StartNew();
 
             // 1. Convert VKChatMessages to SK ChatHistory
-            ChatHistory history = AISKChatHistoryBuilder.Build(messages);
+            ChatHistory chatHistory = AISKChatHistoryBuilder.Build(messages);
+
+            if (FeatureOptions.EnablePromptLogging)
+            {
+                var sb = new System.Text.StringBuilder();
+                foreach (var history in chatHistory)
+                {
+                    sb.AppendLine($"===================[{history.Role.Label}]===================");
+                    foreach (var item in history.Items)
+                    {
+                        if (item is TextContent tc)
+                            sb.AppendLine(tc.Text);
+                    }
+                    sb.AppendLine();
+                }
+                Logger.LogInformation("LLM Prompt:\n{Prompt}", sb.ToString());
+            }
 
             // 2. Resolve Service
             IChatCompletionService chatService = GetChatService(args);
@@ -58,9 +96,16 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
             // 3. Prepare Execution Settings
             PromptExecutionSettings executionSettings = CreateExecutionSettings(args);
 
+            if (payload is { EnableContextCaching: true })
+            {
+                executionSettings.ExtensionData ??= new Dictionary<string, object>();
+                executionSettings.ExtensionData["VKContextCacheKey"] = payload.ContextCacheKey;
+                executionSettings.ExtensionData["EnableContextCaching"] = true;
+            }
+
             // 4. Call SK Chat Completion
             IReadOnlyList<ChatMessageContent> result = await chatService.GetChatMessageContentsAsync(
-                history,
+                chatHistory,
                 executionSettings,
                 Kernel,
                 ct).ConfigureAwait(false);
@@ -90,7 +135,7 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
                 Logger.LogChatAudit("SendAsync", args?.UserId, assistantMessage.ModelId);
             }
 
-            return new VKChatMessage
+            var message = new VKChatMessage
             {
                 Role = VKChatRole.Assistant,
                 Content = assistantMessage.Content ?? string.Empty,
@@ -99,10 +144,20 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
                 // Attempt to extract reasoning from metadata or specific items (connector dependent)
                 ReasoningContent = metadata?.TryGetValue("Reasoning", out var r) == true ? r?.ToString() : null
             };
+
+            // Map standard token usage structure
+            VKAITokenUsage? aiUsage = usage;
+
+            return new VKChatResponse
+            {
+                Message = message,
+                Usage = aiUsage,
+                FinishReason = metadata?.TryGetValue("FinishReason", out var fr) == true ? fr?.ToString() : null,
+                Metadata = metadata
+            };
         }, args, VKChatErrors.FeatureDisabled, cancellationToken);
     }
-
-    private VKTokenUsage? RecordObservability(ChatMessageContent message, IDictionary<string, object?>? metadata, double durationSeconds)
+    private VKAITokenUsage? RecordObservability(ChatMessageContent message, IReadOnlyDictionary<string, object?>? metadata, double durationSeconds)
     {
         // 1. Record Duration
         AISKMetrics.RecordChatDuration(durationSeconds, message.ModelId);
@@ -126,10 +181,10 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
                 // Metric
                 AISKMetrics.RecordTokenUsage(message.ModelId, prompt, completion);
 
-                return new VKTokenUsage
+                return new VKAITokenUsage
                 {
-                    PromptTokens = prompt,
-                    CompletionTokens = completion
+                    InputTokens = prompt,
+                    OutputTokens = completion
                 };
             }
             catch { /* Best effort: Metadata format varies by connector */ }
@@ -144,6 +199,25 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default)
     {
+        return SendStreamingAsyncInternal(messages, null, args, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
+        VKContextPayload payload,
+        IVKAIArgs? args = null,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(payload);
+        return SendStreamingAsyncInternal(payload.Messages, payload, args, cancellationToken);
+    }
+
+    private IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsyncInternal(
+        IEnumerable<VKChatMessage> messages,
+        VKContextPayload? payload,
+        IVKAIArgs? args,
+        CancellationToken cancellationToken)
+    {
         VKGuard.NotNull(messages);
 
         return ExecuteStreamingAsync(StreamInternal, args, VKChatErrors.FeatureDisabled, cancellationToken);
@@ -152,8 +226,22 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         {
             // 1. Setup
             ChatHistory history = AISKChatHistoryBuilder.Build(messages);
+
+            if (FeatureOptions.EnablePromptLogging)
+            {
+                var promptJson = System.Text.Json.JsonSerializer.Serialize(history, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                Logger.LogInformation("LLM Prompt [Streaming]:\n{Prompt}", promptJson);
+            }
+
             IChatCompletionService chatService = GetChatService(args);
             PromptExecutionSettings executionSettings = CreateExecutionSettings(args);
+
+            if (payload is { EnableContextCaching: true })
+            {
+                executionSettings.ExtensionData ??= new Dictionary<string, object>();
+                executionSettings.ExtensionData["VKContextCacheKey"] = payload.ContextCacheKey;
+                executionSettings.ExtensionData["EnableContextCaching"] = true;
+            }
 
             // Audit
             if (GetEffectiveEnableAudit())
@@ -197,10 +285,10 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
                             try
                             {
                                 dynamic usage = usageObj;
-                                metadata["TokenUsage"] = new VKTokenUsage
+                                metadata["TokenUsage"] = new VKAITokenUsage
                                 {
-                                    PromptTokens = usage.InputTokens ?? 0,
-                                    CompletionTokens = usage.OutputTokens ?? 0
+                                    InputTokens = usage.InputTokens ?? 0,
+                                    OutputTokens = usage.OutputTokens ?? 0
                                 };
                             }
                             catch { }
@@ -256,21 +344,118 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
 
     private IChatCompletionService GetChatService(IVKAIArgs? args)
     {
-        if (args is VKChatArgs chatArgs && !string.IsNullOrWhiteSpace(chatArgs.ServiceId))
+        _ = args;
+        return _chatCompletion;
+    }
+
+    /// <inheritdoc />
+    public Task<VKResult<VKStructuredChatResponse<T>>> SendStructuredAsync<T>(
+        IEnumerable<VKChatMessage> messages,
+        IVKAIArgs? args = null,
+        CancellationToken cancellationToken = default) where T : class
+    {
+        VKGuard.NotNull(messages); // [AP.01]
+
+        var provider = (args as IVKAIProviderOverrides)?.Provider?.ToString()
+            ?? FeatureOptions.Provider?.ToString()
+            ?? GlobalOptions.Provider.ToString();
+
+        // Structured output (JSON Schema mode) is supported only by OpenAI-compatible providers.
+        if (!string.Equals(provider, "OpenAI", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(provider, "AzureOpenAI", StringComparison.OrdinalIgnoreCase))
         {
-            return GetService<IChatCompletionService>(chatArgs.ServiceId);
+            return Task.FromResult(
+                VKResult.Failure<VKStructuredChatResponse<T>>(
+                    new VKError("AI.Chat.StructuredOutputNotSupported",
+                        $"Provider '{provider}' does not support structured JSON output. Use OpenAI or AzureOpenAI.")));
         }
 
-        return _chatCompletion;
+        return ExecuteAsync(async (ct) => // [CS.01]
+        {
+            var stopwatch = Stopwatch.StartNew();
+
+            // 1. Build chat history
+            ChatHistory chatHistory = AISKChatHistoryBuilder.Build(messages);
+
+            // 2. Build execution settings with JSON Schema response format
+            var chatArgs = args as VKChatArgs;
+            var genArgs = args as IVKGenerationOptions;
+
+            var settings = new OpenAIPromptExecutionSettings
+            {
+                Temperature = genArgs?.Temperature ?? FeatureOptions.Temperature,
+                MaxTokens = genArgs?.MaxTokens ?? FeatureOptions.MaxTokens,
+                TopP = genArgs?.TopP ?? FeatureOptions.TopP,
+                ModelId = chatArgs?.ModelId ?? FeatureOptions.ModelId,
+                User = args?.UserId,
+                ResponseFormat = typeof(T) // SK resolves JSON schema from the CLR type
+            };
+
+            // 3. Call SK Chat Completion
+            IChatCompletionService chatService = GetChatService(args);
+            IReadOnlyList<ChatMessageContent> result = await chatService.GetChatMessageContentsAsync(
+                chatHistory,
+                settings,
+                Kernel,
+                ct).ConfigureAwait(false); // [CS.03]
+
+            ChatMessageContent? assistantMessage = result.FirstOrDefault();
+            if (assistantMessage is null)
+            {
+                throw new InvalidOperationException("No chat message content returned from the service.");
+            }
+
+            // 4. Deserialize the JSON content into T
+            var rawContent = assistantMessage.Content;
+            if (string.IsNullOrWhiteSpace(rawContent))
+            {
+                throw new InvalidOperationException("LLM returned empty content for structured output.");
+            }
+
+            T? deserializedData = JsonSerializer.Deserialize<T>(rawContent);
+
+            if (deserializedData is null)
+            {
+                throw new Exception("Structured response deserialized to null.");
+            }
+
+            // 5. Observability
+            var metadata = assistantMessage.Metadata?.ToDictionary(k => k.Key, v => v.Value)
+                ?? new Dictionary<string, object?>();
+            var usage = RecordObservability(assistantMessage, metadata, stopwatch.Elapsed.TotalSeconds);
+
+            return new VKStructuredChatResponse<T>
+            {
+                Data = deserializedData,
+                Usage = usage,
+                ModelId = assistantMessage.ModelId,
+                FinishReason = metadata.TryGetValue("FinishReason", out var fr) ? fr?.ToString() : null,
+                Metadata = metadata
+            };
+
+        }, args, VKChatErrors.FeatureDisabled, cancellationToken); // [CS.01]
     }
 
     private PromptExecutionSettings CreateExecutionSettings(IVKAIArgs? args)
     {
-        var genArgs = args as IVKGenerationSettings;
+        var genArgs = args as IVKGenerationOptions;
         var chatArgs = args as VKChatArgs;
 
-        // Use OpenAI as the default settings base
-        PromptExecutionSettings settings = new OpenAIPromptExecutionSettings();
+        var provider = (args as IVKAIProviderOverrides)?.Provider?.ToString() ?? FeatureOptions.Provider?.ToString() ?? GlobalOptions.Provider.ToString();
+        PromptExecutionSettings settings;
+
+        if (string.Equals(provider, "Ollama", StringComparison.OrdinalIgnoreCase))
+        {
+            settings = new OllamaPromptExecutionSettings();
+        }
+        else if (string.Equals(provider, "Google", StringComparison.OrdinalIgnoreCase))
+        {
+            settings = new GeminiPromptExecutionSettings();
+        }
+        else
+        {
+            settings = new OpenAIPromptExecutionSettings();
+        }
 
         // Apply settings using pattern matching
         switch (settings)
@@ -283,15 +468,28 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
                 openAi.PresencePenalty = FeatureOptions.PresencePenalty;
                 openAi.StopSequences = FeatureOptions.StopSequences.ToList();
                 openAi.User = args?.UserId;
+
+                // [Phase 1: Auto Function Calling] FunctionChoiceBehavior.Auto()
+                if (FeatureOptions.EnableAutoToolCalling && Kernel.Plugins.Count > 0) // [CS.01]
+                {
+                    openAi.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
+                }
                 break;
             case GeminiPromptExecutionSettings google:
                 google.Temperature = genArgs?.Temperature ?? FeatureOptions.Temperature;
                 google.MaxTokens = genArgs?.MaxTokens ?? FeatureOptions.MaxTokens;
                 google.TopP = genArgs?.TopP ?? FeatureOptions.TopP;
                 google.StopSequences = FeatureOptions.StopSequences.ToList();
+
+                // [Phase 1: Auto Function Calling] FunctionChoiceBehavior.Auto()
+                if (FeatureOptions.EnableAutoToolCalling && Kernel.Plugins.Count > 0) // [CS.01]
+                {
+                    google.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
+                }
                 break;
             case OllamaPromptExecutionSettings ollama:
                 ollama.Temperature = genArgs?.Temperature ?? FeatureOptions.Temperature;
+                // Note: Ollama does not reliably support FunctionChoiceBehavior in all versions.
                 break;
         }
 

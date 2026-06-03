@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -16,9 +15,9 @@ internal sealed class AISKCachedKernelFactory(
     IAISKKernelFactory innerFactory,
     IMemoryCache cache,
     IVKAISKOptionsProvider aiskOptionsProvider,
-    IOptions<VKAIOptions> globalOptions,
+    IOptions<VKAIDefaultsOptions> globalOptions,
     IVKChatOptionsProvider chatOptionsProvider,
-    IOptions<VKEmbeddingOptions> embeddingOptions) : IAISKKernelFactory
+    IOptions<VKEmbeddingsOptions> embeddingOptions) : IAISKKernelFactory
 {
     private static readonly TimeSpan DefaultAbsoluteExpiration = TimeSpan.FromMinutes(30);
     private static readonly TimeSpan DefaultSlidingExpiration = TimeSpan.FromMinutes(10);
@@ -27,7 +26,7 @@ internal sealed class AISKCachedKernelFactory(
     public Microsoft.SemanticKernel.Kernel CreateKernel()
     {
         var options = aiskOptionsProvider.GetOptions();
-        
+
         // If caching is disabled, bypass and return a fresh instance
         if (!options.EnableKernelCaching)
         {
@@ -35,7 +34,7 @@ internal sealed class AISKCachedKernelFactory(
         }
 
         var fingerprint = GenerateSecureFingerprint();
-        
+
         return cache.GetOrCreate(fingerprint, entry =>
         {
             // Resource Governance: LRU and Lifespan
@@ -63,7 +62,7 @@ internal sealed class AISKCachedKernelFactory(
 
         // 1. Core AI Strategy
         sb.Append(globalAi.Provider).Append('|');
-        
+
         // 2. Chat Feature Connectivity
         sb.Append(chat.Provider).Append('|')
           .Append(chat.ModelId).Append('|')
@@ -84,7 +83,7 @@ internal sealed class AISKCachedKernelFactory(
 
         // 5. Plugins Feature Set (Deterministic ordering)
         sb.Append(aiskOptions.Plugins.AutoDiscoveryEnabled).Append('|');
-        
+
         if (aiskOptions.Plugins.Types.Count > 0)
         {
             var sortedTypes = aiskOptions.Plugins.Types.OrderBy(x => x.Key);
@@ -93,7 +92,7 @@ internal sealed class AISKCachedKernelFactory(
                 sb.Append(kvp.Key).Append(':').Append(kvp.Value).Append(';');
             }
         }
-        
+
         if (aiskOptions.Plugins.AssembliesToScan.Count > 0)
         {
             var sortedAssemblies = aiskOptions.Plugins.AssembliesToScan.OrderBy(x => x);
@@ -107,7 +106,7 @@ internal sealed class AISKCachedKernelFactory(
         // Ensure the raw ApiKey never leaves this method scope
         byte[] inputBytes = Encoding.UTF8.GetBytes(sb.ToString());
         byte[] hashBytes = SHA256.HashData(inputBytes);
-        
+
         return "AISK|K|" + Convert.ToHexString(hashBytes);
     }
 }

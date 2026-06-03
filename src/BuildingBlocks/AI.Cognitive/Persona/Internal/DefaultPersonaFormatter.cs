@@ -1,6 +1,8 @@
 using System;
 using System.Text;
 using VK.Blocks.Core;
+using VK.Blocks.AI.Psyche;
+using VK.Blocks.AI.Psyche.Persona;
 
 namespace VK.Blocks.AI.Cognitive.Persona.Internal;
 

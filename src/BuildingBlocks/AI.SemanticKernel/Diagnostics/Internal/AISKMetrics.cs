@@ -14,6 +14,7 @@ internal static partial class AISKMetrics
     private static readonly Counter<long> ChatTokenUsage;
     private static readonly Histogram<double> EmbeddingGenerationDuration;
     private static readonly Counter<long> EmbeddingItemsCount;
+    private static readonly Counter<long> AutoToolCallsTotal;
 
     static AISKMetrics()
     {
@@ -36,6 +37,11 @@ internal static partial class AISKMetrics
             VKAISKDiagnosticsConstants.Metrics.EmbeddingItemsCount,
             unit: "{items}",
             description: "Total number of items processed for embeddings.");
+
+        AutoToolCallsTotal = Meter.CreateCounter<long>(
+            VKAISKDiagnosticsConstants.Metrics.AutoToolCallsTotal,
+            unit: "{calls}",
+            description: "Total number of automatic tool/function invocations triggered by the LLM.");
     }
 
     /// <summary>
@@ -91,5 +97,19 @@ internal static partial class AISKMetrics
             cTags.Add(VKAISKDiagnosticsConstants.Tags.TokenType, "completion");
             ChatTokenUsage.Add(completionTokens, cTags);
         }
+    }
+
+    /// <summary>
+    /// Records a single automatic function/tool call triggered by the LLM.
+    /// </summary>
+    /// <param name="pluginName">The plugin (tool category) name.</param>
+    /// <param name="functionName">The specific function name invoked.</param>
+    public static void RecordAutoToolCall(string? pluginName, string? functionName)
+    {
+        AutoToolCallsTotal.Add(1, new TagList
+        {
+            { "vk.ai.tool.plugin", pluginName ?? "unknown" },
+            { "vk.ai.tool.function", functionName ?? "unknown" }
+        });
     }
 }

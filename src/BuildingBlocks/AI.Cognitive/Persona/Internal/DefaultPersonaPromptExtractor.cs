@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
+using VK.Blocks.AI.Psyche.Persona;
 
 namespace VK.Blocks.AI.Cognitive.Persona.Internal;
 

@@ -13,7 +13,6 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.TextGeneration;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
-using VK.Blocks.AI.Text;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Text.Internal;
@@ -28,7 +27,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
 
     public AISKTextEngine(
         Microsoft.SemanticKernel.Kernel kernel,
-        IOptions<VKAIOptions> globalOptions,
+        IOptions<VKAIDefaultsOptions> globalOptions,
         IOptions<VKTextOptions> textOptions,
         ILogger<AISKTextEngine> logger,
         TimeProvider? timeProvider = null)
@@ -44,7 +43,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
     }
 
     /// <inheritdoc />
-    public Task<VKResult<string>> GenerateAsync(
+    public Task<VKResult<VKTextResponse>> GenerateAsync(
         string prompt,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default)
@@ -58,17 +57,37 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
 
             string contentText;
             string? modelId = null;
+            VKAITokenUsage? aiUsage = null;
+            IDictionary<string, object?>? metadata = null;
 
             if (_textGeneration != null)
             {
                 var result = await _textGeneration.GetTextContentsAsync(prompt, executionSettings, Kernel, ct).ConfigureAwait(false);
                 if (result.Count > 0)
                 {
-                    contentText = result[0].Text ?? string.Empty;
-                    modelId = result[0].ModelId;
+                    var textContent = result[0];
+                    contentText = textContent.Text ?? string.Empty;
+                    modelId = textContent.ModelId;
+                    metadata = textContent.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
+
+                    if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                    {
+                        try
+                        {
+                            dynamic usage = usageObj;
+                            aiUsage = new VKAITokenUsage
+                            {
+                                InputTokens = usage.InputTokens ?? 0,
+                                OutputTokens = usage.OutputTokens ?? 0
+                            };
+                        }
+                        catch { }
+                    }
                 }
                 else
+                {
                     contentText = string.Empty;
+                }
             }
             else
             {
@@ -79,17 +98,38 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
                 var result = await chat.GetChatMessageContentAsync(history, executionSettings, Kernel, ct).ConfigureAwait(false);
                 contentText = result.Content ?? string.Empty;
                 modelId = result.ModelId;
+                metadata = result.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
+
+                if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                {
+                    try
+                    {
+                        dynamic usage = usageObj;
+                        aiUsage = new VKAITokenUsage
+                        {
+                            InputTokens = usage.InputTokens ?? 0,
+                            OutputTokens = usage.OutputTokens ?? 0
+                        };
+                    }
+                    catch { }
+                }
             }
 
             // Record Observability
             RecordObservability(modelId, stopwatch.Elapsed.TotalSeconds);
 
-            return contentText;
+            return new VKTextResponse
+            {
+                Text = contentText,
+                ModelId = modelId,
+                Usage = aiUsage,
+                Metadata = metadata
+            };
         }, args, VKTextErrors.FeatureDisabled, cancellationToken);
     }
 
     /// <inheritdoc />
-    public IAsyncEnumerable<VKResult<string>> GenerateStreamingAsync(
+    public IAsyncEnumerable<VKResult<VKTextResponse>> GenerateStreamingAsync(
         string prompt,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default)
@@ -98,7 +138,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
 
         return ExecuteStreamingAsync(StreamInternal, args, VKTextErrors.FeatureDisabled, cancellationToken);
 
-        async IAsyncEnumerable<string> StreamInternal([EnumeratorCancellation] CancellationToken ct)
+        async IAsyncEnumerable<VKTextResponse> StreamInternal([EnumeratorCancellation] CancellationToken ct)
         {
             PromptExecutionSettings executionSettings = CreateExecutionSettings(args);
 
@@ -108,7 +148,31 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
                 await foreach (var chunk in streamingResult.WithCancellation(ct).ConfigureAwait(false))
                 {
                     if (chunk?.Text is not null)
-                        yield return chunk.Text;
+                    {
+                        var metadata = chunk.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
+                        VKAITokenUsage? aiUsage = null;
+                        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                        {
+                            try
+                            {
+                                dynamic usage = usageObj;
+                                aiUsage = new VKAITokenUsage
+                                {
+                                    InputTokens = usage.InputTokens ?? 0,
+                                    OutputTokens = usage.OutputTokens ?? 0
+                                };
+                            }
+                            catch { }
+                        }
+
+                        yield return new VKTextResponse
+                        {
+                            Text = chunk.Text,
+                            ModelId = chunk.ModelId,
+                            Usage = aiUsage,
+                            Metadata = metadata
+                        };
+                    }
                 }
             }
             else
@@ -120,7 +184,31 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
                 await foreach (var chunk in streamingResult.WithCancellation(ct).ConfigureAwait(false))
                 {
                     if (chunk?.Content is not null)
-                        yield return chunk.Content;
+                    {
+                        var metadata = chunk.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
+                        VKAITokenUsage? aiUsage = null;
+                        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                        {
+                            try
+                            {
+                                dynamic usage = usageObj;
+                                aiUsage = new VKAITokenUsage
+                                {
+                                    InputTokens = usage.InputTokens ?? 0,
+                                    OutputTokens = usage.OutputTokens ?? 0
+                                };
+                            }
+                            catch { }
+                        }
+
+                        yield return new VKTextResponse
+                        {
+                            Text = chunk.Content,
+                            ModelId = chunk.ModelId,
+                            Usage = aiUsage,
+                            Metadata = metadata
+                        };
+                    }
                 }
             }
         }
@@ -128,7 +216,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
 
     private PromptExecutionSettings CreateExecutionSettings(IVKAIArgs? args)
     {
-        IVKGenerationSettings? genArgs = args as IVKGenerationSettings;
+        IVKGenerationOptions? genArgs = args as IVKGenerationOptions;
 
         // Use default settings
         var settings = new PromptExecutionSettings

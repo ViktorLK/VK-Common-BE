@@ -10,11 +10,12 @@ namespace VK.Blocks.AI.SemanticKernel.Retrieval.Internal;
 /// </summary>
 internal sealed class NoOpAISKRetrievalEngine : IVKRetrievalEngine
 {
-    public async Task<VKResult<IEnumerable<string>>> SearchAsync(
+    public Task<VKResult<IReadOnlyList<VKRetrievalResult>>> SearchAsync(
         string query,
-        IVKAIArgs? args = null,
+        VKRetrievalArgs? args = null,
         CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(VKResult.Success<IEnumerable<string>>([])).ConfigureAwait(false);
+        IReadOnlyList<VKRetrievalResult> emptyList = [];
+        return Task.FromResult(VKResult.Success(emptyList));
     }
 }

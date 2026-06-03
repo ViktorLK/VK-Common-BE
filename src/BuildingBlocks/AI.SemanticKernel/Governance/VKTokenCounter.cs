@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Concurrent;
+using Microsoft.ML.Tokenizers;
+using VK.Blocks.Core;
+
 namespace VK.Blocks.AI.SemanticKernel.Governance;
 
 /// <summary>
@@ -5,18 +10,33 @@ namespace VK.Blocks.AI.SemanticKernel.Governance;
 /// </summary>
 public sealed class VKTokenCounter
 {
+    private static readonly ConcurrentDictionary<string, TiktokenTokenizer> TokenizerCache = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>
     /// Counts tokens in the specified text.
     /// </summary>
-    /// <remarks>
-    /// [PWP-BACKLOG-001] This is currently a primitive placeholder (length/4).
-    /// MUST be replaced with a real tokenizer (e.g., Microsoft.ML.Tokenizers) 
-    /// for accurate industrial context window management.
-    /// </remarks>
-    public static int CountTokens(string text)
+    public static int CountTokens(string text, string? modelId = null)
     {
-        // Placeholder implementation (e.g., character count / 4 as a rough estimate)
-        // Should ideally use Microsoft.ML.Tokenizers or similar.
-        return text.Length / 4;
+        if (string.IsNullOrEmpty(text))
+        {
+            return 0;
+        }
+
+        try
+        {
+            var tokenizer = GetTokenizer(modelId);
+            return tokenizer.CountTokens(text);
+        }
+        catch
+        {
+            // Fallback: character length / 4
+            return text.Length / 4;
+        }
+    }
+
+    private static TiktokenTokenizer GetTokenizer(string? modelId)
+    {
+        var model = modelId ?? "gpt-4o";
+        return TokenizerCache.GetOrAdd(model, m => TiktokenTokenizer.CreateForModel(m));
     }
 }

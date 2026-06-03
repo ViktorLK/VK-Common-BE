@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using VK.Blocks.Core;
+using VK.Blocks.AI.Psyche;
 
 namespace VK.Blocks.AI.Cognitive;
 

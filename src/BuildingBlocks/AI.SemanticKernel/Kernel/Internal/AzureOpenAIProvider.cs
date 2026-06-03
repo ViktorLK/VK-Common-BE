@@ -9,7 +9,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterAzureOpenAIChat(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings,
+        IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
         if (string.IsNullOrWhiteSpace(connectionSettings.Endpoint))
@@ -27,7 +27,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterAzureOpenAIEmbedding(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings,
+        IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
         if (string.IsNullOrWhiteSpace(connectionSettings.Endpoint))
