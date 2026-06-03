@@ -8,7 +8,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterOllamaChat(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings)
+        IVKAIProviderOptions connectionSettings)
     {
         var endpoint = new Uri(connectionSettings.Endpoint ?? "http://localhost:11434");
         var modelId = connectionSettings.ModelId ?? string.Empty;
@@ -18,7 +18,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterOllamaEmbedding(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings)
+        IVKAIProviderOptions connectionSettings)
     {
         var endpoint = new Uri(connectionSettings.Endpoint ?? "http://localhost:11434");
         var modelId = connectionSettings.ModelId ?? string.Empty;

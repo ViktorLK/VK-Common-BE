@@ -87,4 +87,28 @@ public interface IVKChatEngine
         VKGuard.NotNull(payload);
         return SendStreamingAsync(payload.Messages, args, cancellationToken);
     }
+
+    /// <summary>
+    /// Sends messages to the chat engine and receives a structured, type-safe response deserialized
+    /// from JSON Schema-constrained LLM output.
+    /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
+    /// </summary>
+    /// <typeparam name="T">The target type to deserialize the LLM response into.</typeparam>
+    /// <param name="messages">The conversation history.</param>
+    /// <param name="args">The execution arguments.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>
+    /// A <see cref="VKResult{T}"/> containing the structured response.
+    /// Returns failure if the provider does not support structured output or deserialization fails.
+    /// </returns>
+    Task<VKResult<VKStructuredChatResponse<T>>> SendStructuredAsync<T>(
+        IEnumerable<VKChatMessage> messages,
+        IVKAIArgs? args = null,
+        CancellationToken cancellationToken = default) where T : class
+    {
+        return Task.FromResult(
+            VKResult.Failure<VKStructuredChatResponse<T>>(
+                new VKError("AI.Chat.StructuredOutputNotSupported",
+                    "This chat engine implementation does not support structured JSON output.")));
+    }
 }

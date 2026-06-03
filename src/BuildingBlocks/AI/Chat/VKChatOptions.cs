@@ -137,4 +137,20 @@ public sealed partial record VKChatOptions : IVKChatOptions
     /// Gets or sets the tools available for the chat engine.
     /// </summary>
     public IReadOnlyList<IVKAtomicTool>? Tools { get; init; } = [];
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Semantic Kernel's automatic function calling
+    /// (<see cref="Microsoft.SemanticKernel.FunctionChoiceBehavior.Auto()"/>) is enabled.
+    /// When true, the LLM may autonomously invoke registered kernel plugins during a single chat request.
+    /// Defaults to <c>false</c> to preserve backward compatibility.
+    /// </summary>
+    public bool EnableAutoToolCalling { get; init; } = false;
+
+    /// <summary>
+    /// Gets or sets the maximum number of automatic tool call rounds the LLM is allowed to perform
+    /// within a single <see cref="SendAsync"/> invocation.
+    /// Prevents runaway auto-invocation loops.
+    /// Defaults to <c>10</c>. Ignored when <see cref="EnableAutoToolCalling"/> is <c>false</c>.
+    /// </summary>
+    public int MaxAutoToolCallRounds { get; init; } = 10;
 }

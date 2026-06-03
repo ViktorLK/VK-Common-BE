@@ -26,17 +26,10 @@ internal static class VKAICognitiveBlockRegistration
 
         services.AddVKBlockMarker<VKAICognitiveBlock>();
 
-        // 4. Options Validation
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<VKAICognitiveOptions>, VKAICognitiveOptionsValidator>());
-
-        // 5. Early Return Check
         if (!options.Enabled)
         {
             return builder;
         }
-
-        // 6. Core Services
-        services.TryAddScoped<IVKMemoryLedger, BasicMemoryLedger>();
 
         return builder;
     }

@@ -6,8 +6,6 @@ internal static class PromptConstants
     public static class XmlTags
     {
         public const string SystemDirectives = "system_directives";
-        public const string Knowledge = "knowledge";
-        public const string ImportantKnowledge = "important_knowledge";
         public const string Message = "message";
     }
 

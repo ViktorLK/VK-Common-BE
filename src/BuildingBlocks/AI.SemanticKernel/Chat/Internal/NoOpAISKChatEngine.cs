@@ -12,12 +12,12 @@ namespace VK.Blocks.AI.SemanticKernel.Chat.Internal;
 internal sealed class NoOpAISKChatEngine : IVKChatEngine
 {
     /// <inheritdoc />
-    public Task<VKResult<VKChatMessage>> SendAsync(
+    public Task<VKResult<VKChatResponse>> SendAsync(
         IEnumerable<VKChatMessage> messages,
         IVKAIArgs? args = null,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(VKResult.Failure<VKChatMessage>(VKChatErrors.FeatureDisabled));
+        return Task.FromResult(VKResult.Failure<VKChatResponse>(VKChatErrors.FeatureDisabled));
     }
 
     /// <inheritdoc />

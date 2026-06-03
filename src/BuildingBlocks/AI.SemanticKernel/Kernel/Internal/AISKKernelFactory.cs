@@ -15,9 +15,9 @@ namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 /// </summary>
 internal sealed class AISKKernelFactory(
     IVKAISKOptionsProvider optionsProvider,
-    IOptions<VKAIOptions> globalOptions,
+    IOptions<VKAIDefaultsOptions> globalOptions,
     IVKChatOptionsProvider chatOptions,
-    IOptions<VKEmbeddingOptions> embeddingOptions,
+    IOptions<VKEmbeddingsOptions> embeddingOptions,
     IHttpClientFactory httpClientFactory,
     IServiceProvider serviceProvider) : IAISKKernelFactory
 {
@@ -54,11 +54,32 @@ internal sealed class AISKKernelFactory(
             builder.RegisterEmbeddingService(options, embeddingFeatureOptions, httpClient);
         }
 
-        // 2. Register Dynamic Plugins from DI container
+        // 3. Register Dynamic Plugins from DI container
         var pluginProviders = serviceProvider.GetServices<IAISKPluginProvider>();
         foreach (var provider in pluginProviders)
         {
             provider.Register(builder, serviceProvider);
+        }
+
+        // 4. Register Industrial DNA Filters (Guardrails)
+        // Resolve filters from DI container
+        var promptFilters = serviceProvider.GetServices<IPromptRenderFilter>();
+        foreach (var filter in promptFilters)
+        {
+            builder.Services.AddSingleton(filter);
+        }
+
+        var functionFilters = serviceProvider.GetServices<IFunctionInvocationFilter>();
+        foreach (var filter in functionFilters)
+        {
+            builder.Services.AddSingleton(filter);
+        }
+
+        // [Phase 2] Register IAutoFunctionInvocationFilter for automatic tool-call guardrails
+        var autoFunctionFilters = serviceProvider.GetServices<IAutoFunctionInvocationFilter>();
+        foreach (var filter in autoFunctionFilters)
+        {
+            builder.Services.AddSingleton(filter);
         }
 
         return builder.Build();

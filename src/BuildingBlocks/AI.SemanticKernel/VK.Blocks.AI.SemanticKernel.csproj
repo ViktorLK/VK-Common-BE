@@ -2,19 +2,23 @@
 
   <PropertyGroup>
     <RootNamespace>VK.Blocks.AI.SemanticKernel</RootNamespace>
-    <NoWarn>$(NoWarn);SKEXP0001;SKEXP0010;SKEXP0070</NoWarn>
+    <NoWarn>$(NoWarn);SKEXP0001;SKEXP0010;SKEXP0070;SKEXP0110</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
     <PackageReference Include="Microsoft.SemanticKernel" />
+    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" />
     <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Google" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Sqlite" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
+    <PackageReference Include="Microsoft.Extensions.VectorData.Abstractions" />
+    <PackageReference Include="Microsoft.ML.Tokenizers" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Memory" />
     <PackageReference Include="Microsoft.SemanticKernel.PromptTemplates.Handlebars" />
     <PackageReference Include="Microsoft.SemanticKernel.PromptTemplates.Liquid" />

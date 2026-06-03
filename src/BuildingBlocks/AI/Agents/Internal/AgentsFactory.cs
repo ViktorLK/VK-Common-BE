@@ -24,24 +24,25 @@ internal sealed class AgentsFactory : IVKAgentFactory
     public IVKAgent CreateAgent(
         string name,
         string description,
-        IEnumerable<IVKAtomicTool> tools,
+        string instructions = "",
+        IEnumerable<IVKAtomicTool>? tools = null,
         IReadOnlyDictionary<string, object>? metadata = null)
     {
-        VKGuard.NotNullOrWhiteSpace(name);
-        VKGuard.NotNullOrWhiteSpace(description);
-        VKGuard.NotNull(tools);
+        VKGuard.NotNullOrWhiteSpace(name); // [AP.01]
+        VKGuard.NotNullOrWhiteSpace(description); // [AP.01]
 
-        var chatEngine = _serviceProvider.GetRequiredService<IVKChatEngine>();
-        var options = _serviceProvider.GetRequiredService<IOptions<VKAgentsOptions>>();
-        var globalOptions = _serviceProvider.GetRequiredService<IOptions<VKAIDefaultsOptions>>();
-        var userContext = _serviceProvider.GetRequiredService<IVKUserContext>();
-        var logger = _serviceProvider.GetRequiredService<ILogger<BasicAgent>>();
+        var chatEngine = _serviceProvider.GetRequiredService<IVKChatEngine>(); // [CS.07]
+        var options = _serviceProvider.GetRequiredService<IOptions<VKAgentsOptions>>(); // [CS.07]
+        var globalOptions = _serviceProvider.GetRequiredService<IOptions<VKAIDefaultsOptions>>(); // [CS.07]
+        var userContext = _serviceProvider.GetRequiredService<IVKUserContext>(); // [CS.07]
+        var logger = _serviceProvider.GetRequiredService<ILogger<BasicAgent>>(); // [CS.07]
         var filters = _serviceProvider.GetService<IEnumerable<IVKAtomicToolFilter>>();
 
         return new BasicAgent(
             name,
             description,
-            tools,
+            instructions,
+            tools ?? Array.Empty<IVKAtomicTool>(),
             metadata,
             chatEngine,
             options,
@@ -49,5 +50,11 @@ internal sealed class AgentsFactory : IVKAgentFactory
             userContext,
             logger,
             filters);
+    }
+
+    /// <inheritdoc />
+    public IVKAgentGroup CreateAgentGroup()
+    {
+        throw new NotSupportedException("Cooperative agent group is not supported in the basic agents provider. Use the AI.SemanticKernel provider instead.");
     }
 }

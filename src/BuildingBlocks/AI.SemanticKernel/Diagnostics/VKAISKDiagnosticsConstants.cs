@@ -30,5 +30,6 @@ public static class VKAISKDiagnosticsConstants
         public const string ChatTokenUsage = "vk.ai.chat.tokens_total";
         public const string EmbeddingGenerationDuration = "vk.ai.embedding.generation_duration";
         public const string EmbeddingItemsCount = "vk.ai.embedding.items_total";
+        public const string AutoToolCallsTotal = "vk.ai.auto_tool_calls_total";
     }
 }

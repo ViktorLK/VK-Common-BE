@@ -14,12 +14,20 @@ public interface IVKAgentFactory
     /// </summary>
     /// <param name="name">The name of the agent.</param>
     /// <param name="description">The description of the agent.</param>
+    /// <param name="instructions">The instructions (system prompt) for the agent.</param>
     /// <param name="tools">The tools available to the agent.</param>
     /// <param name="metadata">The metadata for the agent.</param>
     /// <returns>A new <see cref="IVKAgent"/> instance.</returns>
     IVKAgent CreateAgent(
         string name,
         string description,
-        IEnumerable<IVKAtomicTool> tools,
+        string instructions = "",
+        IEnumerable<IVKAtomicTool>? tools = null,
         IReadOnlyDictionary<string, object>? metadata = null);
+
+    /// <summary>
+    /// Creates a cooperative agent group instance.
+    /// </summary>
+    /// <returns>A new <see cref="IVKAgentGroup"/> instance.</returns>
+    IVKAgentGroup CreateAgentGroup();
 }

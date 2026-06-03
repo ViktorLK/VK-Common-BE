@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.SemanticKernel;
 using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -17,16 +16,16 @@ namespace VK.Blocks.AI.SemanticKernel.Kernel.Internal;
 /// </summary>
 /// <typeparam name="TOptions">The feature options type.</typeparam>
 internal abstract class AISKEngineBase<TOptions> : AISKProviderBase
-    where TOptions : class, IVKAIProviderSettings, IVKAIGovernanceSettings, IVKToggleableBlockOptions, new()
+    where TOptions : class, IVKAIProviderOptions, IVKAIGovernanceOptions, IVKToggleableBlockOptions, new()
 {
-    protected VKAIOptions GlobalOptions { get; }
+    protected VKAIDefaultsOptions GlobalOptions { get; }
     protected TOptions FeatureOptions { get; }
     protected ILogger Logger { get; }
     protected TimeProvider TimeProvider { get; }
 
     protected AISKEngineBase(
         Microsoft.SemanticKernel.Kernel kernel,
-        IOptions<VKAIOptions> globalOptions,
+        IOptions<VKAIDefaultsOptions> globalOptions,
         IOptions<TOptions> featureOptions,
         ILogger logger,
         TimeProvider? timeProvider = null)
@@ -162,8 +161,8 @@ internal abstract class AISKEngineBase<TOptions> : AISKProviderBase
     /// </summary>
     protected TimeSpan GetEffectiveTimeout(IVKAIArgs? args)
     {
-        return args?.Timeout 
-            ?? FeatureOptions.Timeout 
+        return args?.Timeout
+            ?? FeatureOptions.Timeout
             ?? GlobalOptions.Timeout;
     }
 
@@ -172,7 +171,7 @@ internal abstract class AISKEngineBase<TOptions> : AISKProviderBase
     /// </summary>
     protected string? GetEffectiveModelId(IVKAIArgs? args)
     {
-        return (args as IVKAIProviderOverrides)?.ModelId 
+        return (args as IVKAIProviderOverrides)?.ModelId
             ?? FeatureOptions.ModelId;
     }
 

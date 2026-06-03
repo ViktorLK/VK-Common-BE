@@ -9,7 +9,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterGoogleAIChat(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings,
+        IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
         var modelId = connectionSettings.ModelId ?? string.Empty;
@@ -20,7 +20,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterGoogleAIEmbedding(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings,
+        IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
         var modelId = connectionSettings.ModelId ?? string.Empty;

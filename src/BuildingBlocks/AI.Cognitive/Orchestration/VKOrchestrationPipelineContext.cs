@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using VK.Blocks.AI.Psyche.Persona;
 
 namespace VK.Blocks.AI.Cognitive;
 

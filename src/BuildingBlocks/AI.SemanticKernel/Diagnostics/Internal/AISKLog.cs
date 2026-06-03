@@ -69,4 +69,71 @@ internal static partial class AISKLog
         Level = LogLevel.Information,
         Message = "Text generated successfully. Model: {ModelId}, Duration: {Duration}s")]
     internal static partial void LogTextGenerationCompleted(this ILogger logger, string? modelId, double duration);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "ISemanticTextMemory is not registered. Native Semantic Kernel retrieval cannot be performed.")]
+    internal static partial void LogRetrievalMemoryNotRegistered(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "ITextToAudioService is not registered. Speech generation cannot be performed.")]
+    internal static partial void LogSpeechServiceNotRegistered(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "IAudioToTextService is not registered. Transcription cannot be performed.")]
+    internal static partial void LogTranscriptionServiceNotRegistered(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "ISemanticTextMemory is not registered. Semantic Cache is disabled.")]
+    internal static partial void LogSemanticCacheNotRegistered(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Semantic Cache hit for prompt. Score: {Score}")]
+    internal static partial void LogSemanticCacheHit(this ILogger logger, double score);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Semantic Cache miss for prompt.")]
+    internal static partial void LogSemanticCacheMiss(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Error occurred while retrieving from semantic cache.")]
+    internal static partial void LogSemanticCacheRetrievalError(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Saved response to semantic cache.")]
+    internal static partial void LogSemanticCacheSaved(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Error occurred while saving to semantic cache.")]
+    internal static partial void LogSemanticCacheSaveError(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Sensitive content detected in function invocation result.")]
+    internal static partial void LogSensitiveContentDetected(this ILogger logger);
+
+    // --- Phase 2: Auto Function Calling ---
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "AutoToolCall: invoking {PluginName}.{FunctionName} (round {Round})")]
+    internal static partial void LogAutoToolCallInvoking(this ILogger logger, string pluginName, string functionName, int round);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "AutoToolCall: terminated after {MaxRounds} rounds to prevent runaway loop.")]
+    internal static partial void LogAutoToolCallTerminated(this ILogger logger, int maxRounds);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "AutoToolCall: {PluginName}.{FunctionName} completed (round {Round})")]
+    internal static partial void LogAutoToolCallCompleted(this ILogger logger, string pluginName, string functionName, int round);
 }

@@ -9,7 +9,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterOpenAIChat(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings,
+        IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
         var modelId = connectionSettings.ModelId ?? string.Empty;
@@ -24,7 +24,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterOpenAIEmbedding(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings,
+        IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
         var modelId = connectionSettings.ModelId ?? string.Empty;

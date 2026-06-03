@@ -6,7 +6,7 @@ namespace VK.Blocks.AI.SemanticKernel;
 /// <summary>
 /// Options for the Retrieval feature in Semantic Kernel.
 /// </summary>
-public sealed record VKRetrievalOptions : IVKRetrievalSettings, IVKAIProviderSettings, IVKAIGovernanceSettings, IVKToggleableBlockOptions
+public sealed record VKRetrievalOptions : IVKRetrievalOptions, IVKAIProviderOptions, IVKAIGovernanceOptions, IVKToggleableBlockOptions
 {
     /// <inheritdoc />
     public static string SectionName => $"{VKAISKOptions.SectionName}:Retrieval";
@@ -20,7 +20,7 @@ public sealed record VKRetrievalOptions : IVKRetrievalSettings, IVKAIProviderSet
     public int? TopK { get; init; } = 5;
 
     /// <inheritdoc />
-    public float? MinScore { get; init; } = 0.7f;
+    public double? MinScore { get; init; } = 0.7;
 
     // --- Connection ---
 
@@ -36,7 +36,7 @@ public sealed record VKRetrievalOptions : IVKRetrievalSettings, IVKAIProviderSet
     /// <inheritdoc />
     public string? Endpoint { get; init; }
 
-    // --- IVKAIGovernanceSettings ---
+    // --- IVKAIGovernanceOptions ---
 
     /// <inheritdoc />
     public bool? EnableContentFilter { get; init; }
@@ -56,7 +56,7 @@ public sealed record VKRetrievalOptions : IVKRetrievalSettings, IVKAIProviderSet
     /// <inheritdoc />
     public bool? EnableAudit { get; init; }
 
-    // --- IVKAIQuotaSettings ---
+    // --- IVKAIQuotaOptions ---
 
     /// <inheritdoc />
     public long? GlobalTokenLimit { get; init; }

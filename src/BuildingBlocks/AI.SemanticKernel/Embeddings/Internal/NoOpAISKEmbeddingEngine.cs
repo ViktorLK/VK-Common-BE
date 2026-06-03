@@ -8,14 +8,14 @@ namespace VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
 /// <summary>
 /// A No-Op implementation of the embedding engine used when the feature is disabled.
 /// </summary>
-internal sealed class NoOpAISKEmbeddingEngine : IVKEmbeddingEngine
+internal sealed class NoOpAISKEmbeddingEngine : IVKEmbeddingsEngine
 {
     /// <inheritdoc />
-    public Task<VKResult<IEnumerable<VKEmbeddingVector>>> GetEmbeddingsAsync(
+    public Task<VKResult<VKEmbeddingsResponse>> GetEmbeddingsAsync(
         IEnumerable<string> inputs,
-        VKEmbeddingArgs? args = null,
+        VKEmbeddingsArgs? args = null,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(VKResult.Failure<IEnumerable<VKEmbeddingVector>>(VKEmbeddingErrors.FeatureDisabled));
+        return Task.FromResult(VKResult.Failure<VKEmbeddingsResponse>(VKEmbeddingsErrors.FeatureDisabled));
     }
 }

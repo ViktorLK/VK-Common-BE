@@ -12,7 +12,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterChatService(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings,
+        IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
         switch (connectionSettings.Provider)
@@ -36,7 +36,7 @@ internal static partial class AISKProviderRegistrar
     internal static void RegisterEmbeddingService(
         this IKernelBuilder builder,
         VKAISKOptions aiskOptions,
-        IVKAIProviderSettings connectionSettings,
+        IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
         switch (connectionSettings.Provider)

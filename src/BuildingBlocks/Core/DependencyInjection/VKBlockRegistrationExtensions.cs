@@ -179,9 +179,7 @@ public static class VKBlockRegistrationExtensions
 
 
         // 3. Validation infrastructure (Still needed for startup check)
-        services.AddOptions<TOptions>()
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
+        services.AddOptions<TOptions>().ValidateOnStart();
 
         return options;
     }

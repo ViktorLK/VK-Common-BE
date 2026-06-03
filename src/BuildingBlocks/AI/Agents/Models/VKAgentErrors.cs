@@ -21,4 +21,9 @@ public static class VKAgentErrors
     /// Error returned when the agent task times out.
     /// </summary>
     public static readonly VKError Timeout = new("AI.Agents.Timeout", "The agent execution timed out.", VKErrorType.Timeout);
+
+    /// <summary>
+    /// Error returned when the agent group chat execution fails.
+    /// </summary>
+    public static readonly VKError GroupChatFailed = new("AI.Agents.GroupChatFailed", "The cooperative agent group execution failed.");
 }

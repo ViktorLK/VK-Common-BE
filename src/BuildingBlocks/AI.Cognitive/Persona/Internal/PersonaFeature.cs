@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Psyche.Persona;
 
 namespace VK.Blocks.AI.Cognitive.Persona.Internal;
 
@@ -13,11 +14,9 @@ internal sealed partial class PersonaFeature
     static partial void RegisterCustom(IServiceCollection services, VKPersonaOptions options)
     {
         _ = options;
-        services.TryAddSingleton<IVKPersonaStore, InMemoryPersonaStore>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKOrchestrationPipelineStage, DefaultPersonaPipelineStage>());
 
         // Register non-generic extractor, renderer and formatter
-        services.TryAddSingleton<IVKPersonaRenderer, DefaultPersonaRenderer>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPromptExtractor, DefaultPersonaPromptExtractor>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultPersonaFormatter>());
     }

@@ -13,6 +13,13 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     public required string Id { get; init; }
 
     /// <summary>
+    /// Gets the XML wrapper tag used when this entry is woven into the prompt.
+    /// Defaults to <see cref="VKKnowledgeXmlTags.Knowledge"/>.
+    /// Applies to both relative and absolute (pinned) positioning; use any string (e.g. <c>lore</c>, <c>important_knowledge</c>).
+    /// </summary>
+    public string Tag { get; init; } = VKKnowledgeXmlTags.Knowledge;
+
+    /// <summary>
     /// Gets a value indicating whether this entry is active and enabled for retrieval.
     /// </summary>
     public bool IsEnabled { get; init; } = true;
