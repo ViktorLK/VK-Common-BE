@@ -72,11 +72,18 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
 
             sb.AppendLine($"<{tag}>");
 
-            foreach (var sib in siblingFragments)
+            for (int i = 0; i < siblingFragments.Count; i++)
             {
+                var sib = siblingFragments[i];
                 var entry = (VKKnowledgeEntry)sib.Metadata!;
                 string rendered = _renderer.Render(entry);
-                sb.AppendLine($"  {rendered}");
+                
+                if (i > 0)
+                {
+                    sb.AppendLine();
+                }
+                
+                sb.AppendLine(rendered.TrimEnd());
             }
 
             sb.Append($"</{tag}>");

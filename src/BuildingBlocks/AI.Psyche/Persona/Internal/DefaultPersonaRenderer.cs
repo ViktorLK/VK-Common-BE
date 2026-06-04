@@ -31,11 +31,6 @@ internal sealed class DefaultPersonaRenderer : IVKPersonaRenderer
             sb.AppendLine();
         }
 
-        if (!string.IsNullOrWhiteSpace(persona.SystemDirectives))
-        {
-            sb.Append(PersonaConstants.MarkdownHeaders.SystemDirectives).AppendLine().AppendLine(persona.SystemDirectives).AppendLine();
-        }
-
         if (persona.OutputSpecification is not null)
         {
             sb.Append(PersonaConstants.MarkdownHeaders.OutputSpecification).AppendLine();

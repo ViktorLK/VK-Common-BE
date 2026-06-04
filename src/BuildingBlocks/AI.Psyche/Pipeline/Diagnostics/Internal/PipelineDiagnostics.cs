@@ -9,8 +9,8 @@ internal static partial class PipelineDiagnostics
     [LoggerMessage(
         EventId = VKPipelineDiagnostics.PipelineStartedEventId,
         Level = LogLevel.Information,
-        Message = "Psyche pipeline started. TenantId: {TenantId}, PersonaId: {PersonaId}, SessionId: {SessionId}, CorrelationId: {CorrelationId}")]
-    public static partial void PipelineStarted(ILogger logger, string tenantId, string personaId, string sessionId, string correlationId);
+        Message = "Psyche pipeline started. PersonaId: {PersonaId}, SessionId: {SessionId}, CorrelationId: {CorrelationId}")]
+    public static partial void PipelineStarted(ILogger logger, string personaId, string sessionId, string correlationId);
 
     [LoggerMessage(
         EventId = VKPipelineDiagnostics.PipelineCompletedEventId,

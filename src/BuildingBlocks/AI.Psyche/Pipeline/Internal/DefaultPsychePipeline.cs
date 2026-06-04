@@ -41,7 +41,6 @@ internal sealed class DefaultPsychePipeline : IVKWeavingPipeline
         // Convert external Request into library-internal execution Context
         var context = new VKWeavingContext
         {
-            TenantId = request.TenantId,
             PersonaId = request.PersonaId,
             SessionId = request.SessionId,
             UserInput = request.UserInput,
@@ -54,7 +53,6 @@ internal sealed class DefaultPsychePipeline : IVKWeavingPipeline
 
         PipelineDiagnostics.PipelineStarted(
             _logger,
-            context.TenantId,
             context.PersonaId,
             context.SessionId,
             context.CorrelationId);

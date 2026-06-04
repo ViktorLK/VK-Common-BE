@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>VK.Labs.PersonaWeavePulsar</RootNamespace>
+    <AssemblyName>VK.Labs.PersonaWeavePulsar</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\AI\VK.Blocks.AI.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\AI.Psyche\VK.Blocks.AI.Psyche.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\AI.SemanticKernel\VK.Blocks.AI.SemanticKernel.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Web\VK.Blocks.Web.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\ExceptionHandling\VK.Blocks.ExceptionHandling.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\MultiTenancy\VK.Blocks.MultiTenancy.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\MultiTenancy.Web\VK.Blocks.MultiTenancy.Web.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Tools\SourceGenerators\VK.Tools.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Tools\SourceGenerators.CodeFixes\VK.Tools.SourceGenerators.CodeFixes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\BuildingBlocks\AI.VectorStore\VK.Blocks.AI.VectorStore.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\AI.VectorStore.Sqlite\VK.Blocks.AI.VectorStore.Sqlite.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Persistence.EFCore\VK.Blocks.Persistence.EFCore.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Persistence.Sqlite\VK.Blocks.Persistence.Sqlite.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+
+</Project>
+

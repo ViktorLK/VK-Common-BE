@@ -7,11 +7,6 @@ namespace VK.Blocks.AI.Psyche;
 public sealed record VKWeavingRequest
 {
     /// <summary>
-    /// Gets the unique identifier of the tenant executing the request.
-    /// </summary>
-    public required string TenantId { get; init; }
-
-    /// <summary>
     /// Gets the target Persona identifier that this context uses to retrieve prompt configurations.
     /// </summary>
     public required string PersonaId { get; init; }
@@ -50,4 +45,9 @@ public sealed record VKWeavingRequest
     /// Gets request-scoped overrides for the Persona feature.
     /// </summary>
     public VKPersonaArgs? Persona { get; init; }
+
+    /// <summary>
+    /// Gets request-scoped overrides for the Directive feature.
+    /// </summary>
+    public VKDirectiveArgs? Directive { get; init; }
 }

@@ -26,18 +26,18 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
     }
 
     public Task<VKResult<VKDirectiveCharter>> GetDirectiveAsync(
-        string tenantId,
+        string directiveId,
         CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNullOrWhiteSpace(tenantId);
+        VKGuard.NotNullOrWhiteSpace(directiveId);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_store.TryGetValue(tenantId, out var directive))
+        if (!_store.TryGetValue(directiveId, out var directive))
         {
             return Task.FromResult(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
         }
 
-        DirectiveDiagnostics.DirectiveResolved(_logger, tenantId);
+        DirectiveDiagnostics.DirectiveResolved(_logger, directiveId);
 
         return Task.FromResult(VKResult.Success(directive));
     }
@@ -46,7 +46,7 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
     {
         VKGuard.NotNull(directive);
 
-        _store[directive.TenantId] = directive;
+        _store[directive.Id] = directive;
 
         return this;
     }
@@ -57,16 +57,17 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
 
         foreach (var d in directives)
         {
-            _store[d.TenantId] = d;
+            _store[d.Id] = d;
         }
 
         return this;
     }
 
-    public InMemoryDirectiveStore Remove(string tenantId)
+    public InMemoryDirectiveStore Remove(string directiveId)
     {
-        VKGuard.NotNullOrWhiteSpace(tenantId);
-        _store.TryRemove(tenantId, out _);
+        VKGuard.NotNullOrWhiteSpace(directiveId);
+        
+        _store.TryRemove(directiveId, out _);
 
         return this;
     }

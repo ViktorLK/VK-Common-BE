@@ -7,9 +7,10 @@ namespace VK.Blocks.AI.Psyche;
 public sealed record VKDirectiveCharter : IVKFragmentMetadata
 {
     /// <summary>
-    /// Gets the tenant identifier.
+    /// Gets the directive identifier.
     /// </summary>
-    public required string TenantId { get; init; }
+    public required string Id { get; init; }
+    
     public string? BehaviorRules { get; init; }
     public string? SafetyRules { get; init; }
     public string? OutputConstraints { get; init; }
