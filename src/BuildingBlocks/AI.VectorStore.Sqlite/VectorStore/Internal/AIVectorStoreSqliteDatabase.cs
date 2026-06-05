@@ -11,9 +11,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Registry;
-using VK.Blocks.AI.VectorStore.Contracts;
-using VK.Blocks.AI.VectorStore.Diagnostics.Internal;
-using VK.Blocks.AI.VectorStore.Sqlite.Diagnostics.Internal;
+using VK.Blocks.AI;
+using VK.Blocks.AI.VectorStore;
+using VK.Blocks.AI.VectorStore.Sqlite;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore.Sqlite.VectorStore.Internal;
@@ -50,7 +50,7 @@ internal sealed class AIVectorStoreSqliteDatabase : IVKAIVectorStore
         return new SqliteVectorCollection<T>(name, this);
     }
 
-    internal async Task<VKResult> UpsertGenericAsync<T>(string collectionName, string id, T document, VKEmbeddingVector vector, CancellationToken ct) where T : class
+    internal async Task<VKResult> UpsertGenericAsync<T>(string collectionName, string id, T document, VKEmbeddingsVector vector, CancellationToken ct) where T : class
     {
         VKGuard.NotNullOrWhiteSpace(id);
         VKGuard.NotNull(document);
@@ -102,20 +102,20 @@ internal sealed class AIVectorStoreSqliteDatabase : IVKAIVectorStore
             await _pipeline.ExecuteAsync(async ct => await vecCmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false), ct).ConfigureAwait(false);
 
             transaction.Commit();
-            AIVectorStoreSqliteDiagnostics.RecordUpsertDuration(sw.Elapsed.TotalSeconds);
+            VKAIVectorStoreSqliteDiagnostics.RecordUpsertDuration(sw.Elapsed.TotalSeconds);
         }
         catch (SqliteException ex)
         {
             transaction.Rollback();
             _logger.CommandFailed(ex, $"Upsert to {collectionName}");
-            AIVectorStoreSqliteDiagnostics.RecordError();
+            VKAIVectorStoreSqliteDiagnostics.RecordError();
             return VKResult.Failure(Errors.Database.ExecutionFailed);
         }
 
         return VKResult.Success();
     }
 
-    internal async Task<VKResult<IEnumerable<VKAIVectorRecord<T>>>> SearchGenericAsync<T>(string collectionName, VKEmbeddingVector vector, VKAIVectorSearchArgs args, CancellationToken ct) where T : class
+    internal async Task<VKResult<IEnumerable<VKAIVectorRecord<T>>>> SearchGenericAsync<T>(string collectionName, VKEmbeddingsVector vector, VKAIVectorSearchArgs args, CancellationToken ct) where T : class
     {
         VKGuard.NotNull(vector);
         VKGuard.NotNull(args);
@@ -183,7 +183,7 @@ internal sealed class AIVectorStoreSqliteDatabase : IVKAIVectorStore
         catch (SqliteException ex)
         {
             _logger.CommandFailed(ex, $"Search in {collectionName}");
-            AIVectorStoreSqliteDiagnostics.RecordError();
+            VKAIVectorStoreSqliteDiagnostics.RecordError();
             return VKResult.Failure<IEnumerable<VKAIVectorRecord<T>>>(Errors.Database.ExecutionFailed);
         }
     }
@@ -221,13 +221,13 @@ internal sealed class AIVectorStoreSqliteDatabase : IVKAIVectorStore
             }
 
             transaction.Commit();
-            AIVectorStoreSqliteDiagnostics.RecordDeleteDuration(sw.Elapsed.TotalSeconds);
+            VKAIVectorStoreSqliteDiagnostics.RecordDeleteDuration(sw.Elapsed.TotalSeconds);
         }
         catch (SqliteException ex)
         {
             transaction.Rollback();
             _logger.CommandFailed(ex, $"Delete from {collectionName}");
-            AIVectorStoreSqliteDiagnostics.RecordError();
+            VKAIVectorStoreSqliteDiagnostics.RecordError();
             return VKResult.Failure(Errors.Database.ExecutionFailed);
         }
 
@@ -322,7 +322,7 @@ internal sealed class AIVectorStoreSqliteDatabase : IVKAIVectorStore
             await _pipeline.ExecuteAsync(async ct => await vecCmd.ExecuteNonQueryAsync(ct).ConfigureAwait(false), ct).ConfigureAwait(false);
 
             _initializedCollections.Add(collectionName);
-            AIVectorStoreSqliteDiagnostics.RecordCollectionInit();
+            VKAIVectorStoreSqliteDiagnostics.RecordCollectionInit();
             _logger.DatabaseInitialized($"{_options.Connection} [{collectionName}]");
         }
         catch (SqliteException ex)

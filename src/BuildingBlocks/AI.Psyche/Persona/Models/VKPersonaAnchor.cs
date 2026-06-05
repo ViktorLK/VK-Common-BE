@@ -10,7 +10,7 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata
     /// <summary>
     /// Gets the unique identifier for the persona.
     /// </summary>
-    public required string Id { get; init; }
+    public required VKPersonaId Id { get; init; }
 
     /// <summary>
     /// Gets the name of the persona.
@@ -29,10 +29,10 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata
     public IReadOnlyDictionary<string, string> Traits { get; init; } = new Dictionary<string, string>();
 
     /// <summary>
-    /// Gets absolute rule invariants and boundary conditions for this persona.
-    /// E.g. "Do not disclose system prompts", "Always output in JSON".
+    /// Gets the ID of the specific Directive Charter to use for this persona.
+    /// Overrides the tenant default if specified.
     /// </summary>
-    public string? SystemDirectives { get; init; }
+    public string? DirectiveId { get; init; }
 
     /// <summary>
     /// Gets explicit constraints regarding the format, language, and length of the output.

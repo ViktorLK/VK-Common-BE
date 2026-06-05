@@ -46,7 +46,24 @@ public sealed class VKOptionsProviderGenerator : IIncrementalGenerator
 
         if (attribute is null)
         {
-            return null;
+            var featureAttribute = symbol.GetAttributes().FirstOrDefault(a =>
+                a.AttributeClass?.ToDisplayString() == "VK.Blocks.Core.VKFeatureAttribute" ||
+                a.AttributeClass?.Name == "VKFeatureAttribute" ||
+                a.AttributeClass?.Name == "VKFeature");
+
+            if (featureAttribute is null)
+            {
+                return null;
+            }
+
+            var generateArgs = featureAttribute.NamedArguments
+                .FirstOrDefault(n => n.Key == "GenerateArgs")
+                .Value.Value as bool? ?? false;
+
+            if (!generateArgs)
+            {
+                return null;
+            }
         }
 
         return new OptionsTarget(
@@ -58,8 +75,8 @@ public sealed class VKOptionsProviderGenerator : IIncrementalGenerator
     private static void EmitSource(SourceProductionContext ctx, OptionsTarget target)
     {
         var baseName = ExtractBaseName(target.ClassName);
-        var interfaceName = $"IVK{baseName}Provider";
-        var implementationName = $"VK{baseName}DefaultProvider";
+        var interfaceName = $"IVK{baseName}OptionsProvider";
+        var implementationName = $"VK{baseName}OptionsDefaultProvider";
 
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using Microsoft.Extensions.Options;");

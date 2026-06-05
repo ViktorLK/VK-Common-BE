@@ -46,7 +46,13 @@ internal sealed class DefaultDirectiveStage : IVKWeavingStage
             return VKResult.Success();
         }
 
-        var resolveResult = await _store.GetDirectiveAsync(context.TenantId, cancellationToken).ConfigureAwait(false);
+        var directiveId = context.Directive?.DirectiveId;
+        if (!directiveId.HasValue || directiveId.Value.IsEmpty)
+        {
+            directiveId = VKDirectiveId.Empty;
+        }
+
+        var resolveResult = await _store.GetDirectiveAsync(directiveId.Value, cancellationToken).ConfigureAwait(false);
         if (resolveResult.IsFailure)
         {
             return VKResult.Failure(resolveResult.Errors);

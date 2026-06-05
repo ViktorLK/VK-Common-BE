@@ -13,6 +13,6 @@ namespace VK.Blocks.AI.Psyche;
 public interface IVKKnowledgeStore
 {
     Task<VKResult<IEnumerable<VKKnowledgeEntry>>> GetRelevantEntriesAsync(
-        string personaId,
+        VKPersonaId personaId,
         CancellationToken cancellationToken = default);
 }

@@ -13,13 +13,13 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 /// </summary>
 internal sealed class InMemoryPersonaStore : IVKPersonaStore
 {
-    private readonly ConcurrentDictionary<string, VKPersonaAnchor> _store = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<VKPersonaId, VKPersonaAnchor> _store = new();
 
     public Task<VKResult<VKPersonaAnchor>> GetPersonaAsync(
-        string personaId,
+        VKPersonaId personaId,
         CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNullOrWhiteSpace(personaId);
+        if (personaId.IsEmpty) throw new ArgumentException("PersonaId cannot be empty.", nameof(personaId));
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!_store.TryGetValue(personaId, out var anchor))
@@ -51,9 +51,9 @@ internal sealed class InMemoryPersonaStore : IVKPersonaStore
         return this;
     }
 
-    public InMemoryPersonaStore Remove(string personaId)
+    public InMemoryPersonaStore Remove(VKPersonaId personaId)
     {
-        VKGuard.NotNullOrWhiteSpace(personaId);
+        if (personaId.IsEmpty) throw new ArgumentException("PersonaId cannot be empty.", nameof(personaId));
 
         _store.TryRemove(personaId, out _);
 

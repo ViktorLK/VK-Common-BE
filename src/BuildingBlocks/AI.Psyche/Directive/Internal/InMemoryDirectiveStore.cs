@@ -15,7 +15,7 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 /// </summary>
 internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
 {
-    private readonly ConcurrentDictionary<string, VKDirectiveCharter> _store = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<VKDirectiveId, VKDirectiveCharter> _store = new();
     private readonly ILogger<InMemoryDirectiveStore> _logger;
 
     public InMemoryDirectiveStore(ILogger<InMemoryDirectiveStore> logger)
@@ -26,18 +26,19 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
     }
 
     public Task<VKResult<VKDirectiveCharter>> GetDirectiveAsync(
-        string tenantId,
+        VKDirectiveId directiveId,
         CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNullOrWhiteSpace(tenantId);
+        if (directiveId.IsEmpty)
+            throw new ArgumentException("DirectiveId cannot be empty.", nameof(directiveId));
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_store.TryGetValue(tenantId, out var directive))
+        if (!_store.TryGetValue(directiveId, out var directive))
         {
             return Task.FromResult(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
         }
 
-        DirectiveDiagnostics.DirectiveResolved(_logger, tenantId);
+        DirectiveDiagnostics.DirectiveResolved(_logger, directiveId.ToString());
 
         return Task.FromResult(VKResult.Success(directive));
     }
@@ -46,7 +47,7 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
     {
         VKGuard.NotNull(directive);
 
-        _store[directive.TenantId] = directive;
+        _store[directive.Id] = directive;
 
         return this;
     }
@@ -57,16 +58,18 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
 
         foreach (var d in directives)
         {
-            _store[d.TenantId] = d;
+            _store[d.Id] = d;
         }
 
         return this;
     }
 
-    public InMemoryDirectiveStore Remove(string tenantId)
+    public InMemoryDirectiveStore Remove(VKDirectiveId directiveId)
     {
-        VKGuard.NotNullOrWhiteSpace(tenantId);
-        _store.TryRemove(tenantId, out _);
+        if (directiveId.IsEmpty)
+            throw new ArgumentException("DirectiveId cannot be empty.", nameof(directiveId));
+
+        _store.TryRemove(directiveId, out _);
 
         return this;
     }

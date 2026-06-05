@@ -54,7 +54,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 
         // Filter and process active fragments (excluding any disabled tiers)
         var activeFragments = context.Fragments
-            .Where(f => f.Content is not null && !disabledTiers.Contains(f.TierType))
+            .Where(f => !string.IsNullOrWhiteSpace(f.Content) && !disabledTiers.Contains(f.TierType))
             .OrderBy(f => f.RenderOrder != 0 ? f.RenderOrder : GetFragmentDepth(f))
             .ToList();
 

@@ -4,9 +4,10 @@ using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
 using VK.Blocks.AI.VectorStore.Sqlite.VectorStore.Internal;
+using VK.Blocks.AI.VectorStore;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.VectorStore.Sqlite.DependencyInjection.Internal;
+namespace VK.Blocks.AI.VectorStore.Sqlite.Common.DependencyInjection.Internal;
 
 /// <summary>
 /// Internal registration logic for the SQLite database feature.
@@ -38,7 +39,7 @@ internal static class AIVectorStoreSqliteRegistration
         builder.Services.AddVKBlockMarker<VKAIVectorStoreSqliteBlock>();
 
         // 4. Options Validation
-        builder.Services.TryAddEnumerableSingleton<IValidateOptions<VKAIVectorStoreSqliteOptions>, AIVectorStoreSqliteOptionsValidator>();
+        // builder.Services.TryAddEnumerableSingleton<IValidateOptions<VKAIVectorStoreSqliteOptions>, AIVectorStoreSqliteOptionsValidator>();
 
         // 5. Diagnostics
         // (ActivitySource and Meter are handled by source gen from the attribute on the Diagnostics class)

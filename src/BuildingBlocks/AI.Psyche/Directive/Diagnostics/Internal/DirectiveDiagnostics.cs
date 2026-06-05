@@ -15,6 +15,6 @@ internal static partial class DirectiveDiagnostics
     [LoggerMessage(
         EventId = VKDirectiveDiagnostic.DirectiveResolvedEventId,
         Level = LogLevel.Information,
-        Message = "Resolved Directive for tenant {TenantId}.")]
-    public static partial void DirectiveResolved(ILogger logger, string tenantId);
+        Message = "Resolved Directive {DirectiveId}.")]
+    public static partial void DirectiveResolved(ILogger logger, string directiveId);
 }

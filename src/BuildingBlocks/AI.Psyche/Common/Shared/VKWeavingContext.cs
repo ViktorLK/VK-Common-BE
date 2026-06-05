@@ -17,19 +17,14 @@ public sealed record VKWeavingContext
     // ==========================================
 
     /// <summary>
-    /// Gets the unique identifier of the tenant executing the request.
-    /// </summary>
-    public required string TenantId { get; init; }
-
-    /// <summary>
     /// Gets the target Persona identifier that this context uses to retrieve prompt configurations.
     /// </summary>
-    public required string PersonaId { get; init; }
+    public required VKPersonaId PersonaId { get; init; }
 
     /// <summary>
     /// Gets the unique session identifier to track dialogue history.
     /// </summary>
-    public required string SessionId { get; init; }
+    public required VKSessionId SessionId { get; init; }
 
     /// <summary>
     /// Gets the correlation ID to trace this weaving execution through logging and metrics.
@@ -182,4 +177,9 @@ public sealed record VKWeavingContext
     /// Gets or sets request-scoped overrides for the Persona feature.
     /// </summary>
     public VKPersonaArgs? Persona { get; set; }
+
+    /// <summary>
+    /// Gets or sets request-scoped overrides for the Directive feature.
+    /// </summary>
+    public VKDirectiveArgs? Directive { get; set; }
 }
