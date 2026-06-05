@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
 /// <summary>
 /// Basic concrete implementation of <see cref="IVKKnowledgeStore"/>.
-/// Provides a high-performance in-memory backing store, multi-hop regex/keyword triggers, 
+/// Provides a high-performance in-memory backing store, multi-hop regex/keyword triggers,
 /// and recursive matching engine.
 /// </summary>
 internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
@@ -18,13 +18,14 @@ internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
     private readonly ConcurrentDictionary<string, List<VKKnowledgeEntry>> _store = new(StringComparer.OrdinalIgnoreCase);
 
     public Task<VKResult<IEnumerable<VKKnowledgeEntry>>> GetRelevantEntriesAsync(
-        string personaId,
+        VKPersonaId personaId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        VKGuard.NotNullOrWhiteSpace(personaId);
+        if (personaId.IsEmpty)
+            throw new ArgumentException("PersonaId cannot be empty.", nameof(personaId));
 
-        if (!_store.TryGetValue(personaId, out var entries))
+        if (!_store.TryGetValue(personaId.ToString(), out var entries))
         {
             return Task.FromResult(VKResult.Failure<IEnumerable<VKKnowledgeEntry>>(VKKnowledgeErrors.NotFound));
         }
@@ -34,7 +35,7 @@ internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
 
     public InMemoryKnowledgeStore Seed(VKKnowledgeEntry knowledgeEntry)
     {
-        _store[knowledgeEntry.Id].Add(knowledgeEntry);
+        _store[knowledgeEntry.Id.ToString()].Add(knowledgeEntry);
 
         return this;
     }
@@ -43,15 +44,15 @@ internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
     {
         foreach (var groupKnowledge in knowledgeEntries.GroupBy(x => x.Id))
         {
-            _store[groupKnowledge.Key].AddRange([.. groupKnowledge]);
+            _store[groupKnowledge.Key.ToString()].AddRange([.. groupKnowledge]);
         }
 
         return this;
     }
 
-    public InMemoryKnowledgeStore Remove(string knowledgeEntryId)
+    public InMemoryKnowledgeStore Remove(VKKnowledgeId knowledgeEntryId)
     {
-        _store.TryRemove(knowledgeEntryId, out _);
+        _store.TryRemove(knowledgeEntryId.ToString(), out _);
 
         return this;
     }

@@ -9,8 +9,8 @@ public sealed record VKDirectiveCharter : IVKFragmentMetadata
     /// <summary>
     /// Gets the directive identifier.
     /// </summary>
-    public required string Id { get; init; }
-    
+    public required VKDirectiveId Id { get; init; }
+
     public string? BehaviorRules { get; init; }
     public string? SafetyRules { get; init; }
     public string? OutputConstraints { get; init; }

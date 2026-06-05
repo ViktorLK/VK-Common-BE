@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using VK.Blocks.AI.VectorStore.Sqlite.DependencyInjection.Internal;
+using VK.Blocks.AI.VectorStore.Sqlite.Common.DependencyInjection.Internal;
 
 namespace VK.Blocks.AI.VectorStore.Sqlite;
 

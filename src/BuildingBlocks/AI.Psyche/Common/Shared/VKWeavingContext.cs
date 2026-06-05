@@ -19,12 +19,12 @@ public sealed record VKWeavingContext
     /// <summary>
     /// Gets the target Persona identifier that this context uses to retrieve prompt configurations.
     /// </summary>
-    public required string PersonaId { get; init; }
+    public required VKPersonaId PersonaId { get; init; }
 
     /// <summary>
     /// Gets the unique session identifier to track dialogue history.
     /// </summary>
-    public required string SessionId { get; init; }
+    public required VKSessionId SessionId { get; init; }
 
     /// <summary>
     /// Gets the correlation ID to trace this weaving execution through logging and metrics.

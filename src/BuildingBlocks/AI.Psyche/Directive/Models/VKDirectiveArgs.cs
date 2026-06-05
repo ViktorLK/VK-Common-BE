@@ -7,8 +7,8 @@ namespace VK.Blocks.AI.Psyche;
 public sealed record VKDirectiveArgs
 {
     /// <summary>
-    /// Gets the unique identifier of the Directive Charter to load. 
+    /// Gets the unique identifier of the Directive Charter to load.
     /// Overrides the Persona or Tenant default if specified.
     /// </summary>
-    public string? DirectiveId { get; init; }
+    public VKDirectiveId? DirectiveId { get; init; }
 }

@@ -19,6 +19,6 @@ public interface IVKPersonaStore
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The result containing the persona anchor.</returns>
     Task<VKResult<VKPersonaAnchor>> GetPersonaAsync(
-        string personaId,
+        VKPersonaId personaId,
         CancellationToken cancellationToken = default);
 }

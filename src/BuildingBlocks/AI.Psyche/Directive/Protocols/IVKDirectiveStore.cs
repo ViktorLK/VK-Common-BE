@@ -14,6 +14,6 @@ public interface IVKDirectiveStore
     /// Resolves the Directive containing prompts and safety rules for the specified tenant.
     /// </summary>
     Task<VKResult<VKDirectiveCharter>> GetDirectiveAsync(
-        string directiveId,
+        VKDirectiveId directiveId,
         CancellationToken cancellationToken = default);
 }

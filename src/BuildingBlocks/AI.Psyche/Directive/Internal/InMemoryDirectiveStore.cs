@@ -15,7 +15,7 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 /// </summary>
 internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
 {
-    private readonly ConcurrentDictionary<string, VKDirectiveCharter> _store = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<VKDirectiveId, VKDirectiveCharter> _store = new();
     private readonly ILogger<InMemoryDirectiveStore> _logger;
 
     public InMemoryDirectiveStore(ILogger<InMemoryDirectiveStore> logger)
@@ -26,10 +26,11 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
     }
 
     public Task<VKResult<VKDirectiveCharter>> GetDirectiveAsync(
-        string directiveId,
+        VKDirectiveId directiveId,
         CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNullOrWhiteSpace(directiveId);
+        if (directiveId.IsEmpty)
+            throw new ArgumentException("DirectiveId cannot be empty.", nameof(directiveId));
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!_store.TryGetValue(directiveId, out var directive))
@@ -37,7 +38,7 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
             return Task.FromResult(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
         }
 
-        DirectiveDiagnostics.DirectiveResolved(_logger, directiveId);
+        DirectiveDiagnostics.DirectiveResolved(_logger, directiveId.ToString());
 
         return Task.FromResult(VKResult.Success(directive));
     }
@@ -63,10 +64,11 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
         return this;
     }
 
-    public InMemoryDirectiveStore Remove(string directiveId)
+    public InMemoryDirectiveStore Remove(VKDirectiveId directiveId)
     {
-        VKGuard.NotNullOrWhiteSpace(directiveId);
-        
+        if (directiveId.IsEmpty)
+            throw new ArgumentException("DirectiveId cannot be empty.", nameof(directiveId));
+
         _store.TryRemove(directiveId, out _);
 
         return this;

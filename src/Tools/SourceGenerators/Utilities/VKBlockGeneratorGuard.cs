@@ -16,7 +16,7 @@ internal static class VKBlockGeneratorGuard
     private const string VKToolNamespacePrefix = "VK.Tools.";
     private const string VKBlockGeneratorsPrefix = "VK.Tools.SourceGenerators.";
 
-    private static readonly string[] _globalModules = ["Observability", "Diagnostics", "DependencyInjection"];
+    private static readonly string[] _globalModules = ["Observability", "Diagnostics", "DependencyInjection", "Domain"];
 
     /// <summary>
     /// Determines if a Source Generator should execute for the given assembly based on the generator's namespace.

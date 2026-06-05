@@ -12,6 +12,6 @@ namespace VK.Blocks.AI.Psyche;
 public interface IVKEchoStore
 {
     Task<VKResult<IReadOnlyCollection<VKEchoTrace>>> GetHistoryAsync(
-        string sessionId,
+        VKSessionId sessionId,
         CancellationToken cancellationToken = default);
 }

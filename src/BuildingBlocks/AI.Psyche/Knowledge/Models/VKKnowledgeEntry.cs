@@ -10,7 +10,7 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     /// <summary>
     /// Gets the unique identifier for the entry.
     /// </summary>
-    public required string Id { get; init; }
+    public required VKKnowledgeId Id { get; init; }
 
     /// <summary>
     /// Gets the XML wrapper tag used when this entry is woven into the prompt.
@@ -57,19 +57,24 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     public int Priority { get; init; } = 0;
 
     /// <summary>
-    /// Gets the number of subsequent turns this entry remains active after being triggered.
+    /// Gets the maximum number of elapsed turns this entry remains active after being triggered.
+    /// Calculated dynamically: remains active as long as Elapsed &lt;= (DelayTurns + StickyTurns).
+    /// Use <see cref="VKKnowledgeLifecycles.Sticky"/> presets for standard behaviors.
     /// </summary>
-    public int StickyTurns { get; init; } = 0;
+    public int StickyTurns { get; init; } = VKKnowledgeLifecycles.Sticky.Flash;
 
     /// <summary>
     /// Gets the cooldown duration in turns before this entry can trigger again.
+    /// Blocks the keyword matcher for this many turns after a successful trigger.
+    /// Example: If triggered at turn 1, and Cooldown = 5, it cannot be triggered again until turn 6.
     /// </summary>
-    public int CooldownTurns { get; init; } = 0;
+    public int CooldownTurns { get; init; } = VKKnowledgeLifecycles.Cooldown.None;
 
     /// <summary>
     /// Gets the number of turns to delay activation after being triggered.
+    /// The knowledge becomes active when Elapsed &gt;= DelayTurns, and stays active until Elapsed &lt;= (DelayTurns + StickyTurns).
     /// </summary>
-    public int DelayTurns { get; init; } = 0;
+    public int DelayTurns { get; init; } = VKKnowledgeLifecycles.Delay.Immediate;
 
     /// <summary>
     /// Gets the exclusive grouping rule for this knowledge entry.

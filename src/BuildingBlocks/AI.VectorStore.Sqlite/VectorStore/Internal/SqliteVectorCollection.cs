@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using VK.Blocks.AI.VectorStore.Contracts;
+using VK.Blocks.AI;
+using VK.Blocks.AI.VectorStore;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore.Sqlite.VectorStore.Internal;
@@ -18,14 +19,14 @@ internal sealed class SqliteVectorCollection<T>(
     public async Task<VKResult> UpsertAsync(
         string id,
         T document,
-        VKEmbeddingVector vector,
+        VKEmbeddingsVector vector,
         CancellationToken cancellationToken = default)
     {
         return await database.UpsertGenericAsync(Name, id, document, vector, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<VKResult<IEnumerable<VKAIVectorRecord<T>>>> SearchAsync(
-        VKEmbeddingVector vector,
+        VKEmbeddingsVector vector,
         VKAIVectorSearchArgs args,
         CancellationToken cancellationToken = default)
     {

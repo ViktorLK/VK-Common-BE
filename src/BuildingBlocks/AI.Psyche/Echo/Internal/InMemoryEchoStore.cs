@@ -14,14 +14,14 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// </summary>
 internal sealed class InMemoryEchoStore : IVKEchoStore
 {
-    private readonly ConcurrentDictionary<string, List<VKEchoTrace>> _store = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<VKSessionId, List<VKEchoTrace>> _store = new();
 
     public Task<VKResult<IReadOnlyCollection<VKEchoTrace>>> GetHistoryAsync(
-        string sessionId,
+        VKSessionId sessionId,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        VKGuard.NotNullOrWhiteSpace(sessionId);
+        if (sessionId.IsEmpty) throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
 
         if (!_store.TryGetValue(sessionId, out var traces))
         {
@@ -35,9 +35,9 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
         }
     }
 
-    public InMemoryEchoStore Seed(string sessionId, VKEchoTrace trace)
+    public InMemoryEchoStore Seed(VKSessionId sessionId, VKEchoTrace trace)
     {
-        VKGuard.NotNullOrWhiteSpace(sessionId);
+        if (sessionId.IsEmpty) throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
         VKGuard.NotNull(trace);
 
         var list = _store.GetOrAdd(sessionId, _ => []);
@@ -49,9 +49,9 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
         return this;
     }
 
-    public InMemoryEchoStore Seed(string sessionId, IEnumerable<VKEchoTrace> echoes)
+    public InMemoryEchoStore Seed(VKSessionId sessionId, IEnumerable<VKEchoTrace> echoes)
     {
-        VKGuard.NotNullOrWhiteSpace(sessionId);
+        if (sessionId.IsEmpty) throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
         VKGuard.NotNull(echoes);
 
         var list = _store.GetOrAdd(sessionId, _ => []);
@@ -63,9 +63,9 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
         return this;
     }
 
-    public InMemoryEchoStore Remove(string sessionId)
+    public InMemoryEchoStore Remove(VKSessionId sessionId)
     {
-        VKGuard.NotNullOrWhiteSpace(sessionId);
+        if (sessionId.IsEmpty) throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
         _store.TryRemove(sessionId, out _);
 
         return this;

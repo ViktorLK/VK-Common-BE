@@ -22,7 +22,7 @@ public static class VKKnowledgeMatcher
         nameof(Regex.IsMatch),
         [typeof(string), typeof(string), typeof(RegexOptions), typeof(TimeSpan)])!;
 
-    private static readonly ConcurrentDictionary<string, Func<string, bool>> _compiledMatchers = new();
+    private static readonly ConcurrentDictionary<VKKnowledgeId, Func<string, bool>> _compiledMatchers = new();
 
     /// <summary>
     /// Gets the matching delegate for the specified knowledge entry. Compiles and caches it if not present.
@@ -36,9 +36,9 @@ public static class VKKnowledgeMatcher
     /// <summary>
     /// Forcibly clears the cached matcher for the specified entry ID (used during Upsert/Delete).
     /// </summary>
-    public static void Invalidate(string entryId)
+    public static void Invalidate(VKKnowledgeId entryId)
     {
-        if (!string.IsNullOrWhiteSpace(entryId))
+        if (!entryId.IsEmpty)
         {
             _compiledMatchers.TryRemove(entryId, out _);
         }

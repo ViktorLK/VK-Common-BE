@@ -29,9 +29,9 @@ public static class VKAIVectorStoreBuilderExtensions
     /// <summary>
     /// Adds high-level Retrieval features (Chunks, Loaders, RAG Bridge) to the vector store.
     /// </summary>
-    public static IVKAIVectorStoreBuilder AddVKRetrieval(this IVKAIVectorStoreBuilder builder)
-    {
-        VKGuard.NotNull(builder);
-        return RetrievalFeatureRegistration.Register(builder);
-    }
+    // public static IVKAIVectorStoreBuilder AddVKRetrieval(this IVKAIVectorStoreBuilder builder)
+    // {
+    //     VKGuard.NotNull(builder);
+    //     return RetrievalFeatureRegistration.Register(builder);
+    // }
 }

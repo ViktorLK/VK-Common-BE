@@ -27,7 +27,7 @@ internal static class RetrievalFeatureRegistration
         services.AddVKBlockMarker<RetrievalFeature>();
 
         // 4. Options Validation
-        services.TryAddEnumerableSingleton<IValidateOptions<VKRetrievalOptions>, RetrievalOptionsValidator>();
+        // services.TryAddEnumerableSingleton<IValidateOptions<VKRetrievalOptions>, RetrievalOptionsValidator>();
 
         // 5. Feature Toggle
         if (!options.Enabled)

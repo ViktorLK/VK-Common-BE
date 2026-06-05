@@ -9,12 +9,12 @@ public sealed record VKWeavingRequest
     /// <summary>
     /// Gets the target Persona identifier that this context uses to retrieve prompt configurations.
     /// </summary>
-    public required string PersonaId { get; init; }
+    public required VKPersonaId PersonaId { get; init; }
 
     /// <summary>
     /// Gets the unique session identifier to track dialogue history.
     /// </summary>
-    public required string SessionId { get; init; }
+    public required VKSessionId SessionId { get; init; }
 
     /// <summary>
     /// Gets the fresh input message provided by the user in this turn.

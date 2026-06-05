@@ -10,7 +10,7 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata
     /// <summary>
     /// Gets the unique identifier for the persona.
     /// </summary>
-    public required string Id { get; init; }
+    public required VKPersonaId Id { get; init; }
 
     /// <summary>
     /// Gets the name of the persona.

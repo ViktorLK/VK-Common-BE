@@ -16,11 +16,11 @@ internal static partial class EchoDiagnostics
         EventId = VKEchoDiagnostics.EchoRecordedEventId,
         Level = LogLevel.Debug,
         Message = "Recorded memory echo for session {SessionId}. Sender: {SenderRole}, Content length: {ContentLength}.")]
-    public static partial void EchoRecorded(ILogger logger, string sessionId, string senderRole, int contentLength);
+    public static partial void EchoRecorded(ILogger logger, VKSessionId sessionId, string senderRole, int contentLength);
 
     [LoggerMessage(
         EventId = VKEchoDiagnostics.EchoTrimmedEventId,
         Level = LogLevel.Information,
         Message = "Trimmed dialogue history for session {SessionId}. Original count: {OriginalCount}, Retained count: {RetainedCount}.")]
-    public static partial void EchoTrimmed(ILogger logger, string sessionId, int originalCount, int retainedCount);
+    public static partial void EchoTrimmed(ILogger logger, VKSessionId sessionId, int originalCount, int retainedCount);
 }

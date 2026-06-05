@@ -42,7 +42,7 @@ internal sealed class DefaultKnowledgeStage : IVKWeavingStage
             return VKResult.Success();
         }
 
-        if (string.IsNullOrWhiteSpace(context.PersonaId))
+        if (context.PersonaId.IsEmpty)
         {
             return VKResult.Failure(VKKnowledgeErrors.MissingPersona);
         }
@@ -99,13 +99,13 @@ internal sealed class DefaultKnowledgeStage : IVKWeavingStage
             timeline.Add((context.UserInput, currentTurn));
         }
 
-        var lastTriggeredTurn = new Dictionary<string, int>(); // Key: KnowledgeId, Value: TurnIndex
+        var lastTriggeredTurn = new Dictionary<VKKnowledgeId, int>(); // Key: KnowledgeId, Value: TurnIndex
 
         /*
          * PERFORMANCE ARCHITECTURAL NOTE:
          * Currently, we perform a full scan of the dialogue history (O(Timeline * Entries)) to calculate CooldownTurns and StickyTurns.
          * For typical chat limits (under 30 echoes) and small entry sets, this is extremely fast (<2ms) due to high-performance expression compilations.
-         * 
+         *
          * OPTIMIZATION STRATEGY:
          * If the system ever scales to support massive knowledgebases (1000s of entries) and long dialogue histories (100s of echoes),
          * under heavy parallel loads with strict latency requirements, we should transition to "Incremental State Tracking":
@@ -121,9 +121,9 @@ internal sealed class DefaultKnowledgeStage : IVKWeavingStage
 
             foreach (var entry in conditionalEntries)
             {
-                // Check if the entry is currently in cooldown
+                // Check if the entry is currently in cooldown (or has infinite cooldown -1)
                 if (lastTriggeredTurn.TryGetValue(entry.Id, out var lastTurn) &&
-                    (turnIndex - lastTurn < entry.CooldownTurns))
+                    (entry.CooldownTurns == -1 || turnIndex - lastTurn < entry.CooldownTurns))
                 {
                     continue; // Skip triggering during cooldown
                 }
@@ -143,9 +143,10 @@ internal sealed class DefaultKnowledgeStage : IVKWeavingStage
         {
             if (lastTriggeredTurn.TryGetValue(entry.Id, out var lastTurn))
             {
-                // Verify if it was triggered after the DelayTurns offset and is within the StickyTurns window
+                // Verify if it was triggered after the DelayTurns offset and is within the StickyTurns window (-1 means infinite)
                 int elapsed = currentTurnIndex - lastTurn;
-                return elapsed >= entry.DelayTurns && elapsed <= (entry.DelayTurns + entry.StickyTurns);
+                return elapsed >= entry.DelayTurns && 
+                       (entry.StickyTurns == -1 || elapsed <= (entry.DelayTurns + entry.StickyTurns));
             }
             return false;
         });

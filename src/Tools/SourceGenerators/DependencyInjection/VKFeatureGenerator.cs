@@ -40,19 +40,23 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         var typeDeclaration = (TypeDeclarationSyntax)context.Node;
         var symbol = context.SemanticModel.GetDeclaredSymbol(typeDeclaration, ct) as INamedTypeSymbol;
 
-        if (symbol is null) return null;
+        if (symbol is null)
+            return null;
 
         var attribute = symbol.GetAttributes()
             .FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == AttributeFullName);
 
-        if (attribute is null) return null;
+        if (attribute is null)
+            return null;
 
         // Extract attribute data
         var args = attribute.ConstructorArguments;
-        if (args.Length < 1) return null;
+        if (args.Length < 1)
+            return null;
 
         var parentTypeSymbol = args[0].Value as INamedTypeSymbol;
-        if (parentTypeSymbol is null) return null;
+        if (parentTypeSymbol is null)
+            return null;
 
         // 1. Name Inference
         var explicitName = args.Length > 1 ? args[1].Value?.ToString() : null;
@@ -61,7 +65,8 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         // 2. Namespace Inheritance
         var namespaceOverride = attribute.NamedArguments.FirstOrDefault(n => n.Key == "Namespace").Value.Value?.ToString();
         var parentNs = parentTypeSymbol.ContainingNamespace.ToDisplayString();
-        if (parentNs.EndsWith(".Internal")) parentNs = parentNs.Substring(0, parentNs.Length - 9);
+        if (parentNs.EndsWith(".Internal"))
+            parentNs = parentNs.Substring(0, parentNs.Length - 9);
         var targetNamespace = namespaceOverride ?? $"{parentNs}.{featureName}";
 
         // 3. Flags
@@ -72,11 +77,10 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         // 4. Structural Info
         var isToggleable = symbol.AllInterfaces.Any(i => i.Name == "IVKToggleableBlockOptions");
         var isPartial = typeDeclaration.Modifiers.Any(m => m.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword));
-        var isAISettings = symbol.AllInterfaces.Any(i => i.Name == "IVKAIProviderSettings");
-        var isGovernanceSettings = symbol.AllInterfaces.Any(i => i.Name == "IVKAIGovernanceSettings");
+        var isAISettings = false;
+        var isGovernanceSettings = false;
 
-        // --- Mode B: Strict Interface Mapping ---
-        var overridableProperties = new HashSet<string>(StringComparer.Ordinal);
+        var overridableProperties = new Dictionary<string, IPropertySymbol>(StringComparer.Ordinal);
         var implementedOverrides = new List<string>();
 
         foreach (var @interface in symbol.AllInterfaces)
@@ -88,44 +92,65 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
             {
                 overridesName = interfaceName;
             }
-            else if (interfaceName.EndsWith("Settings"))
+            else if (interfaceName.EndsWith("Options") && interfaceName.StartsWith("IVK") && interfaceName != "IVKBlockOptions" && interfaceName != "IVKToggleableBlockOptions")
             {
-                // Mapping: IVK...Settings -> IVK...Overrides
-                overridesName = interfaceName.Replace("Settings", "Overrides");
+                // Mapping: IVK...Options -> IVK...Overrides
+                overridesName = interfaceName.Replace("Options", "Overrides");
             }
 
             if (overridesName != null)
             {
                 // Try to find the interface in the compilation
-                var overridesSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName($"VK.Blocks.AI.{overridesName}") 
+                var overridesSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName($"VK.Blocks.AI.{overridesName}")
                                       ?? context.SemanticModel.Compilation.GetTypeByMetadataName($"VK.Blocks.AI.Chat.{overridesName}")
                                       ?? @interface.ContainingNamespace.GetTypeMembers(overridesName).FirstOrDefault();
 
                 if (overridesSymbol != null)
                 {
                     implementedOverrides.Add(overridesName);
+
+                    // Add direct members
                     foreach (var member in overridesSymbol.GetMembers().OfType<IPropertySymbol>())
                     {
-                        overridableProperties.Add(member.Name);
+                        overridableProperties[member.Name] = member;
+                    }
+
+                    // Add inherited members recursively
+                    foreach (var inheritedInterface in overridesSymbol.AllInterfaces)
+                    {
+                        foreach (var member in inheritedInterface.GetMembers().OfType<IPropertySymbol>())
+                        {
+                            overridableProperties[member.Name] = member;
+                        }
                     }
                 }
             }
         }
 
-        var properties = symbol.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(p => p.DeclaredAccessibility == Accessibility.Public 
-                        && !p.IsStatic 
-                        && !p.IsReadOnly 
-                        && overridableProperties.Contains(p.Name)) // STRICT MODE: Must be in Overrides interface
+        // Get options properties for existence check
+        var optionsProperties = new System.Collections.Generic.HashSet<string>(
+            symbol.GetMembers()
+                .OfType<IPropertySymbol>()
+                .Where(p => p.DeclaredAccessibility == Accessibility.Public && !p.IsStatic && !p.IsReadOnly)
+                .Select(p => p.Name),
+            StringComparer.Ordinal
+        );
+
+        var properties = overridableProperties.Values
             .Select(p => new PropertyTarget(
                 Name: p.Name,
                 Type: p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)),
-                IsAlreadyNullable: p.Type.NullableAnnotation == NullableAnnotation.Annotated || p.Type.ToDisplayString().EndsWith("?")
+                IsAlreadyNullable: p.Type.NullableAnnotation == NullableAnnotation.Annotated || p.Type.ToDisplayString().EndsWith("?"),
+                ExistsInOptions: optionsProperties.Contains(p.Name)
             ))
             .ToImmutableArray();
 
         var isTimeoutPresent = symbol.GetMembers().OfType<IPropertySymbol>().Any(p => p.Name == "Timeout");
+
+        var builderTypeFullName = GetBuilderTypeFullName(parentTypeSymbol);
+
+        var parentSegment = ResolveSegment(parentTypeSymbol);
+        var computedSectionName = sectionNameOverride ?? $"{parentSegment}:{featureName}";
 
         return new FeatureTarget(
             Namespace: targetNamespace,
@@ -133,6 +158,7 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
             OptionsFullNamespace: symbol.ContainingNamespace.ToDisplayString(),
             FeatureName: featureName,
             ParentBlockTypeFullName: parentTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+            BuilderTypeFullName: builderTypeFullName,
             GenerateArgs: generateArgs,
             GenerateValidator: generateValidator,
             SectionNameOverride: sectionNameOverride,
@@ -142,21 +168,196 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
             IsGovernanceSettings: isGovernanceSettings,
             IsTimeoutPresent: isTimeoutPresent,
             ImplementedOverrides: implementedOverrides.ToImmutableArray(),
-            Properties: properties
+            Properties: properties,
+            ComputedSectionName: computedSectionName
         );
+    }
+
+    private static string GetBuilderTypeFullName(INamedTypeSymbol parentTypeSymbol)
+    {
+        // 1. If parent ends with "Block", resolve its builder name directly.
+        if (parentTypeSymbol.Name.EndsWith("Block"))
+        {
+            var parentTypeName = parentTypeSymbol.Name;
+            var blockName = parentTypeName;
+            if (blockName.StartsWith("VK"))
+                blockName = blockName.Substring(2);
+            if (blockName.EndsWith("Block"))
+                blockName = blockName.Substring(0, blockName.Length - 5);
+
+            var parentNs = parentTypeSymbol.ContainingNamespace.ToDisplayString();
+            return $"global::{parentNs}.IVK{blockName}Builder";
+        }
+
+        // 2. Otherwise, check if it's a feature marker that has [VKFeatureMarker(..., typeof(Parent))]
+        var featureMarkerAttr = parentTypeSymbol.GetAttributes()
+            .FirstOrDefault(a => a.AttributeClass?.Name == "VKFeatureMarkerAttribute" || a.AttributeClass?.ToDisplayString().EndsWith("VKFeatureMarkerAttribute") == true);
+
+        if (featureMarkerAttr != null && featureMarkerAttr.ConstructorArguments.Length > 1)
+        {
+            var grandParentType = featureMarkerAttr.ConstructorArguments[1].Value as INamedTypeSymbol;
+            if (grandParentType != null)
+            {
+                return GetBuilderTypeFullName(grandParentType);
+            }
+        }
+
+        // 3. Generic Assembly-Based Block Resolution (100% generic, zero hardcoding)
+        var assemblyName = parentTypeSymbol.ContainingAssembly?.Name;
+        if (assemblyName != null && assemblyName.StartsWith("VK.Blocks"))
+        {
+            var moduleName = assemblyName.Substring(9).TrimStart('.'); // e.g. "AI", "AI.Cognitive", "Authorization"
+            var blockName = moduleName.Replace(".", ""); // e.g. "AI", "AICognitive", "Authorization"
+            return $"global::{assemblyName}.IVK{blockName}Builder";
+        }
+
+        // 4. Generic Namespace Segment Fallback (100% generic, zero hardcoding)
+        var fullNs = parentTypeSymbol.ContainingNamespace.ToDisplayString();
+        var segments = fullNs.Split('.');
+        var segmentCount = segments.Length;
+
+        // Trim common trailing technical namespace suffixes
+        while (segmentCount > 0 && (
+            segments[segmentCount - 1] == "Internal" ||
+            segments[segmentCount - 1] == "DependencyInjection" ||
+            segments[segmentCount - 1] == "Common" ||
+            segments[segmentCount - 1] == "Shared" ||
+            segments[segmentCount - 1] == "Contracts" ||
+            segments[segmentCount - 1] == "Protocols"))
+        {
+            segmentCount--;
+        }
+
+        if (segmentCount >= 3 && segments[0] == "VK" && segments[1] == "Blocks")
+        {
+            // The last segment of a cleaned feature namespace is always the feature name itself.
+            // Everything before it is the block's root namespace.
+            // If the cleaned segments count is 3 (e.g. VK.Blocks.Core), it is the block itself.
+            var blockSegmentCount = segmentCount > 3 ? segmentCount - 1 : segmentCount;
+            var blockNamespace = string.Join(".", segments.Take(blockSegmentCount));
+            var blockName = string.Join("", segments.Skip(2).Take(blockSegmentCount - 2));
+            return $"global::{blockNamespace}.IVK{blockName}Builder";
+        }
+
+        // 5. Absolute Fallback
+        var fallbackTypeName = parentTypeSymbol.Name;
+        var fallbackBlockName = fallbackTypeName;
+        if (fallbackBlockName.StartsWith("VK"))
+            fallbackBlockName = fallbackBlockName.Substring(2);
+        if (fallbackBlockName.EndsWith("Block"))
+            fallbackBlockName = fallbackBlockName.Substring(0, fallbackBlockName.Length - 5);
+        if (fallbackBlockName.EndsWith("Feature"))
+            fallbackBlockName = fallbackBlockName.Substring(0, fallbackBlockName.Length - 7);
+
+        var fallbackNs = parentTypeSymbol.ContainingNamespace.ToDisplayString();
+        if (fallbackNs.EndsWith(".Internal"))
+            fallbackNs = fallbackNs.Substring(0, fallbackNs.Length - 9);
+
+        return $"global::{fallbackNs}.IVK{fallbackBlockName}Builder";
     }
 
     private static string InferName(string className)
     {
         var name = className;
-        if (name.StartsWith("VK")) name = name.Substring(2);
-        if (name.EndsWith("Options")) name = name.Substring(0, name.Length - 7);
+        if (name.StartsWith("VK"))
+            name = name.Substring(2);
+        if (name.EndsWith("Options"))
+            name = name.Substring(0, name.Length - 7);
         return name;
+    }
+
+    private static string ResolveSegment(INamedTypeSymbol symbol)
+    {
+        // 1. Get the cleaned namespace of the symbol
+        var fullNs = symbol.ContainingNamespace.ToDisplayString();
+        var segments = fullNs.Split('.');
+        var segmentCount = segments.Length;
+
+        // Trim common trailing technical namespaces
+        while (segmentCount > 0 && (
+            segments[segmentCount - 1] == "Internal" ||
+            segments[segmentCount - 1] == "DependencyInjection" ||
+            segments[segmentCount - 1] == "Common" ||
+            segments[segmentCount - 1] == "Shared" ||
+            segments[segmentCount - 1] == "Contracts" ||
+            segments[segmentCount - 1] == "Protocols"))
+        {
+            segmentCount--;
+        }
+
+        var cleanedSegments = segments.Take(segmentCount).ToList();
+        if (cleanedSegments.Count > 0 && cleanedSegments[0] == "VK")
+            cleanedSegments.RemoveAt(0);
+        if (cleanedSegments.Count > 0 && cleanedSegments[0] == "Blocks")
+            cleanedSegments.RemoveAt(0);
+
+        // 2. Scan the containing assembly for a custom VKBlockMarkerAttribute override!
+        var assembly = symbol.ContainingAssembly;
+        string? customBlockId = null;
+        if (assembly is not null)
+        {
+            var queue = new Queue<INamespaceSymbol>();
+            queue.Enqueue(assembly.GlobalNamespace);
+            while (queue.Count > 0)
+            {
+                var ns = queue.Dequeue();
+                foreach (var type in ns.GetTypeMembers())
+                {
+                    var blockAttr = type.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "VK.Blocks.Core.VKBlockMarkerAttribute");
+                    if (blockAttr is not null)
+                    {
+                        var explicitId = blockAttr.ConstructorArguments.FirstOrDefault().Value?.ToString();
+                        if (!string.IsNullOrWhiteSpace(explicitId) && explicitId != "Unknown")
+                        {
+                            customBlockId = explicitId!.Replace("VK.Blocks.", "").Replace(".", "");
+                            break;
+                        }
+                    }
+                }
+                if (customBlockId is not null) break;
+                foreach (var subNs in ns.GetNamespaceMembers())
+                {
+                    queue.Enqueue(subNs);
+                }
+            }
+        }
+
+        // 3. Determine the Block segment vs Feature segments based on assembly name overlap
+        var assemblyName = symbol.ContainingAssembly?.Name ?? "";
+        var assemblySegments = assemblyName.Split('.').ToList();
+        if (assemblySegments.Count > 0 && assemblySegments[0] == "VK")
+            assemblySegments.RemoveAt(0);
+        if (assemblySegments.Count > 0 && assemblySegments[0] == "Blocks")
+            assemblySegments.RemoveAt(0);
+
+        var blockSegmentsCount = Math.Min(cleanedSegments.Count, assemblySegments.Count);
+        
+        // Use customBlockId if found, otherwise use the overlap of assembly segments
+        var blockPart = customBlockId ?? string.Join("", cleanedSegments.Take(blockSegmentsCount));
+        
+        var featureSegments = cleanedSegments.Skip(blockSegmentsCount).ToList();
+        
+        // Also if the options class name itself contains additional nesting beyond namespace features
+        var optionsFeatureName = InferName(symbol.Name);
+        if (featureSegments.Count == 0 || featureSegments[featureSegments.Count - 1] != optionsFeatureName)
+        {
+            // If the last segment is not the feature itself (like budgeting options in tokenics namespace)
+            // But wait, in VKBudgetingOptions: namespace is Tokenics.Budgeting, so featureSegments contains "Tokenics" and "Budgeting".
+            // So "Budgeting" is already there. No need to add.
+        }
+
+        if (featureSegments.Count > 0)
+        {
+            return blockPart + ":" + string.Join(":", featureSegments);
+        }
+        
+        return blockPart;
     }
 
     private static void EmitSource(SourceProductionContext ctx, FeatureTarget target, string? assemblyName, Type generatorType)
     {
-        if (!VKBlockGeneratorGuard.ShouldExecute(generatorType, assemblyName)) return;
+        if (!VKBlockGeneratorGuard.ShouldExecute(generatorType, assemblyName))
+            return;
 
         // 1. Generate Consolidated Feature Anchor (Marker + Registration + Validator)
         EmitFeatureAnchor(ctx, target);
@@ -202,10 +403,12 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         sb.AppendLine("/// <summary>");
         sb.AppendLine($"/// Automatically generated request-scoped arguments for <see cref=\"{target.OptionsClassName}\"/>.");
         sb.AppendLine("/// </summary>");
-        
+
         var isAI = target.OptionsFullNamespace.Contains(".AI");
-        var interfaceList = new List<string> { "IVKAIArgs", $"IVKArgs<{argsClassName}>" };
-        
+        var interfaceList = isAI
+            ? new List<string> { "IVKAIArgs", $"IVKArgs<{argsClassName}>" }
+            : new List<string> { $"IVKArgs<{argsClassName}>" };
+
         foreach (var overrideInterface in target.ImplementedOverrides)
         {
             if (!interfaceList.Contains(overrideInterface))
@@ -215,7 +418,7 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         }
 
         var interfaces = " : " + string.Join(", ", interfaceList);
-        
+
         sb.AppendLine($"public partial record {argsClassName}{interfaces}");
         sb.AppendLine("{");
         sb.AppendLine($"    public static {argsClassName} Empty {{ get; }} = new();");
@@ -229,7 +432,7 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
             sb.AppendLine("    /// <inheritdoc />");
             sb.AppendLine("    public string? UserId { get; init; }");
             sb.AppendLine();
-            
+
             sb.AppendLine("    /// <inheritdoc />");
             sb.AppendLine("    public TimeSpan? Timeout { get; init; }");
             sb.AppendLine();
@@ -244,8 +447,10 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
             }
 
             var propType = prop.Type;
-            if (propType.EndsWith("Options")) propType = propType.Substring(0, propType.Length - 7) + "Args";
-            else if (propType.EndsWith("Options?")) propType = propType.Substring(0, propType.Length - 8) + "Args?";
+            if (propType.EndsWith("Options"))
+                propType = propType.Substring(0, propType.Length - 7) + "Args";
+            else if (propType.EndsWith("Options?"))
+                propType = propType.Substring(0, propType.Length - 8) + "Args?";
 
             var nullableType = prop.IsAlreadyNullable || propType.EndsWith("?") ? propType : $"{propType}?";
             sb.AppendLine($"    public {nullableType} {prop.Name} {{ get; init; }}");
@@ -269,7 +474,12 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
                 continue;
             }
 
-            if (prop.Type.EndsWith("Options") || prop.Type.EndsWith("Options?"))
+            if (!prop.ExistsInOptions)
+            {
+                continue; // Skip merging since it doesn't exist on the Options class
+            }
+
+            if (prop.Type.EndsWith("Options") || prop.Type.EndsWith("Options?") || prop.Type.EndsWith("Args") || prop.Type.EndsWith("Args?"))
             {
                 sb.AppendLine($"            {prop.Name} = args.{prop.Name}.Merge(options.{prop.Name}),");
             }
@@ -287,7 +497,7 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         sb.AppendLine("        };");
         sb.AppendLine("    }");
         sb.AppendLine("}");
-        
+
         ctx.AddSource($"{argsClassName}.g.cs", sb.ToString());
     }
 
@@ -295,9 +505,9 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
     {
         var optionsClassName = target.OptionsClassName;
         var baseClassName = optionsClassName.EndsWith("Options") ? optionsClassName.Substring(0, optionsClassName.Length - 7) : optionsClassName;
-        
-        var interfaceName = $"I{baseClassName}Provider";
-        var implementationName = $"{baseClassName}DefaultProvider";
+
+        var interfaceName = $"I{baseClassName}OptionsProvider";
+        var implementationName = $"{baseClassName}OptionsDefaultProvider";
         var argsName = $"{baseClassName}Args";
 
         var sb = SourceCodeBuilder.CreateWithHeader();
@@ -318,7 +528,7 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         sb.AppendLine($"    public {target.OptionsClassName} GetOptions() => _options.Value;");
         sb.AppendLine($"    public {target.OptionsClassName} GetOptions({argsName}? args = null) => args.Merge(_options.Value);");
         sb.AppendLine("}");
-        
+
         ctx.AddSource($"{interfaceName}.g.cs", sb.ToString());
     }
 
@@ -338,10 +548,11 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         sb.AppendLine($"namespace {target.Namespace}.Internal;");
         sb.AppendLine();
         sb.AppendLine($"[VKFeatureMarker(\"{target.FeatureName}\", typeof({target.ParentBlockTypeFullName}))]");
-        
+
         var interfaceList = new List<string> { "IVKFeatureMarker", $"IVKBlockMarkerProvider<{target.FeatureName}Feature>" };
-        if (target.GenerateValidator) interfaceList.Add($"IValidateOptions<{target.OptionsClassName}>");
-        
+        if (target.GenerateValidator)
+            interfaceList.Add($"IValidateOptions<{target.OptionsClassName}>");
+
         sb.AppendLine($"internal sealed partial class {target.FeatureName}Feature : {string.Join(", ", interfaceList)}");
         sb.AppendLine("{");
         sb.AppendLine($"    public const string FeatureName = \"{target.FeatureName}\";");
@@ -368,13 +579,20 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("    // --- Registration Logic ---");
         sb.AppendLine();
-        sb.AppendLine("    public static IVKAIBuilder Register(");
-        sb.AppendLine("        IVKAIBuilder builder,");
+        sb.AppendLine($"    public static {target.BuilderTypeFullName} Register(");
+        sb.AppendLine($"        {target.BuilderTypeFullName} builder,");
         sb.AppendLine($"        Func<{target.OptionsClassName}, {target.OptionsClassName}>? transform = null)");
         sb.AppendLine("    {");
         sb.AppendLine("        var services = builder.Services;");
         sb.AppendLine();
-        sb.AppendLine($"        if (services.IsVKBlockRegistered<{target.FeatureName}Feature>()) return builder;");
+        sb.AppendLine($"        if (services.IsVKBlockRegistered<{target.FeatureName}Feature>())");
+        sb.AppendLine("        {");
+        sb.AppendLine("            if (transform != null)");
+        sb.AppendLine("            {");
+        sb.AppendLine($"                _ = services.AddVKBlockOptions<{target.OptionsClassName}>(builder.Configuration!, transform);");
+        sb.AppendLine("            }");
+        sb.AppendLine("            return builder;");
+        sb.AppendLine("        }");
         sb.AppendLine();
 
         if (target.ParentBlockTypeFullName.EndsWith("Feature"))
@@ -387,25 +605,25 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         sb.AppendLine($"        var options = services.AddVKBlockOptions<{target.OptionsClassName}>(builder.Configuration!, transform);");
         sb.AppendLine($"        services.AddVKBlockMarker<{target.FeatureName}Feature>();");
         sb.AppendLine();
-        
+
         if (target.GenerateValidator)
         {
             sb.AppendLine($"        services.TryAddEnumerableSingleton<IValidateOptions<{target.OptionsClassName}>, {target.FeatureName}Feature>();");
         }
-        
+
         if (target.GenerateArgs)
         {
             var optionsClassName = target.OptionsClassName;
             var baseClassName = optionsClassName.EndsWith("Options") ? optionsClassName.Substring(0, optionsClassName.Length - 7) : optionsClassName;
-            sb.AppendLine($"        services.TryAddSingleton<I{baseClassName}Provider, {baseClassName}DefaultProvider>();");
+            sb.AppendLine($"        services.TryAddSingleton<I{baseClassName}OptionsProvider, {baseClassName}OptionsDefaultProvider>();");
         }
-        
+
         if (target.IsToggleable)
         {
             sb.AppendLine();
             sb.AppendLine("        if (!options.Enabled) return builder;");
         }
-        
+
         sb.AppendLine();
         sb.AppendLine("        RegisterCustom(services, options);");
         sb.AppendLine();
@@ -440,7 +658,7 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         }
 
         sb.AppendLine("}");
-        
+
         ctx.AddSource($"{target.FeatureName}Feature.g.cs", sb.ToString());
     }
 
@@ -454,22 +672,19 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         sb.AppendLine($"public partial record {target.OptionsClassName}");
         sb.AppendLine("{");
         sb.AppendLine("    /// <summary>The configuration section name, automatically generated by VK.Blocks.</summary>");
-        
-        // At runtime, transform "VK.Blocks.AI.Tokenics" to "AI:Tokenics"
-        var parentIdExpr = $"{target.ParentBlockTypeFullName}.BlockIdentifier.Replace(\"VK.Blocks.\", \"\").Replace(\".\", \":\")";
-        
-        sb.AppendLine($"    public static string SectionName => {parentIdExpr} + \":\" + \"{target.FeatureName}\";");
+        sb.AppendLine($"    public static string SectionName => \"{target.ComputedSectionName}\";");
         sb.AppendLine("}");
-        
+
         ctx.AddSource($"{target.OptionsClassName}.Feature.g.cs", sb.ToString());
     }
 
     private sealed record FeatureTarget(
-        string Namespace, 
-        string OptionsClassName, 
+        string Namespace,
+        string OptionsClassName,
         string OptionsFullNamespace,
-        string FeatureName, 
+        string FeatureName,
         string ParentBlockTypeFullName,
+        string BuilderTypeFullName,
         bool GenerateArgs,
         bool GenerateValidator,
         string? SectionNameOverride,
@@ -479,7 +694,8 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         bool IsGovernanceSettings,
         bool IsTimeoutPresent,
         ImmutableArray<string> ImplementedOverrides,
-        ImmutableArray<PropertyTarget> Properties);
+        ImmutableArray<PropertyTarget> Properties,
+        string ComputedSectionName);
 
-    private sealed record PropertyTarget(string Name, string Type, bool IsAlreadyNullable);
+    private sealed record PropertyTarget(string Name, string Type, bool IsAlreadyNullable, bool ExistsInOptions);
 }
