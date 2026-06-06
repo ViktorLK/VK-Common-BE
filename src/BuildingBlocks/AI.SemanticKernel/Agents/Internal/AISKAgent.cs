@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Agents.Internal;

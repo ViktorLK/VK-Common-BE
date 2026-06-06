@@ -22,7 +22,7 @@ public static class VKPsycheBlockExtensions
     {
         VKGuard.NotNull(services);
         VKGuard.NotNull(configuration);
-        return VKPsycheBlockRegistration.Register(services, configuration: configuration);
+        return AIPsycheBlockRegistration.Register(services, configuration: configuration);
     }
 
     /// <summary>
@@ -40,6 +40,6 @@ public static class VKPsycheBlockExtensions
         VKGuard.NotNull(services);
         VKGuard.NotNull(configuration);
         VKGuard.NotNull(transform);
-        return VKPsycheBlockRegistration.Register(services, configuration, transform);
+        return AIPsycheBlockRegistration.Register(services, configuration, transform);
     }
 }

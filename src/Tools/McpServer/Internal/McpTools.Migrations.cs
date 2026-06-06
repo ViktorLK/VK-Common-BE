@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -13,7 +13,7 @@ internal sealed partial class McpTools
 {
     [McpServerTool]
     [Description("Scans EF Core migration files for destructive operations. Returns a prompt instructing the AI to warn the user.")]
-    public static async Task<string> VKAuditMigrations(
+    public static async Task<string> VKBeAuditMigrations(
         [Description("Path to the EF Core Migrations directory (e.g. 'src/BuildingBlocks/Identity/Migrations').")] string migrationsDir,
         CancellationToken ct)
     {
@@ -69,3 +69,4 @@ internal sealed partial class McpTools
         }
     }
 }
+

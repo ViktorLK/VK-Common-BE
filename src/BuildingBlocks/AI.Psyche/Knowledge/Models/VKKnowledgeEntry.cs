@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using VK.Blocks.AI.Psyche.Weaving.Internal;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -17,7 +18,7 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     /// Defaults to <see cref="VKKnowledgeXmlTags.Knowledge"/>.
     /// Applies to both relative and absolute (pinned) positioning; use any string (e.g. <c>lore</c>, <c>important_knowledge</c>).
     /// </summary>
-    public string Tag { get; init; } = VKKnowledgeXmlTags.Knowledge;
+    public string Tag { get; init; } = PsycheConstants.XmlTags.Knowledge;
 
     /// <summary>
     /// Gets a value indicating whether this entry is active and enabled for retrieval.
@@ -80,4 +81,9 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     /// Gets the exclusive grouping rule for this knowledge entry.
     /// </summary>
     public VKExclusiveGrouping? ExclusiveGrouping { get; init; }
+
+    /// <summary>
+    /// Gets the generic payload for engine-specific extensions (e.g. JSON conditions, metadata).
+    /// </summary>
+    public string? Payload { get; init; }
 }

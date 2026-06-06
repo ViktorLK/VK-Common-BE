@@ -24,7 +24,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
         _logger = VKGuard.NotNull(logger);
     }
 
-    public int TaskOrder => 500;
+    public int TaskOrder => VKWeavingTaskOrder.Weaving;
     public bool IsParallel => false;
     public int? ParallelGroup => null;
 
@@ -85,7 +85,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
                 // Unconditional system prompts are concatenated together to maintain prompt purity
                 if (systemBuilder.Length > 0)
                 {
-                    systemBuilder.Append(frag.Separator ?? "\n\n");
+                    systemBuilder.Append(frag.Separator ?? PsycheConstants.Separators.DefaultSegment);
                 }
                 systemBuilder.Append(frag.Content);
             }

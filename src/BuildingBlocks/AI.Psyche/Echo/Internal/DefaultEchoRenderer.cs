@@ -7,6 +7,6 @@ internal sealed class DefaultEchoRenderer : IVKEchoRenderer
     public string Render(VKEchoTrace trace)
     {
         VKGuard.NotNull(trace);
-        return $"{trace.Role}{Weaving.Internal.PromptConstants.Separators.DefaultRoleHeader}{trace.Content}";
+        return $"{trace.Role}{Weaving.Internal.PsycheConstants.Separators.DefaultRoleHeader}{trace.Content}";
     }
 }

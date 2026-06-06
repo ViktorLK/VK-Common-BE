@@ -56,4 +56,10 @@ public interface IVKChatOverrides :
     /// Gets the tools available for the chat engine.
     /// </summary>
     System.Collections.Generic.IReadOnlyList<IVKAtomicTool>? Tools { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether Semantic Kernel's automatic function calling
+    /// (<see cref="Microsoft.SemanticKernel.FunctionChoiceBehavior.Auto()"/>) is enabled.
+    /// </summary>
+    bool? EnableAutoToolCalling { get; init; }
 }

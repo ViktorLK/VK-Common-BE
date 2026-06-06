@@ -18,7 +18,7 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
     private readonly ILogger<DefaultPromptTruncateTask> _logger;
     private readonly TimeProvider? _timeProvider;
 
-    public int TaskOrder => 400;
+    public int TaskOrder => VKWeavingTaskOrder.Truncate;
     public bool IsParallel => false;
     public int? ParallelGroup => null;
 

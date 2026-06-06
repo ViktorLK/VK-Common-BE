@@ -48,7 +48,8 @@ internal sealed class DefaultPsychePipeline : IVKWeavingPipeline
             CorrelationId = request.CorrelationId ?? _guidGenerator.Create().ToString(),
             Echo = request.Echo,
             Knowledge = request.Knowledge,
-            Persona = request.Persona
+            Persona = request.Persona,
+            Directive = request.Directive,
         };
 
         PipelineDiagnostics.PipelineStarted(

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Psyche.Pipeline;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Knowledge.Internal;

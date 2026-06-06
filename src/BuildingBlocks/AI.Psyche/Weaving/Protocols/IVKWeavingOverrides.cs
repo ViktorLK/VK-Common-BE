@@ -29,4 +29,6 @@ public interface IVKWeavingOverrides
     bool? EnableSemanticPruning { get; init; }
     List<VKPromptTierType>? DisabledTiers { get; init; }
     List<VKPromptTierType>? TierRenderOrderOverrides { get; init; }
+
+    IDictionary<string, object?>? Variables { get; init; }
 }

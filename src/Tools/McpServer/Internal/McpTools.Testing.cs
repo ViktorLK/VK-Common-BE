@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -13,7 +13,7 @@ internal sealed partial class McpTools
 {
     [McpServerTool]
     [Description("Parses an OpenAPI JSON file and returns a prompt instructing the AI to generate integration tests.")]
-    public static async Task<string> VKDraftApiIntegrationTests(
+    public static async Task<string> VKBeDraftApiIntegrationTests(
         [Description("Path to the swagger.json file.")] string swaggerJsonPath,
         CancellationToken ct)
     {
@@ -75,3 +75,4 @@ Ensure you test:
         }
     }
 }
+

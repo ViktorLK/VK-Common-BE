@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -12,7 +12,7 @@ internal sealed partial class McpTools
 {
     [McpServerTool]
     [Description("Adds a new atomic task item to the project backlogs in docs/Backlogs/{Module}/.")]
-    public static async Task<string> VKAddBacklogItem(
+    public static async Task<string> VKBeAddBacklogItem(
         [Description("The module name (e.g., 'Core', 'AI', 'Auth').")] string module,
         [Description("A short, descriptive title for the task.")] string title,
         [Description("Detailed description of what needs to be done.")] string description,
@@ -147,7 +147,7 @@ internal sealed partial class McpTools
 
     [McpServerTool]
     [Description("Scans the codebase and backlogs to generate a project health scorecard and compliance dashboard.")]
-    public static async Task<string> VKGenerateDashboard(CancellationToken ct)
+    public static async Task<string> VKBeGenerateDashboard(CancellationToken ct)
     {
         try
         {
@@ -235,4 +235,5 @@ internal sealed partial class McpTools
         }
     }
 }
+
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -13,7 +13,7 @@ internal sealed partial class McpTools
 {
     [McpServerTool]
     [Description("Generates an ADR draft based on the official rulebook. Returns a prompt instructing the AI to write and save the final .md files.")]
-    public static async Task<string> VKDraftArchitectureDecisionRecord(
+    public static async Task<string> VKBeDraftArchitectureDecisionRecord(
         [Description("Path to the source code directory being documented (e.g. 'src/BuildingBlocks/Authentication'). Determines the output subdirectory.")] string sourceDir,
         [Description("ADR title in English.")] string title,
         [Description("Background context: why is this decision needed?")] string context,
@@ -113,3 +113,4 @@ Do NOT skip either step. Do NOT just print the content in chat.
         }
     }
 }
+

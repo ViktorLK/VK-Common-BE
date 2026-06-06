@@ -1,6 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Agents.Internal;

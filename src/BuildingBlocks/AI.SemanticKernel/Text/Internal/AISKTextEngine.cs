@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,8 +11,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.TextGeneration;
-using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Text.Internal;

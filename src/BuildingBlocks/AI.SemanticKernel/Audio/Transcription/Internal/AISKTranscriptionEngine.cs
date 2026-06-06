@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AudioToText;
-using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Audio.Transcription.Internal;

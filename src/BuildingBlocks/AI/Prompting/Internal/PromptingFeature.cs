@@ -1,9 +1,8 @@
+using VK.Blocks.AI.Prompting.Diagnostics.Internal;
+using VK.Blocks.AI.Prompting.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Prompting.Providers.Internal;
-using VK.Blocks.AI.Prompting.Registry.Internal;
-using VK.Blocks.AI.Prompting.Templating.Internal;
 
 namespace VK.Blocks.AI.Prompting.Internal;
 

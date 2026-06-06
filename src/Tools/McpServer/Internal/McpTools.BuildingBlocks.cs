@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -15,7 +15,7 @@ internal sealed partial class McpTools
 {
     [McpServerTool]
     [Description("Lists all available BuildingBlock modules and their dependencies. Returns a formatted prompt for the AI.")]
-    public static async Task<string> VKListBuildingBlocks(CancellationToken ct)
+    public static async Task<string> VKBeListBuildingBlocks(CancellationToken ct)
     {
         try
         {
@@ -62,7 +62,7 @@ internal sealed partial class McpTools
 
     [McpServerTool]
     [Description("Generates standard VK.Blocks boilerplate for a new building block library. Returns a prompt with file content and instructions.")]
-    public static async Task<string> VKDraftBuildingBlockBoilerplate(
+    public static async Task<string> VKBeDraftBuildingBlockBoilerplate(
         [Description("The name of the building block (e.g. 'Logging', 'Caching').")] string blockName,
         [Description("The category of the block (e.g. 'Web', 'Infrastructure'). Used for configuration path.")] string? category = null,
         [Description("List of block identifiers this block depends on. Defaults to ['Core'].")] string[]? dependencies = null,
@@ -245,7 +245,7 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
 
     [McpServerTool]
     [Description("Retrieves localized prompts by scanning recursively from the target path up to the src/ directory. Supports cascading inheritance of instructions and automated flattening of rules.")]
-    public static async Task<string> VKGetModuleContext(
+    public static async Task<string> VKBeGetModuleContext(
         [Description("The target path to start scanning from (e.g. 'src/BuildingBlocks/Core').")] string path,
         CancellationToken ct)
     {
@@ -507,4 +507,5 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
         return dependencies;
     }
 }
+
 

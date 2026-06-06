@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Vectorics.ReRanking.Internal;

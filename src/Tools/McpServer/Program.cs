@@ -40,7 +40,7 @@ internal static class Program
         {
             options.ServerInfo = new Implementation
             {
-                Name = "vk-blocks-manager",
+                Name = "vk-blocks-be-manager",
                 Version = "1.0.0"
             };
         })
