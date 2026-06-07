@@ -1,0 +1,139 @@
+using System;
+using Microsoft.Extensions.Logging;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
+
+/// <summary>
+/// Diagnostics for the AISK building block.
+/// </summary>
+[VKBlockDiagnostics<VKAISKBlock>]
+internal static partial class AISKLog
+{
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "AISK Block initialized for {ModelId}")]
+    internal static partial void LogAISKBlockInitialized(this ILogger logger, string modelId);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Error occurred during AISK execution: {Error}")]
+    internal static partial void LogExecutionError(this ILogger logger, Exception exception, string error);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Failed to route intent for input: {Input}")]
+    internal static partial void LogOrchestrationError(this ILogger logger, Exception exception, string input);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Invoking function: {PluginName}.{FunctionName}")]
+    internal static partial void LogFunctionInvoking(this ILogger logger, string pluginName, string functionName);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Invoked function: {PluginName}.{FunctionName}")]
+    internal static partial void LogFunctionInvoked(this ILogger logger, string pluginName, string functionName);
+
+    [LoggerMessage(
+        Level = LogLevel.Trace,
+        Message = "Prompt rendered for {PluginName}.{FunctionName}:\n{Prompt}")]
+    internal static partial void LogPromptRendered(this ILogger logger, string pluginName, string functionName, string prompt);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "AI Chat Request completed. Model: {ModelId}, PromptTokens: {PromptTokens}, CompletionTokens: {CompletionTokens}, Total: {TotalTokens}")]
+    internal static partial void LogTokenUsage(this ILogger logger, string? modelId, int promptTokens, int completionTokens, int totalTokens);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "AI Audit: {Action} for user {UserId}. Model: {ModelId}")]
+    internal static partial void LogChatAudit(this ILogger logger, string action, string? userId, string? modelId);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Performing semantic search for: {Query}")]
+    internal static partial void LogRetrievalSearch(this ILogger logger, string query);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Generating embeddings for {Count} items. BatchSize: {BatchSize}")]
+    internal static partial void LogEmbeddingGeneration(this ILogger logger, int count, int batchSize);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Embedding batch completed. Model: {ModelId}, Items: {Count}")]
+    internal static partial void LogEmbeddingBatchCompleted(this ILogger logger, string? modelId, int count);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Text generated successfully. Model: {ModelId}, Duration: {Duration}s")]
+    internal static partial void LogTextGenerationCompleted(this ILogger logger, string? modelId, double duration);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "ISemanticTextMemory is not registered. Native Semantic Kernel retrieval cannot be performed.")]
+    internal static partial void LogRetrievalMemoryNotRegistered(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "ITextToAudioService is not registered. Speech generation cannot be performed.")]
+    internal static partial void LogSpeechServiceNotRegistered(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "IAudioToTextService is not registered. Transcription cannot be performed.")]
+    internal static partial void LogTranscriptionServiceNotRegistered(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "ISemanticTextMemory is not registered. Semantic Cache is disabled.")]
+    internal static partial void LogSemanticCacheNotRegistered(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Semantic Cache hit for prompt. Score: {Score}")]
+    internal static partial void LogSemanticCacheHit(this ILogger logger, double score);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Semantic Cache miss for prompt.")]
+    internal static partial void LogSemanticCacheMiss(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Error occurred while retrieving from semantic cache.")]
+    internal static partial void LogSemanticCacheRetrievalError(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Saved response to semantic cache.")]
+    internal static partial void LogSemanticCacheSaved(this ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "Error occurred while saving to semantic cache.")]
+    internal static partial void LogSemanticCacheSaveError(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Sensitive content detected in function invocation result.")]
+    internal static partial void LogSensitiveContentDetected(this ILogger logger);
+
+    // --- Phase 2: Auto Function Calling ---
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "AutoToolCall: invoking {PluginName}.{FunctionName} (round {Round})")]
+    internal static partial void LogAutoToolCallInvoking(this ILogger logger, string pluginName, string functionName, int round);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "AutoToolCall: terminated after {MaxRounds} rounds to prevent runaway loop.")]
+    internal static partial void LogAutoToolCallTerminated(this ILogger logger, int maxRounds);
+
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "AutoToolCall: {PluginName}.{FunctionName} completed (round {Round})")]
+    internal static partial void LogAutoToolCallCompleted(this ILogger logger, string pluginName, string functionName, int round);
+}

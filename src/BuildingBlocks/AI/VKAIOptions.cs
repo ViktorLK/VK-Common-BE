@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// Acts as the identity anchor for the block.
 /// Following BB.01 and BB.06.
 /// </summary>
-public sealed partial record VKAIOptions : IVKBlockOptions
+public sealed partial record VKAIOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// The configuration section name for AI options.

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -12,7 +12,7 @@ internal sealed partial class McpTools
 {
     [McpServerTool]
     [Description("Retrieves the detailed specifications of VK.Blocks architectural rules by their logical IDs (e.g., 'CS.01', 'OR.01'). Supports comma-separated IDs for batch retrieval.")]
-    public static async Task<string> VKGetArchitecturalRule(
+    public static async Task<string> VKBeGetArchitecturalRule(
         [Description("The logical ID(s) of the rules to retrieve (e.g., 'CS.01' or 'BB.01,BB.02').")] string ruleIds,
         CancellationToken ct)
     {
@@ -101,3 +101,4 @@ internal sealed partial class McpTools
         }
     }
 }
+

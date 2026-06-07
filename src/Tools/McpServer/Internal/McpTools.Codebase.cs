@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -14,7 +14,7 @@ internal sealed partial class McpTools
 {
     [McpServerTool]
     [Description("Consolidates source code from a directory into a single Markdown file. Supports path-specific exports and proper encoding.")]
-    public static async Task<string> VKExportCodebaseAsMarkdown(
+    public static async Task<string> VKBeExportCodebaseAsMarkdown(
         [Description("Directory to scan (relative to project root, e.g. 'src/BuildingBlocks/Core').")] string sourcePath = "src",
         [Description("Output Markdown file name (relative to project root).")] string outputPath = "CodebaseSnapshot.md",
         [Description("Optional snapshot ID to group multiple exports.")] string? snapshotId = null,
@@ -127,3 +127,4 @@ internal sealed partial class McpTools
         return result;
     }
 }
+

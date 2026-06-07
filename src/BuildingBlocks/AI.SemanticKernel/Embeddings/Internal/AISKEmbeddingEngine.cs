@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
 using Embedding = Microsoft.Extensions.AI.Embedding<float>;
 

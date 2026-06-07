@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.VectorData;
-using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Vectorics.VectorStore;
 using VK.Blocks.Core;
 

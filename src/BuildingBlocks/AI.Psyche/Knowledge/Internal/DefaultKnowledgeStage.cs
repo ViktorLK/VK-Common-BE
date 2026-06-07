@@ -3,12 +3,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Psyche.Pipeline;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
-internal sealed class DefaultKnowledgeStage : IVKWeavingStage
+internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
 {
     private readonly VKKnowledgeOptions _options;
     private readonly IVKKnowledgeStore _store;
@@ -145,7 +144,7 @@ internal sealed class DefaultKnowledgeStage : IVKWeavingStage
             {
                 // Verify if it was triggered after the DelayTurns offset and is within the StickyTurns window (-1 means infinite)
                 int elapsed = currentTurnIndex - lastTurn;
-                return elapsed >= entry.DelayTurns && 
+                return elapsed >= entry.DelayTurns &&
                        (entry.StickyTurns == -1 || elapsed <= (entry.DelayTurns + entry.StickyTurns));
             }
             return false;

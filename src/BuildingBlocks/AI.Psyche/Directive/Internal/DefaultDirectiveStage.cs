@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Psyche.Pipeline;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Directive.Internal;
@@ -11,7 +10,7 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 /// Pipeline stage to fetch the Tenant Directive and prepend it to the weaving context's system instructions.
 /// Implements AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class DefaultDirectiveStage : IVKWeavingStage
+internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
 {
     private readonly IVKDirectiveStore _store;
     private readonly ILogger<DefaultDirectiveStage> _logger;

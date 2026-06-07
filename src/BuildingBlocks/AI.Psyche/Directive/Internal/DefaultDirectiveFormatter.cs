@@ -21,7 +21,7 @@ internal sealed class DefaultDirectiveFormatter : IVKPromptFormatter
         }
 
         var sb = new StringBuilder(512);
-        sb.AppendLine($"<{Weaving.Internal.PromptConstants.XmlTags.SystemDirectives}>");
+        sb.AppendLine($"<{Weaving.Internal.PsycheConstants.XmlTags.SystemDirectives}>");
 
         if (!string.IsNullOrWhiteSpace(directive.BehaviorRules))
             sb.AppendLine(directive.BehaviorRules);
@@ -32,7 +32,7 @@ internal sealed class DefaultDirectiveFormatter : IVKPromptFormatter
         if (!string.IsNullOrWhiteSpace(directive.Overview))
             sb.AppendLine(directive.Overview);
 
-        sb.AppendLine($"</{Weaving.Internal.PromptConstants.XmlTags.SystemDirectives}>");
+        sb.AppendLine($"</{Weaving.Internal.PsycheConstants.XmlTags.SystemDirectives}>");
 
         return VKResult.Success(sb.ToString().Trim());
     }

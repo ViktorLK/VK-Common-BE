@@ -8,6 +8,6 @@ namespace VK.Blocks.AI.Psyche;
 public static class VKDirectiveDiagnostic
 {
     // Logs (Event IDs mapped on Memory block offset range + offset)
-    public const int DirectiveInitializedEventId = VKDiagnosticOffsets.AI_Cognitive_Memory + 201;
-    public const int DirectiveResolvedEventId = VKDiagnosticOffsets.AI_Cognitive_Memory + 202;
+    public const int DirectiveInitializedEventId = VKDiagnosticOffsets.AI_Afferent_Memory + 201;
+    public const int DirectiveResolvedEventId = VKDiagnosticOffsets.AI_Afferent_Memory + 202;
 }

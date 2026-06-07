@@ -8,7 +8,7 @@ internal sealed class XmlEchoRenderer : IVKEchoRenderer
     {
         VKGuard.NotNull(trace);
         string role = trace.Role.ToString().ToLowerInvariant();
-        string tag = Weaving.Internal.PromptConstants.XmlTags.Message;
+        string tag = Weaving.Internal.PsycheConstants.XmlTags.Message;
         return $"<{tag} role=\"{role}\">{trace.Content}</{tag}>";
     }
 }

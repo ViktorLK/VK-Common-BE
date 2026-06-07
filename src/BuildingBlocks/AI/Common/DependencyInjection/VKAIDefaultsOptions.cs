@@ -31,7 +31,7 @@ public sealed partial record VKAIDefaultsOptions : IVKBlockOptions
     /// <summary>
     /// Gets or sets the global default timeout for AI operations.
     /// </summary>
-    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(30);
+    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
     /// Gets or sets the global default circuit breaker threshold (consecutive failures).

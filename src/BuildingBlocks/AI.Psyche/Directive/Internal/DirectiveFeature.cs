@@ -15,7 +15,7 @@ internal sealed partial class DirectiveFeature
     {
         _ = options;
         services.TryAddScoped<IVKDirectiveStore, InMemoryDirectiveStore>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingStage, DefaultDirectiveStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultDirectiveStage>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultDirectiveFormatter>());
     }
 

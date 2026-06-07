@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
+
+using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
 
 namespace VK.Blocks.AI.SemanticKernel.Agents.Internal;
 
@@ -13,12 +15,12 @@ internal sealed class AISKAgentFactory : IVKAgentFactory
 {
     private readonly IAISKKernelFactory _kernelFactory;
     private readonly VKAgentsOptions _options;
-    private readonly VKAISKOptions _skOptions;
+    private readonly VKAISKDefaultsOptions _skOptions;
 
     public AISKAgentFactory(
         IAISKKernelFactory kernelFactory,
         IOptions<VKAgentsOptions> options,
-        IOptions<VKAISKOptions> skOptions)
+        IOptions<VKAISKDefaultsOptions> skOptions)
     {
         _kernelFactory = VKGuard.NotNull(kernelFactory);
         _options = VKGuard.NotNull(options?.Value);
@@ -58,3 +60,5 @@ internal sealed class AISKAgentFactory : IVKAgentFactory
         return new AISKAgentGroupRunner(kernel);
     }
 }
+
+

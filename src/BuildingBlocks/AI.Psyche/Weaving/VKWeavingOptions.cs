@@ -25,4 +25,5 @@ public sealed partial record VKWeavingOptions : IVKWeavingOptions
 
     public List<VKPromptTierType> DisabledTiers { get; init; } = [];
     public List<VKPromptTierType> TierRenderOrderOverrides { get; init; } = [];
+    public IDictionary<string, object?> Variables { get; init; } = new Dictionary<string, object?>();
 }

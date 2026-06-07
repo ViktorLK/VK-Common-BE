@@ -13,14 +13,14 @@ namespace VK.Blocks.AI.Psyche.Pipeline.Internal;
 /// Default implementation of the general psyche pipeline.
 /// Implements AP.01 (sealed class default) and CS.03 (ConfigureAwait(false) on all awaits).
 /// </summary>
-internal sealed class DefaultPsychePipeline : IVKWeavingPipeline
+internal sealed class DefaultPsychePipeline : IVKPsychePipeline
 {
-    private readonly IEnumerable<IVKWeavingStage> _stages;
+    private readonly IEnumerable<IVKPsychePipelineStage> _stages;
     private readonly IVKGuidGenerator _guidGenerator;
     private readonly ILogger<DefaultPsychePipeline> _logger;
 
     public DefaultPsychePipeline(
-        IEnumerable<IVKWeavingStage> stages,
+        IEnumerable<IVKPsychePipelineStage> stages,
         IVKGuidGenerator guidGenerator,
         ILogger<DefaultPsychePipeline> logger)
     {
@@ -48,7 +48,8 @@ internal sealed class DefaultPsychePipeline : IVKWeavingPipeline
             CorrelationId = request.CorrelationId ?? _guidGenerator.Create().ToString(),
             Echo = request.Echo,
             Knowledge = request.Knowledge,
-            Persona = request.Persona
+            Persona = request.Persona,
+            Directive = request.Directive,
         };
 
         PipelineDiagnostics.PipelineStarted(

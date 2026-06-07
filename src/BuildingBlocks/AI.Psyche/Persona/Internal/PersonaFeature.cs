@@ -14,7 +14,7 @@ internal sealed partial class PersonaFeature
     {
         _ = options;
         services.TryAddSingleton<IVKPersonaStore, InMemoryPersonaStore>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingStage, DefaultPersonaStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPersonaStage>());
 
         // Register non-generic extractor, renderer and formatter
         services.TryAddSingleton<IVKPersonaRenderer, DefaultPersonaRenderer>();

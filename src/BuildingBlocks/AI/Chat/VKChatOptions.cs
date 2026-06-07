@@ -43,6 +43,12 @@ public sealed partial record VKChatOptions : IVKChatOptions
     /// <inheritdoc />
     public TimeSpan? CircuitBreakerBreakDuration { get; init; }
 
+    /// <summary>
+    /// Gets or sets the fallback chain for Chat features.
+    /// Used for cross-provider resilience when rate limits or transient failures occur.
+    /// </summary>
+    public IReadOnlyList<VKChatFallbackConfig> ChatFallbacks { get; init; } = [];
+
     // --- Audit ---
 
     /// <inheritdoc />

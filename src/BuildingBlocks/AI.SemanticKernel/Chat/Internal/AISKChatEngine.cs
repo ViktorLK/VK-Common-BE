@@ -14,9 +14,11 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Google;
 using Microsoft.SemanticKernel.Connectors.Ollama;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
-using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
+
+using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
 
 namespace VK.Blocks.AI.SemanticKernel.Chat.Internal;
 
@@ -33,11 +35,15 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         Microsoft.SemanticKernel.Kernel kernel,
         IOptions<VKAIDefaultsOptions> globalOptions,
         IOptions<VKChatOptions> chatOptions,
-        ILogger<AISKChatEngine> logger,
+        IOptions<VKAISKDefaultsOptions> aiskOptions,
+        ILoggerFactory loggerFactory,
         TimeProvider? timeProvider = null)
-        : base(kernel, globalOptions, chatOptions, logger, timeProvider)
+        : base(kernel, globalOptions, chatOptions, loggerFactory.CreateLogger<AISKChatEngine>(), timeProvider)
     {
-        _chatCompletion = GetService<IChatCompletionService>();
+        _chatCompletion = new CompositeChatCompletionService(
+            kernel,
+            chatOptions,
+            loggerFactory.CreateLogger<CompositeChatCompletionService>());
     }
 
     /// <inheritdoc />
@@ -70,6 +76,19 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         return ExecuteAsync(async (ct) =>
         {
             var stopwatch = Stopwatch.StartNew();
+
+            // 0. Inject Dynamic Tools from Args (Rule 1: Abstracted Plugins)
+            var overrides = args as IVKChatOverrides;
+            var tools = overrides?.Tools;
+            if (tools != null && tools.Count > 0)
+            {
+                if (!Kernel.Plugins.Contains("RequestTools"))
+                {
+                    var functions = tools.Select(VK.Blocks.AI.SemanticKernel.Agents.Internal.AISKAgentToolAdapter.ToKernelFunction).ToArray();
+                    var plugin = Microsoft.SemanticKernel.KernelPluginFactory.CreateFromFunctions("RequestTools", functions);
+                    Kernel.Plugins.Add(plugin);
+                }
+            }
 
             // 1. Convert VKChatMessages to SK ChatHistory
             ChatHistory chatHistory = AISKChatHistoryBuilder.Build(messages);
@@ -224,6 +243,19 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
 
         async IAsyncEnumerable<VKChatStreamingResponse> StreamInternal([EnumeratorCancellation] CancellationToken ct)
         {
+            // 0. Inject Dynamic Tools from Args
+            var overrides = args as IVKChatOverrides;
+            var tools = overrides?.Tools;
+            if (tools != null && tools.Count > 0)
+            {
+                if (!Kernel.Plugins.Contains("RequestTools"))
+                {
+                    var functions = tools.Select(VK.Blocks.AI.SemanticKernel.Agents.Internal.AISKAgentToolAdapter.ToKernelFunction).ToArray();
+                    var plugin = Microsoft.SemanticKernel.KernelPluginFactory.CreateFromFunctions("RequestTools", functions);
+                    Kernel.Plugins.Add(plugin);
+                }
+            }
+
             // 1. Setup
             ChatHistory history = AISKChatHistoryBuilder.Build(messages);
 
@@ -442,6 +474,7 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         var chatArgs = args as VKChatArgs;
 
         var provider = (args as IVKAIProviderOverrides)?.Provider?.ToString() ?? FeatureOptions.Provider?.ToString() ?? GlobalOptions.Provider.ToString();
+        var enableAutoTool = chatArgs?.EnableAutoToolCalling ?? FeatureOptions.EnableAutoToolCalling;
         PromptExecutionSettings settings;
 
         if (string.Equals(provider, "Ollama", StringComparison.OrdinalIgnoreCase))
@@ -470,7 +503,7 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
                 openAi.User = args?.UserId;
 
                 // [Phase 1: Auto Function Calling] FunctionChoiceBehavior.Auto()
-                if (FeatureOptions.EnableAutoToolCalling && Kernel.Plugins.Count > 0) // [CS.01]
+                if (enableAutoTool && Kernel.Plugins.Count > 0) // [CS.01]
                 {
                     openAi.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
                 }
@@ -482,14 +515,17 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
                 google.StopSequences = FeatureOptions.StopSequences.ToList();
 
                 // [Phase 1: Auto Function Calling] FunctionChoiceBehavior.Auto()
-                if (FeatureOptions.EnableAutoToolCalling && Kernel.Plugins.Count > 0) // [CS.01]
+                if (enableAutoTool && Kernel.Plugins.Count > 0) // [CS.01]
                 {
                     google.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
                 }
                 break;
             case OllamaPromptExecutionSettings ollama:
                 ollama.Temperature = genArgs?.Temperature ?? FeatureOptions.Temperature;
-                // Note: Ollama does not reliably support FunctionChoiceBehavior in all versions.
+                if (enableAutoTool && Kernel.Plugins.Count > 0)
+                {
+                    ollama.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
+                }
                 break;
         }
 
@@ -512,3 +548,4 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         return settings;
     }
 }
+

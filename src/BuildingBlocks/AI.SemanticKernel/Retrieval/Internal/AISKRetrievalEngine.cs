@@ -7,9 +7,10 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.VectorData;
-using VK.Blocks.AI.SemanticKernel.Diagnostics.Internal;
-using VK.Blocks.AI.SemanticKernel.Kernel.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
+using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.AI.SemanticKernel.Vectorics.VectorStore;
+using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Retrieval.Internal;

@@ -34,12 +34,12 @@ internal sealed class DefaultPersonaFormatter : IVKPromptFormatter
             var sb = new StringBuilder(512);
 
             // 1. Macro Skeleton & Sovereignty (L1/L4) -> XML Tag
-            sb.AppendLine("<persona>");
+            sb.AppendLine($"<{VK.Blocks.AI.Psyche.Weaving.Internal.PsycheConstants.XmlTags.Persona}>");
 
             // 2. Delegate the actual markdown content rendering to IVKPersonaRenderer
             sb.Append(_renderer.Render(persona));
 
-            sb.AppendLine("</persona>");
+            sb.AppendLine($"</{VK.Blocks.AI.Psyche.Weaving.Internal.PsycheConstants.XmlTags.Persona}>");
 
             return VKResult.Success(sb.ToString());
         }

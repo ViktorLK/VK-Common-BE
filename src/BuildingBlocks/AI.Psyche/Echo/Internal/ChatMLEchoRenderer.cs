@@ -8,6 +8,6 @@ internal sealed class ChatMLEchoRenderer : IVKEchoRenderer
     {
         VKGuard.NotNull(trace);
         string role = trace.Role.ToString().ToLowerInvariant();
-        return $"{Weaving.Internal.PromptConstants.ChatML.ImStart}{role}\n{trace.Content}{Weaving.Internal.PromptConstants.ChatML.ImEnd}";
+        return $"{Weaving.Internal.PsycheConstants.ChatML.ImStart}{role}\n{trace.Content}{Weaving.Internal.PsycheConstants.ChatML.ImEnd}";
     }
 }

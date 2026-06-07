@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using VK.Blocks.Core;
+using VK.Blocks.AI.VectorStore.VectorStore.Models;
+using VK.Blocks.AI.VectorStore.VectorStore.Protocols;
+using VK.Blocks.AI.VectorStore.Common.DependencyInjection;
 
 namespace VK.Blocks.AI.VectorStore.VectorStore.Internal;
 
@@ -13,15 +16,15 @@ namespace VK.Blocks.AI.VectorStore.VectorStore.Internal;
 internal sealed class AIVectorStoreInMemoryDatabase : IVKAIVectorStore
 {
     private readonly IVKJsonSerializer _jsonSerializer;
-    private readonly VKAIVectorStoreOptions _options;
+    private readonly VKAIVectorStoreDefaultsOptions _options;
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, (VKEmbeddingsVector Vector, string DataJson)>> _collections = new();
 
     public AIVectorStoreInMemoryDatabase(
         IVKJsonSerializer jsonSerializer,
-        VKAIVectorStoreOptions options)
+        Microsoft.Extensions.Options.IOptions<VK.Blocks.AI.VectorStore.Common.DependencyInjection.VKAIVectorStoreDefaultsOptions> options)
     {
         _jsonSerializer = VKGuard.NotNull(jsonSerializer);
-        _options = VKGuard.NotNull(options);
+        _options = options?.Value ?? new VK.Blocks.AI.VectorStore.Common.DependencyInjection.VKAIVectorStoreDefaultsOptions();
     }
 
     public IVKAIVectorCollection<T> Collection<T>(string name) where T : class

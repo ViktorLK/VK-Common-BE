@@ -12,7 +12,7 @@ internal sealed partial class PipelineFeature
     static partial void RegisterCustom(IServiceCollection services, VKPipelineOptions options)
     {
         _ = options;
-        services.TryAddScoped<IVKWeavingPipeline, DefaultPsychePipeline>();
+        services.TryAddScoped<IVKPsychePipeline, DefaultPsychePipeline>();
     }
 
     // [SG Hook]

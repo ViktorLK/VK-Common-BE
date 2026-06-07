@@ -7,14 +7,14 @@ namespace VK.Blocks.AI.Psyche;
 public static class VKKnowledgeDiagnosticTokens
 {
     // Logs (Event IDs)
-    public const int KnowledgeInitializedEventId = VKDiagnosticOffsets.AI_Cognitive_Knowledge + 1;
-    public const int KnowledgeRetrievedEventId = VKDiagnosticOffsets.AI_Cognitive_Knowledge + 2;
+    public const int KnowledgeInitializedEventId = VKDiagnosticOffsets.AI_Afferent_Knowledge + 1;
+    public const int KnowledgeRetrievedEventId = VKDiagnosticOffsets.AI_Afferent_Knowledge + 2;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics
     {
-        public const string RetrievalDuration = "vk.ai.cognitive.knowledge.retrieval_duration";
-        public const string EntriesExtracted = "vk.ai.cognitive.knowledge.entries_extracted";
+        public const string RetrievalDuration = "vk.ai.Afferent.knowledge.retrieval_duration";
+        public const string EntriesExtracted = "vk.ai.Afferent.knowledge.entries_extracted";
     }
 
     // Tags (Telemetry Dimensions)

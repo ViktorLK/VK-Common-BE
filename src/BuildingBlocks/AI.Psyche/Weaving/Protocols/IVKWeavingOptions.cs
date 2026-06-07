@@ -31,4 +31,6 @@ public interface IVKWeavingOptions : IVKBlockOptions
 
     List<VKPromptTierType> DisabledTiers { get; init; }
     List<VKPromptTierType> TierRenderOrderOverrides { get; init; }
+
+    IDictionary<string, object?> Variables { get; }
 }

@@ -15,7 +15,7 @@ internal sealed class DefaultPromptFormatterTask : IVKWeavingTask
         _formatters = VKGuard.NotNull(formatters);
     }
 
-    public int TaskOrder => 300;
+    public int TaskOrder => VKWeavingTaskOrder.Formatter;
     public bool IsParallel => false;
     public int? ParallelGroup => null;
 

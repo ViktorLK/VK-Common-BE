@@ -31,7 +31,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **DL.01**   |     | Tests: Happy / NotFound / PermissionFail / InfraFailure. `{Method}_{Scenario}_{Expected}`.        |
 | **DL.02**   | 🟡  | No placeholder code. No `// TODO`. Must compile immediately.                                      |
 | **DL.03**   | 🟡  | Interface/pattern change detected → prompt ADR before continuing.                                 |
-| **DL.04**   | 🟡  | `// TODO` or roadmap detected → prompt backlog sync via `VKAddBacklogItem`.                       |
+| **DL.04**   | 🟡  | `// TODO` or roadmap detected → prompt backlog sync via `vk_be_add_backlog_item`.                       |
 | **DL.05**   | 🟡  | Source Generator hooks (partial methods/classes) MUST be tagged with [SG Hook/Marker/etc]. |
 | **AP.01**   | 🔴  | `sealed` default. `required` keyword. `VKGuard` at boundaries. No `default!`.                     |
 | **AP.02**   |     | `TryAdd` only. Idempotent registration. Marker-based dependency validation.                       |
@@ -49,7 +49,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **PS.01**   |     | Implementation plans MUST include Architecture Decision Audit section.                            |
 | **PS.02**   |     | Walkthrough MUST link ADR if one was planned. Verify decision traceability.                       |
 | **PS.03**   |     | Complex/experimental features → RFC-first in `docs/06-RFCs/` before backlog.                      |
-| **PS.04**   | 🔴  | First mention of module → call `vk_get_module_context` + relevant rules BEFORE responding.        |
+| **PS.04**   | 🔴  | First mention of module → call `vk_be_get_module_context` + relevant rules BEFORE responding.        |
 | **PS.05**   | 🔴  | No structural mod/naming without L3 source evidence (Full spec fetch via tool).                   |
 
 ---
@@ -70,7 +70,9 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 
 ## L3: Dynamic Loading Protocol (Hard-Lock Verification)
 
-> **[MANDATORY]**: L1/L2 summaries are for awareness only. You are **STRICTLY PROHIBITED** from using memory or one-liners to decide file names, visibility, or structure. You MUST call `vk_get_architectural_rule` for each matching scenario below and quote the specific specification detail in your reasoning.
+> **[MCP Routing Rule]**: Backend (C#) -> MUST use `vk-blocks-be-manager` with `vk_be_` prefix. Frontend -> MUST use `vk-blocks-fe-manager` with `vk_fe_` prefix.
+
+> **[MANDATORY]**: L1/L2 summaries are for awareness only. You are **STRICTLY PROHIBITED** from using memory or one-liners to decide file names, visibility, or structure. You MUST call `vk_be_get_architectural_rule` for each matching scenario below and quote the specific specification detail in your reasoning.
 
 | Scenario                        | Rules to Fetch                |
 | :------------------------------ | :---------------------------- |
@@ -90,7 +92,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **Public API interface change** | AP.03 (Versioning)            |
 | **Implementation plan**         | PS.01, PS.03                  |
 | **Walkthrough**                 | PS.02                         |
-| **Module-specific work**        | `vk_get_module_context(path)` |
+| **Module-specific work**        | `vk_be_get_module_context(path)` |
 | **`/vk-audit-fast`**            | BB.01, AP.03, BB.02, BB.03    |
 | **`/vk-audit-architecture`**    | BB.01, AP.03, BB.02, BB.03, BB.04, BB.05, AP.02, CS.02 |
 | **`/vk-audit-semantic`**        | CS.01, CS.03, AP.01, CS.06, OR.01 |
@@ -100,11 +102,10 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 ## Output Protocol
 
 - **Handshake**: `Active: [L1+L2:{Module}] | Context: {Path} | Sync: [L3:RuleID,...]` — MUST be the very first line of the final response (no intermediate tool outputs).
-- **Sync**: MUST list ALL Rule IDs full-loaded via `vk_get_architectural_rule` (current turn + history).
+- **Sync**: MUST list ALL Rule IDs full-loaded via `vk_be_get_architectural_rule` (current turn + history).
 - **Hard-Lock**: Missing L3 Sync for a scenario → code/tool output PROHIBITED.
-- **Context Switch**: Module change → re-run `vk_get_module_context` + update handshake.
+- **Context Switch**: Module change → re-run `vk_be_get_module_context` + update handshake.
 - **Code**: C# 12+. English only.
 - **Tags**: `// [RuleID]` at feature boundaries (sealed, VKGuard, ConfigureAwait, Result, DI). Pure logic exempt.
-- **PS.04 ≠ L3**: `vk_get_module_context` does NOT satisfy L3 triggers. Both MUST execute independently.
+- **PS.04 ≠ L3**: `vk_be_get_module_context` does NOT satisfy L3 triggers. Both MUST execute independently.
 - **Audit**: ✅ compliant → `Audit: ✅` / 🚩 violation → `Audit: 🚩 [RuleID] {rationale}`. Self-correct immediately.
-

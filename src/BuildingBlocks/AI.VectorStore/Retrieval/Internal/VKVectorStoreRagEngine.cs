@@ -3,8 +3,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
+using Microsoft.Extensions.Options;
+using VK.Blocks.AI.VectorStore.Retrieval.Models;
+using VK.Blocks.AI.VectorStore.Retrieval.Protocols;
+using VK.Blocks.AI.VectorStore.VectorStore.Protocols;
+using VK.Blocks.AI.VectorStore.Common.DependencyInjection;
 
-namespace VK.Blocks.AI.VectorStore;
+namespace VK.Blocks.AI.VectorStore.Retrieval.Internal;
 
 /// <summary>
 /// A DTO used for bridging Retrieval chunks to the generic Vector Store.
@@ -17,11 +22,22 @@ internal sealed record VKVectorDocument(string Content, VKAIVectorMetadata Metad
 /// </summary>
 internal sealed class VKVectorStoreRagEngine(
     IVKAIVectorStore vectorStore,
+    IOptions<VKAIVectorStoreDefaultsOptions> defaultsOptions,
     IVKUserContext userContext) : IVKRetrievalStore
 {
     private readonly IVKAIVectorStore _vectorStore = VKGuard.NotNull(vectorStore);
     private readonly IVKUserContext _userContext = VKGuard.NotNull(userContext);
-    private const string CollectionName = "ai.retrieval";
+    private readonly VKAIVectorStoreDefaultsOptions _defaults = defaultsOptions?.Value ?? new VKAIVectorStoreDefaultsOptions();
+    private readonly string _collectionName = "default";
+
+    public VKVectorStoreRagEngine(
+        IVKAIVectorStore vectorStore,
+        IVKUserContext userContext,
+        IOptions<VKAIVectorStoreDefaultsOptions> defaultsOptions) 
+        : this(vectorStore, defaultsOptions, userContext)
+    {
+        _collectionName = _defaults.DefaultCollection;
+    }
 
     public async Task<VKResult> UpsertAsync(
         IEnumerable<VKDocumentChunk> chunks,
@@ -39,7 +55,7 @@ internal sealed class VKVectorStoreRagEngine(
             return VKResult.Failure(VKError.Failure("AI.Retrieval.Mismatch", "Chunk and vector counts do not match."));
         }
 
-        var collection = _vectorStore.Collection<VKVectorDocument>(CollectionName);
+        var collection = _vectorStore.Collection<VKVectorDocument>(_defaults.DefaultCollection);
 
         foreach (var (chunk, vector) in chunkList.Zip(vectorList))
         {
@@ -59,8 +75,8 @@ internal sealed class VKVectorStoreRagEngine(
     {
         VKGuard.NotNull(embedding);
 
-        var limit = args?.TopK ?? 5;
-        var minScore = args?.MinScore ?? 0.7f;
+        var limit = args?.TopK ?? _defaults.DefaultLimit;
+        var minScore = args?.MinScore ?? _defaults.DefaultMinScore;
         var tenantId = _userContext.TenantId ?? "Default";
 
         var searchArgs = new VKAIVectorSearchArgs
@@ -70,7 +86,7 @@ internal sealed class VKVectorStoreRagEngine(
             MinScore = minScore
         };
 
-        var collection = _vectorStore.Collection<VKVectorDocument>(CollectionName);
+        var collection = _vectorStore.Collection<VKVectorDocument>(_defaults.DefaultCollection);
         var result = await collection.SearchAsync(embedding, searchArgs, cancellationToken).ConfigureAwait(false);
 
         if (result.IsFailure)

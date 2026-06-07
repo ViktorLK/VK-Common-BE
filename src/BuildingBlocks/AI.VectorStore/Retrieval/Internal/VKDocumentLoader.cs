@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
+using VK.Blocks.AI.VectorStore.Retrieval.Models;
+using VK.Blocks.AI.VectorStore.Retrieval.Protocols;
 
 namespace VK.Blocks.AI.VectorStore.Retrieval.Internal;
 
