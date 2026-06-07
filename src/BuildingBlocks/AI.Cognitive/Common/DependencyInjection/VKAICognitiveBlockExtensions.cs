@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>
 /// Service collection extensions for the AI Cognitive building block.
-/// Public API entry point following BB.03.1 (Wrapper Pattern).
+/// Public API entry point following BB.03.
 /// </summary>
 public static class VKAICognitiveBlockExtensions
 {
@@ -29,6 +29,7 @@ public static class VKAICognitiveBlockExtensions
     /// Adds the AI Cognitive building block services using a functional transformation.
     /// </summary>
     /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration.</param>
     /// <param name="transform">The functional transformation to apply to the default options.</param>
     /// <returns>The AI Cognitive block builder.</returns>
     public static IVKAICognitiveBuilder AddVKAICognitiveBlock(

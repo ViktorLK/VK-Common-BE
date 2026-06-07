@@ -15,7 +15,7 @@ internal sealed partial class EchoFeature
         _ = options;
         services.TryAddSingleton<IVKEchoStore, InMemoryEchoStore>();
         services.TryAddSingleton<IVKEchoRenderer, DefaultEchoRenderer>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingStage, DefaultEchoStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultEchoStage>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultEchoFormatter>());
     }
 

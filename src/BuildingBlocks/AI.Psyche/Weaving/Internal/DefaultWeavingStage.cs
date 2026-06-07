@@ -4,7 +4,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-internal sealed class DefaultWeavingStage : IVKWeavingStage
+internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
 {
     private readonly IVKWeavingTaskEngine _weavingEngine;
 

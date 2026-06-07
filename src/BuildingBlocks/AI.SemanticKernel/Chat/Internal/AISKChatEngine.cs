@@ -18,6 +18,8 @@ using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
 
+using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
+
 namespace VK.Blocks.AI.SemanticKernel.Chat.Internal;
 
 /// <summary>
@@ -33,11 +35,15 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         Microsoft.SemanticKernel.Kernel kernel,
         IOptions<VKAIDefaultsOptions> globalOptions,
         IOptions<VKChatOptions> chatOptions,
-        ILogger<AISKChatEngine> logger,
+        IOptions<VKAISKDefaultsOptions> aiskOptions,
+        ILoggerFactory loggerFactory,
         TimeProvider? timeProvider = null)
-        : base(kernel, globalOptions, chatOptions, logger, timeProvider)
+        : base(kernel, globalOptions, chatOptions, loggerFactory.CreateLogger<AISKChatEngine>(), timeProvider)
     {
-        _chatCompletion = GetService<IChatCompletionService>();
+        _chatCompletion = new CompositeChatCompletionService(
+            kernel,
+            chatOptions,
+            loggerFactory.CreateLogger<CompositeChatCompletionService>());
     }
 
     /// <inheritdoc />
@@ -542,3 +548,4 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         return settings;
     }
 }
+

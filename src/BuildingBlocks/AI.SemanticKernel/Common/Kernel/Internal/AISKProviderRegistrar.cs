@@ -1,6 +1,8 @@
 using System.Net.Http;
 using Microsoft.SemanticKernel;
 
+using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
+
 namespace VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 
 /// <summary>
@@ -11,31 +13,32 @@ internal static partial class AISKProviderRegistrar
 {
     internal static void RegisterChatService(
         this IKernelBuilder builder,
-        VKAISKOptions aiskOptions,
+        VKAISKDefaultsOptions aiskOptions,
         IVKAIProviderOptions connectionSettings,
-        HttpClient? httpClient)
+        HttpClient? httpClient,
+        string? serviceId = null)
     {
         switch (connectionSettings.Provider)
         {
             case VKAIProviderType.AzureOpenAI:
-                builder.RegisterAzureOpenAIChat(aiskOptions, connectionSettings, httpClient);
+                builder.RegisterAzureOpenAIChat(aiskOptions, connectionSettings, httpClient, serviceId);
                 break;
             case VKAIProviderType.Google:
-                builder.RegisterGoogleAIChat(aiskOptions, connectionSettings, httpClient);
+                builder.RegisterGoogleAIChat(aiskOptions, connectionSettings, httpClient, serviceId);
                 break;
             case VKAIProviderType.Ollama:
-                builder.RegisterOllamaChat(aiskOptions, connectionSettings);
+                builder.RegisterOllamaChat(aiskOptions, connectionSettings, serviceId);
                 break;
             case VKAIProviderType.OpenAI:
             default:
-                builder.RegisterOpenAIChat(aiskOptions, connectionSettings, httpClient);
+                builder.RegisterOpenAIChat(aiskOptions, connectionSettings, httpClient, serviceId);
                 break;
         }
     }
 
     internal static void RegisterEmbeddingService(
         this IKernelBuilder builder,
-        VKAISKOptions aiskOptions,
+        VKAISKDefaultsOptions aiskOptions,
         IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
@@ -57,3 +60,5 @@ internal static partial class AISKProviderRegistrar
         }
     }
 }
+
+

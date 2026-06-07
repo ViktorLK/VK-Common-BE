@@ -1,3 +1,5 @@
+using VK.Blocks.AI.Cognitive;
+
 namespace VK.Blocks.AI.Cognitive;
 
 /// <summary>

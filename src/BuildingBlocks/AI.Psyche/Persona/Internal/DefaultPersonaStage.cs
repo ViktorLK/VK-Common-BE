@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 /// <summary>
 /// Pipeline stage for injecting persona configuration into the context.
 /// </summary>
-internal sealed class DefaultPersonaStage : IVKWeavingStage
+internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
 {
     private readonly IVKPersonaStore _store;
     private readonly VKWeavingOptions _weavingOptions;

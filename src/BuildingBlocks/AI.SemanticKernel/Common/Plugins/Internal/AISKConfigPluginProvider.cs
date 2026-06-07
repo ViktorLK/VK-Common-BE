@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,14 +7,16 @@ using Microsoft.SemanticKernel;
 
 using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 
+using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
+
 namespace VK.Blocks.AI.SemanticKernel.Common.Plugins.Internal;
 
 /// <summary>
-/// A plugin provider that loads plugins based on <see cref="VKAISKOptions"/>.
+/// A plugin provider that loads plugins based on <see cref="VKAISKDefaultsOptions"/>.
 /// </summary>
-internal sealed class AISKConfigPluginProvider(IOptions<VKAISKOptions> options) : IAISKPluginProvider
+internal sealed class AISKConfigPluginProvider(IOptions<VKAISKDefaultsOptions> options) : IAISKPluginProvider
 {
-    private readonly VKAISKOptions _options = options.Value;
+    private readonly VKAISKDefaultsOptions _options = options.Value;
 
     public void Register(IKernelBuilder builder, IServiceProvider serviceProvider)
     {
@@ -73,3 +75,5 @@ internal sealed class AISKConfigPluginProvider(IOptions<VKAISKOptions> options) 
             .Where(a => a != null)!;
     }
 }
+
+

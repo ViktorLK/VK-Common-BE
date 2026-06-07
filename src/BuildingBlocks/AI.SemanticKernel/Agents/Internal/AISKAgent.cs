@@ -17,12 +17,8 @@ namespace VK.Blocks.AI.SemanticKernel.Agents.Internal;
 internal sealed class AISKAgent : AISKProviderBase, IVKAgent
 {
     private readonly VKAgentsOptions _options;
-    private readonly ChatCompletionAgent _innerAgent;
 
-    internal ChatCompletionAgent InnerAgent => _innerAgent;
-
-    private readonly IReadOnlyList<IVKAtomicTool> _tools;
-    private readonly IReadOnlyDictionary<string, object> _metadata;
+    internal ChatCompletionAgent InnerAgent { get; }
 
     public AISKAgent(
         Microsoft.SemanticKernel.Kernel kernel,
@@ -39,19 +35,19 @@ internal sealed class AISKAgent : AISKProviderBase, IVKAgent
         Description = VKGuard.NotNull(description);
         Instructions = instructions ?? string.Empty;
         _options = VKGuard.NotNull(options);
-        _tools = tools?.ToArray() ?? [];
-        _metadata = metadata ?? new Dictionary<string, object>();
+        Tools = tools?.ToArray() ?? [];
+        Metadata = metadata ?? new Dictionary<string, object>();
 
         var agentKernel = kernel.Clone();
 
-        if (_tools.Count > 0)
+        if (Tools.Count > 0)
         {
-            var functions = _tools.Select(AISKAgentToolAdapter.ToKernelFunction).ToArray();
+            var functions = Tools.Select(AISKAgentToolAdapter.ToKernelFunction).ToArray();
             var plugin = KernelPluginFactory.CreateFromFunctions("AgentTools", functions);
             agentKernel.Plugins.Add(plugin);
         }
 
-        _innerAgent = new ChatCompletionAgent
+        InnerAgent = new ChatCompletionAgent
         {
             Name = Name,
             Description = Description,
@@ -70,10 +66,10 @@ internal sealed class AISKAgent : AISKProviderBase, IVKAgent
     public string Instructions { get; }
 
     /// <inheritdoc />
-    public IReadOnlyList<IVKAtomicTool> Tools => _tools;
+    public IReadOnlyList<IVKAtomicTool> Tools { get; }
 
     /// <inheritdoc />
-    public IReadOnlyDictionary<string, object> Metadata => _metadata;
+    public IReadOnlyDictionary<string, object> Metadata { get; }
 
     /// <inheritdoc />
     public async Task<VKResult<string>> ExecuteAsync(
@@ -96,7 +92,7 @@ internal sealed class AISKAgent : AISKProviderBase, IVKAgent
 
             string finalResponse = string.Empty;
 
-            await foreach (var message in chat.InvokeAsync(_innerAgent, cts.Token).ConfigureAwait(false))
+            await foreach (var message in chat.InvokeAsync(InnerAgent, cts.Token).ConfigureAwait(false))
             {
                 if (message.Role == AuthorRole.Assistant && !string.IsNullOrWhiteSpace(message.Content))
                 {
@@ -110,7 +106,7 @@ internal sealed class AISKAgent : AISKProviderBase, IVKAgent
         {
             return VKResult.Failure<string>(VKAgentErrors.ExecutionFailed);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return VKResult.Failure<string>(VKAgentErrors.ExecutionFailed); // Map actual error
         }

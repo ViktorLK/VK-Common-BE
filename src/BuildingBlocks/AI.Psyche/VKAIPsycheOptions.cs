@@ -6,7 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Root options for the AI Psyche building block.
 /// Acts as the identity anchor for the block.
 /// </summary>
-public sealed record VKAIPsycheOptions : IVKBlockOptions
+public sealed record VKAIPsycheOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// The configuration section name for AI Psyche options.

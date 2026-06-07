@@ -8,9 +8,9 @@ namespace VK.Blocks.AI.Psyche;
 public static class VKEchoDiagnostics
 {
     // Logs (Event IDs mapped on Memory block offset range)
-    public const int EchoInitializedEventId = VKDiagnosticOffsets.AI_Cognitive_Memory + 101;
-    public const int EchoRecordedEventId = VKDiagnosticOffsets.AI_Cognitive_Memory + 102;
-    public const int EchoTrimmedEventId = VKDiagnosticOffsets.AI_Cognitive_Memory + 103;
+    public const int EchoInitializedEventId = VKDiagnosticOffsets.AI_Afferent_Memory + 101;
+    public const int EchoRecordedEventId = VKDiagnosticOffsets.AI_Afferent_Memory + 102;
+    public const int EchoTrimmedEventId = VKDiagnosticOffsets.AI_Afferent_Memory + 103;
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

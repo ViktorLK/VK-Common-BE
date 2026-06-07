@@ -13,7 +13,7 @@ public abstract class AISKProviderBase
 
     protected AISKProviderBase(Microsoft.SemanticKernel.Kernel kernel, string modelName)
     {
-        Kernel = VKGuard.NotNull(kernel);
+        Kernel = VKGuard.NotNull(kernel).Clone();
         ModelName = VKGuard.NotNull(modelName);
     }
 }

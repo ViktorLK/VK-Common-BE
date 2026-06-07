@@ -7,9 +7,9 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public static class VKWeavingDiagnostics
 {
-    public const int WeavingTruncatedEventId = VKDiagnosticOffsets.AI_Cognitive_Weaving + 1;
-    public const int WeavingAssembledEventId = VKDiagnosticOffsets.AI_Cognitive_Weaving + 2;
-    public const int WeavingEmptyActiveEventId = VKDiagnosticOffsets.AI_Cognitive_Weaving + 3;
+    public const int WeavingTruncatedEventId = VKDiagnosticOffsets.AI_Afferent_Weaving + 1;
+    public const int WeavingAssembledEventId = VKDiagnosticOffsets.AI_Afferent_Weaving + 2;
+    public const int WeavingEmptyActiveEventId = VKDiagnosticOffsets.AI_Afferent_Weaving + 3;
 
     public static class Metrics
     {

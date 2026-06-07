@@ -7,6 +7,6 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public static class VKPersonaDiagnostics
 {
-    public const int PersonaResolvedEventId = VKDiagnosticOffsets.AI_Cognitive_Persona + 1;
-    public const int PersonaRenderedEventId = VKDiagnosticOffsets.AI_Cognitive_Persona + 2;
+    public const int PersonaResolvedEventId = VKDiagnosticOffsets.AI_Afferent_Persona + 1;
+    public const int PersonaRenderedEventId = VKDiagnosticOffsets.AI_Afferent_Persona + 2;
 }

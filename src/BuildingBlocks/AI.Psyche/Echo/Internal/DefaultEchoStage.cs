@@ -14,7 +14,7 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// Pipeline stage for interacting with Echo store and applying dynamic dialogue history pruning.
 /// Implements AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class DefaultEchoStage : IVKWeavingStage
+internal sealed class DefaultEchoStage : IVKPsychePipelineStage
 {
     private readonly IVKEchoStore _echoStore;
     private readonly IVKTokenCounter _tokenCounter;

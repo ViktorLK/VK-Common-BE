@@ -1,14 +1,17 @@
 using Microsoft.Extensions.Options;
 
+using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
+
 namespace VK.Blocks.AI.SemanticKernel;
 
 /// <summary>
 /// Default implementation of <see cref="IVKAISKOptionsProvider"/> that reads from static configuration.
 /// </summary>
-public sealed class VKAISKDefaultOptionsProvider(IOptions<VKAISKOptions> options) : IVKAISKOptionsProvider
+public sealed class VKAISKDefaultOptionsProvider(IOptions<VKAISKDefaultsOptions> options) : IVKAISKOptionsProvider
 {
-    private readonly VKAISKOptions _options = options.Value;
+    private readonly VKAISKDefaultsOptions _options = options.Value;
 
     /// <inheritdoc />
-    public VKAISKOptions GetOptions() => _options;
+    public VKAISKDefaultsOptions GetOptions() => _options;
 }
+

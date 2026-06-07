@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Psyche;
 /// The spine mental pipeline. Executes registered psyche stages supporting both serial and parallel pipelines.
 /// Follows CS.01, CS.03.
 /// </summary>
-public interface IVKWeavingPipeline
+public interface IVKPsychePipeline
 {
     Task<VKResult<VKPromptTapestry>> WeaveTapestryAsync(
         VKWeavingRequest request,

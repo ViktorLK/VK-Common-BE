@@ -3,7 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Cognitive.Memory.Internal;
+using VK.Blocks.AI.Cognitive;
+using VK.Blocks.AI.Cognitive.Reasoning.Internal;
+using VK.Blocks.AI.Cognitive.Orchestration.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Cognitive.Common.DependencyInjection.Internal;
@@ -26,10 +28,19 @@ internal static class VKAICognitiveBlockRegistration
 
         services.AddVKBlockMarker<VKAICognitiveBlock>();
 
+        // 4. Options Validation
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<VKAICognitiveOptions>, VKAICognitiveOptionsValidator>());
+
+        // 5. Early Return Check
         if (!options.Enabled)
         {
             return builder;
         }
+
+        // 6. Core Services - Override/Provide Cognitive implementations
+        services.AddScoped<IVKReasoningPlanner, DefaultReasoningPlanner>();
+        services.AddScoped<IVKIntentNexus, DefaultIntentNexus>();
+        services.AddScoped<IVKThoughtStream, DefaultThoughtStream>();
 
         return builder;
     }

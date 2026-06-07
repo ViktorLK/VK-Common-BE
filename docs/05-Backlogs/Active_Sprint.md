@@ -144,3 +144,8 @@
 
 ## 📋 BuildingBlocks.AI Tasks
 - [ ] [BUILDINGBLOCKS.AI-001: Audit and Fix Feature Toggle (Enabled) Orthogonality](./BuildingBlocks.AI/001-audit-and-fix-feature-toggle-(enabled)-orthogonality.md)
+
+## 📋 AI.VectorStore Tasks
+- [ ] [AI.VECTORSTORE-001: [Retrieval] Advanced RAG Strategies (Hybrid/ReRank/Query Transform)](./AI.VectorStore/001-[retrieval]-advanced-rag-strategies-(hybrid-rerank-query-transform).md)
+- [ ] [AI.VECTORSTORE-002: [Data] Metadata Filtering and Advanced Pipeline Management](./AI.VectorStore/002-[data]-metadata-filtering-and-advanced-pipeline-management.md)
+- [ ] [AI.VECTORSTORE-003: [Performance] Bulk Operations and Semantic Cache Integration](./AI.VectorStore/003-[performance]-bulk-operations-and-semantic-cache-integration.md)

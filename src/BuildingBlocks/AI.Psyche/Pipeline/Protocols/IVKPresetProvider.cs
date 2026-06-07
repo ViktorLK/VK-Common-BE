@@ -5,7 +5,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Provides static task-specific presets (bottom notes or AuthorsNote) to inject into the cognitive prompt tapestry.
+/// Provides static task-specific presets (bottom notes or AuthorsNote) to inject into the Afferent prompt tapestry.
 /// </summary>
 public interface IVKPresetProvider
 {

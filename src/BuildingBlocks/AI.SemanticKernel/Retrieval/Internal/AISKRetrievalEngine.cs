@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,6 +10,7 @@ using Microsoft.Extensions.VectorData;
 using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.AI.SemanticKernel.Vectorics.VectorStore;
+using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Retrieval.Internal;

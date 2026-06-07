@@ -1,3 +1,5 @@
+using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
+
 namespace VK.Blocks.AI.SemanticKernel;
 
 /// <summary>
@@ -10,5 +12,6 @@ public interface IVKAISKOptionsProvider
     /// Gets the Semantic Kernel options for the current context.
     /// </summary>
     /// <returns>The options instance.</returns>
-    VKAISKOptions GetOptions();
+    VKAISKDefaultsOptions GetOptions();
 }
+

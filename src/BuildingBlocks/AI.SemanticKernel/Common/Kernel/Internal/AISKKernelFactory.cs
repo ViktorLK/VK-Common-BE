@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -46,7 +46,15 @@ internal sealed class AISKKernelFactory(
         // 2. Register AI Services (Multi-Provider Support)
         if (chatFeatureOptions.Enabled)
         {
-            builder.RegisterChatService(options, chatFeatureOptions, httpClient);
+            builder.RegisterChatService(options, chatFeatureOptions, httpClient, serviceId: "primary");
+
+            if (chatFeatureOptions.ChatFallbacks?.Count > 0)
+            {
+                for (int i = 0; i < chatFeatureOptions.ChatFallbacks.Count; i++)
+                {
+                    builder.RegisterChatService(options, chatFeatureOptions.ChatFallbacks[i], httpClient, serviceId: $"fallback_{i}");
+                }
+            }
         }
 
         if (embeddingFeatureOptions.Enabled)
@@ -85,3 +93,4 @@ internal sealed class AISKKernelFactory(
         return builder.Build();
     }
 }
+
