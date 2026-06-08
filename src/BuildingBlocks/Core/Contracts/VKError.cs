@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace VK.Blocks.Core;
 
 /// <summary>
@@ -6,11 +8,11 @@ namespace VK.Blocks.Core;
 /// <param name="Code">The unique error code.</param>
 /// <param name="Description">The error description.</param>
 /// <param name="Type">The error type (e.g., Validation, NotFound, Failure).</param>
-public sealed record VKError(string Code, string Description, VKErrorType Type = VKErrorType.Failure)
+public sealed record VKError(string Code, string Description, VKErrorType Type = VKErrorType.Failure, IReadOnlyDictionary<string, object>? Metadata = null)
 {
-    public static readonly VKError None = new(string.Empty, string.Empty, VKErrorType.None);
-    public static readonly VKError NullValue = new("VKError.NullValue", "The specified result value is null.", VKErrorType.Failure);
-    public static readonly VKError ConditionNotMet = new("VKError.ConditionNotMet", "The specified condition was not met.", VKErrorType.Failure);
+    public static readonly VKError None = new(string.Empty, string.Empty, VKErrorType.None, null);
+    public static readonly VKError NullValue = new("VKError.NullValue", "The specified result value is null.", VKErrorType.Failure, null);
+    public static readonly VKError ConditionNotMet = new("VKError.ConditionNotMet", "The specified condition was not met.", VKErrorType.Failure, null);
 
     public static VKError Validation(string code, string description) => new(code, description, VKErrorType.Validation);
     public static VKError Unauthorized(string code, string description) => new(code, description, VKErrorType.Unauthorized);
@@ -23,4 +25,12 @@ public sealed record VKError(string Code, string Description, VKErrorType Type =
     public static VKError ExternalError(string code, string description) => new(code, description, VKErrorType.ExternalError);
     public static VKError ServiceUnavailable(string code, string description) => new(code, description, VKErrorType.ServiceUnavailable);
     public static VKError Timeout(string code, string description) => new(code, description, VKErrorType.Timeout);
+
+    /// <summary>
+    /// Returns a new instance of the error with the specified metadata appended.
+    /// </summary>
+    public VKError WithMetadata(IReadOnlyDictionary<string, object> metadata)
+    {
+        return this with { Metadata = metadata };
+    }
 }
