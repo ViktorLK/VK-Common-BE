@@ -34,5 +34,5 @@ public interface IVKPsychePipelineStage
     /// <summary>
     /// Executes the stage's mental logic on the context.
     /// </summary>
-    Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken cancellationToken = default);
+    Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default);
 }

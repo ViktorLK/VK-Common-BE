@@ -12,5 +12,5 @@ public interface IVKPromptFormatter
     bool CanFormat(VKPromptFragment fragment);
 
     // Format the fragment content using the pipeline context
-    VKResult<string> Format(VKPromptFragment fragment, VKWeavingContext context);
+    VKResult<string> Format(VKPromptFragment fragment, VKPsycheContext context);
 }

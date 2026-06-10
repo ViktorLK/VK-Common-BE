@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using VK.Blocks.AI.Psyche.Weaving.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -37,9 +38,9 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
 
     /// <summary>
     /// Gets the target prompt template position where this entry should be woven.
-    /// Defaults to <see cref="VKKnowledgeRelativePosition"/> at <see cref="VKKnowledgeRelative.AfterPersona"/>.
+    /// Defaults to <see cref="VKRelativePromptPosition"/> at <see cref="VKPromptRelativeAnchor.AfterPersona"/>.
     /// </summary>
-    public IVKKnowledgePosition Position { get; init; } = new VKKnowledgeRelativePosition(VKKnowledgeRelative.AfterPersona);
+    public IVKPromptPosition Position { get; init; } = new VKRelativePromptPosition(VKPromptRelativeAnchor.AfterPersona);
 
     /// <summary>
     /// Gets the trigger type.
@@ -52,10 +53,17 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     /// </summary>
     public VKKnowledgeFilterLogic FilterLogic { get; init; } = VKKnowledgeFilterLogic.AndAny;
 
+    private readonly int _priority = 0;
+
     /// <summary>
     /// Gets the rendering priority order of the entry when triggered.
+    /// Priority must be between 0 and 999.
     /// </summary>
-    public int Priority { get; init; } = 0;
+    public int Priority
+    {
+        get => _priority;
+        init => _priority = VKGuard.InRange(value, 0, 999, nameof(Priority));
+    }
 
     /// <summary>
     /// Gets the maximum number of elapsed turns this entry remains active after being triggered.

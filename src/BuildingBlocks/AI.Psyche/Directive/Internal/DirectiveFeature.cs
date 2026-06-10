@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Psyche.Pipeline;
 
 namespace VK.Blocks.AI.Psyche.Directive.Internal;
 
@@ -10,12 +9,11 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 /// </summary>
 internal sealed partial class DirectiveFeature
 {
-    // [SG Hook]
     static partial void RegisterCustom(IServiceCollection services, VKDirectiveOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKDirectiveStore, InMemoryDirectiveStore>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultDirectiveStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultDirectiveStage>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultDirectiveFormatter>());
     }
 

@@ -11,10 +11,10 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche.Echo.Internal;
 
 /// <summary>
-/// Pipeline stage for interacting with Echo store and applying dynamic dialogue history pruning.
+/// Pipeline stage for interacting with Echo store and applying dialogue history pruning.
 /// Implements AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class DefaultEchoStage : IVKPsychePipelineStage
+internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
 {
     private readonly IVKEchoStore _echoStore;
     private readonly IVKTokenCounter _tokenCounter;
@@ -48,11 +48,11 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
     /// Resolves active session memories, prunes the history (oldest first) using dynamic budgets,
     /// and caches back to weaving context.
     /// </summary>
-    public async Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken cancellationToken = default)
+    public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Echo))
         {
             return VKResult.Success();
@@ -65,16 +65,14 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
             return VKResult.Failure(historyResult.Errors);
         }
         var tierType = VKPromptTierType.Echo;
-        var baseRenderOrder = context.Args?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
+        var baseRenderOrder = context.WeavingArgs?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
             ? idx
             : PromptLayout.DefaultRenderOrders[tierType];
-
-
 
         var allEchoes = historyResult.Value;
 
         // Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
-        var maxWindowSize = context.Echo?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
+        var maxWindowSize = context.EchoArgs?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
         if (maxWindowSize.HasValue && maxWindowSize.Value > 0 && allEchoes.Count > maxWindowSize.Value)
         {
             allEchoes = [.. allEchoes.Skip(allEchoes.Count - maxWindowSize.Value)];
@@ -93,7 +91,7 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
             effectiveBudget = _echoOptions.MaxTokens.Value;
         }
 
-        var totalLimit = context.Args?.TotalContextLimit ?? _weavingOptions.TotalContextLimit;
+        var totalLimit = context.WeavingArgs?.TotalContextLimit ?? _weavingOptions.TotalContextLimit;
         int dynamicLimit = (int)(totalLimit * _echoOptions.TokenBudgetRatio);
         effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
 
@@ -111,7 +109,7 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
             {
                 int turnTokens = turn.Sum(e => _tokenCounter.CountTokens(e.Content));
 
-                var maxTurns = context.Echo?.MaxTurns ?? _echoOptions.MaxTurns;
+                var maxTurns = context.EchoArgs?.MaxTurns ?? _echoOptions.MaxTurns;
                 if (maxTurns.HasValue && retainedTurnsCount >= maxTurns.Value)
                 {
                     break;

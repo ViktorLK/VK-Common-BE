@@ -18,7 +18,7 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
     public bool CanFormat(VKPromptFragment fragment)
         => fragment.TierType == VKPromptTierType.Knowledge;
 
-    public VKResult<string> Format(VKPromptFragment fragment, VKWeavingContext context)
+    public VKResult<string> Format(VKPromptFragment fragment, VKPsycheContext context)
     {
         // [AP.01] Boundary check
         VKGuard.NotNull(fragment);
@@ -30,7 +30,7 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
         }
 
         // Get all active Knowledge fragments sharing the same slot (Role and Depth)
-        var disabledTiers = context.Args?.DisabledTiers ?? new List<VKPromptTierType>();
+        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? new List<VKPromptTierType>();
         if (disabledTiers.Contains(VKPromptTierType.Knowledge))
         {
             return VKResult.Success(string.Empty);
@@ -40,12 +40,12 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
             .Where(f => f.TierType == VKPromptTierType.Knowledge &&
                         f.Metadata is VKKnowledgeEntry siblingEntry &&
                         (
-                            (currentEntry.Position is VKKnowledgeRelativePosition currentRel &&
-                             siblingEntry.Position is VKKnowledgeRelativePosition siblingRel &&
+                            (currentEntry.Position is VKRelativePromptPosition currentRel &&
+                             siblingEntry.Position is VKRelativePromptPosition siblingRel &&
                              currentRel.Relative == siblingRel.Relative)
                             ||
-                            (currentEntry.Position is VKKnowledgeAbsolutePosition currentAbs &&
-                             siblingEntry.Position is VKKnowledgeAbsolutePosition siblingAbs &&
+                            (currentEntry.Position is VKAbsolutePromptPosition currentAbs &&
+                             siblingEntry.Position is VKAbsolutePromptPosition siblingAbs &&
                              currentAbs.Role == siblingAbs.Role && currentAbs.Depth == siblingAbs.Depth)
                         ) &&
                         siblingEntry.Tag == currentEntry.Tag)
@@ -77,12 +77,12 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
                 var sib = siblingFragments[i];
                 var entry = (VKKnowledgeEntry)sib.Metadata!;
                 string rendered = _renderer.Render(entry);
-                
+
                 if (i > 0)
                 {
                     sb.AppendLine();
                 }
-                
+
                 sb.AppendLine(rendered.TrimEnd());
             }
 

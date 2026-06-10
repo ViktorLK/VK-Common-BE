@@ -49,7 +49,7 @@ trigger: manual
     - **Visibility**: MUST be declared as `public`.
     - **Namespace**: MUST use the library's flat root namespace (e.g., `namespace VK.Blocks.AI;`).
     - **Naming**: MUST use the **`VK` prefix** (e.g., `VKAIUsage`).
-- **NO Type-Driven Folders**: Avoid grouping by technical type at the root level (e.g., separating all Handlers from Requirements).
+- **NO Type-Driven Folders**: Avoid grouping by technical type **at the building block's first-level root directory** (e.g., creating top-level folders like `Interfaces/`, `Models/`, `Exceptions/`, or separating all Handlers from Requirements directly under the block root). Inside a vertical slice feature or the `Common/` directory, technical grouping folders (like `Models/`, `Protocols/`, `Internal/`) are fully permitted and recommended.
 - **Folder Naming**: Folder names MUST be noun-based and domain-driven.
   ✅ ApiKeys/Internal/
   ❌ Features/HandleApiKeys/

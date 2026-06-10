@@ -122,7 +122,6 @@ public static class VKKnowledgeMatcher
             var pattern = key.Text;
             var options = key.CaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
 
-            // SillyTavern style regex /pattern/flags
             if (pattern.StartsWith('/') && pattern.LastIndexOf('/') > 0)
             {
                 var lastSlash = pattern.LastIndexOf('/');

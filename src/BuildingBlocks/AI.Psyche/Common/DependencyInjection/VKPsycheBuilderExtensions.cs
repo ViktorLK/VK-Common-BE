@@ -1,10 +1,10 @@
 using System;
+using VK.Blocks.AI.Psyche.Behaviors.Internal;
 using VK.Blocks.AI.Psyche.Directive.Internal;
 using VK.Blocks.AI.Psyche.Echo.Internal;
 using VK.Blocks.AI.Psyche.Knowledge.Internal;
+using VK.Blocks.AI.Psyche.Pattern.Internal;
 using VK.Blocks.AI.Psyche.Persona.Internal;
-using VK.Blocks.AI.Psyche.Pipeline;
-using VK.Blocks.AI.Psyche.Pipeline.Internal;
 using VK.Blocks.AI.Psyche.Weaving.Internal;
 using VK.Blocks.Core;
 
@@ -52,6 +52,18 @@ public static class VKPsycheBuilderExtensions
     }
 
     /// <summary>
+    /// Adds the Pattern feature to the AI Psyche building block.
+    /// </summary>
+    public static IVKAIPsycheBuilder AddVKPattern(
+        this IVKAIPsycheBuilder builder,
+        Func<VKPatternOptions, VKPatternOptions>? transform = null)
+    {
+        VKGuard.NotNull(builder); // [AP.01]
+        PatternFeature.Register(builder, transform);
+        return builder;
+    }
+
+    /// <summary>
     /// Adds the Persona feature to the AI Psyche building block.
     /// </summary>
     public static IVKAIPsycheBuilder AddVKPersona(
@@ -68,10 +80,10 @@ public static class VKPsycheBuilderExtensions
     /// </summary>
     public static IVKAIPsycheBuilder AddVKPipeline(
         this IVKAIPsycheBuilder builder,
-        Func<VKPipelineOptions, VKPipelineOptions>? transform = null)
+        Func<VKBehaviorsOptions, VKBehaviorsOptions>? transform = null)
     {
         VKGuard.NotNull(builder); // [AP.01]
-        PipelineFeature.Register(builder, transform);
+        BehaviorsFeature.Register(builder, transform);
         return builder;
     }
 
@@ -97,6 +109,7 @@ public static class VKPsycheBuilderExtensions
             .AddVKDirective()
             .AddVKEcho()
             .AddVKKnowledge()
+            .AddVKPattern()
             .AddVKPersona()
             .AddVKPipeline()
             .AddVKWeaving();

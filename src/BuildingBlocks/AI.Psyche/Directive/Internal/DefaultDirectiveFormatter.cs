@@ -9,7 +9,7 @@ internal sealed class DefaultDirectiveFormatter : IVKPromptFormatter
     public bool CanFormat(VKPromptFragment fragment)
         => fragment.TierType == VKPromptTierType.Directive;
 
-    public VKResult<string> Format(VKPromptFragment fragment, VKWeavingContext context)
+    public VKResult<string> Format(VKPromptFragment fragment, VKPsycheContext context)
     {
         // [AP.01] Boundary check
         VKGuard.NotNull(fragment);

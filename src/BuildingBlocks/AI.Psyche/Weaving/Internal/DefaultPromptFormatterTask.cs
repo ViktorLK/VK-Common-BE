@@ -19,7 +19,7 @@ internal sealed class DefaultPromptFormatterTask : IVKWeavingTask
     public bool IsParallel => false;
     public int? ParallelGroup => null;
 
-    public Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken cancellationToken = default)
+    public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
         cancellationToken.ThrowIfCancellationRequested();

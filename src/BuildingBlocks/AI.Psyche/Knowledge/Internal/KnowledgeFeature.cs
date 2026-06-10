@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Psyche.Pipeline;
+using VK.Blocks.AI;
 using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
@@ -10,7 +10,6 @@ namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 /// </summary>
 internal sealed partial class KnowledgeFeature
 {
-    // [SG Hook]
     static partial void RegisterCustom(IServiceCollection services, VKKnowledgeOptions options)
     {
         if (!options.Enabled)
@@ -18,7 +17,7 @@ internal sealed partial class KnowledgeFeature
 
         services.TryAddSingleton<IVKKnowledgeStore, InMemoryKnowledgeStore>();
         services.TryAddSingleton<IVKKnowledgeRenderer, DefaultKnowledgeRenderer>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultKnowledgeStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultKnowledgeStage>());
 
         // Register non-generic extractor and formatter
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultKnowledgeFormatter>());

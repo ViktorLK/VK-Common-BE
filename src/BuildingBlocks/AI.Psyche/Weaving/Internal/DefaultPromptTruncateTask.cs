@@ -34,19 +34,19 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
         _timeProvider = timeProvider;
     }
 
-    public Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken ct = default)
+    public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken ct = default)
     {
         VKGuard.NotNull(context);
         ct.ThrowIfCancellationRequested();
 
-        var allowedBudget = context.Args?.AvailableHistoryLimit ?? _options.AvailableHistoryLimit;
-        var maxTokenLimit = context.Args?.MaxTokenLimit ?? _options.MaxTokenLimit;
-        var totalLimit = context.Args?.TotalContextLimit ?? _options.TotalContextLimit;
+        var allowedBudget = context.WeavingArgs?.AvailableHistoryLimit ?? _options.AvailableHistoryLimit;
+        var maxTokenLimit = context.WeavingArgs?.MaxTokenLimit ?? _options.MaxTokenLimit;
+        var totalLimit = context.WeavingArgs?.TotalContextLimit ?? _options.TotalContextLimit;
 
         // Ensure the total context limit does not exceed the maximum allowed token limit
         totalLimit = Math.Min(totalLimit, maxTokenLimit);
 
-        var maxResponse = context.Args?.MaxResponseTokens ?? _options.MaxResponseTokens;
+        var maxResponse = context.WeavingArgs?.MaxResponseTokens ?? _options.MaxResponseTokens;
 
         var fragments = context.Fragments.ToList();
 

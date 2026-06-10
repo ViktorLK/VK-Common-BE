@@ -4,7 +4,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
+internal sealed class DefaultWeavingStage : IVKPsycheBeforePipelineStage
 {
     private readonly IVKWeavingTaskEngine _weavingEngine;
 
@@ -18,16 +18,16 @@ internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
     public bool IsParallel => false;
     public int? ParallelGroup => null;
 
-    public async Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken cancellationToken = default)
+    public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
-        VKGuard.NotNull(context);
+        VKGuard.NotNull(context); // [AP.01]
 
-        var weaveResult = await _weavingEngine.WeavePromptAsync(context, cancellationToken).ConfigureAwait(false);
+        var weaveResult = await _weavingEngine.WeavePromptAsync(context, cancellationToken).ConfigureAwait(false); // [CS.03]
         if (weaveResult.IsFailure)
         {
-            return VKResult.Failure(weaveResult.Errors);
+            return VKResult.Failure(weaveResult.Errors); // [CS.01]
         }
 
-        return VKResult.Success();
+        return VKResult.Success(); // [CS.01]
     }
 }

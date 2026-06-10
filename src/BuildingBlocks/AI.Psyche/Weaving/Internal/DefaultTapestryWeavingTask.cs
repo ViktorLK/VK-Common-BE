@@ -28,14 +28,14 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
     public bool IsParallel => false;
     public int? ParallelGroup => null;
 
-    public Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken cancellationToken = default)
+    public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         // // [AP.01] Defensive boundary checks via VKGuard
         VKGuard.NotNull(context);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var disabledTiers = context.Args?.DisabledTiers ?? _options.DisabledTiers;
-        var tierOrderOverrides = context.Args?.TierRenderOrderOverrides ?? _options.TierRenderOrderOverrides;
+        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _options.DisabledTiers;
+        var tierOrderOverrides = context.WeavingArgs?.TierRenderOrderOverrides ?? _options.TierRenderOrderOverrides;
 
         int GetFragmentDepth(VKPromptFragment fragment)
         {
@@ -65,13 +65,13 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
         }
 
         // 1. Separate base fragments (which lay out chronological chat history & system instructions)
-        // from absolute-depth bracket injections (non-system fragments with dynamic depth targets).
+        // from absolute-depth bracket injections (fragments with dynamic depth targets).
         var baseFragments = activeFragments
-            .Where(f => f.Depth == null || f.TierType == VKPromptTierType.Echo || f.Role == VKChatRole.System)
+            .Where(f => f.Depth is null)
             .ToList();
 
         var injections = activeFragments
-            .Where(f => f.Depth != null && f.TierType != VKPromptTierType.Echo && f.Role != VKChatRole.System)
+            .Where(f => f.Depth is not null)
             .ToList();
 
         // 2. Build Base Timeline (Order-based, oldest first)
@@ -125,7 +125,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
             });
         }
 
-        // 4. Perform Absolute Position Injections (SillyTavern style: separate message inserted at global depth)
+        // 4. Perform Absolute Position Injections (separate message inserted at global depth)
         foreach (var inject in injections)
         {
             int targetDepth = inject.Depth!.Value;
@@ -138,14 +138,14 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
             });
         }
 
-        var tapestry = new VKPromptTapestry
+        var tapestry = new VKPsycheResponse
         {
             Messages = finalMessages,
             SystemInstructions = systemBuilder.ToString().Trim(),
             TotalEstimatedTokens = 0
         };
 
-        context.Tapestry = tapestry;
+        context.Response = tapestry;
 
         WeavingDiagnostics.WeavingAssembled(_logger, context.SessionId, finalMessages.Count);
 

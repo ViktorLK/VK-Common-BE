@@ -23,12 +23,12 @@ internal sealed class DefaultFragmentReplacementTask : IVKWeavingTask
     public bool IsParallel => false;
     public int? ParallelGroup => null;
 
-    public async Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken cancellationToken = default)
+    public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var variables = context.Args?.Variables ?? _options.Variables;
+        var variables = context.WeavingArgs?.Variables ?? _options.Variables;
         if (variables == null || variables.Count == 0)
         {
             return VKResult.Success();

@@ -27,5 +27,5 @@ public interface IVKWeavingTask
     /// <summary>
     /// Executes the weaving task.
     /// </summary>
-    Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken cancellationToken = default);
+    Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default);
 }
