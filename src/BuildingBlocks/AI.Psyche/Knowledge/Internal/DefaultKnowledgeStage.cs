@@ -3,11 +3,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
-internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
+internal sealed class DefaultKnowledgeStage : IVKPsycheBeforePipelineStage
 {
     private readonly VKKnowledgeOptions _options;
     private readonly IVKKnowledgeStore _store;
@@ -31,11 +32,11 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
         _weavingOptions = VKGuard.NotNull(weavingOptions?.Value);
     }
 
-    public async Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken ct)
+    public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken ct)
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Knowledge))
         {
             return VKResult.Success();
@@ -175,7 +176,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
         var groups = activeEntries
             .GroupBy(entry =>
             {
-                var coord = KnowledgePositionResolver.Resolve(entry, PromptLayout.DefaultRenderOrders);
+                var coord = PromptPositionResolver.Resolve(entry.Position, entry.Priority, PromptLayout.DefaultRenderOrders);
                 return (Role: coord.Role, Depth: coord.Depth, RenderOrderOffset: coord.RenderOrder);
             });
 

@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Acts as the unified, thread-safe state container for prompt assembly and lifecycle management.
 /// Complies with AP.01 (sealed record).
 /// </summary>
-public sealed record VKWeavingContext
+public sealed record VKPsycheContext
 {
     // ==========================================
     // 1. Identification & Correlation (L1)
@@ -42,14 +42,9 @@ public sealed record VKWeavingContext
     public required string UserInput { get; init; }
 
     /// <summary>
-    /// Gets runtime overrides or arguments to adjust layout, budgets, and disabled tiers in this turn.
-    /// </summary>
-    public VKWeavingArgs? Args { get; init; }
-
-    /// <summary>
     /// Gets or sets the final woven prompt tapestry compiled after all weaving steps.
     /// </summary>
-    public VKPromptTapestry? Tapestry { get; set; }
+    public VKPsycheResponse? Response { get; set; }
 
     // ==========================================
     // 3. Active Prompt Fragments (Thread-Safe Collection)
@@ -166,20 +161,75 @@ public sealed record VKWeavingContext
     /// <summary>
     /// Gets or sets request-scoped overrides for the Echo feature.
     /// </summary>
-    public VKEchoArgs? Echo { get; set; }
+    public VKEchoArgs? EchoArgs { get; set; }
 
     /// <summary>
     /// Gets or sets request-scoped overrides for the Knowledge feature.
     /// </summary>
-    public VKKnowledgeArgs? Knowledge { get; set; }
+    public VKKnowledgeArgs? KnowledgeArgs { get; set; }
 
     /// <summary>
     /// Gets or sets request-scoped overrides for the Persona feature.
     /// </summary>
-    public VKPersonaArgs? Persona { get; set; }
+    public VKPersonaArgs? PersonaArgs { get; set; }
 
     /// <summary>
     /// Gets or sets request-scoped overrides for the Directive feature.
     /// </summary>
-    public VKDirectiveArgs? Directive { get; set; }
+    public VKDirectiveArgs? DirectiveArgs { get; set; }
+
+    /// <summary>
+    /// Gets runtime overrides or arguments to adjust layout, budgets, and disabled tiers in this turn.
+    /// </summary>
+    public VKWeavingArgs? WeavingArgs { get; init; }
+
+    // ==========================================
+    // 7. Execution Context & Abort (Physical Pipeline)
+    // ==========================================
+
+    /// <summary>
+    /// Gets the service provider for resolving dependencies during execution.
+    /// </summary>
+    public required IServiceProvider Services { get; init; }
+
+    /// <summary>
+    /// Gets the user security context.
+    /// </summary>
+    public IVKUserContext? UserContext { get; init; }
+
+    private readonly string? _tenantId;
+    private readonly string? _userId;
+
+    /// <summary>
+    /// Gets the Tenant ID associated with the request.
+    /// </summary>
+    public string? TenantId
+    {
+        get => _tenantId ?? UserContext?.TenantId;
+        init => _tenantId = value;
+    }
+
+    /// <summary>
+    /// Gets the User ID associated with the request.
+    /// </summary>
+    public string? UserId
+    {
+        get => _userId ?? UserContext?.UserId;
+        init => _userId = value;
+    }
+
+    private int _isAborted;
+
+    /// <summary>
+    /// Aborts the current pipeline execution.
+    /// </summary>
+    public void Abort()
+    {
+        Interlocked.Exchange(ref _isAborted, 1);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the pipeline execution has been aborted.
+    /// </summary>
+    public bool IsAborted => Interlocked.CompareExchange(ref _isAborted, 0, 0) == 1;
 }

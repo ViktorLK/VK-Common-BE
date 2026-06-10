@@ -22,6 +22,11 @@ public enum VKPromptTierType
     Knowledge,
 
     /// <summary>
+    /// Custom prompt preset patterns woven into the prompt tapestry.
+    /// </summary>
+    Pattern,
+
+    /// <summary>
     /// Immediate user interaction or specific task prompts.
     /// </summary>
     Echo,

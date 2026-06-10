@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 /// <summary>
 /// Pipeline stage for injecting persona configuration into the context.
 /// </summary>
-internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
+internal sealed class DefaultPersonaStage : IVKPsycheBeforePipelineStage
 {
     private readonly IVKPersonaStore _store;
     private readonly VKWeavingOptions _weavingOptions;
@@ -31,11 +31,11 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
     public bool IsParallel => true;
     public int? ParallelGroup => 1;
 
-    public async Task<VKResult> ExecuteAsync(VKWeavingContext context, CancellationToken cancellationToken = default)
+    public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Persona))
         {
             return VKResult.Success();

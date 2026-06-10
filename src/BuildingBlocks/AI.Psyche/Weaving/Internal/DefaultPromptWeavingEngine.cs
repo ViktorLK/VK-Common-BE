@@ -22,15 +22,15 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
         _options = VKGuard.NotNull(options).Value;
     }
 
-    public async Task<VKResult<VKPromptTapestry>> WeavePromptAsync(
-        VKWeavingContext context,
+    public async Task<VKResult<VKPsycheResponse>> WeavePromptAsync(
+        VKPsycheContext context,
         CancellationToken cancellationToken)
     {
         // // [AP.01] Defensive boundary checks via VKGuard
         VKGuard.NotNull(context);
 
         // Early pruning of disabled tiers so that downstream formatting & truncation tasks ignore them
-        var disabledTiers = context.Args?.DisabledTiers ?? _options.DisabledTiers;
+        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _options.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Count > 0)
         {
             var activeFragments = context.Fragments
@@ -62,14 +62,14 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
 
         if (hasFailed && failedResult != null)
         {
-            return VKResult.Failure<VKPromptTapestry>(failedResult.Errors); // // [CS.01]
+            return VKResult.Failure<VKPsycheResponse>(failedResult.Errors); // // [CS.01]
         }
 
-        if (context.Tapestry is null)
+        if (context.Response is null)
         {
-            return VKResult.Failure<VKPromptTapestry>(VKWeavingErrors.NoTapestry);
+            return VKResult.Failure<VKPsycheResponse>(VKWeavingErrors.NoTapestry);
         }
 
-        return VKResult.Success(context.Tapestry);
+        return VKResult.Success(context.Response);
     }
 }

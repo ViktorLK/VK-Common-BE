@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Psyche.Pipeline;
+using VK.Blocks.AI;
 namespace VK.Blocks.AI.Psyche.Persona.Internal;
 
 /// <summary>
@@ -9,12 +9,11 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 /// </summary>
 internal sealed partial class PersonaFeature
 {
-    // [SG Hook]
     static partial void RegisterCustom(IServiceCollection services, VKPersonaOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKPersonaStore, InMemoryPersonaStore>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPersonaStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultPersonaStage>());
 
         // Register non-generic extractor, renderer and formatter
         services.TryAddSingleton<IVKPersonaRenderer, DefaultPersonaRenderer>();

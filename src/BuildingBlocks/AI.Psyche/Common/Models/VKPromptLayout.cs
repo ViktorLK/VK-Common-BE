@@ -15,9 +15,10 @@ internal static class PromptLayout
     internal static IReadOnlyDictionary<VKPromptTierType, int> DefaultRenderOrders { get; } =
         new Dictionary<VKPromptTierType, int>
         {
-            [VKPromptTierType.Directive] = 0,
-            [VKPromptTierType.Persona] = 1000,
-            [VKPromptTierType.Knowledge] = 2000,
-            [VKPromptTierType.Echo] = 3000,
+            [VKPromptTierType.Directive] = 10000,
+            [VKPromptTierType.Persona] = 20000,
+            [VKPromptTierType.Knowledge] = 30000,
+            [VKPromptTierType.Pattern] = 40000,
+            [VKPromptTierType.Echo] = 50000,
         };
 }

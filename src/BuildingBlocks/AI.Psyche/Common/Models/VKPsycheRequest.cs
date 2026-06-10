@@ -4,7 +4,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Public immutable request payload representing the input coordinates for prompt weaving.
 /// Complies with AP.01 (sealed record).
 /// </summary>
-public sealed record VKWeavingRequest
+public sealed record VKPsycheRequest
 {
     /// <summary>
     /// Gets the target Persona identifier that this context uses to retrieve prompt configurations.

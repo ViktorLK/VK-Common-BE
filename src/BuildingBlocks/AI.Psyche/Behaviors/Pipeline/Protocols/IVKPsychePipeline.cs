@@ -10,7 +10,5 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public interface IVKPsychePipeline
 {
-    Task<VKResult<VKPromptTapestry>> WeaveTapestryAsync(
-        VKWeavingRequest request,
-        CancellationToken cancellationToken = default);
+    Task<VKResult<VKPsycheResponse>> RunAsync(VKPsycheRequest request, CancellationToken cancellationToken = default);
 }

@@ -25,11 +25,10 @@ Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Gener
     - **`Diagnostics/`**:
         - `DiagnosticsConstants.cs`: Semantic tokens.
         - `Internal/`: `[LoggerMessage]` and `[VKBlockDiagnostics]` classes.
+    - **`Models/` (Optional)**: Public cross-boundary data models and settings args.
+    - **`Protocols/` (Optional)**: Public cross-boundary interface and delegate definitions.
     - **`Shared/` (Optional)**: Cross-cutting foundation utilities used by 2 or more features. **Strictly Internal** (Visibility governed by **AP.03**).
-    - **`Contracts/` (Optional)**: Public cross-boundary types (e.g., Integration Events, external DTOs, Public usage models). **Strictly Public** (Visibility governed by **AP.03**).
 - `VK{ModuleName}Block.cs`: **Public** marker type placed directly in the module's root directory. This SHOULD be the only `.cs` file in the root.
-- `Abstractions/` (OPTIONAL): Internal top-level interfaces shared across multiple features. **Prefer this** over Contracts/ for internal-only sharing if they don't fit in Shared/.
-- `Contracts/` (Legacy/Redundant): Use the definition above.
 
 ### BB.02 — The Marker Pattern ([VKBlockMarker])
 

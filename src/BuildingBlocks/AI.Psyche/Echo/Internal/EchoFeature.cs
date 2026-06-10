@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Psyche.Pipeline;
+using VK.Blocks.AI;
 
 namespace VK.Blocks.AI.Psyche.Echo.Internal;
 
@@ -9,13 +9,12 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// </summary>
 internal sealed partial class EchoFeature
 {
-    // [SG Hook]
     static partial void RegisterCustom(IServiceCollection services, VKEchoOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKEchoStore, InMemoryEchoStore>();
         services.TryAddSingleton<IVKEchoRenderer, DefaultEchoRenderer>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultEchoStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultEchoStage>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultEchoFormatter>());
     }
 

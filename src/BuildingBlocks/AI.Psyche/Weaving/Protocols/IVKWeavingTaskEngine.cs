@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public interface IVKWeavingTaskEngine
 {
-    Task<VKResult<VKPromptTapestry>> WeavePromptAsync(
-        VKWeavingContext context,
+    Task<VKResult<VKPsycheResponse>> WeavePromptAsync(
+        VKPsycheContext context,
         CancellationToken cancellationToken);
 }

@@ -6,12 +6,12 @@ namespace VK.Blocks.AI.Psyche;
 public enum VKKnowledgeTriggerType
 {
     /// <summary>
-    /// Triggered by keywords.
-    /// </summary>
-    Keyword,
-
-    /// <summary>
     /// Always active.
     /// </summary>
-    Constant
+    Constant,
+
+    /// <summary>
+    /// Triggered by keywords.
+    /// </summary>
+    Keyword
 }

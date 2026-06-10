@@ -7,7 +7,7 @@ namespace VK.Blocks.AI.Psyche;
 /// The final, immutable output returned from the prompt weaving pipeline.
 /// Follows AP.01 (Sealed Record).
 /// </summary>
-public sealed record VKPromptTapestry
+public sealed record VKPsycheResponse
 {
     /// <summary>
     /// Gets the final list of woven chat messages to be sent to the AI model.

@@ -17,7 +17,7 @@ internal sealed class DefaultPersonaFormatter : IVKPromptFormatter
     public bool CanFormat(VKPromptFragment fragment)
         => fragment.TierType == VKPromptTierType.Persona;
 
-    public VKResult<string> Format(VKPromptFragment fragment, VKWeavingContext context)
+    public VKResult<string> Format(VKPromptFragment fragment, VKPsycheContext context)
     {
         // [AP.01] Boundary check
         VKGuard.NotNull(fragment);

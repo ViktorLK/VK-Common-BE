@@ -76,11 +76,11 @@ internal static class VKWeavingStepRunner
     /// <returns>A successful result if all steps succeed; otherwise, the first failure result encountered.</returns>
     public static async Task<VKResult> ExecuteChunksAsync<T>(
         List<List<T>> chunks,
-        VKWeavingContext context,
+        VKPsycheContext context,
         Func<T, bool> isParallelSelector,
-        Func<T, VKWeavingContext, CancellationToken, Task<VKResult>> executeFunc,
-        Func<VKWeavingContext, bool> shouldContinueFunc,
-        Action<VKWeavingContext, VKResult> onFailureAction,
+        Func<T, VKPsycheContext, CancellationToken, Task<VKResult>> executeFunc,
+        Func<VKPsycheContext, bool> shouldContinueFunc,
+        Action<VKPsycheContext, VKResult> onFailureAction,
         CancellationToken cancellationToken)
     {
         // [AP.01] Defensive Programming via VKGuard
