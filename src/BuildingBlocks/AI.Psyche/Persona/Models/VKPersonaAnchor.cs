@@ -35,18 +35,6 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata
     public string? DirectiveId { get; init; }
 
     /// <summary>
-    /// Gets explicit constraints regarding the format, language, and length of the output.
-    /// Replaces broad 'AdditionalInstructions' with structured industrial output rules.
-    /// </summary>
-    public VKOutputSpecification? OutputSpecification { get; init; }
-
-    /// <summary>
-    /// Gets few-shot templates capturing input/output mapping or specific formats.
-    /// Each element represents a distinct input/output example snippet.
-    /// </summary>
-    public IReadOnlyList<VKFewShotExample> FewShotExamples { get; init; } = [];
-
-    /// <summary>
     /// Gets custom unstructured properties allowing downstream extensions (e.g. for PWP).
     /// </summary>
     public IReadOnlyDictionary<string, object> Extensions { get; init; } = new Dictionary<string, object>();

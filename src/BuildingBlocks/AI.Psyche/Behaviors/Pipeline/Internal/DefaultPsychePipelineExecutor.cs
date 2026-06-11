@@ -52,7 +52,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
     {
         VKGuard.NotNull(context);
 
-        BehaviorsDiagnostics.ExecutionStarted(_logger, context.SessionId.Value.ToString(), context.CorrelationId);
+        BehaviorsDiagnostics.ExecutionStarted(_logger, context.Request.SessionId.Value.ToString(), context.Request.CorrelationId ?? string.Empty);
         var stopwatch = Stopwatch.StartNew();
 
         // 1. Run BEFORE LLM stages (data gathering, prompt weaving, etc.)
@@ -67,7 +67,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
         {
             BehaviorsDiagnostics.ExecutionFailed(
                 _logger,
-                context.CorrelationId,
+                context.Request.CorrelationId ?? string.Empty,
                 beforeResult.FirstError.Code,
                 beforeResult.FirstError.Description);
             return VKResult.Failure<VKPsycheResponse>(beforeResult.Errors); // [CS.01]
@@ -77,21 +77,14 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
         {
             BehaviorsDiagnostics.ExecutionFailed(
                 _logger,
-                context.CorrelationId,
+                context.Request.CorrelationId ?? string.Empty,
                 VKBehaviorsErrors.EmptyResponse.Code,
                 VKBehaviorsErrors.EmptyResponse.Description);
             return VKResult.Failure<VKPsycheResponse>(VKBehaviorsErrors.EmptyResponse);
         }
 
         // 2. Build the middleware delegate onion chain starting from the terminal execution.
-        VKPsycheMiddlewareDelegate chain = (ctx, ct) =>
-        {
-            if (ctx.Response != null)
-            {
-                return Task.FromResult(VKResult.Success(ctx.Response));
-            }
-            return Task.FromResult(VKResult.Failure<VKPsycheResponse>(VKBehaviorsErrors.EmptyResponse));
-        };
+        VKPsycheMiddlewareDelegate chain = InvokeChatEngineAsync;
 
         // Wrap middlewares in reverse order (onion style)
         for (int i = _middlewares.Count - 1; i >= 0; i--)
@@ -106,10 +99,16 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
         {
             BehaviorsDiagnostics.ExecutionFailed(
                 _logger,
-                context.CorrelationId,
+                context.Request.CorrelationId ?? string.Empty,
                 middlewareResult.FirstError.Code,
                 middlewareResult.FirstError.Description);
             return middlewareResult;
+        }
+
+        // WeaveOnly mode: Bypass downstream response parsing After stages
+        if (context.IsWeaveOnly)
+        {
+            return VKResult.Success(context.Response.Build());
         }
 
         // 3. Run AFTER LLM stages (response parsing, cleanup, auditing, etc.)
@@ -126,17 +125,17 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
         {
             BehaviorsDiagnostics.ExecutionFailed(
                 _logger,
-                context.CorrelationId,
+                context.Request.CorrelationId ?? string.Empty,
                 afterResult.FirstError.Code,
                 afterResult.FirstError.Description);
             return VKResult.Failure<VKPsycheResponse>(afterResult.Errors); // [CS.01]
         }
 
-        if (context.Response == null)
+        if (context.Response.Messages.Count == 0)
         {
             BehaviorsDiagnostics.ExecutionFailed(
                 _logger,
-                context.CorrelationId,
+                context.Request.CorrelationId ?? string.Empty,
                 VKBehaviorsErrors.EmptyResponse.Code,
                 VKBehaviorsErrors.EmptyResponse.Description);
             return VKResult.Failure<VKPsycheResponse>(VKBehaviorsErrors.EmptyResponse);
@@ -144,9 +143,47 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
 
         BehaviorsDiagnostics.ExecutionCompleted(
             _logger,
-            context.CorrelationId,
+            context.Request.CorrelationId ?? string.Empty,
             stopwatch.Elapsed.TotalMilliseconds);
 
-        return VKResult.Success(context.Response);
+        return VKResult.Success(context.Response.Build());
+    }
+
+    private async Task<VKResult<VKPsycheResponse>> InvokeChatEngineAsync(VKPsycheContext ctx, CancellationToken ct)
+    {
+        if (ctx.Response.Messages.Count == 0)
+        {
+            return VKResult.Failure<VKPsycheResponse>(VKBehaviorsErrors.EmptyResponse);
+        }
+
+        if (ctx.IsWeaveOnly)
+        {
+            return VKResult.Success(ctx.Response.Build());
+        }
+
+        if (ctx.Services.GetService(typeof(IVKChatEngine)) is not IVKChatEngine chatEngine)
+        {
+            return VKResult.Failure<VKPsycheResponse>(new VKError(
+                "AI.Psyche.ChatEngineNotFound",
+                "IVKChatEngine is not registered in the service provider."));
+        }
+
+        var chatArgs = ctx.Args<VKChatArgs>();
+
+        var chatResult = await chatEngine.SendAsync(ctx.Response.Messages, chatArgs, ct).ConfigureAwait(false);
+        if (chatResult.IsFailure)
+        {
+            return VKResult.Failure<VKPsycheResponse>(chatResult.Errors);
+        }
+
+        ctx.SetState(chatResult.Value);
+
+        ctx.Response.ChatResponse = chatResult.Value;
+        if (chatResult.Value.Usage is not null)
+        {
+            ctx.Response.Usage = chatResult.Value.Usage;
+        }
+
+        return VKResult.Success(ctx.Response.Build());
     }
 }

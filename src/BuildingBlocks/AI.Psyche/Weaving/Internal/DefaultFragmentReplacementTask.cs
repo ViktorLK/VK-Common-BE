@@ -28,8 +28,8 @@ internal sealed class DefaultFragmentReplacementTask : IVKWeavingTask
         VKGuard.NotNull(context);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var variables = context.WeavingArgs?.Variables ?? _options.Variables;
-        if (variables == null || variables.Count == 0)
+        var variables = context.Args<VKWeavingArgs>()?.Variables ?? _options.Variables;
+        if (variables is null || variables.Count == 0)
         {
             return VKResult.Success();
         }

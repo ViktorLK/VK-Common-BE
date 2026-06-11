@@ -39,14 +39,14 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
         VKGuard.NotNull(context);
         ct.ThrowIfCancellationRequested();
 
-        var allowedBudget = context.WeavingArgs?.AvailableHistoryLimit ?? _options.AvailableHistoryLimit;
-        var maxTokenLimit = context.WeavingArgs?.MaxTokenLimit ?? _options.MaxTokenLimit;
-        var totalLimit = context.WeavingArgs?.TotalContextLimit ?? _options.TotalContextLimit;
+        var allowedBudget = context.Args<VKWeavingArgs>()?.AvailableHistoryLimit ?? _options.AvailableHistoryLimit;
+        var maxTokenLimit = context.Args<VKWeavingArgs>()?.MaxTokenLimit ?? _options.MaxTokenLimit;
+        var totalLimit = context.Args<VKWeavingArgs>()?.TotalContextLimit ?? _options.TotalContextLimit;
 
         // Ensure the total context limit does not exceed the maximum allowed token limit
         totalLimit = Math.Min(totalLimit, maxTokenLimit);
 
-        var maxResponse = context.WeavingArgs?.MaxResponseTokens ?? _options.MaxResponseTokens;
+        var maxResponse = context.Args<VKWeavingArgs>()?.MaxResponseTokens ?? _options.MaxResponseTokens;
 
         var fragments = context.Fragments.ToList();
 
@@ -99,9 +99,11 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
             else
             {
                 // Track all evicted history fragments for downstream observability/events
+                var evictedState = new VKPsycheEvictedState();
+                context.SetState(evictedState);
                 for (int j = i; j < historySorted.Count; j++)
                 {
-                    context.AddEvicted(historySorted[j]);
+                    evictedState.Add(historySorted[j]);
                 }
                 break;
             }
@@ -113,10 +115,11 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
 
         context.SetFragments(finalFragments);
 
-        int evictedCount = context.Evicted.Count;
+        var finalEvictedState = context.State<VKPsycheEvictedState>();
+        int evictedCount = finalEvictedState?.Evicted.Count ?? 0;
         if (evictedCount > 0)
         {
-            WeavingDiagnostics.WeavingTruncated(_logger, context.SessionId, remainingHistoryBudget, activeHistoryTokens, evictedCount);
+            WeavingDiagnostics.WeavingTruncated(_logger, context.Request.SessionId, remainingHistoryBudget, activeHistoryTokens, evictedCount);
         }
 
         return Task.FromResult(VKResult.Success());

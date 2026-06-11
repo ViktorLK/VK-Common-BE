@@ -8,43 +8,19 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Execution payload context flowing through the general orchestrator stages and weaving tasks.
 /// Acts as the unified, thread-safe state container for prompt assembly and lifecycle management.
-/// Complies with AP.01 (sealed record).
 /// </summary>
-public sealed record VKPsycheContext
+public sealed class VKPsycheContext
 {
-    // ==========================================
-    // 1. Identification & Correlation (L1)
-    // ==========================================
 
     /// <summary>
-    /// Gets the target Persona identifier that this context uses to retrieve prompt configurations.
+    /// Gets the original request payload containing overrides and arguments.
     /// </summary>
-    public required VKPersonaId PersonaId { get; init; }
+    public required VKPsycheRequest Request { get; init; }
 
     /// <summary>
-    /// Gets the unique session identifier to track dialogue history.
+    /// Gets the mutable response builder for accumulating execution results.
     /// </summary>
-    public required VKSessionId SessionId { get; init; }
-
-    /// <summary>
-    /// Gets the correlation ID to trace this weaving execution through logging and metrics.
-    /// Default is empty string if not provided (should be initialized by pipeline).
-    /// </summary>
-    public required string CorrelationId { get; init; }
-
-    // ==========================================
-    // 2. Input Parameters & Output Tapestry
-    // ==========================================
-
-    /// <summary>
-    /// Gets the fresh input message provided by the user in this turn.
-    /// </summary>
-    public required string UserInput { get; init; }
-
-    /// <summary>
-    /// Gets or sets the final woven prompt tapestry compiled after all weaving steps.
-    /// </summary>
-    public VKPsycheResponse? Response { get; set; }
+    public VKPsycheResponseBuilder Response { get; } = new();
 
     // ==========================================
     // 3. Active Prompt Fragments (Thread-Safe Collection)
@@ -95,53 +71,19 @@ public sealed record VKPsycheContext
     }
 
     // ==========================================
-    // 4. Truncated & Evicted Dialogue History
-    // ==========================================
-
-    private readonly Lock _lockEvicted = new();
-    private readonly List<VKPromptFragment> _evicted = [];
-
-    /// <summary>
-    /// Gets all dialogue history fragments that were evicted/discarded due to token or turn budgets.
-    /// </summary>
-    public IReadOnlyList<VKPromptFragment> Evicted
-    {
-        get
-        {
-            lock (_lockEvicted)
-            {
-                return [.. _evicted];
-            }
-        }
-    }
-
-    /// <summary>
-    /// Adds a prompt fragment that was evicted due to token constraints.
-    /// </summary>
-    /// <param name="fragment">The evicted fragment.</param>
-    public void AddEvicted(VKPromptFragment fragment)
-    {
-        VKGuard.NotNull(fragment);
-        lock (_lockEvicted)
-        {
-            _evicted.Add(fragment);
-        }
-    }
-
-    // ==========================================
     // 5. Extensibility Container
     // ==========================================
 
-    private readonly Dictionary<Type, object> _extensions = new();
+    private readonly Dictionary<Type, object> _states = [];
 
     /// <summary>
     /// Attaches an extensibility object to this context for downstream stages.
     /// </summary>
     /// <typeparam name="T">The type of the extension.</typeparam>
     /// <param name="value">The extension instance to store.</param>
-    public void SetExtension<T>(T value) where T : class
+    public void SetState<T>(T value) where T : class
     {
-        _extensions[typeof(T)] = VKGuard.NotNull(value);
+        _states[typeof(T)] = VKGuard.NotNull(value);
     }
 
     /// <summary>
@@ -149,39 +91,26 @@ public sealed record VKPsycheContext
     /// </summary>
     /// <typeparam name="T">The type of the extension to retrieve.</typeparam>
     /// <returns>The stored extension instance, or null if not found.</returns>
-    public T? GetExtension<T>() where T : class
-    {
-        return _extensions.TryGetValue(typeof(T), out var v) ? (T)v : null;
-    }
+    public T? State<T>() where T : class
+        => _states.TryGetValue(typeof(T), out object? v) ? (T)v : null;
+
 
     // ==========================================
-    // 6. Strong-typed Feature Overrides (L1)
+    // 6. Original Request Payload
     // ==========================================
 
-    /// <summary>
-    /// Gets or sets request-scoped overrides for the Echo feature.
-    /// </summary>
-    public VKEchoArgs? EchoArgs { get; set; }
 
     /// <summary>
-    /// Gets or sets request-scoped overrides for the Knowledge feature.
+    /// Gets the strongly typed arguments from the request payload.
     /// </summary>
-    public VKKnowledgeArgs? KnowledgeArgs { get; set; }
+    /// <typeparam name="T">The type of the arguments.</typeparam>
+    /// <returns>The arguments if present, or null.</returns>
+    public T? Args<T>() where T : class => Request.GetArgs<T>();
 
     /// <summary>
-    /// Gets or sets request-scoped overrides for the Persona feature.
+    /// Gets a value indicating whether to only run the prompt weaving stages, bypassing the LLM call.
     /// </summary>
-    public VKPersonaArgs? PersonaArgs { get; set; }
-
-    /// <summary>
-    /// Gets or sets request-scoped overrides for the Directive feature.
-    /// </summary>
-    public VKDirectiveArgs? DirectiveArgs { get; set; }
-
-    /// <summary>
-    /// Gets runtime overrides or arguments to adjust layout, budgets, and disabled tiers in this turn.
-    /// </summary>
-    public VKWeavingArgs? WeavingArgs { get; init; }
+    public bool IsWeaveOnly => Args<VKWeavingArgs>()?.WeaveOnly == true;
 
     // ==========================================
     // 7. Execution Context & Abort (Physical Pipeline)
@@ -191,32 +120,6 @@ public sealed record VKPsycheContext
     /// Gets the service provider for resolving dependencies during execution.
     /// </summary>
     public required IServiceProvider Services { get; init; }
-
-    /// <summary>
-    /// Gets the user security context.
-    /// </summary>
-    public IVKUserContext? UserContext { get; init; }
-
-    private readonly string? _tenantId;
-    private readonly string? _userId;
-
-    /// <summary>
-    /// Gets the Tenant ID associated with the request.
-    /// </summary>
-    public string? TenantId
-    {
-        get => _tenantId ?? UserContext?.TenantId;
-        init => _tenantId = value;
-    }
-
-    /// <summary>
-    /// Gets the User ID associated with the request.
-    /// </summary>
-    public string? UserId
-    {
-        get => _userId ?? UserContext?.UserId;
-        init => _userId = value;
-    }
 
     private int _isAborted;
 

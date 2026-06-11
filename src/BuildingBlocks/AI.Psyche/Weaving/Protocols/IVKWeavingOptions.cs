@@ -29,6 +29,11 @@ public interface IVKWeavingOptions : IVKBlockOptions
     /// </summary>
     bool EnableSemanticPruning { get; }
 
+    /// <summary>
+    /// Gets whether to run in weave-only mode.
+    /// </summary>
+    bool WeaveOnly { get; }
+
     List<VKPromptTierType> DisabledTiers { get; init; }
     List<VKPromptTierType> TierRenderOrderOverrides { get; init; }
 

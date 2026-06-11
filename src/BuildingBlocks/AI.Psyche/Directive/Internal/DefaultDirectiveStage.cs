@@ -39,13 +39,13 @@ internal sealed class DefaultDirectiveStage : IVKPsycheBeforePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Directive))
         {
             return VKResult.Success();
         }
 
-        var directiveId = context.DirectiveArgs?.DirectiveId;
+        var directiveId = context.Args<VKDirectiveArgs>()?.DirectiveId;
         if (!directiveId.HasValue || directiveId.Value.IsEmpty)
         {
             directiveId = VKDirectiveId.Empty;

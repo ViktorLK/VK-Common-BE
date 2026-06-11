@@ -22,6 +22,7 @@ public sealed partial record VKWeavingOptions : IVKWeavingOptions
 
     public bool StripThinkTags { get; init; } = true;
     public bool EnableSemanticPruning { get; init; } = true;
+    public bool WeaveOnly { get; init; } = false;
 
     public List<VKPromptTierType> DisabledTiers { get; init; } = [];
     public List<VKPromptTierType> TierRenderOrderOverrides { get; init; } = [];

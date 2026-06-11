@@ -28,7 +28,7 @@ internal static class PsychePipelineRunner
 
         foreach (var stage in sorted)
         {
-            if (currentChunk == null)
+            if (currentChunk is null)
             {
                 currentChunk = [stage];
                 chunks.Add(currentChunk);

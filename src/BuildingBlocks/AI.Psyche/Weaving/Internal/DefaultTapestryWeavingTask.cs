@@ -34,8 +34,8 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
         VKGuard.NotNull(context);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _options.DisabledTiers;
-        var tierOrderOverrides = context.WeavingArgs?.TierRenderOrderOverrides ?? _options.TierRenderOrderOverrides;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _options.DisabledTiers;
+        var tierOrderOverrides = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides ?? _options.TierRenderOrderOverrides;
 
         int GetFragmentDepth(VKPromptFragment fragment)
         {
@@ -60,7 +60,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 
         if (activeFragments.Count == 0 && context.Fragments.Count > 0)
         {
-            WeavingDiagnostics.WeavingEmptyActive(_logger, context.SessionId);
+            WeavingDiagnostics.WeavingEmptyActive(_logger, context.Request.SessionId);
             return Task.FromResult(VKResult.Failure(VKWeavingErrors.EmptyActive));
         }
 
@@ -80,7 +80,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 
         foreach (var frag in baseFragments)
         {
-            if (frag.Role == VKChatRole.System && frag.Depth == null)
+            if (frag.Role == VKChatRole.System && frag.Depth is null)
             {
                 // Unconditional system prompts are concatenated together to maintain prompt purity
                 if (systemBuilder.Length > 0)
@@ -116,12 +116,12 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
         }
 
         // 3. Append current UserInput as the final message in the sequence to act as the generation trigger
-        if (!string.IsNullOrWhiteSpace(context.UserInput))
+        if (!string.IsNullOrWhiteSpace(context.Request.UserInput))
         {
             finalMessages.Add(new VKChatMessage
             {
                 Role = VKChatRole.User,
-                Content = context.UserInput
+                Content = context.Request.UserInput
             });
         }
 
@@ -138,16 +138,11 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
             });
         }
 
-        var tapestry = new VKPsycheResponse
-        {
-            Messages = finalMessages,
-            SystemInstructions = systemBuilder.ToString().Trim(),
-            TotalEstimatedTokens = 0
-        };
+        context.Response.Messages.AddRange(finalMessages);
+        context.Response.SystemInstructions = systemBuilder.ToString().Trim();
+        context.Response.TotalEstimatedTokens = 0;
 
-        context.Response = tapestry;
-
-        WeavingDiagnostics.WeavingAssembled(_logger, context.SessionId, finalMessages.Count);
+        WeavingDiagnostics.WeavingAssembled(_logger, context.Request.SessionId, finalMessages.Count);
 
         return Task.FromResult(VKResult.Success());
     }

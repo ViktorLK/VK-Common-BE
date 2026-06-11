@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI;
 
 // // [AP.03] Internal implementation inside Internal/ folder without VK prefix
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;

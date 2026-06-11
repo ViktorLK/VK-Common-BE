@@ -35,7 +35,7 @@ internal sealed class DefaultPatternStage : IVKPsycheBeforePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Pattern))
         {
             return VKResult.Success();

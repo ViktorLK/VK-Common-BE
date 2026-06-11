@@ -30,7 +30,7 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
         VKGuard.NotNull(context);
 
         // Early pruning of disabled tiers so that downstream formatting & truncation tasks ignore them
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _options.DisabledTiers;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _options.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Count > 0)
         {
             var activeFragments = context.Fragments
@@ -60,16 +60,16 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
             },
             cancellationToken).ConfigureAwait(false); // // [CS.03]
 
-        if (hasFailed && failedResult != null)
+        if (hasFailed && failedResult is not null)
         {
             return VKResult.Failure<VKPsycheResponse>(failedResult.Errors); // // [CS.01]
         }
 
-        if (context.Response is null)
+        if (context.Response.Messages.Count == 0)
         {
             return VKResult.Failure<VKPsycheResponse>(VKWeavingErrors.NoTapestry);
         }
 
-        return VKResult.Success(context.Response);
+        return VKResult.Success(context.Response.Build());
     }
 }

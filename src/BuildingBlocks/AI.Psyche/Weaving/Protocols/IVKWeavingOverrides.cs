@@ -27,6 +27,12 @@ public interface IVKWeavingOverrides
     /// Gets whether to enable semantic pruning when token limits are exceeded.
     /// </summary>
     bool? EnableSemanticPruning { get; init; }
+
+    /// <summary>
+    /// Gets whether to run in weave-only mode.
+    /// </summary>
+    bool? WeaveOnly { get; init; }
+
     List<VKPromptTierType>? DisabledTiers { get; init; }
     List<VKPromptTierType>? TierRenderOrderOverrides { get; init; }
 

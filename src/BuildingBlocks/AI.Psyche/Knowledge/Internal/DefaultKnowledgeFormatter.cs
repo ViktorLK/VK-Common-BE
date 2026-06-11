@@ -30,7 +30,7 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
         }
 
         // Get all active Knowledge fragments sharing the same slot (Role and Depth)
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? new List<VKPromptTierType>();
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? new List<VKPromptTierType>();
         if (disabledTiers.Contains(VKPromptTierType.Knowledge))
         {
             return VKResult.Success(string.Empty);

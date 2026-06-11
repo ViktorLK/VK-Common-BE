@@ -36,18 +36,18 @@ internal sealed class DefaultKnowledgeStage : IVKPsycheBeforePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Knowledge))
         {
             return VKResult.Success();
         }
 
-        if (context.PersonaId.IsEmpty)
+        if (context.Request.PersonaId.IsEmpty)
         {
             return VKResult.Failure(VKKnowledgeErrors.MissingPersona);
         }
 
-        var knowledgeResult = await _store.GetRelevantEntriesAsync(context.PersonaId, ct).ConfigureAwait(false); // [CS.03]
+        var knowledgeResult = await _store.GetRelevantEntriesAsync(context.Request.PersonaId, ct).ConfigureAwait(false); // [CS.03]
         if (knowledgeResult.IsFailure)
         {
             return VKResult.Failure(knowledgeResult.Errors); // [CS.01]
@@ -90,13 +90,13 @@ internal sealed class DefaultKnowledgeStage : IVKPsycheBeforePipelineStage
             timeline.Add((echo.Content, currentTurn));
         }
 
-        if (!string.IsNullOrWhiteSpace(context.UserInput))
+        if (!string.IsNullOrWhiteSpace(context.Request.UserInput))
         {
             if (hasUserInCurrentTurn)
             {
                 currentTurn++;
             }
-            timeline.Add((context.UserInput, currentTurn));
+            timeline.Add((context.Request.UserInput, currentTurn));
         }
 
         var lastTriggeredTurn = new Dictionary<VKKnowledgeId, int>(); // Key: KnowledgeId, Value: TurnIndex

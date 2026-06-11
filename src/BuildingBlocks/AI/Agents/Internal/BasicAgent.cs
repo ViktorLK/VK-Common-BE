@@ -202,7 +202,7 @@ internal sealed class BasicAgent : IVKAgent
                     }
                 }
 
-                if (skippedToolCalls.Any())
+                if (skippedToolCalls.Count != 0)
                 {
                     foreach (var skipped in skippedToolCalls)
                     {
