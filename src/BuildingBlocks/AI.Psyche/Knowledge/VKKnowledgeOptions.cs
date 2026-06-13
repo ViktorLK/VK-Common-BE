@@ -46,4 +46,13 @@ public sealed partial record VKKnowledgeOptions : IVKKnowledgeOptions
     /// Defaults to 5.
     /// </summary>
     public int? SemanticMaxEntries { get; init; } = 5;
+
+    /// <summary>
+    /// Gets or sets the number of historical dialogue echoes to scan for keyword matching.
+    /// 0 matches only the current user input.
+    /// N matches the current user input plus the last N echoes.
+    /// -1 matches the entire dialogue history present in the context.
+    /// Defaults to 5.
+    /// </summary>
+    public int KeywordScanDepth { get; init; } = 5;
 }

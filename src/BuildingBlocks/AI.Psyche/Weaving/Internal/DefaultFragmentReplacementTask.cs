@@ -38,21 +38,18 @@ internal sealed class DefaultFragmentReplacementTask : IVKWeavingTask
         foreach (var fragment in context.Fragments)
         {
             // [CS.01] Skip Echo (real history) to prevent prompt injection via history variables
-            if (string.IsNullOrWhiteSpace(fragment.Content) || fragment.TierType == VKPromptTierType.Echo)
+            if (string.IsNullOrWhiteSpace(fragment.Segment.Content) || fragment.TierType == VKPromptTierType.Echo)
             {
                 newFragments.Add(fragment);
                 continue;
             }
 
-            var msgResult = await _templateEngine.RenderAsync(fragment.Content, variables, cancellationToken).ConfigureAwait(false);
+            var msgResult = await _templateEngine.RenderAsync(fragment.Segment.Content, variables, cancellationToken).ConfigureAwait(false);
             if (msgResult.IsSuccess)
             {
-                newFragments.Add(fragment with { Content = msgResult.Value });
+                fragment.Segment = fragment.Segment with { Content = msgResult.Value };
             }
-            else
-            {
-                newFragments.Add(fragment);
-            }
+            newFragments.Add(fragment);
         }
 
         context.SetFragments(newFragments);

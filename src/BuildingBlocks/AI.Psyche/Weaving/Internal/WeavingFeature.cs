@@ -16,6 +16,8 @@ internal sealed partial class WeavingFeature
         // Register weaving pipeline tasks
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultPromptFormatterTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultPromptTruncateTask>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultFragmentReplacementTask>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultCoordinateResolveTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultTapestryWeavingTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultWeavingStage>());
 

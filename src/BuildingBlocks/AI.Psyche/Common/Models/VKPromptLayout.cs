@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using VK.Blocks.AI.Psyche.Common.Internal;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -15,10 +16,8 @@ internal static class PromptLayout
     internal static IReadOnlyDictionary<VKPromptTierType, int> DefaultRenderOrders { get; } =
         new Dictionary<VKPromptTierType, int>
         {
-            [VKPromptTierType.Directive] = 10000,
-            [VKPromptTierType.Persona] = 20000,
-            [VKPromptTierType.Knowledge] = 30000,
-            [VKPromptTierType.Pattern] = 40000,
-            [VKPromptTierType.Echo] = 50000,
+            [VKPromptTierType.Directive] = (int)VKPromptTierType.Directive * PsycheConstants.Layout.TierCoordinateGap,
+            [VKPromptTierType.Persona] = (int)VKPromptTierType.Persona * PsycheConstants.Layout.TierCoordinateGap,
+            [VKPromptTierType.Echo] = (int)VKPromptTierType.Echo * PsycheConstants.Layout.TierCoordinateGap,
         };
 }

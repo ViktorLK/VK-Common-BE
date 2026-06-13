@@ -34,7 +34,7 @@ internal sealed class DefaultPromptFormatterTask : IVKWeavingTask
             var matchedFormatter = _formatters.FirstOrDefault(f => f.CanFormat(fragment));
             if (matchedFormatter is null)
             {
-                if (!string.IsNullOrEmpty(fragment.Content))
+                if (!string.IsNullOrEmpty(fragment.Segment.Content))
                 {
                     formattedFragments.Add(fragment);
                     continue;
@@ -48,11 +48,8 @@ internal sealed class DefaultPromptFormatterTask : IVKWeavingTask
                 return Task.FromResult(VKResult.Failure(formatResult.FirstError));
             }
 
-            // [AP.01] Modern C# record state mutation via 'with' expression
-            formattedFragments.Add(fragment with
-            {
-                Content = formatResult.Value
-            });
+            fragment.Segment = fragment.Segment with { Content = formatResult.Value };
+            formattedFragments.Add(fragment);
         }
 
         context.SetFragments(formattedFragments);

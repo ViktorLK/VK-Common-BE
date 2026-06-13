@@ -9,25 +9,25 @@ public enum VKPromptTierType
     /// <summary>
     /// Directive-level instructions (e.g., system prompts, core rules).
     /// </summary>
-    Directive,
+    Directive = 1,
 
     /// <summary>
     /// Persona-specific definitions (e.g., character background, tone).
     /// </summary>
-    Persona,
-
-    /// <summary>
-    /// Injected knowledge context (e.g., RAG results, memory).
-    /// </summary>
-    Knowledge,
-
-    /// <summary>
-    /// Custom prompt preset patterns woven into the prompt tapestry.
-    /// </summary>
-    Pattern,
+    Persona = 2,
 
     /// <summary>
     /// Immediate user interaction or specific task prompts.
     /// </summary>
-    Echo,
+    Echo = 3,
+
+    /// <summary>
+    /// Injected knowledge context (e.g., RAG results, memory).
+    /// </summary>
+    Knowledge = 100,
+
+    /// <summary>
+    /// Custom prompt preset patterns woven into the prompt tapestry.
+    /// </summary>
+    Pattern = 101
 }

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Echo.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -39,10 +40,10 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public int StageOrder => VKWeavingStageOrder.Extraction;
+    public int StageOrder => VKPsychePipelineScheduler.Before.Echo.Order;
     public bool IsActive => true;
-    public bool IsParallel => true;
-    public int? ParallelGroup => 1;
+    public bool IsParallel => VKPsychePipelineScheduler.Before.Echo.IsParallel;
+    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Echo.ParallelGroup;
 
     /// <summary>
     /// Resolves active session memories, prunes the history (oldest first) using dynamic budgets,
@@ -66,7 +67,7 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
         }
         var tierType = VKPromptTierType.Echo;
         var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-            ? idx
+            ? idx * PsycheConstants.Layout.TierCoordinateGap
             : PromptLayout.DefaultRenderOrders[tierType];
 
         var allEchoes = historyResult.Value;
@@ -158,10 +159,12 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
             context.AddFragment(new VKPromptFragment
             {
                 TierType = tierType,
-                Role = retained[i].Role,
                 RenderOrder = baseRenderOrder + i,
-                Depth = null,
-                Metadata = retained[i]
+                Metadata = retained[i],
+                Segment = new VKPromptSegment
+                {
+                    Role = retained[i].Role
+                }
             });
         }
 

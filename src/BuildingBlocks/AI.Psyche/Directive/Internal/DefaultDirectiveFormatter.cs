@@ -1,4 +1,5 @@
 using System.Text;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Directive.Internal;
@@ -21,7 +22,7 @@ internal sealed class DefaultDirectiveFormatter : IVKPromptFormatter
         }
 
         var sb = new StringBuilder(512);
-        sb.AppendLine($"<{Weaving.Internal.PsycheConstants.XmlTags.SystemDirectives}>");
+        sb.AppendLine($"<{PsycheConstants.XmlTags.SystemDirectives}>");
 
         if (!string.IsNullOrWhiteSpace(directive.BehaviorRules))
             sb.AppendLine(directive.BehaviorRules);
@@ -32,7 +33,7 @@ internal sealed class DefaultDirectiveFormatter : IVKPromptFormatter
         if (!string.IsNullOrWhiteSpace(directive.Overview))
             sb.AppendLine(directive.Overview);
 
-        sb.AppendLine($"</{Weaving.Internal.PsycheConstants.XmlTags.SystemDirectives}>");
+        sb.AppendLine($"</{PsycheConstants.XmlTags.SystemDirectives}>");
 
         return VKResult.Success(sb.ToString().Trim());
     }

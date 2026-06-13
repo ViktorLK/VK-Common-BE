@@ -19,7 +19,12 @@ public static class VKWeavingTaskOrder
     /// <summary>
     /// Defines the order for variable replacement steps (e.g., injecting actual persona names or specific runtime parameters).
     /// </summary>
-    public const int Replacement = 900;
+    public const int Replacement = 800;
+
+    /// <summary>
+    /// Defines the step for resolving relative and absolute coordinate rules to final flat render orders.
+    /// </summary>
+    public const int CoordinateResolve = 900;
 
     /// <summary>
     /// Defines the final weaving assembly step where fragments are stitched together into the tapestry.

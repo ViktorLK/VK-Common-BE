@@ -59,9 +59,9 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
         foreach (var f in nonHistoryFragments)
         {
             ct.ThrowIfCancellationRequested();
-            if (f.Content is not null)
+            if (f.Segment.Content is not null)
             {
-                nonHistoryTokens += _tokenCounter.CountTokens(f.Content);
+                nonHistoryTokens += _tokenCounter.CountTokens(f.Segment.Content);
             }
         }
 
@@ -74,9 +74,9 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
 
         remainingHistoryBudget = Math.Min(remainingHistoryBudget, allowedBudget);
 
-        // 4. Sort history chronologically: Depth = 0 (most recent) comes first
+        // 4. Sort history chronologically: highest RenderOrder (most recent) comes first
         var historySorted = historyFragments
-            .OrderBy(f => f.Depth)
+            .OrderByDescending(f => f.RenderOrder)
             .ToList();
 
         var retainedHistory = new List<VKPromptFragment>();
@@ -89,7 +89,7 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
             var hf = historySorted[i];
 
             // Only count if content is rendered
-            int tokens = hf.Content is not null ? _tokenCounter.CountTokens(hf.Content) : 0;
+            int tokens = hf.Segment.Content is not null ? _tokenCounter.CountTokens(hf.Segment.Content) : 0;
 
             if (activeHistoryTokens + tokens <= remainingHistoryBudget)
             {
