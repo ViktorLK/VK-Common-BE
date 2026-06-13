@@ -49,15 +49,9 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
         // Create the unified weaving context
         var weavingContext = new VKPsycheContext
         {
-            PersonaId = request.PersonaId,
-            SessionId = request.SessionId,
-            UserInput = request.UserInput,
-            WeavingArgs = request.Args,
-            CorrelationId = traceId,
-            EchoArgs = request.Echo,
-            KnowledgeArgs = request.Knowledge,
-            PersonaArgs = request.Persona,
-            DirectiveArgs = request.Directive,
+            Request = string.IsNullOrWhiteSpace(request.CorrelationId)
+                ? request with { CorrelationId = traceId }
+                : request,
             Services = _services
         };
 
@@ -79,11 +73,6 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
 
         BehaviorsDiagnostics.PipelineCompleted(_logger, traceId, stopwatch.Elapsed.TotalMilliseconds);
 
-        if (weavingContext.Response is null)
-        {
-            return VKResult.Failure<VKPsycheResponse>(VKBehaviorsErrors.EmptyTapestry);
-        }
-
-        return VKResult.Success(weavingContext.Response);
+        return executeResult;
     }
 }

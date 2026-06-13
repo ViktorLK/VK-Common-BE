@@ -44,7 +44,7 @@ internal sealed class VKGovernanceChatDecorator : IVKChatEngine
 
         // 1. Check Input
         var lastUserMessage = history.LastOrDefault(m => m.Role == VKChatRole.User);
-        if (lastUserMessage != null && !string.IsNullOrWhiteSpace(lastUserMessage.Content))
+        if (lastUserMessage is not null && !string.IsNullOrWhiteSpace(lastUserMessage.Content))
         {
             var moderationResult = await _moderator.CheckContentAsync(lastUserMessage.Content, cancellationToken).ConfigureAwait(false);
             if (!moderationResult.IsSuccess)
@@ -101,7 +101,7 @@ internal sealed class VKGovernanceChatDecorator : IVKChatEngine
 
         // 1. Check Input
         var lastUserMessage = history.LastOrDefault(m => m.Role == VKChatRole.User);
-        if (lastUserMessage != null && !string.IsNullOrWhiteSpace(lastUserMessage.Content))
+        if (lastUserMessage is not null && !string.IsNullOrWhiteSpace(lastUserMessage.Content))
         {
             var moderationResult = await _moderator.CheckContentAsync(lastUserMessage.Content, cancellationToken).ConfigureAwait(false);
             if (!moderationResult.IsSuccess)
@@ -119,9 +119,9 @@ internal sealed class VKGovernanceChatDecorator : IVKChatEngine
         }
 
         // 2. Stream Inner Engine
-        // Note: Real-time streaming moderation is complex. A simple approach is to moderate chunks, 
-        // but this often fails since bad words can be split across chunks. 
-        // Advanced implementations use a sliding window buffer. 
+        // Note: Real-time streaming moderation is complex. A simple approach is to moderate chunks,
+        // but this often fails since bad words can be split across chunks.
+        // Advanced implementations use a sliding window buffer.
         // For now, we trust the model output more if input was safe, or we buffer (which breaks streaming).
         // Since this is a basic decorator, we'll stream as-is, but a real app might need delayed chunk emitting.
         await foreach (var chunk in _inner.SendStreamingAsync(history, args, cancellationToken).ConfigureAwait(false))

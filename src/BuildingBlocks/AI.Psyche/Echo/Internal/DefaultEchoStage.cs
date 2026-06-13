@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Echo.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -39,10 +40,10 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public int StageOrder => VKWeavingStageOrder.Extraction;
+    public int StageOrder => VKPsychePipelineScheduler.Before.Echo.Order;
     public bool IsActive => true;
-    public bool IsParallel => true;
-    public int? ParallelGroup => 1;
+    public bool IsParallel => VKPsychePipelineScheduler.Before.Echo.IsParallel;
+    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Echo.ParallelGroup;
 
     /// <summary>
     /// Resolves active session memories, prunes the history (oldest first) using dynamic budgets,
@@ -52,27 +53,27 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Echo))
         {
             return VKResult.Success();
         }
 
         // 1. Fetch the updated history
-        var historyResult = await _echoStore.GetHistoryAsync(context.SessionId, cancellationToken).ConfigureAwait(false);
+        var historyResult = await _echoStore.GetHistoryAsync(context.Request.SessionId, cancellationToken).ConfigureAwait(false);
         if (historyResult.IsFailure)
         {
             return VKResult.Failure(historyResult.Errors);
         }
         var tierType = VKPromptTierType.Echo;
-        var baseRenderOrder = context.WeavingArgs?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-            ? idx
+        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
+            ? idx * PsycheConstants.Layout.TierCoordinateGap
             : PromptLayout.DefaultRenderOrders[tierType];
 
         var allEchoes = historyResult.Value;
 
         // Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
-        var maxWindowSize = context.EchoArgs?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
+        var maxWindowSize = context.Args<VKEchoArgs>()?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
         if (maxWindowSize.HasValue && maxWindowSize.Value > 0 && allEchoes.Count > maxWindowSize.Value)
         {
             allEchoes = [.. allEchoes.Skip(allEchoes.Count - maxWindowSize.Value)];
@@ -91,7 +92,7 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
             effectiveBudget = _echoOptions.MaxTokens.Value;
         }
 
-        var totalLimit = context.WeavingArgs?.TotalContextLimit ?? _weavingOptions.TotalContextLimit;
+        var totalLimit = context.Args<VKWeavingArgs>()?.TotalContextLimit ?? _weavingOptions.TotalContextLimit;
         int dynamicLimit = (int)(totalLimit * _echoOptions.TokenBudgetRatio);
         effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
 
@@ -109,7 +110,7 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
             {
                 int turnTokens = turn.Sum(e => _tokenCounter.CountTokens(e.Content));
 
-                var maxTurns = context.EchoArgs?.MaxTurns ?? _echoOptions.MaxTurns;
+                var maxTurns = context.Args<VKEchoArgs>()?.MaxTurns ?? _echoOptions.MaxTurns;
                 if (maxTurns.HasValue && retainedTurnsCount >= maxTurns.Value)
                 {
                     break;
@@ -158,14 +159,16 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
             context.AddFragment(new VKPromptFragment
             {
                 TierType = tierType,
-                Role = retained[i].Role,
                 RenderOrder = baseRenderOrder + i,
-                Depth = retained.Count - 1 - i,
-                Metadata = retained[i]
+                Metadata = retained[i],
+                Segment = new VKPromptSegment
+                {
+                    Role = retained[i].Role
+                }
             });
         }
 
-        EchoDiagnostics.EchoTrimmed(_logger, context.SessionId, allEchoes.Count, retained.Count);
+        EchoDiagnostics.EchoTrimmed(_logger, context.Request.SessionId, allEchoes.Count, retained.Count);
 
         return VKResult.Success();
     }

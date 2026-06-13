@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Directive.Internal;
@@ -29,23 +30,22 @@ internal sealed class DefaultDirectiveStage : IVKPsycheBeforePipelineStage
     /// <summary>
     /// Executes early in the weaving pipeline (Order = 5) to guarantee Directive guardrails are loaded first.
     /// </summary>
-    public int StageOrder => VKWeavingStageOrder.Extraction;
-
+    public int StageOrder => VKPsychePipelineScheduler.Before.Directive.Order;
     public bool IsActive => true;
-    public bool IsParallel => true;
-    public int? ParallelGroup => 1;
+    public bool IsParallel => VKPsychePipelineScheduler.Before.Directive.IsParallel;
+    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Directive.ParallelGroup;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Directive))
         {
             return VKResult.Success();
         }
 
-        var directiveId = context.DirectiveArgs?.DirectiveId;
+        var directiveId = context.Args<VKDirectiveArgs>()?.DirectiveId;
         if (!directiveId.HasValue || directiveId.Value.IsEmpty)
         {
             directiveId = VKDirectiveId.Empty;
@@ -59,12 +59,19 @@ internal sealed class DefaultDirectiveStage : IVKPsycheBeforePipelineStage
 
         var tierType = VKPromptTierType.Directive;
         var directive = resolveResult.Value;
+        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
+            ? idx * PsycheConstants.Layout.TierCoordinateGap
+            : PromptLayout.DefaultRenderOrders[tierType];
+
         context.AddFragment(new VKPromptFragment()
         {
             TierType = tierType,
-            Role = VKChatRole.System,
-            RenderOrder = 0,
+            RenderOrder = baseRenderOrder,
             Metadata = directive,
+            Segment = new VKPromptSegment
+            {
+                Role = VKChatRole.System
+            }
         });
 
         return VKResult.Success();

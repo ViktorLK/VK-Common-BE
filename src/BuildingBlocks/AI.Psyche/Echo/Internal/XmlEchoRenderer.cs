@@ -1,3 +1,4 @@
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Echo.Internal;
@@ -8,7 +9,7 @@ internal sealed class XmlEchoRenderer : IVKEchoRenderer
     {
         VKGuard.NotNull(trace);
         string role = trace.Role.ToString().ToLowerInvariant();
-        string tag = Weaving.Internal.PsycheConstants.XmlTags.Message;
+        string tag = PsycheConstants.XmlTags.Message;
         return $"<{tag} role=\"{role}\">{trace.Content}</{tag}>";
     }
 }

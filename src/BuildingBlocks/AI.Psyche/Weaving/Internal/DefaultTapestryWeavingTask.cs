@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Weaving.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -34,64 +35,48 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
         VKGuard.NotNull(context);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _options.DisabledTiers;
-        var tierOrderOverrides = context.WeavingArgs?.TierRenderOrderOverrides ?? _options.TierRenderOrderOverrides;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _options.DisabledTiers;
 
-        int GetFragmentDepth(VKPromptFragment fragment)
-        {
-            if (tierOrderOverrides is not null)
-            {
-                var overriddenOrder = tierOrderOverrides.IndexOf(fragment.TierType);
-                if (overriddenOrder >= 0)
-                {
-                    return overriddenOrder;
-                }
-            }
-            return PromptLayout.DefaultRenderOrders.TryGetValue(fragment.TierType, out var defaultOrder)
-                ? defaultOrder
-                : (int)fragment.TierType;
-        }
-
-        // Filter and process active fragments (excluding any disabled tiers)
+        // 1. Filter active fragments
         var activeFragments = context.Fragments
-            .Where(f => !string.IsNullOrWhiteSpace(f.Content) && !disabledTiers.Contains(f.TierType))
-            .OrderBy(f => f.RenderOrder != 0 ? f.RenderOrder : GetFragmentDepth(f))
+            .Where(f => !string.IsNullOrWhiteSpace(f.Segment.Content) && !disabledTiers.Contains(f.TierType))
             .ToList();
 
         if (activeFragments.Count == 0 && context.Fragments.Count > 0)
         {
-            WeavingDiagnostics.WeavingEmptyActive(_logger, context.SessionId);
+            WeavingDiagnostics.WeavingEmptyActive(_logger, context.Request.SessionId);
             return Task.FromResult(VKResult.Failure(VKWeavingErrors.EmptyActive));
         }
 
-        // 1. Separate base fragments (which lay out chronological chat history & system instructions)
-        // from absolute-depth bracket injections (fragments with dynamic depth targets).
+        // 2. Separate base fragments (Fixed + Relative) from absolute injections
         var baseFragments = activeFragments
-            .Where(f => f.Depth is null)
+            .Where(f => f.Segment.AbsoluteDepth is null)
+            .OrderBy(f => f.RenderOrder)
             .ToList();
 
         var injections = activeFragments
-            .Where(f => f.Depth is not null)
+            .Where(f => f.Segment.AbsoluteDepth is not null)
+            .OrderBy(f => f.Segment.Priority)
             .ToList();
 
-        // 2. Build Base Timeline (Order-based, oldest first)
+        // 4. Build Base Timeline (Order-based, oldest first)
         var finalMessages = new List<VKChatMessage>();
         var systemBuilder = new StringBuilder();
 
         foreach (var frag in baseFragments)
         {
-            if (frag.Role == VKChatRole.System && frag.Depth == null)
+            if (frag.Segment.Role == VKChatRole.System)
             {
                 // Unconditional system prompts are concatenated together to maintain prompt purity
                 if (systemBuilder.Length > 0)
                 {
                     systemBuilder.Append(frag.Separator ?? PsycheConstants.Separators.DefaultSegment);
                 }
-                systemBuilder.Append(frag.Content);
+                systemBuilder.Append(frag.Segment.Content);
             }
             else
             {
-                string content = frag.Content!;
+                string content = frag.Segment.Content!;
                 if (frag.TierType == VKPromptTierType.Echo && frag.Metadata is VKEchoTrace trace)
                 {
                     content = trace.Content;
@@ -99,7 +84,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 
                 finalMessages.Add(new VKChatMessage
                 {
-                    Role = frag.Role,
+                    Role = frag.Segment.Role,
                     Content = content
                 });
             }
@@ -115,39 +100,34 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
             });
         }
 
-        // 3. Append current UserInput as the final message in the sequence to act as the generation trigger
-        if (!string.IsNullOrWhiteSpace(context.UserInput))
+        // 5. Append current UserInput as the final message in the sequence to act as the generation trigger
+        if (!string.IsNullOrWhiteSpace(context.Request.UserInput))
         {
             finalMessages.Add(new VKChatMessage
             {
                 Role = VKChatRole.User,
-                Content = context.UserInput
+                Content = context.Request.UserInput
             });
         }
 
-        // 4. Perform Absolute Position Injections (separate message inserted at global depth)
+        // 6. Perform Absolute Position Injections (separate message inserted at global depth)
         foreach (var inject in injections)
         {
-            int targetDepth = inject.Depth!.Value;
+            int targetDepth = inject.Segment.AbsoluteDepth!.Value;
             int targetIndex = Math.Clamp(finalMessages.Count - targetDepth, 0, finalMessages.Count);
 
             finalMessages.Insert(targetIndex, new VKChatMessage
             {
-                Role = inject.Role,
-                Content = inject.Content!
+                Role = inject.Segment.Role,
+                Content = inject.Segment.Content!
             });
         }
 
-        var tapestry = new VKPsycheResponse
-        {
-            Messages = finalMessages,
-            SystemInstructions = systemBuilder.ToString().Trim(),
-            TotalEstimatedTokens = 0
-        };
+        context.Response.Messages.AddRange(finalMessages);
+        context.Response.SystemInstructions = systemBuilder.ToString().Trim();
+        context.Response.TotalEstimatedTokens = 0;
 
-        context.Response = tapestry;
-
-        WeavingDiagnostics.WeavingAssembled(_logger, context.SessionId, finalMessages.Count);
+        WeavingDiagnostics.WeavingAssembled(_logger, context.Request.SessionId, finalMessages.Count);
 
         return Task.FromResult(VKResult.Success());
     }

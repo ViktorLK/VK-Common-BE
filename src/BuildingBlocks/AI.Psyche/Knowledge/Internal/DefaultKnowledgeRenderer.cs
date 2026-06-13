@@ -7,6 +7,6 @@ internal sealed class DefaultKnowledgeRenderer : IVKKnowledgeRenderer
     public string Render(VKKnowledgeEntry entry)
     {
         VKGuard.NotNull(entry);
-        return entry.Content;
+        return entry.Segment.Content;
     }
 }

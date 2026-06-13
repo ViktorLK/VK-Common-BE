@@ -13,10 +13,10 @@ internal sealed class DefaultWeavingStage : IVKPsycheBeforePipelineStage
         _weavingEngine = VKGuard.NotNull(weavingEngine);
     }
 
-    public int StageOrder => VKWeavingStageOrder.Weaving;
+    public int StageOrder => VKPsychePipelineScheduler.Before.Weaving.Order;
     public bool IsActive => true;
-    public bool IsParallel => false;
-    public int? ParallelGroup => null;
+    public bool IsParallel => VKPsychePipelineScheduler.Before.Weaving.IsParallel;
+    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Weaving.ParallelGroup;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {

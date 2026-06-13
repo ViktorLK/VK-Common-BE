@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Persona.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -26,36 +27,43 @@ internal sealed class DefaultPersonaStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public int StageOrder => VKWeavingStageOrder.Extraction;
+    public int StageOrder => VKPsychePipelineScheduler.Before.Persona.Order;
     public bool IsActive => true;
-    public bool IsParallel => true;
-    public int? ParallelGroup => 1;
+    public bool IsParallel => VKPsychePipelineScheduler.Before.Persona.IsParallel;
+    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Persona.ParallelGroup;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Persona))
         {
             return VKResult.Success();
         }
 
-        var personaResult = await _store.GetPersonaAsync(context.PersonaId, cancellationToken).ConfigureAwait(false); // [CS.03]
+        var personaResult = await _store.GetPersonaAsync(context.Request.PersonaId, cancellationToken).ConfigureAwait(false); // [CS.03]
         if (personaResult.IsFailure)
         {
             return VKResult.Failure(personaResult.Errors); // [CS.01]
         }
 
-        PersonaDiagnostics.PersonaResolved(_logger, context.PersonaId, personaResult.Value.Name);
+        PersonaDiagnostics.PersonaResolved(_logger, context.Request.PersonaId, personaResult.Value.Name);
+
+        var tierType = VKPromptTierType.Persona;
+        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
+            ? idx * PsycheConstants.Layout.TierCoordinateGap
+            : PromptLayout.DefaultRenderOrders[tierType];
 
         context.AddFragment(new VKPromptFragment()
         {
-            TierType = VKPromptTierType.Persona,
-            Role = VKChatRole.System,
-            Depth = null,
-            RenderOrder = 0,
+            TierType = tierType,
+            RenderOrder = baseRenderOrder,
             Metadata = personaResult.Value,
+            Segment = new VKPromptSegment
+            {
+                Role = VKChatRole.System
+            }
         });
 
         return VKResult.Success();

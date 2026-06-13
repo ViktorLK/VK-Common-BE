@@ -1,4 +1,4 @@
-namespace VK.Blocks.AI.Psyche.Weaving.Internal;
+namespace VK.Blocks.AI.Psyche.Common.Internal;
 
 // // [AP.03] Internal constants in internal namespace
 internal static class PsycheConstants
@@ -22,5 +22,12 @@ internal static class PsycheConstants
     {
         internal const string DefaultSegment = "\n\n";
         internal const string DefaultRoleHeader = ": ";
+    }
+
+    internal static class Layout
+    {
+        internal const int RelativeOffset = 1000;
+        internal const int EchoReserve = 10000;
+        internal const int TierCoordinateGap = 10000;
     }
 }

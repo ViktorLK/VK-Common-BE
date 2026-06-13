@@ -74,7 +74,7 @@ internal sealed class VKAIRagOrchestrator : IVKAIRagOrchestrator
         }
     }
 
-    private IEnumerable<VKChatMessage> BuildMessages(string query, IReadOnlyList<VKRetrievalResult> contextResults)
+    private static List<VKChatMessage> BuildMessages(string query, IReadOnlyList<VKRetrievalResult> contextResults)
     {
         var messages = new List<VKChatMessage>();
 

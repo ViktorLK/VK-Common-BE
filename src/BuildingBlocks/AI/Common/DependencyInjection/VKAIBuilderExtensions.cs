@@ -76,6 +76,17 @@ public static class VKAIBuilderExtensions
         return AgentsFeature.Register(builder);
     }
 
+    /// <summary>
+    /// Adds the Prompting feature (Templates and template engine).
+    /// </summary>
+    public static IVKAIBuilder AddVKPrompting(
+        this IVKAIBuilder builder,
+        Func<VKPromptingOptions, VKPromptingOptions>? transform = null)
+    {
+        VKGuard.NotNull(builder);
+        return VK.Blocks.AI.Prompting.Internal.PromptingFeature.Register(builder, transform);
+    }
+
     // ========================================================================
     // 2. VECTORICS SUB-FEATURES
     // ========================================================================
@@ -321,6 +332,7 @@ public static class VKAIBuilderExtensions
         return builder
             .AddVKChat()
             .AddVKText()
+            .AddVKPrompting()
             .AddVKAudio()
             .AddVKVectorics()
             .AddVKGuardrails()

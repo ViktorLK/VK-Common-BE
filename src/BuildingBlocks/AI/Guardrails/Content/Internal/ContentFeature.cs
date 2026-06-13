@@ -22,7 +22,7 @@ internal sealed partial class ContentFeature
         where TInterface : class
     {
         var descriptor = System.Linq.Enumerable.FirstOrDefault(services, s => s.ServiceType == typeof(TInterface));
-        if (descriptor != null)
+        if (descriptor is not null)
         {
             var innerFactory = descriptor.ImplementationFactory;
             var innerType = descriptor.ImplementationType;
@@ -33,15 +33,15 @@ internal sealed partial class ContentFeature
             services.Add(new ServiceDescriptor(typeof(TInterface), provider =>
             {
                 TInterface inner;
-                if (innerFactory != null)
+                if (innerFactory is not null)
                 {
                     inner = (TInterface)innerFactory(provider);
                 }
-                else if (innerInstance != null)
+                else if (innerInstance is not null)
                 {
                     inner = (TInterface)innerInstance;
                 }
-                else if (innerType != null)
+                else if (innerType is not null)
                 {
                     inner = (TInterface)ActivatorUtilities.CreateInstance(provider, innerType);
                 }

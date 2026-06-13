@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using VK.Blocks.Core;
+
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
@@ -26,28 +30,16 @@ public sealed record VKPsycheRequest
     /// </summary>
     public string? CorrelationId { get; init; }
 
-    /// <summary>
-    /// Gets runtime overrides or arguments to adjust layout, budgets, and disabled tiers in this turn.
-    /// </summary>
-    public VKWeavingArgs? Args { get; init; }
+    private readonly Dictionary<Type, object> _args = [];
 
-    /// <summary>
-    /// Gets request-scoped overrides for the Echo feature.
-    /// </summary>
-    public VKEchoArgs? Echo { get; init; }
+    public VKPsycheRequest WithArgs<T>(T args) where T : class
+    {
+        _args[typeof(T)] = VKGuard.NotNull(args);
+        return this;
+    }
 
-    /// <summary>
-    /// Gets request-scoped overrides for the Knowledge feature.
-    /// </summary>
-    public VKKnowledgeArgs? Knowledge { get; init; }
+    public T? GetArgs<T>() where T : class
+        => _args.TryGetValue(typeof(T), out object? v) ? (T)v : null;
 
-    /// <summary>
-    /// Gets request-scoped overrides for the Persona feature.
-    /// </summary>
-    public VKPersonaArgs? Persona { get; init; }
-
-    /// <summary>
-    /// Gets request-scoped overrides for the Directive feature.
-    /// </summary>
-    public VKDirectiveArgs? Directive { get; init; }
+    internal IEnumerable<object> GetAllArgs() => _args.Values;
 }

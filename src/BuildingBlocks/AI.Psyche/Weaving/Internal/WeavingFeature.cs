@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI;
 
 // // [AP.03] Internal implementation inside Internal/ folder without VK prefix
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
@@ -17,6 +16,8 @@ internal sealed partial class WeavingFeature
         // Register weaving pipeline tasks
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultPromptFormatterTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultPromptTruncateTask>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultFragmentReplacementTask>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultCoordinateResolveTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultTapestryWeavingTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultWeavingStage>());
 

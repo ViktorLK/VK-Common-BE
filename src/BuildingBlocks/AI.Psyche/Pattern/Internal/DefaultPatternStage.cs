@@ -13,13 +13,13 @@ internal sealed class DefaultPatternStage : IVKPsycheBeforePipelineStage
     private readonly IVKPatternStore _store;
     private readonly VKWeavingOptions _weavingOptions;
 
-    public int StageOrder => VKWeavingStageOrder.Pattern;
+    public int StageOrder => VKPsychePipelineScheduler.Before.Pattern.Order;
 
     public bool IsActive => _options.Enabled;
 
-    public bool IsParallel => true;
+    public bool IsParallel => VKPsychePipelineScheduler.Before.Pattern.IsParallel;
 
-    public int? ParallelGroup => 2;
+    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Pattern.ParallelGroup;
 
     public DefaultPatternStage(
         IOptions<VKPatternOptions> options,
@@ -35,7 +35,7 @@ internal sealed class DefaultPatternStage : IVKPsycheBeforePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
         if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Pattern))
         {
             return VKResult.Success();
@@ -49,30 +49,14 @@ internal sealed class DefaultPatternStage : IVKPsycheBeforePipelineStage
 
         var currentPatterns = patternsResult.Value.ToList();
 
-        var groups = currentPatterns
-            .GroupBy(entry =>
-            {
-                var coord = PromptPositionResolver.Resolve(entry.Position, entry.Priority, PromptLayout.DefaultRenderOrders);
-                return (Role: coord.Role, Depth: coord.Depth, RenderOrderOffset: coord.RenderOrder);
-            });
-
-        foreach (var group in groups)
+        foreach (var pattern in currentPatterns)
         {
-            var key = group.Key;
-            var entriesForSlot = group.ToList();
-
-            for (int i = 0; i < entriesForSlot.Count; i++)
+            context.AddFragment(new VKPromptFragment
             {
-                context.AddFragment(new VKPromptFragment
-                {
-                    TierType = VKPromptTierType.Pattern,
-                    Role = key.Role,
-                    Depth = key.Depth,
-                    RenderOrder = key.RenderOrderOffset + i,
-                    Content = entriesForSlot[i].Content,
-                    Metadata = entriesForSlot[i]
-                });
-            }
+                TierType = VKPromptTierType.Pattern,
+                Segment = pattern.Segment,
+                Metadata = pattern
+            });
         }
 
         return VKResult.Success();

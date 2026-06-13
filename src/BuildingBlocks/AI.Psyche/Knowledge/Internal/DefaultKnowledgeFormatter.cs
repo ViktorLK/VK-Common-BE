@@ -30,7 +30,7 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
         }
 
         // Get all active Knowledge fragments sharing the same slot (Role and Depth)
-        var disabledTiers = context.WeavingArgs?.DisabledTiers ?? new List<VKPromptTierType>();
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? [];
         if (disabledTiers.Contains(VKPromptTierType.Knowledge))
         {
             return VKResult.Success(string.Empty);
@@ -38,18 +38,22 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
 
         var siblingFragments = context.Fragments
             .Where(f => f.TierType == VKPromptTierType.Knowledge &&
-                        f.Metadata is VKKnowledgeEntry siblingEntry &&
                         (
-                            (currentEntry.Position is VKRelativePromptPosition currentRel &&
-                             siblingEntry.Position is VKRelativePromptPosition siblingRel &&
-                             currentRel.Relative == siblingRel.Relative)
-                            ||
-                            (currentEntry.Position is VKAbsolutePromptPosition currentAbs &&
-                             siblingEntry.Position is VKAbsolutePromptPosition siblingAbs &&
-                             currentAbs.Role == siblingAbs.Role && currentAbs.Depth == siblingAbs.Depth)
+                            (fragment.Segment is not null && f.Segment is not null) &&
+                            (
+                                (fragment.Segment.AbsoluteDepth is null &&
+                                 f.Segment.AbsoluteDepth is null &&
+                                 fragment.Segment.Anchor == f.Segment.Anchor)
+                                ||
+                                (fragment.Segment.AbsoluteDepth is not null &&
+                                 f.Segment.AbsoluteDepth is not null &&
+                                 fragment.Segment.Role == f.Segment.Role &&
+                                 fragment.Segment.AbsoluteDepth == f.Segment.AbsoluteDepth)
+                            )
                         ) &&
+                        f.Metadata is VKKnowledgeEntry siblingEntry &&
                         siblingEntry.Tag == currentEntry.Tag)
-            .OrderBy(f => f.RenderOrder)
+            .OrderByDescending(f => f.Segment!.Priority)
             .ToList();
 
         if (siblingFragments.Count == 0)

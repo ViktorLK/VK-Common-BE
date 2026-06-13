@@ -34,7 +34,7 @@ internal static class VKWeavingStepRunner
 
         foreach (var step in sorted)
         {
-            if (currentChunk == null)
+            if (currentChunk is null)
             {
                 currentChunk = [step];
                 chunks.Add(currentChunk);
