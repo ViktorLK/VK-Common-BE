@@ -31,6 +31,3 @@ internal sealed class RevealFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-

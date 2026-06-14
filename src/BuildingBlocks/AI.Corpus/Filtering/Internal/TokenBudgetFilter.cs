@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Corpus.Filtering.Internal;
@@ -13,7 +12,7 @@ namespace VK.Blocks.AI.Corpus.Filtering.Internal;
 internal sealed class TokenBudgetFilter : IVKKnowledgeLifecycleFilter
 {
     private readonly IVKTokenCounter _tokenCounter;
-    private readonly VKKnowledgeSourcingOptions _retrievalOptions;
+    private readonly VKGatheringOptions _gatheringOptions;
     private int _accumulatedTokens;
 
     /// <summary>
@@ -21,10 +20,10 @@ internal sealed class TokenBudgetFilter : IVKKnowledgeLifecycleFilter
     /// </summary>
     public TokenBudgetFilter(
         IVKTokenCounter tokenCounter,
-        IOptions<VKKnowledgeSourcingOptions> retrievalOptions)
+        IOptions<VKGatheringOptions> gatheringOptions)
     {
         _tokenCounter = VKGuard.NotNull(tokenCounter);
-        _retrievalOptions = VKGuard.NotNull(retrievalOptions?.Value);
+        _gatheringOptions = VKGuard.NotNull(gatheringOptions?.Value);
     }
 
     /// <inheritdoc />
@@ -38,7 +37,7 @@ internal sealed class TokenBudgetFilter : IVKKnowledgeLifecycleFilter
 
         string content = entry.Knowledge.Segment?.Content ?? string.Empty;
         int tokens = _tokenCounter.CountTokens(content);
-        int budget = _retrievalOptions.DefaultTokenBudget ?? 2048;
+        int budget = _gatheringOptions.DefaultTokenBudget ?? 2048;
 
         if (_accumulatedTokens + tokens > budget)
         {
@@ -49,6 +48,3 @@ internal sealed class TokenBudgetFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-

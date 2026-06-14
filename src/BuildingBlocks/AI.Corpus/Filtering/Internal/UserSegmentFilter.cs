@@ -32,6 +32,3 @@ internal sealed class UserSegmentFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-

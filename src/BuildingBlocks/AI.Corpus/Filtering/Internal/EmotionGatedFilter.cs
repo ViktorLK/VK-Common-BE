@@ -42,6 +42,3 @@ internal sealed class EmotionGatedFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-

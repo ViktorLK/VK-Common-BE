@@ -32,6 +32,3 @@ internal sealed class PersonaFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-

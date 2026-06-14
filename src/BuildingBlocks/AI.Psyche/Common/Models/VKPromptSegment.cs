@@ -7,7 +7,7 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public sealed record VKPromptSegment
 {
-    private readonly int _priority = 0;
+    private readonly int _depthPriority = 0;
 
     /// <summary>
     /// Gets a value indicating whether this prompt fragment is active and enabled.
@@ -37,14 +37,14 @@ public sealed record VKPromptSegment
     /// <summary>
     /// Gets the relative anchor relative to which the segment is rendered if absolute positioning is not used.
     /// </summary>
-    public VKPromptRelativeAnchor? Anchor { get; init; }
+    public VKPromptRelativeDepth? RelativeDepth { get; init; }
 
     /// <summary>
     /// Gets the rendering priority order. Priority must be between 0 and 999.
     /// </summary>
-    public int Priority
+    public int DepthPriority
     {
-        get => _priority;
-        init => _priority = VKGuard.InRange(value, 0, 999, nameof(Priority));
+        get => _depthPriority;
+        init => _depthPriority = VKGuard.InRange(value, 0, 999, nameof(DepthPriority));
     }
 }

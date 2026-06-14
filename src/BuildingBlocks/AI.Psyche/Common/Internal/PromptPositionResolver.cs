@@ -18,12 +18,12 @@ internal static class PromptPositionResolver
     {
         VKGuard.NotNull(segment);
         return segment.AbsoluteDepth is not null
-            ? new FragmentCoordinate(segment.Role, segment.Priority)
-            : new FragmentCoordinate(VKChatRole.System, ResolveRelativeOrder(segment.Anchor ?? VKPromptRelativeAnchor.AfterPersona, renderOrders, segment.Priority));
+            ? new FragmentCoordinate(segment.Role, segment.DepthPriority)
+            : new FragmentCoordinate(VKChatRole.System, ResolveRelativeOrder(segment.RelativeDepth ?? VKPromptRelativeDepth.AfterPersona, renderOrders, segment.DepthPriority));
     }
 
     private static int ResolveRelativeOrder(
-        VKPromptRelativeAnchor anchor,
+        VKPromptRelativeDepth anchor,
         IReadOnlyDictionary<VKPromptTierType, int> renderOrders,
         int priority)
     {
@@ -33,12 +33,12 @@ internal static class PromptPositionResolver
 
         int baseOrder = anchor switch
         {
-            VKPromptRelativeAnchor.BeforeDirective => directiveBase - PsycheConstants.Layout.RelativeOffset,
-            VKPromptRelativeAnchor.AfterDirective => directiveBase + PsycheConstants.Layout.RelativeOffset,
-            VKPromptRelativeAnchor.BeforePersona => personaBase - PsycheConstants.Layout.RelativeOffset,
-            VKPromptRelativeAnchor.AfterPersona => personaBase + PsycheConstants.Layout.RelativeOffset,
-            VKPromptRelativeAnchor.BeforeEcho => echoBase - PsycheConstants.Layout.RelativeOffset,
-            VKPromptRelativeAnchor.AfterEcho => echoBase + PsycheConstants.Layout.EchoReserve,
+            VKPromptRelativeDepth.BeforeDirective => directiveBase - PsycheConstants.Layout.RelativeOffset,
+            VKPromptRelativeDepth.AfterDirective => directiveBase + PsycheConstants.Layout.RelativeOffset,
+            VKPromptRelativeDepth.BeforePersona => personaBase - PsycheConstants.Layout.RelativeOffset,
+            VKPromptRelativeDepth.AfterPersona => personaBase + PsycheConstants.Layout.RelativeOffset,
+            VKPromptRelativeDepth.BeforeEcho => echoBase - PsycheConstants.Layout.RelativeOffset,
+            VKPromptRelativeDepth.AfterEcho => echoBase + PsycheConstants.Layout.EchoReserve,
             _ => throw new System.ArgumentOutOfRangeException(nameof(anchor), anchor, $"Unsupported relative anchor value: {anchor}")
         };
 

@@ -42,6 +42,11 @@ public sealed record VKKnowledgeLifecycle
     public int? MaxCount { get; init; }
 
     /// <summary>
+    /// Gets the max number of injected entries allowed for this group in a single turn.
+    /// </summary>
+    public int? MaxCountPerTurn { get; init; }
+
+    /// <summary>
     /// Gets the start turn range constraint.
     /// </summary>
     public int? StartTurn { get; init; }

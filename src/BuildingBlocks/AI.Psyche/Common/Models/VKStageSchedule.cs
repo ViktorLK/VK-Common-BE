@@ -5,7 +5,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Follows AP.01 (sealed record).
 /// </summary>
 public sealed record VKStageSchedule(
-    int Order,
+    int StageOrder,
     bool IsParallel,
     int? ParallelGroup = null
 );

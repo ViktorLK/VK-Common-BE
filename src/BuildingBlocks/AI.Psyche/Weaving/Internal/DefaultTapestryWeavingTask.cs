@@ -56,7 +56,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 
         var injections = activeFragments
             .Where(f => f.Segment.AbsoluteDepth is not null)
-            .OrderBy(f => f.Segment.Priority)
+            .OrderBy(f => f.Segment.DepthPriority)
             .ToList();
 
         // 4. Build Base Timeline (Order-based, oldest first)

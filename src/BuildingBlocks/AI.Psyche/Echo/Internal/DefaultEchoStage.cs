@@ -40,10 +40,8 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public int StageOrder => VKPsychePipelineScheduler.Before.Echo.Order;
+    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
     public bool IsActive => true;
-    public bool IsParallel => VKPsychePipelineScheduler.Before.Echo.IsParallel;
-    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Echo.ParallelGroup;
 
     /// <summary>
     /// Resolves active session memories, prunes the history (oldest first) using dynamic budgets,

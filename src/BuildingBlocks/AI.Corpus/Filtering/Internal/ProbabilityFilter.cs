@@ -38,6 +38,3 @@ internal sealed class ProbabilityFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(verdict));
     }
 }
-
-
-

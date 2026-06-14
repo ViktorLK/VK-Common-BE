@@ -6,5 +6,5 @@ namespace VK.Blocks.AI.Corpus.Diagnostics.Internal;
 /// Diagnostic signals and OpenTelemetry hook definitions for the AI.Corpus block.
 /// Follows OR.01 / BB.04.
 /// </summary>
-[VKBlockDiagnostics<VKCorpusBlock>]
+[VKBlockDiagnostics<VKAICorpusBlock>]
 internal static partial class CorpusDiagnostics;

@@ -5,7 +5,7 @@ namespace VK.Blocks.AI.Corpus;
 /// <summary>
 /// Options for the Filtering feature of AI.Corpus.
 /// </summary>
-[VKFeature(typeof(VKCorpusBlock), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(VKAICorpusBlock), GenerateArgs = true, GenerateValidator = true)]
 public sealed partial record VKFilteringOptions : IVKFilteringOptions
 {
     /// <summary>
@@ -43,9 +43,9 @@ public sealed partial record VKFilteringOptions : IVKFilteringOptions
     public bool EnableCooldownFilter { get; init; } = true;
     public bool EnableProbabilityFilter { get; init; } = true;
     public bool EnableGroupFilter { get; init; } = true;
-    public bool EnableExclusionFilter { get; init; } = true;
+    public bool EnableGlobalExclusionFilter { get; init; } = true;
     public bool EnableDependencyFilter { get; init; } = true;
-    public bool EnableMaxCountFilter { get; init; } = true;
+    public bool EnableEntryMaxCountFilter { get; init; } = true;
     public bool EnableScheduleFilter { get; init; } = true;
     public bool EnableTokenBudgetFilter { get; init; } = true;
     public bool EnableRecencyBiasFilter { get; init; } = true;
@@ -56,5 +56,5 @@ public sealed partial record VKFilteringOptions : IVKFilteringOptions
     public bool EnableFreshnessFilter { get; init; } = true;
     public bool EnableUserSegmentFilter { get; init; } = true;
     public bool EnableDelayFilter { get; init; } = true;
-    public bool EnableExclusiveGroupFilter { get; init; } = true;
+    public bool EnableGroupTopNFilter { get; init; } = true;
 }

@@ -32,13 +32,13 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
 
         _beforeChunks = PsychePipelineRunner.ChunkStages(
             beforeStages.Where(s => s.IsActive),
-            s => s.StageOrder,
-            s => s.ParallelGroup);
+            s => s.Schedule.StageOrder,
+            s => s.Schedule.ParallelGroup);
 
         _afterChunks = PsychePipelineRunner.ChunkStages(
             afterStages.Where(s => s.IsActive),
-            s => s.StageOrder,
-            s => s.ParallelGroup);
+            s => s.Schedule.StageOrder,
+            s => s.Schedule.ParallelGroup);
 
         _middlewares = VKGuard.NotNull(middlewares)
             .OrderBy(m => m.MiddlewareOrder)
@@ -59,7 +59,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
         var beforeResult = await PsychePipelineRunner.ExecuteChunksAsync(
             _beforeChunks,
             context,
-            s => s.IsParallel,
+            s => s.Schedule.IsParallel,
             (s, ctx, ct) => s.ExecuteAsync(ctx, ct),
             cancellationToken).ConfigureAwait(false); // [CS.03]
 
@@ -115,7 +115,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
         var afterResult = await PsychePipelineRunner.ExecuteChunksAsync(
             _afterChunks,
             context,
-            s => s.IsParallel,
+            s => s.Schedule.IsParallel,
             (s, ctx, ct) => s.ExecuteAsync(ctx, ct),
             cancellationToken).ConfigureAwait(false); // [CS.03]
 

@@ -18,7 +18,7 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     /// Defaults to <see cref="VKKnowledgeXmlTags.Knowledge"/>.
     /// Applies to both relative and absolute (pinned) positioning; use any string (e.g. <c>lore</c>, <c>important_knowledge</c>).
     /// </summary>
-    public string Tag { get; init; } = PsycheConstants.XmlTags.Knowledge;
+    public string XmlTag { get; init; } = PsycheConstants.XmlTags.Knowledge;
 
     /// <summary>
     /// Gets the structured keys that trigger this entry.

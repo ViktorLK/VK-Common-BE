@@ -42,9 +42,9 @@ public interface IVKFilteringOptions : IVKBlockOptions
     bool EnableCooldownFilter { get; }
     bool EnableProbabilityFilter { get; }
     bool EnableGroupFilter { get; }
-    bool EnableExclusionFilter { get; }
+    bool EnableGlobalExclusionFilter { get; }
     bool EnableDependencyFilter { get; }
-    bool EnableMaxCountFilter { get; }
+    bool EnableEntryMaxCountFilter { get; }
     bool EnableScheduleFilter { get; }
     bool EnableTokenBudgetFilter { get; }
     bool EnableRecencyBiasFilter { get; }
@@ -55,5 +55,5 @@ public interface IVKFilteringOptions : IVKBlockOptions
     bool EnableFreshnessFilter { get; }
     bool EnableUserSegmentFilter { get; }
     bool EnableDelayFilter { get; }
-    bool EnableExclusiveGroupFilter { get; }
+    bool EnableGroupTopNFilter { get; }
 }

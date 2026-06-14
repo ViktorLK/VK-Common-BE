@@ -38,6 +38,3 @@ internal sealed class ConflictResolutionFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-

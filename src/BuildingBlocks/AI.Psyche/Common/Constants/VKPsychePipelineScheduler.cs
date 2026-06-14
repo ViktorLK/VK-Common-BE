@@ -11,17 +11,17 @@ public static class VKPsychePipelineScheduler
     public static class Before
     {
         // Extraction Layer (parallel group 1)
-        public static readonly VKStageSchedule Echo = new(0, true, 1);
-        public static readonly VKStageSchedule Persona = new(0, true, 1);
-        public static readonly VKStageSchedule Directive = new(0, true, 1);
+        public static readonly VKStageSchedule PsycheEcho = new(0, true, 1);
+        public static readonly VKStageSchedule PsychePersona = new(0, true, 1);
+        public static readonly VKStageSchedule PsycheDirective = new(0, true, 1);
+        public static readonly VKStageSchedule PsycheKnowledge = new(500, true, 2);
 
-        // Evaluation Layer (Corpus sequential, Knowledge/Pattern parallel group 2)
-        public static readonly VKStageSchedule KnowledgeSourcing = new(540, false);
+        public static readonly VKStageSchedule CorpusGathering = new(540, false);
         public static readonly VKStageSchedule CorpusFiltering = new(560, false);
-        public static readonly VKStageSchedule Knowledge = new(500, true, 2);
-        public static readonly VKStageSchedule Pattern = new(600, true, 2);
+        public static readonly VKStageSchedule PsychePattern = new(600, true, 2);
 
         // Weaving Layer (sequential)
+        public static readonly VKStageSchedule PsycheKnowledgeFinalizer = new(990, false);
         public static readonly VKStageSchedule Weaving = new(1000, false);
     }
 

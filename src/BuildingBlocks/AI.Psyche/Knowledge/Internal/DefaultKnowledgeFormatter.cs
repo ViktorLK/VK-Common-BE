@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using VK.Blocks.Core;
 
@@ -43,7 +42,7 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
                             (
                                 (fragment.Segment.AbsoluteDepth is null &&
                                  f.Segment.AbsoluteDepth is null &&
-                                 fragment.Segment.Anchor == f.Segment.Anchor)
+                                 fragment.Segment.RelativeDepth == f.Segment.RelativeDepth)
                                 ||
                                 (fragment.Segment.AbsoluteDepth is not null &&
                                  f.Segment.AbsoluteDepth is not null &&
@@ -52,8 +51,8 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
                             )
                         ) &&
                         f.Metadata is VKKnowledgeEntry siblingEntry &&
-                        siblingEntry.Tag == currentEntry.Tag)
-            .OrderByDescending(f => f.Segment!.Priority)
+                        siblingEntry.XmlTag == currentEntry.XmlTag)
+            .OrderByDescending(f => f.Segment!.DepthPriority)
             .ToList();
 
         if (siblingFragments.Count == 0)
@@ -72,7 +71,7 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
         {
             var sb = new System.Text.StringBuilder();
             var firstEntry = (VKKnowledgeEntry)firstFragment.Metadata!;
-            string tag = firstEntry.Tag;
+            string tag = firstEntry.XmlTag;
 
             sb.AppendLine($"<{tag}>");
 

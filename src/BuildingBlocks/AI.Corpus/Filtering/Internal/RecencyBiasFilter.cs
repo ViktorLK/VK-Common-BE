@@ -33,7 +33,7 @@ internal sealed class RecencyBiasFilter : IVKKnowledgeLifecycleFilter
         VKGuard.NotNull(context);
 
         string idValue = entry.Knowledge.Id.Value.ToString();
-        
+
         // If it was never injected in this session, we don't apply recency bias decay.
         if (context.LastInjectedTurns.TryGetValue(idValue, out int lastTurn))
         {
@@ -55,6 +55,3 @@ internal sealed class RecencyBiasFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-
