@@ -78,7 +78,7 @@ internal sealed class WebSearchTool : IVKAtomicTool
             var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var resultDto = _jsonSerializer.Deserialize<WikipediaResponse>(json);
 
-            if (resultDto?.Query?.Search == null || resultDto.Query.Search.Count == 0)
+            if (resultDto?.Query?.Search is null || resultDto.Query.Search.Count == 0)
             {
                 return VKResult.Success(new VKAtomicToolResult
                 {

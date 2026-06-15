@@ -12,7 +12,10 @@ namespace VK.Blocks.AI.Corpus.Filtering.Internal;
 internal sealed class UserSegmentFilter : IVKKnowledgeLifecycleFilter
 {
     /// <inheritdoc />
-    public Task<VKResult<VKFilterVerdict>> EvaluateAsync(
+    public int FilterOrder => 20;
+
+    /// <inheritdoc />
+    public Task<VKResult<VKFilterVerdict>> FilterAsync(
         VKKnowledgeLifecycleEntry entry,
         VKCorpusContext context,
         CancellationToken cancellationToken = default)

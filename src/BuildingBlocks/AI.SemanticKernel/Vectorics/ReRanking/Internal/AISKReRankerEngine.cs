@@ -90,7 +90,7 @@ internal sealed class AISKReRankerEngine : IVKReRanker
             var responseJson = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var responseDto = _jsonSerializer.Deserialize<CohereRerankResponse>(responseJson);
 
-            if (responseDto?.Results == null)
+            if (responseDto?.Results is null)
             {
                 return VKResult.Failure<IReadOnlyList<VKReRankingResult>>(VKAIErrors.ProviderError);
             }

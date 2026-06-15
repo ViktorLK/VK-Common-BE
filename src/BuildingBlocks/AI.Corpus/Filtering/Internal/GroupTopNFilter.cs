@@ -16,7 +16,10 @@ internal sealed class GroupTopNFilter : IVKKnowledgeLifecycleFilter
     private readonly Dictionary<string, int> _resolvedGroupCounts = new(StringComparer.OrdinalIgnoreCase);
 
     /// <inheritdoc />
-    public Task<VKResult<VKFilterVerdict>> EvaluateAsync(
+    public int FilterOrder => 150;
+
+    /// <inheritdoc />
+    public Task<VKResult<VKFilterVerdict>> FilterAsync(
         VKKnowledgeLifecycleEntry entry,
         VKCorpusContext context,
         CancellationToken cancellationToken = default)

@@ -14,6 +14,7 @@ using Polly.Registry;
 using VK.Blocks.AI;
 using VK.Blocks.AI.VectorStore;
 using VK.Blocks.AI.VectorStore.Sqlite;
+using VK.Blocks.AI.VectorStore.VectorStore.Protocols;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore.Sqlite.VectorStore.Internal;
@@ -85,7 +86,7 @@ internal sealed class AIVectorStoreSqliteDatabase : IVKAIVectorStore
             using var getRowIdCmd = new SqliteCommand(getRowIdSql, connection, transaction);
             getRowIdCmd.Parameters.AddWithValue("@id", id);
             var rowIdResult = await _pipeline.ExecuteAsync(async ct => await getRowIdCmd.ExecuteScalarAsync(ct).ConfigureAwait(false), ct).ConfigureAwait(false);
-            if (rowIdResult == null)
+            if (rowIdResult is null)
                 return VKResult.Failure(Errors.Database.ExecutionFailed);
 
             var rowId = (long)rowIdResult;
@@ -166,7 +167,7 @@ internal sealed class AIVectorStoreSqliteDatabase : IVKAIVectorStore
                     var dataJson = reader.GetString(1);
                     var document = _jsonSerializer.Deserialize<T>(dataJson);
 
-                    if (document != null)
+                    if (document is not null)
                     {
                         results.Add(new VKAIVectorRecord<T>(
                             reader.GetString(0),
@@ -207,7 +208,7 @@ internal sealed class AIVectorStoreSqliteDatabase : IVKAIVectorStore
 
             var rowId = (long?)await _pipeline.ExecuteAsync(async ct => await getCmd.ExecuteScalarAsync(ct).ConfigureAwait(false), ct).ConfigureAwait(false);
 
-            if (rowId != null)
+            if (rowId is not null)
             {
                 string delMetaSql = $"DELETE FROM {metaTable} WHERE ROWID = @rowid";
                 using var delMetaCmd = new SqliteCommand(delMetaSql, connection, transaction);

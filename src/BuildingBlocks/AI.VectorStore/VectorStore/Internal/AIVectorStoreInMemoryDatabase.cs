@@ -75,7 +75,7 @@ internal sealed class AIVectorStoreInMemoryDatabase : IVKAIVectorStore
             r.Id,
             _jsonSerializer.Deserialize<T>(r.DataJson)!,
             r.Score
-        )).Where(r => r.Document != null);
+        )).Where(r => r.Document is not null);
 
         VKAIVectorStoreDiagnostics.RecordSearchDuration(stopwatch.Elapsed.TotalSeconds);
         VKAIVectorStoreDiagnostics.RecordRecallHit(results.Count > 0);

@@ -22,7 +22,10 @@ internal sealed class FreshnessFilter : IVKKnowledgeLifecycleFilter
     }
 
     /// <inheritdoc />
-    public Task<VKResult<VKFilterVerdict>> EvaluateAsync(
+    public int FilterOrder => 30;
+
+    /// <inheritdoc />
+    public Task<VKResult<VKFilterVerdict>> FilterAsync(
         VKKnowledgeLifecycleEntry entry,
         VKCorpusContext context,
         CancellationToken cancellationToken = default)

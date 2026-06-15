@@ -24,7 +24,7 @@ internal sealed class AISKRetrievalEngine(
     IOptions<VKAIDefaultsOptions> globalOptions,
     IOptions<VKRetrievalOptions> options,
     ILogger<AISKRetrievalEngine> logger,
-    VectorStore ? vectorStore = null,
+    VectorStore? vectorStore = null,
     TimeProvider? timeProvider = null)
     : AISKEngineBase<VKRetrievalOptions>(kernel, globalOptions, options, logger, timeProvider), IVKRetrievalEngine
 {
@@ -54,7 +54,7 @@ internal sealed class AISKRetrievalEngine(
             int topK = FeatureOptions.TopK ?? 5;
             double minScore = FeatureOptions.MinScore ?? 0.7;
 
-            if (args != null)
+            if (args is not null)
             {
                 topK = args.TopK ?? topK;
                 minScore = args.MinScore ?? minScore;

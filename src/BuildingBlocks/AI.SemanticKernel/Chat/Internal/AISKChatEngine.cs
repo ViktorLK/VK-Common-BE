@@ -80,7 +80,7 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
             // 0. Inject Dynamic Tools from Args (Rule 1: Abstracted Plugins)
             var overrides = args as IVKChatOverrides;
             var tools = overrides?.Tools;
-            if (tools != null && tools.Count > 0)
+            if (tools is not null && tools.Count > 0)
             {
                 if (!Kernel.Plugins.Contains("RequestTools"))
                 {
@@ -143,7 +143,7 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
 
             // Record Duration & Tokens & Logs
             var usage = RecordObservability(assistantMessage, metadata, stopwatch.Elapsed.TotalSeconds);
-            if (usage != null)
+            if (usage is not null)
             {
                 metadata["TokenUsage"] = usage;
             }
@@ -181,11 +181,11 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
         // 1. Record Duration
         AISKMetrics.RecordChatDuration(durationSeconds, message.ModelId);
 
-        if (metadata == null)
+        if (metadata is null)
             return null;
 
         // 2. Extract and Record Token Usage (OpenAI/Standard pattern)
-        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
         {
             try
             {
@@ -246,7 +246,7 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
             // 0. Inject Dynamic Tools from Args
             var overrides = args as IVKChatOverrides;
             var tools = overrides?.Tools;
-            if (tools != null && tools.Count > 0)
+            if (tools is not null && tools.Count > 0)
             {
                 if (!Kernel.Plugins.Contains("RequestTools"))
                 {
@@ -312,7 +312,7 @@ internal sealed class AISKChatEngine : AISKEngineBase<VKChatOptions>, IVKChatEng
 
                         var metadata = chunk.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
 
-                        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
                         {
                             try
                             {

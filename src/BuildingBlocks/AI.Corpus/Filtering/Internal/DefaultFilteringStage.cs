@@ -231,30 +231,14 @@ internal sealed class DefaultFilteringStage : IVKPsycheBeforePipelineStage
         // Evaluate candidate entries through the filter chain
         foreach (VKKnowledgeLifecycleEntry entry in sortedCandidates)
         {
-            bool keep = true;
-            foreach (IVKKnowledgeLifecycleFilter filter in _knowledgeLifecyclefilters)
+            VKCorpusContext tempContext = corpusContext with { InjectedTags = currentTurnInjectedTags };
+            VKResult<VKFilterVerdict> filterResult = await _knowledgeLifecyclefilters.ApplyFiltersAsync(entry, tempContext, cancellationToken).ConfigureAwait(false); // [CS.03]
+            if (!filterResult.IsSuccess)
             {
-                VKCorpusContext tempContext = corpusContext with { InjectedTags = currentTurnInjectedTags };
-                VKResult<VKFilterVerdict> filterResult = await filter.EvaluateAsync(entry, tempContext, cancellationToken).ConfigureAwait(false); // [CS.03]
-                if (!filterResult.IsSuccess)
-                {
-                    return VKResult.Failure(filterResult.FirstError);
-                }
-
-                if (filterResult.Value == VKFilterVerdict.ForceKeep)
-                {
-                    keep = true;
-                    break;
-                }
-
-                if (filterResult.Value == VKFilterVerdict.Reject)
-                {
-                    keep = false;
-                    break;
-                }
+                return VKResult.Failure(filterResult.FirstError);
             }
 
-            if (keep)
+            if (filterResult.Value != VKFilterVerdict.Reject)
             {
                 passedEntries.Add(entry);
                 currentTurnInjectedTags.Add(entry.Knowledge.Id.Value.ToString());

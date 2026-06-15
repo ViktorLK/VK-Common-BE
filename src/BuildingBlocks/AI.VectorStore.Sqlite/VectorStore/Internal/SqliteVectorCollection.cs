@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.AI;
 using VK.Blocks.AI.VectorStore;
+using VK.Blocks.AI.VectorStore.VectorStore.Protocols;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore.Sqlite.VectorStore.Internal;
@@ -36,5 +37,15 @@ internal sealed class SqliteVectorCollection<T>(
     public async Task<VKResult> DeleteAsync(string id, string? tenantId = null, CancellationToken cancellationToken = default)
     {
         return await database.DeleteGenericAsync(Name, id, tenantId ?? string.Empty, cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task<VKResult> UpsertBatchAsync(IEnumerable<(string Id, T Document, VKEmbeddingsVector Vector)> records, CancellationToken cancellationToken = default)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public IAsyncEnumerable<VKResult<VKAIVectorRecord<T>>> SearchStreamAsync(VKEmbeddingsVector vector, VKAIVectorSearchArgs args, CancellationToken cancellationToken = default)
+    {
+        throw new System.NotImplementedException();
     }
 }

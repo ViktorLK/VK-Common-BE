@@ -37,7 +37,7 @@ internal sealed class AISKTokenicsFilter(
             // Estimate tokens. If tokenizer is available, use it; otherwise, rough estimate (Length / 4)
             int estimatedTokens = _tokenizer?.CountTokens(renderedPrompt) ?? (renderedPrompt.Length / 4);
 
-            if (_rateLimiter != null)
+            if (_rateLimiter is not null)
             {
                 var acquireResult = await _rateLimiter.AcquireAsync(estimatedTokens, context.CancellationToken).ConfigureAwait(false);
                 if (acquireResult.IsFailure)
@@ -66,9 +66,9 @@ internal sealed class AISKTokenicsFilter(
 
         await next(context).ConfigureAwait(false);
 
-        if (context.Result?.Metadata != null)
+        if (context.Result?.Metadata is not null)
         {
-            if (context.Result.Metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+            if (context.Result.Metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
             {
                 try
                 {
@@ -78,12 +78,12 @@ internal sealed class AISKTokenicsFilter(
                     int total = usage.TotalTokens ?? (prompt + completion);
 
                     // Report the actual total usage back to the rate limiter
-                    if (_rateLimiter != null)
+                    if (_rateLimiter is not null)
                     {
                         await _rateLimiter.ReportUsageAsync(total).ConfigureAwait(false);
                     }
 
-                    if (_aggregator != null)
+                    if (_aggregator is not null)
                     {
                         var tokenUsage = new VKAITokenUsage
                         {

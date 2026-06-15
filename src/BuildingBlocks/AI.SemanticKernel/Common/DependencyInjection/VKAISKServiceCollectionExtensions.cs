@@ -100,7 +100,7 @@ public static class VKAISKServiceCollectionExtensions
         services.TryAddSingleton<AISKAgentToolAdapter>();
         services.TryAddScoped<IVKAgentFactory, AISKAgentFactory>();
         services.TryAddScoped<IVKAgentGroup, AISKAgentGroupRunner>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKAtomicTool, VK.Blocks.AI.SemanticKernel.AtomicTools.Internal.WebSearchTool>());
+        // services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKAtomicTool, VK.Blocks.AI.SemanticKernel.AtomicTools.Internal.WebSearchTool>());
 
         var builder = new AISKBlockBuilder(services, configuration);
         builder.AddVKDefaults();

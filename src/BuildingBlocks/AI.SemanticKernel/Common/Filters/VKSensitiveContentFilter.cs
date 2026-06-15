@@ -23,7 +23,7 @@ public sealed class VKSensitiveContentFilter(
     {
         await next(context).ConfigureAwait(false);
 
-        if (_settings.EnableContentFilter == true && context.Result != null)
+        if (_settings.EnableContentFilter == true && context.Result is not null)
         {
             var content = context.Result?.ToString();
 

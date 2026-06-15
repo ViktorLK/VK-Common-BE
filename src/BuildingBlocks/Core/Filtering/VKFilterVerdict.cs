@@ -1,7 +1,7 @@
-namespace VK.Blocks.AI.Corpus;
+namespace VK.Blocks.Core;
 
 /// <summary>
-/// Represents the evaluation verdict of a corpus entry filter.
+/// Represents the evaluation verdict of an entry filter.
 /// </summary>
 public enum VKFilterVerdict
 {

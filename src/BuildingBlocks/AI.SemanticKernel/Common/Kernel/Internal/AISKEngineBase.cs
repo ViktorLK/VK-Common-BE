@@ -111,7 +111,7 @@ internal abstract class AISKEngineBase<TOptions> : AISKProviderBase
             initError = AISKErrorMapper.Map(ex);
         }
 
-        if (initError != null)
+        if (initError is not null)
         {
             yield return VKResult.Failure<T>(initError);
             yield break;
@@ -145,12 +145,12 @@ internal abstract class AISKEngineBase<TOptions> : AISKProviderBase
             yield return VKResult.Success(item!);
         }
 
-        if (loopError != null)
+        if (loopError is not null)
         {
             yield return VKResult.Failure<T>(loopError);
         }
 
-        if (enumerator != null)
+        if (enumerator is not null)
         {
             await enumerator.DisposeAsync().ConfigureAwait(false);
         }

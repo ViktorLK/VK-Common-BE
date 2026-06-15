@@ -24,14 +24,8 @@ internal sealed class AISKAgentToolAdapter
         // Wrapper to execute the underlying tool
         async Task<string> WrapperAsync(KernelArguments args, CancellationToken ct)
         {
-            var dictionary = new Dictionary<string, object>();
-            foreach (var kvp in args)
-            {
-                if (kvp.Value != null)
-                {
-                    dictionary[kvp.Key] = kvp.Value;
-                }
-            }
+            var dictionary = args as IDictionary<string, object?>
+                 ?? args.ToDictionary(k => k.Key, v => v.Value);
 
             var context = new VKAgentExecutionContext();
             var result = await tool.ExecuteAsync(dictionary, context, ct).ConfigureAwait(false);
@@ -127,5 +121,13 @@ internal sealed class AISKAgentToolAdapter
         }
 
         return parameters;
+    }
+}
+internal sealed class VKAgentToolInvocationLogger : IFunctionInvocationFilter
+{
+    public async Task OnFunctionInvocationAsync(FunctionInvocationContext context, Func<FunctionInvocationContext, Task> next)
+    {
+        Console.WriteLine($"[TOOL PULSE TRIGGERED] Executing: {context.Function.Name}");
+        await next(context).ConfigureAwait(false);
     }
 }

@@ -15,7 +15,10 @@ internal sealed class ConflictResolutionFilter : IVKKnowledgeLifecycleFilter
     private readonly HashSet<string> _resolvedConflictGroups = new(System.StringComparer.OrdinalIgnoreCase);
 
     /// <inheritdoc />
-    public Task<VKResult<VKFilterVerdict>> EvaluateAsync(
+    public int FilterOrder => 140;
+
+    /// <inheritdoc />
+    public Task<VKResult<VKFilterVerdict>> FilterAsync(
         VKKnowledgeLifecycleEntry entry,
         VKCorpusContext context,
         CancellationToken cancellationToken = default)
