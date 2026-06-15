@@ -26,7 +26,7 @@ internal sealed class AISKConfigPluginProvider(IOptions<VKAISKDefaultsOptions> o
         foreach (var (name, typeName) in pluginOptions.Types)
         {
             var type = Type.GetType(typeName);
-            if (type != null)
+            if (type is not null)
             {
                 builder.Plugins.Add(KernelPluginFactory.CreateFromType(type, name, serviceProvider));
             }
@@ -46,11 +46,11 @@ internal sealed class AISKConfigPluginProvider(IOptions<VKAISKDefaultsOptions> o
 
     private static IEnumerable<Assembly> ResolveAssemblies(List<string> assemblyNames)
     {
-        if (assemblyNames == null || assemblyNames.Count == 0)
+        if (assemblyNames is null || assemblyNames.Count == 0)
         {
             // Default: Scan entry assembly and its referenced assemblies (best effort)
             var entryAssembly = Assembly.GetEntryAssembly();
-            if (entryAssembly == null)
+            if (entryAssembly is null)
                 return Array.Empty<Assembly>();
 
             var assemblies = new HashSet<Assembly> { entryAssembly };
@@ -72,7 +72,7 @@ internal sealed class AISKConfigPluginProvider(IOptions<VKAISKDefaultsOptions> o
                 { return Assembly.Load(name); }
                 catch { return null; }
             })
-            .Where(a => a != null)!;
+            .Where(a => a is not null)!;
     }
 }
 

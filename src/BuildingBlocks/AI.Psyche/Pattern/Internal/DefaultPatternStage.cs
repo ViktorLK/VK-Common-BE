@@ -2,7 +2,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Pattern.Internal;
@@ -13,13 +12,9 @@ internal sealed class DefaultPatternStage : IVKPsycheBeforePipelineStage
     private readonly IVKPatternStore _store;
     private readonly VKWeavingOptions _weavingOptions;
 
-    public int StageOrder => VKPsychePipelineScheduler.Before.Pattern.Order;
+    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePattern;
 
     public bool IsActive => _options.Enabled;
-
-    public bool IsParallel => VKPsychePipelineScheduler.Before.Pattern.IsParallel;
-
-    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Pattern.ParallelGroup;
 
     public DefaultPatternStage(
         IOptions<VKPatternOptions> options,

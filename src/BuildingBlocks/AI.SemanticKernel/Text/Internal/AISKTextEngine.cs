@@ -36,7 +36,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
         _textGeneration = kernel.Services.GetServices<ITextGenerationService>().LastOrDefault();
         _chatCompletion = kernel.Services.GetServices<IChatCompletionService>().LastOrDefault();
 
-        if (_textGeneration == null && _chatCompletion == null)
+        if (_textGeneration is null && _chatCompletion is null)
         {
             throw new InvalidOperationException("No AI service (Text or Chat) registered in the kernel.");
         }
@@ -60,7 +60,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
             VKAITokenUsage? aiUsage = null;
             IDictionary<string, object?>? metadata = null;
 
-            if (_textGeneration != null)
+            if (_textGeneration is not null)
             {
                 var result = await _textGeneration.GetTextContentsAsync(prompt, executionSettings, Kernel, ct).ConfigureAwait(false);
                 if (result.Count > 0)
@@ -70,7 +70,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
                     modelId = textContent.ModelId;
                     metadata = textContent.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
 
-                    if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                    if (metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
                     {
                         try
                         {
@@ -100,7 +100,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
                 modelId = result.ModelId;
                 metadata = result.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
 
-                if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                if (metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
                 {
                     try
                     {
@@ -142,7 +142,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
         {
             PromptExecutionSettings executionSettings = CreateExecutionSettings(args);
 
-            if (_textGeneration != null)
+            if (_textGeneration is not null)
             {
                 var streamingResult = _textGeneration.GetStreamingTextContentsAsync(prompt, executionSettings, Kernel, ct);
                 await foreach (var chunk in streamingResult.WithCancellation(ct).ConfigureAwait(false))
@@ -151,7 +151,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
                     {
                         var metadata = chunk.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
                         VKAITokenUsage? aiUsage = null;
-                        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
                         {
                             try
                             {
@@ -187,7 +187,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
                     {
                         var metadata = chunk.Metadata?.ToDictionary(k => k.Key, v => v.Value) ?? new Dictionary<string, object?>();
                         VKAITokenUsage? aiUsage = null;
-                        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj != null)
+                        if (metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
                         {
                             try
                             {
@@ -225,7 +225,7 @@ internal sealed class AISKTextEngine : AISKEngineBase<VKTextOptions>, IVKTextEng
         };
 
         // Apply common parameters if provided
-        if (genArgs != null)
+        if (genArgs is not null)
         {
             settings.ExtensionData ??= new Dictionary<string, object>();
             settings.ExtensionData["temperature"] = genArgs.Temperature ?? FeatureOptions.Temperature ?? 0.7f;

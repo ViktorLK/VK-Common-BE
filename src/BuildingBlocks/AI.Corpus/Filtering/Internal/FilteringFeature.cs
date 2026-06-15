@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Corpus.Filtering.Internal;
 using VK.Blocks.AI.Psyche;
 
 namespace VK.Blocks.AI.Corpus.Filtering.Internal;
@@ -15,7 +14,7 @@ internal sealed partial class FilteringFeature
     static partial void RegisterCustom(IServiceCollection services, VKFilteringOptions options)
     {
         // Register the filtering stage
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, CorpusFilteringStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultFilteringStage>());
 
         // 0. Stickiness Bypass (Evaluated first to force keep sticky entries)
         if (options.EnableStickinessFilter)
@@ -53,21 +52,21 @@ internal sealed partial class FilteringFeature
         if (options.EnableRevealFilter)
             services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, RevealFilter>());
 
-        if (options.EnableMaxCountFilter)
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, MaxCountFilter>());
+        if (options.EnableEntryMaxCountFilter)
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, EntryMaxCountFilter>());
 
         if (options.EnableGroupFilter)
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, GroupFilter>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, GroupMaxCountFilter>());
 
-        if (options.EnableExclusionFilter)
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, ExclusionFilter>());
+        if (options.EnableGlobalExclusionFilter)
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, GlobalExclusionFilter>());
 
         // 3. Mutex & Pruning Filters (Stateful)
         if (options.EnableConflictResolutionFilter)
             services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, ConflictResolutionFilter>());
 
-        if (options.EnableExclusiveGroupFilter)
-            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, ExclusiveGroupFilter>());
+        if (options.EnableGroupTopNFilter)
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, GroupTopNFilter>());
 
         // 4. Budget & Decay (Expensive)
         if (options.EnableTokenBudgetFilter)

@@ -10,10 +10,8 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public interface IVKPsycheAfterPipelineStage
 {
-    int StageOrder { get; }
+    VKStageSchedule Schedule { get; }
     bool IsActive { get; }
-    bool IsParallel { get; }
-    int? ParallelGroup { get; }
 
     Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken);
 }

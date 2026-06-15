@@ -57,11 +57,11 @@ internal sealed class AISKSpeechEngine(
             var ms = new System.IO.MemoryStream(audioContent.Data.Value.ToArray());
 
             var metadata = new Dictionary<string, object>();
-            if (audioContent.Metadata != null)
+            if (audioContent.Metadata is not null)
             {
                 foreach (var kvp in audioContent.Metadata)
                 {
-                    if (kvp.Value != null)
+                    if (kvp.Value is not null)
                     {
                         metadata[kvp.Key] = kvp.Value;
                     }
@@ -101,7 +101,7 @@ internal sealed class AISKSpeechEngine(
 
         foreach (var content in audioContents)
         {
-            if (content.Data != null)
+            if (content.Data is not null)
             {
                 yield return content.Data.Value.ToArray();
             }

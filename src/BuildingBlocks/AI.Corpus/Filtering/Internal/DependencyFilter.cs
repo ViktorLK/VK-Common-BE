@@ -11,7 +11,10 @@ namespace VK.Blocks.AI.Corpus.Filtering.Internal;
 internal sealed class DependencyFilter : IVKKnowledgeLifecycleFilter
 {
     /// <inheritdoc />
-    public Task<VKResult<VKFilterVerdict>> EvaluateAsync(
+    public int FilterOrder => 60;
+
+    /// <inheritdoc />
+    public Task<VKResult<VKFilterVerdict>> FilterAsync(
         VKKnowledgeLifecycleEntry entry,
         VKCorpusContext context,
         CancellationToken cancellationToken = default)
@@ -36,6 +39,3 @@ internal sealed class DependencyFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-

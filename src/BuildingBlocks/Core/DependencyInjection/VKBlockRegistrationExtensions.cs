@@ -131,7 +131,7 @@ public static class VKBlockRegistrationExtensions
 
             // ADR-016: If a subsequent fluent transform is provided, apply it to the existing instance
             // and replace the registered singleton and OptionsFactory in the DI container.
-            if (transform != null)
+            if (transform is not null)
             {
                 var transformedOptions = transform(existingOptions);
 
@@ -159,7 +159,7 @@ public static class VKBlockRegistrationExtensions
 
         var options = targetConfig.Get<TOptions>() ?? new TOptions();
 
-        if (transform != null)
+        if (transform is not null)
         {
             // ADR-016: Functional transformation using 'with' expression
             options = transform(options);

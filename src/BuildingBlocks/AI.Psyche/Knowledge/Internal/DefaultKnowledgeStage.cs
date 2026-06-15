@@ -13,13 +13,8 @@ internal sealed class DefaultKnowledgeStage : IVKPsycheBeforePipelineStage
     private readonly IVKKnowledgeStore _store;
     private readonly VKWeavingOptions _weavingOptions;
 
-    public int StageOrder => VKPsychePipelineScheduler.Before.Knowledge.Order;
-
+    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledge;
     public bool IsActive => _options.Enabled;
-
-    public bool IsParallel => VKPsychePipelineScheduler.Before.Knowledge.IsParallel;
-
-    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Knowledge.ParallelGroup;
 
     public DefaultKnowledgeStage(
         IOptions<VKKnowledgeOptions> options,
@@ -106,15 +101,13 @@ internal sealed class DefaultKnowledgeStage : IVKPsycheBeforePipelineStage
             }
         }
 
-        foreach (var entry in activeEntries)
+        var candidateState = context.State<VKKnowledgeCandidatesState>();
+        if (candidateState == null)
         {
-            context.AddFragment(new VKPromptFragment
-            {
-                TierType = VKPromptTierType.Knowledge,
-                Segment = entry.Segment,
-                Metadata = entry
-            });
+            candidateState = new VKKnowledgeCandidatesState();
+            context.SetState(candidateState);
         }
+        candidateState.Candidates.AddRange(activeEntries);
 
         return VKResult.Success();
     }

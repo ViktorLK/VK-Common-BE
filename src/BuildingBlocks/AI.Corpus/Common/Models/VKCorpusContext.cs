@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using VK.Blocks.AI.Psyche;
 
 namespace VK.Blocks.AI.Corpus;
 
@@ -10,7 +11,7 @@ public sealed record VKCorpusContext
     /// <summary>
     /// Gets the current session identifier.
     /// </summary>
-    public required string SessionId { get; init; }
+    public required VKSessionId SessionId { get; init; }
 
     /// <summary>
     /// Gets the current conversation turn.
@@ -55,5 +56,5 @@ public sealed record VKCorpusContext
     /// <summary>
     /// Gets the list of dialogue history and input texts to scan for keyword matching.
     /// </summary>
-    public System.Collections.Generic.IReadOnlyList<string> ScanTexts { get; init; } = [];
+    public IReadOnlyList<string> ScanTexts { get; init; } = [];
 }

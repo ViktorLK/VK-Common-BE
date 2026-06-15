@@ -27,10 +27,8 @@ internal sealed class DefaultPersonaStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public int StageOrder => VKPsychePipelineScheduler.Before.Persona.Order;
+    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePersona;
     public bool IsActive => true;
-    public bool IsParallel => VKPsychePipelineScheduler.Before.Persona.IsParallel;
-    public int? ParallelGroup => VKPsychePipelineScheduler.Before.Persona.ParallelGroup;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {

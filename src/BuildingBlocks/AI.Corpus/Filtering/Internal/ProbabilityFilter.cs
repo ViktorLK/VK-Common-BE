@@ -12,7 +12,10 @@ namespace VK.Blocks.AI.Corpus.Filtering.Internal;
 internal sealed class ProbabilityFilter : IVKKnowledgeLifecycleFilter
 {
     /// <inheritdoc />
-    public Task<VKResult<VKFilterVerdict>> EvaluateAsync(
+    public int FilterOrder => 80;
+
+    /// <inheritdoc />
+    public Task<VKResult<VKFilterVerdict>> FilterAsync(
         VKKnowledgeLifecycleEntry entry,
         VKCorpusContext context,
         CancellationToken cancellationToken = default)
@@ -38,6 +41,3 @@ internal sealed class ProbabilityFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(verdict));
     }
 }
-
-
-

@@ -28,7 +28,7 @@ internal sealed class AISKPrivacyFilter(IVKPrivacyFilter privacyFilter) : IPromp
         if (!string.IsNullOrWhiteSpace(context.RenderedPrompt))
         {
             var result = await _privacyFilter.MaskAsync(context.RenderedPrompt).ConfigureAwait(false);
-            if (result.IsSuccess && result.Value != null)
+            if (result.IsSuccess && result.Value is not null)
             {
                 // Replace the rendered prompt with the masked version
                 context.RenderedPrompt = result.Value.MaskedText;

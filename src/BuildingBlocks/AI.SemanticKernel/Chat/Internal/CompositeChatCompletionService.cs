@@ -51,7 +51,7 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
         CancellationToken cancellationToken = default)
     {
         var context = ResilienceContextPool.Shared.Get(cancellationToken);
-        
+
         // Pass the settings so we can mutate the ModelId during fallback
         context.Properties.Set(new ResiliencePropertyKey<PromptExecutionSettings?>("Settings"), executionSettings);
 
@@ -63,15 +63,15 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
                     // The "state" tells us which service index to use: -1 is primary, 0+ are fallbacks
                     int attemptIndex = 0;
                     ctx.Properties.TryGetValue(new ResiliencePropertyKey<int>("AttemptIndex"), out attemptIndex);
-                    
+
                     string serviceId = attemptIndex == 0 ? "primary" : $"fallback_{attemptIndex - 1}";
-                    
+
                     var service = _kernel.GetRequiredService<IChatCompletionService>(serviceId);
-                    
+
                     var currentSettings = ctx.Properties.GetValue(new ResiliencePropertyKey<PromptExecutionSettings?>("Settings"), null);
-                    
+
                     // Mutate ModelId if this is a fallback attempt
-                    if (attemptIndex > 0 && currentSettings != null)
+                    if (attemptIndex > 0 && currentSettings is not null)
                     {
                         var fallbackConfig = _fallbacks[attemptIndex - 1];
                         currentSettings.ModelId = fallbackConfig.ModelId;
@@ -96,7 +96,7 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
         // Polly v8 streaming fallback is complex because we must return an IAsyncEnumerable.
         // For streaming, we will build a dedicated pipeline or manually handle the iteration fallback.
         // To keep it simple and robust, we use a custom enumerator wrapper or execute it within the pipeline.
-        
+
         var context = ResilienceContextPool.Shared.Get(cancellationToken);
         context.Properties.Set(new ResiliencePropertyKey<PromptExecutionSettings?>("Settings"), executionSettings);
 
@@ -107,12 +107,12 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
                 {
                     int attemptIndex = 0;
                     ctx.Properties.TryGetValue(new ResiliencePropertyKey<int>("AttemptIndex"), out attemptIndex);
-                    
+
                     string serviceId = attemptIndex == 0 ? "primary" : $"fallback_{attemptIndex - 1}";
                     var service = _kernel.GetRequiredService<IChatCompletionService>(serviceId);
                     var currentSettings = ctx.Properties.GetValue(new ResiliencePropertyKey<PromptExecutionSettings?>("Settings"), null);
-                    
-                    if (attemptIndex > 0 && currentSettings != null)
+
+                    if (attemptIndex > 0 && currentSettings is not null)
                     {
                         var fallbackConfig = _fallbacks[attemptIndex - 1];
                         currentSettings.ModelId = fallbackConfig.ModelId;
@@ -121,7 +121,7 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
                     return service.GetStreamingChatMessageContentsAsync(chatHistory, currentSettings, kernel ?? _kernel, ctx.CancellationToken);
                 },
                 context);
-                
+
             return result;
         }
         finally
@@ -153,7 +153,7 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
 
         return builder.Build();
     }
-    
+
     private ResiliencePipeline<IAsyncEnumerable<StreamingChatMessageContent>> BuildStreamingPipeline()
     {
         var builder = new ResiliencePipelineBuilder<IAsyncEnumerable<StreamingChatMessageContent>>();
@@ -180,14 +180,16 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
 
     private bool IsTransientOrRateLimitError(Exception ex)
     {
-        if (ex is BrokenCircuitException) return true;
-        
+        if (ex is BrokenCircuitException)
+            return true;
+
         // Match 429 Too Many Requests
         if (ex is HttpOperationException httpEx && httpEx.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
             return true;
-            
+
         // Check inner exceptions (e.g. from HttpClient)
-        if (ex.InnerException is BrokenCircuitException) return true;
+        if (ex.InnerException is BrokenCircuitException)
+            return true;
 
         return false;
     }

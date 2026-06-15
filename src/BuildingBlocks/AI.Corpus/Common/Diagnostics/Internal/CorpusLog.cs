@@ -11,6 +11,6 @@ internal static partial class CorpusLog
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Warning,
-        Message = "Failed to record usage for corpus entry {EntryId} in session {SessionId}. Error: {Error}")]
-    public static partial void FailedToRecordUsage(ILogger logger, string entryId, string sessionId, string error);
+        Message = "Failed to record injections for session {SessionId}. Error: {Error}")]
+    public static partial void FailedToRecordInjections(ILogger logger, string sessionId, string error);
 }

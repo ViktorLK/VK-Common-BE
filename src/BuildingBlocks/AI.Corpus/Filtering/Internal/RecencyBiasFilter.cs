@@ -7,7 +7,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Corpus.Filtering.Internal;
 
 /// <summary>
-/// Filter that applies recency bias: the longer ago the entry was last injected, 
+/// Filter that applies recency bias: the longer ago the entry was last injected,
 /// the lower its probability of being selected.
 /// Follows CS.01, CS.03, AP.01.
 /// </summary>
@@ -24,7 +24,10 @@ internal sealed class RecencyBiasFilter : IVKKnowledgeLifecycleFilter
     }
 
     /// <inheritdoc />
-    public Task<VKResult<VKFilterVerdict>> EvaluateAsync(
+    public int FilterOrder => 170;
+
+    /// <inheritdoc />
+    public Task<VKResult<VKFilterVerdict>> FilterAsync(
         VKKnowledgeLifecycleEntry entry,
         VKCorpusContext context,
         CancellationToken cancellationToken = default)
@@ -33,7 +36,7 @@ internal sealed class RecencyBiasFilter : IVKKnowledgeLifecycleFilter
         VKGuard.NotNull(context);
 
         string idValue = entry.Knowledge.Id.Value.ToString();
-        
+
         // If it was never injected in this session, we don't apply recency bias decay.
         if (context.LastInjectedTurns.TryGetValue(idValue, out int lastTurn))
         {
@@ -55,6 +58,3 @@ internal sealed class RecencyBiasFilter : IVKKnowledgeLifecycleFilter
         return Task.FromResult(VKResult.Success(VKFilterVerdict.Keep));
     }
 }
-
-
-
