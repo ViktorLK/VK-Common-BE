@@ -21,8 +21,7 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (sessionId.IsEmpty)
-            throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
+        VKGuard.NotEmptyGuid(sessionId.Value);
 
         if (!_store.TryGetValue(sessionId, out var traces))
         {
@@ -38,8 +37,7 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
 
     public InMemoryEchoStore Seed(VKSessionId sessionId, VKEchoTrace trace)
     {
-        if (sessionId.IsEmpty)
-            throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
+        VKGuard.NotEmptyGuid(sessionId.Value);
         VKGuard.NotNull(trace);
 
         var list = _store.GetOrAdd(sessionId, _ => []);
@@ -53,8 +51,7 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
 
     public InMemoryEchoStore Seed(VKSessionId sessionId, IEnumerable<VKEchoTrace> echoes)
     {
-        if (sessionId.IsEmpty)
-            throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
+        VKGuard.NotEmptyGuid(sessionId.Value);
         VKGuard.NotNull(echoes);
 
         var list = _store.GetOrAdd(sessionId, _ => []);
@@ -68,8 +65,7 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
 
     public InMemoryEchoStore Remove(VKSessionId sessionId)
     {
-        if (sessionId.IsEmpty)
-            throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
+        VKGuard.NotEmptyGuid(sessionId.Value);
         _store.TryRemove(sessionId, out _);
 
         return this;

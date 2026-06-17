@@ -5,10 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche;
+namespace VK.Blocks.AI.Psyche.Common.Internal;
 
 // // [AP.03] Shared Foundation internal helper without VK prefix using root flat namespace
-internal static class VKWeavingStepRunner
+internal static class WeavingStepRunner
 {
     /// <summary>
     /// Groups a sequence of weaving steps into chunks based on execution order and parallelization groups.
@@ -18,7 +18,7 @@ internal static class VKWeavingStepRunner
     /// <param name="orderSelector">A function to extract the absolute order of a step.</param>
     /// <param name="parallelGroupSelector">A function to extract the parallel group ID of a step, or null if it must run serially.</param>
     /// <returns>A list of chunks, where each chunk contains steps that can run concurrently or must run serially in the same order band.</returns>
-    public static List<List<T>> ChunkSteps<T>(
+    internal static List<List<T>> ChunkSteps<T>(
         IEnumerable<T> steps,
         Func<T, int> orderSelector,
         Func<T, int?> parallelGroupSelector)
@@ -74,7 +74,7 @@ internal static class VKWeavingStepRunner
     /// <param name="onFailureAction">An action invoked if a step execution returns a failure result.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A successful result if all steps succeed; otherwise, the first failure result encountered.</returns>
-    public static async Task<VKResult> ExecuteChunksAsync<T>(
+    internal static async Task<VKResult> ExecuteChunksAsync<T>(
         List<List<T>> chunks,
         VKPsycheContext context,
         Func<T, bool> isParallelSelector,

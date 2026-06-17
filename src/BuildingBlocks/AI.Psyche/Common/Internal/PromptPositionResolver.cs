@@ -23,15 +23,17 @@ internal static class PromptPositionResolver
     }
 
     private static int ResolveRelativeOrder(
-        VKPromptRelativeDepth anchor,
+        VKPromptRelativeDepth relativeDepth,
         IReadOnlyDictionary<VKPromptTierType, int> renderOrders,
         int priority)
     {
+        VKGuard.EnumDefined(relativeDepth);
+
         int directiveBase = renderOrders.GetValueOrDefault(VKPromptTierType.Directive, (int)VKPromptTierType.Directive * 10000);
         int personaBase = renderOrders.GetValueOrDefault(VKPromptTierType.Persona, (int)VKPromptTierType.Persona * 10000);
         int echoBase = renderOrders.GetValueOrDefault(VKPromptTierType.Echo, (int)VKPromptTierType.Echo * 10000);
 
-        int baseOrder = anchor switch
+        int baseOrder = relativeDepth switch
         {
             VKPromptRelativeDepth.BeforeDirective => directiveBase - PsycheConstants.Layout.RelativeOffset,
             VKPromptRelativeDepth.AfterDirective => directiveBase + PsycheConstants.Layout.RelativeOffset,
@@ -39,7 +41,7 @@ internal static class PromptPositionResolver
             VKPromptRelativeDepth.AfterPersona => personaBase + PsycheConstants.Layout.RelativeOffset,
             VKPromptRelativeDepth.BeforeEcho => echoBase - PsycheConstants.Layout.RelativeOffset,
             VKPromptRelativeDepth.AfterEcho => echoBase + PsycheConstants.Layout.EchoReserve,
-            _ => throw new System.ArgumentOutOfRangeException(nameof(anchor), anchor, $"Unsupported relative anchor value: {anchor}")
+            _ => throw new System.ArgumentOutOfRangeException(nameof(relativeDepth), relativeDepth, $"Unsupported relative depth value: {relativeDepth}")
         };
 
         return baseOrder + priority;

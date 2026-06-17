@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Corpus.Common.Models.Internal;
+using VK.Blocks.AI.Corpus.Diagnostics.Internal;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
@@ -65,6 +67,8 @@ internal sealed class DefaultFilteringStage : IVKPsycheBeforePipelineStage
         {
             return VKResult.Success();
         }
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
 
         // Calculate the current turn by counting user messages in the dialogue history
         VKResult<IReadOnlyCollection<VKEchoTrace>> historyResult = await _echoStore.GetHistoryAsync(context.Request.SessionId, cancellationToken).ConfigureAwait(false); // [CS.03]
@@ -232,13 +236,33 @@ internal sealed class DefaultFilteringStage : IVKPsycheBeforePipelineStage
         foreach (VKKnowledgeLifecycleEntry entry in sortedCandidates)
         {
             VKCorpusContext tempContext = corpusContext with { InjectedTags = currentTurnInjectedTags };
-            VKResult<VKFilterVerdict> filterResult = await _knowledgeLifecyclefilters.ApplyFiltersAsync(entry, tempContext, cancellationToken).ConfigureAwait(false); // [CS.03]
-            if (!filterResult.IsSuccess)
+            
+            VKFilterVerdict verdict = VKFilterVerdict.Keep;
+            IOrderedEnumerable<IVKKnowledgeLifecycleFilter> sortedFilters = _knowledgeLifecyclefilters.OrderBy(f => f.FilterOrder);
+            foreach (IVKKnowledgeLifecycleFilter filter in sortedFilters)
             {
-                return VKResult.Failure(filterResult.FirstError);
+                VKResult<VKFilterVerdict> filterResult = await filter.FilterAsync(entry, tempContext, cancellationToken).ConfigureAwait(false); // [CS.03]
+                if (!filterResult.IsSuccess)
+                {
+                    return VKResult.Failure(filterResult.FirstError);
+                }
+
+                string filterName = filter.GetType().Name;
+                CorpusDiagnostics.RecordFilterEvaluation(filterName, filterResult.Value.ToString());
+
+                if (filterResult.Value == VKFilterVerdict.ForceKeep)
+                {
+                    verdict = VKFilterVerdict.ForceKeep;
+                    break;
+                }
+                if (filterResult.Value == VKFilterVerdict.Reject)
+                {
+                    verdict = VKFilterVerdict.Reject;
+                    break;
+                }
             }
 
-            if (filterResult.Value != VKFilterVerdict.Reject)
+            if (verdict != VKFilterVerdict.Reject)
             {
                 passedEntries.Add(entry);
                 currentTurnInjectedTags.Add(entry.Knowledge.Id.Value.ToString());
@@ -258,6 +282,10 @@ internal sealed class DefaultFilteringStage : IVKPsycheBeforePipelineStage
 
         // Propagate state downstream for usage recording
         context.SetState(new CorpusInjectionState(passedEntries, currentTurn));
+
+        stopwatch.Stop();
+        CorpusDiagnostics.RecordFiltering(context.Request.SessionId.Value.ToString(), passedEntries.Count, sortedCandidates.Count, stopwatch.Elapsed.TotalMilliseconds);
+        CorpusLog.FilteringCompleted(_logger, passedEntries.Count, sortedCandidates.Count, context.Request.SessionId.Value.ToString());
 
         return VKResult.Success();
     }

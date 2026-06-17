@@ -66,8 +66,7 @@ internal sealed class InMemoryPatternStore : IVKPatternStore
     /// </summary>
     public InMemoryPatternStore Remove(VKPatternId id)
     {
-        if (id.IsEmpty)
-            throw new ArgumentException("VKPatternId cannot be empty.", nameof(id));
+        VKGuard.NotEmptyGuid(id.Value);
 
         _patterns.TryRemove(id, out _);
         return this;

@@ -163,9 +163,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
 
         if (ctx.Services.GetService(typeof(IVKChatEngine)) is not IVKChatEngine chatEngine)
         {
-            return VKResult.Failure<VKPsycheResponse>(new VKError(
-                "AI.Psyche.ChatEngineNotFound",
-                "IVKChatEngine is not registered in the service provider."));
+            return VKResult.Failure<VKPsycheResponse>(VKBehaviorsErrors.ChatEngineNotFound);
         }
 
         var chatArgs = ctx.Args<VKChatArgs>();

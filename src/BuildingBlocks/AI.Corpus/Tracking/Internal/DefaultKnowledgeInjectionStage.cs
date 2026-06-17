@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -53,6 +54,8 @@ internal sealed class DefaultKnowledgeInjectionStage : IVKPsycheAfterPipelineSta
             return VKResult.Success();
         }
 
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
         CorpusInjectionState? state = context.State<CorpusInjectionState>();
         if (state == null || state.InjectedEntries.Count == 0)
         {
@@ -80,6 +83,10 @@ internal sealed class DefaultKnowledgeInjectionStage : IVKPsycheAfterPipelineSta
                 context.Request.SessionId.Value.ToString(),
                 recordResult.FirstError.Description);
         }
+
+        stopwatch.Stop();
+        CorpusDiagnostics.RecordTracking(context.Request.SessionId.Value.ToString(), injections.Count, stopwatch.Elapsed.TotalMilliseconds);
+        CorpusLog.TrackingRecorded(_logger, injections.Count, context.Request.SessionId.Value.ToString(), state.CurrentTurn);
 
         return VKResult.Success();
     }

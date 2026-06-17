@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 // // [AP.03] Internal implementation inside Internal/ folder without VK prefix
@@ -39,7 +40,7 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
             context.SetFragments(activeFragments);
         }
 
-        var chunks = VKWeavingStepRunner.ChunkSteps(
+        var chunks = WeavingStepRunner.ChunkSteps(
             _tasks,
             t => t.TaskOrder,
             t => t.ParallelGroup);
@@ -47,7 +48,7 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
         bool hasFailed = false;
         VKResult? failedResult = null;
 
-        var runResult = await VKWeavingStepRunner.ExecuteChunksAsync(
+        var runResult = await WeavingStepRunner.ExecuteChunksAsync(
             chunks,
             context,
             t => t.IsParallel,

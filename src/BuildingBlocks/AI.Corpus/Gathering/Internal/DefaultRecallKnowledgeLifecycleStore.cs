@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using VK.Blocks.AI.Corpus.Diagnostics.Internal;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.AI.Recall;
 using VK.Blocks.Core;
@@ -18,6 +20,7 @@ internal sealed class DefaultRecallKnowledgeLifecycleStore : IVKRecallKnowledgeL
     private readonly IVKSearchStrategy _searchStrategy;
     private readonly IVKJsonSerializer _jsonSerializer;
     private readonly VKGatheringOptions _options;
+    private readonly ILogger<DefaultRecallKnowledgeLifecycleStore> _logger;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultRecallKnowledgeLifecycleStore"/>.
@@ -25,11 +28,13 @@ internal sealed class DefaultRecallKnowledgeLifecycleStore : IVKRecallKnowledgeL
     public DefaultRecallKnowledgeLifecycleStore(
         IVKSearchStrategy searchStrategy,
         IVKJsonSerializer jsonSerializer,
-        IOptions<VKGatheringOptions> options)
+        IOptions<VKGatheringOptions> options,
+        ILogger<DefaultRecallKnowledgeLifecycleStore> logger)
     {
         _searchStrategy = VKGuard.NotNull(searchStrategy);
         _jsonSerializer = VKGuard.NotNull(jsonSerializer);
         _options = VKGuard.NotNull(options?.Value);
+        _logger = VKGuard.NotNull(logger);
     }
 
     /// <inheritdoc />
@@ -66,8 +71,9 @@ internal sealed class DefaultRecallKnowledgeLifecycleStore : IVKRecallKnowledgeL
                 options = _jsonSerializer.Deserialize<VKKnowledgeLifecycle>(result.Document.Metadata)
                     ?? new VKKnowledgeLifecycle();
             }
-            catch
+            catch (Exception ex)
             {
+                CorpusLog.FailedToDeserializeLifecycle(_logger, result.Document.Id, ex);
                 options = new VKKnowledgeLifecycle();
             }
 
