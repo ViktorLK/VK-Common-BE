@@ -16,7 +16,6 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
     private readonly IVKTokenCounter _tokenCounter;
     private readonly VKWeavingOptions _options;
     private readonly ILogger<DefaultPromptTruncateTask> _logger;
-    private readonly TimeProvider? _timeProvider;
 
     public int TaskOrder => VKWeavingTaskOrder.Truncate;
     public bool IsParallel => false;
@@ -25,13 +24,11 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
     public DefaultPromptTruncateTask(
         IVKTokenCounter tokenCounter,
         IOptions<VKWeavingOptions> options,
-        ILogger<DefaultPromptTruncateTask> logger,
-        TimeProvider? timeProvider = null)
+        ILogger<DefaultPromptTruncateTask> logger)
     {
         _tokenCounter = VKGuard.NotNull(tokenCounter);
         _options = VKGuard.NotNull(options).Value;
         _logger = VKGuard.NotNull(logger);
-        _timeProvider = timeProvider;
     }
 
     public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken ct = default)

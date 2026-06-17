@@ -19,8 +19,7 @@ internal sealed class InMemoryPersonaStore : IVKPersonaStore
         VKPersonaId personaId,
         CancellationToken cancellationToken = default)
     {
-        if (personaId.IsEmpty)
-            throw new ArgumentException("PersonaId cannot be empty.", nameof(personaId));
+        VKGuard.NotEmptyGuid(personaId.Value);
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!_store.TryGetValue(personaId, out var anchor))
@@ -54,8 +53,7 @@ internal sealed class InMemoryPersonaStore : IVKPersonaStore
 
     public InMemoryPersonaStore Remove(VKPersonaId personaId)
     {
-        if (personaId.IsEmpty)
-            throw new ArgumentException("PersonaId cannot be empty.", nameof(personaId));
+        VKGuard.NotEmptyGuid(personaId.Value);
 
         _store.TryRemove(personaId, out _);
 

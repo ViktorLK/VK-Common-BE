@@ -22,8 +22,7 @@ internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (personaId.IsEmpty)
-            throw new ArgumentException("PersonaId cannot be empty.", nameof(personaId));
+        VKGuard.NotEmptyGuid(personaId.Value);
 
         if (!_store.TryGetValue(personaId.ToString(), out var entries))
         {
@@ -35,16 +34,20 @@ internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
 
     public InMemoryKnowledgeStore Seed(VKKnowledgeEntry knowledgeEntry)
     {
-        _store[knowledgeEntry.Id.ToString()].Add(knowledgeEntry);
+        VKGuard.NotNull(knowledgeEntry);
+        var list = _store.GetOrAdd(knowledgeEntry.Id.ToString(), _ => []);
+        list.Add(knowledgeEntry);
 
         return this;
     }
 
     public InMemoryKnowledgeStore Seed(IEnumerable<VKKnowledgeEntry> knowledgeEntries)
     {
+        VKGuard.NotNull(knowledgeEntries);
         foreach (var groupKnowledge in knowledgeEntries.GroupBy(x => x.Id))
         {
-            _store[groupKnowledge.Key.ToString()].AddRange([.. groupKnowledge]);
+            var list = _store.GetOrAdd(groupKnowledge.Key.ToString(), _ => []);
+            list.AddRange([.. groupKnowledge]);
         }
 
         return this;

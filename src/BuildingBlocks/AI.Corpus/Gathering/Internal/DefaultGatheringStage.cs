@@ -1,7 +1,10 @@
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using VK.Blocks.AI.Corpus.Common.Models.Internal;
+using VK.Blocks.AI.Corpus.Diagnostics.Internal;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
@@ -16,14 +19,19 @@ internal sealed class DefaultGatheringStage : IVKPsycheBeforePipelineStage
 {
     private readonly IVKRecallKnowledgeLifecycleStore _recallStore;
     private readonly VKAICorpusOptions _corpusOptions;
+    private readonly ILogger<DefaultGatheringStage> _logger;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultGatheringStage"/>.
     /// </summary>
-    public DefaultGatheringStage(IVKRecallKnowledgeLifecycleStore recallStore, Microsoft.Extensions.Options.IOptions<VKAICorpusOptions> corpusOptions)
+    public DefaultGatheringStage(
+        IVKRecallKnowledgeLifecycleStore recallStore,
+        Microsoft.Extensions.Options.IOptions<VKAICorpusOptions> corpusOptions,
+        ILogger<DefaultGatheringStage> logger)
     {
         _recallStore = VKGuard.NotNull(recallStore);
         _corpusOptions = VKGuard.NotNull(corpusOptions?.Value);
+        _logger = VKGuard.NotNull(logger);
     }
 
     /// <inheritdoc />
@@ -42,7 +50,10 @@ internal sealed class DefaultGatheringStage : IVKPsycheBeforePipelineStage
             return VKResult.Success();
         }
 
-        // Calculate the current turn by counting user messages in the dialogue history
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        // Calculate the current turn by counting user messages in the dialogue history.
+        // Gathering stage does not require precise turn calculation; it is calculated correctly in the filtering stage.
         int currentTurn = 1;
         // In retrieval, we only need to pass the basic context to GetEntriesAsync
         VKCorpusContext corpusContext = new()
@@ -73,6 +84,10 @@ internal sealed class DefaultGatheringStage : IVKPsycheBeforePipelineStage
 
         // Store the state so the Filtering stage knows their options
         context.SetState(new RecalledKnowledgeLifecycleState(recalledResult.Value));
+
+        stopwatch.Stop();
+        CorpusDiagnostics.RecordGathering(context.Request.SessionId.Value.ToString(), recalledResult.Value.Count, stopwatch.Elapsed.TotalMilliseconds);
+        CorpusLog.GatheringCompleted(_logger, recalledResult.Value.Count, context.Request.SessionId.Value.ToString());
 
         return VKResult.Success();
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using VK.Blocks.Core;
@@ -74,7 +75,7 @@ public sealed class VKPsycheContext
     // 5. Extensibility Container
     // ==========================================
 
-    private readonly Dictionary<Type, object> _states = [];
+    private readonly ConcurrentDictionary<Type, object> _states = new();
 
     /// <summary>
     /// Attaches an extensibility object to this context for downstream stages.

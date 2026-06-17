@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Corpus.Diagnostics.Internal;
@@ -7,4 +9,76 @@ namespace VK.Blocks.AI.Corpus.Diagnostics.Internal;
 /// Follows OR.01 / BB.04.
 /// </summary>
 [VKBlockDiagnostics<VKAICorpusBlock>]
-internal static partial class CorpusDiagnostics;
+internal static partial class CorpusDiagnostics
+{
+    private static readonly Counter<long> GatheringCandidates;
+    private static readonly Histogram<double> GatheringDuration;
+
+    private static readonly Counter<long> FilteringPassed;
+    private static readonly Counter<long> FilteringTotal;
+    private static readonly Histogram<double> FilteringDuration;
+    private static readonly Counter<long> FilterEvaluations;
+
+    private static readonly Counter<long> TrackingInjections;
+    private static readonly Histogram<double> TrackingDuration;
+
+    static CorpusDiagnostics()
+    {
+        GatheringCandidates = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.GatheringCandidateCount);
+        GatheringDuration   = Meter.CreateHistogram<double>(CorpusDiagnosticsConstants.Metrics.GatheringDuration, "ms");
+        FilteringPassed     = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.FilteringPassedCount);
+        FilteringTotal      = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.FilteringTotalCount);
+        FilteringDuration   = Meter.CreateHistogram<double>(CorpusDiagnosticsConstants.Metrics.FilteringDuration, "ms");
+        FilterEvaluations   = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.FilterEvaluationCount);
+        TrackingInjections  = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.TrackingInjectionCount);
+        TrackingDuration    = Meter.CreateHistogram<double>(CorpusDiagnosticsConstants.Metrics.TrackingDuration, "ms");
+    }
+
+    public static void RecordGathering(string sessionId, int candidateCount, double durationMs)
+    {
+        TagList tags = new()
+        {
+            { CorpusDiagnosticsConstants.Tags.SessionId, sessionId },
+            { CorpusDiagnosticsConstants.Tags.StageName, CorpusDiagnosticsConstants.Activities.Gathering }
+        };
+
+        GatheringCandidates.Add(candidateCount, tags);
+        GatheringDuration.Record(durationMs, tags);
+    }
+
+    public static void RecordFiltering(string sessionId, int passedCount, int totalCount, double durationMs)
+    {
+        TagList tags = new()
+        {
+            { CorpusDiagnosticsConstants.Tags.SessionId, sessionId },
+            { CorpusDiagnosticsConstants.Tags.StageName, CorpusDiagnosticsConstants.Activities.Filtering }
+        };
+
+        FilteringPassed.Add(passedCount, tags);
+        FilteringTotal.Add(totalCount, tags);
+        FilteringDuration.Record(durationMs, tags);
+    }
+
+    public static void RecordFilterEvaluation(string filterName, string verdict)
+    {
+        TagList tags = new()
+        {
+            { CorpusDiagnosticsConstants.Tags.FilterName, filterName },
+            { CorpusDiagnosticsConstants.Tags.FilterVerdict, verdict }
+        };
+
+        FilterEvaluations.Add(1, tags);
+    }
+
+    public static void RecordTracking(string sessionId, int injectionCount, double durationMs)
+    {
+        TagList tags = new()
+        {
+            { CorpusDiagnosticsConstants.Tags.SessionId, sessionId },
+            { CorpusDiagnosticsConstants.Tags.StageName, CorpusDiagnosticsConstants.Activities.Tracking }
+        };
+
+        TrackingInjections.Add(injectionCount, tags);
+        TrackingDuration.Record(durationMs, tags);
+    }
+}

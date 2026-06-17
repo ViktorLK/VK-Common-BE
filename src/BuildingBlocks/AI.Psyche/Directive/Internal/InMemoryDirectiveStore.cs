@@ -29,8 +29,7 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
         VKDirectiveId directiveId,
         CancellationToken cancellationToken = default)
     {
-        if (directiveId.IsEmpty)
-            throw new ArgumentException("DirectiveId cannot be empty.", nameof(directiveId));
+        VKGuard.NotEmptyGuid(directiveId.Value);
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!_store.TryGetValue(directiveId, out var directive))
@@ -66,8 +65,7 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
 
     public InMemoryDirectiveStore Remove(VKDirectiveId directiveId)
     {
-        if (directiveId.IsEmpty)
-            throw new ArgumentException("DirectiveId cannot be empty.", nameof(directiveId));
+        VKGuard.NotEmptyGuid(directiveId.Value);
 
         _store.TryRemove(directiveId, out _);
 

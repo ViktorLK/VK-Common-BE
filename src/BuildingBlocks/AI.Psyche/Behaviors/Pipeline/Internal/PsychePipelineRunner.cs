@@ -70,9 +70,10 @@ internal static class PsychePipelineRunner
 
         foreach (var chunk in chunks)
         {
-            if (context.IsAborted || cancellationToken.IsCancellationRequested)
+            cancellationToken.ThrowIfCancellationRequested();
+            if (context.IsAborted)
             {
-                return VKResult.Success();
+                return VKResult.Failure(VKBehaviorsErrors.Aborted);
             }
 
             var parallel = chunk.Where(isParallelSelector).ToList();
@@ -96,9 +97,10 @@ internal static class PsychePipelineRunner
             // Run serial stages sequentially
             foreach (var stage in serial)
             {
-                if (context.IsAborted || cancellationToken.IsCancellationRequested)
+                cancellationToken.ThrowIfCancellationRequested();
+                if (context.IsAborted)
                 {
-                    return VKResult.Success();
+                    return VKResult.Failure(VKBehaviorsErrors.Aborted);
                 }
 
                 var result = await executeFunc(stage, context, cancellationToken).ConfigureAwait(false); // [CS.03]

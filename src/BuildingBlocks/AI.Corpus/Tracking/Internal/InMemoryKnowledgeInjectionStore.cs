@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Corpus;
+namespace VK.Blocks.AI.Corpus.Tracking.Internal;
 
 /// <summary>
 /// An in-memory, basic implementation of the <see cref="IVKKnowledgeInjectionStore"/>.
@@ -22,10 +22,7 @@ internal sealed class InMemoryKnowledgeInjectionStore : IVKKnowledgeInjectionSto
         IReadOnlyCollection<VKKnowledgeInjection> injections,
         CancellationToken cancellationToken = default)
     {
-        if (sessionId.IsEmpty)
-        {
-            throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
-        }
+        VKGuard.NotEmptyGuid(sessionId.Value);
         VKGuard.NotNull(injections);
 
         List<VKKnowledgeInjection> list = _records.GetOrAdd(sessionId, _ => []);
@@ -42,10 +39,7 @@ internal sealed class InMemoryKnowledgeInjectionStore : IVKKnowledgeInjectionSto
         VKSessionId sessionId,
         CancellationToken cancellationToken = default)
     {
-        if (sessionId.IsEmpty)
-        {
-            throw new ArgumentException("SessionId cannot be empty.", nameof(sessionId));
-        }
+        VKGuard.NotEmptyGuid(sessionId.Value);
 
         IReadOnlyCollection<VKKnowledgeInjection> result = Array.Empty<VKKnowledgeInjection>();
 
