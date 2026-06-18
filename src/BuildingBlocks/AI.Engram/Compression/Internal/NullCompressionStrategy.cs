@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Engram.Compression.Strategies;
+namespace VK.Blocks.AI.Engram.Compression.Internal;
 
 /// <summary>
 /// Default compression strategy that returns content unchanged.

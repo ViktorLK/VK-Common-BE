@@ -145,7 +145,7 @@ public partial class VKEfCoreReadRepository<TEntity> : IVKReadRepository<TEntity
     /// Gets a queryable for the entity, optionally with tracking disabled.
     /// </summary>
     protected IQueryable<TEntity> GetQueryable(bool asNoTracking)
-            => asNoTracking ? DbSet.AsNoTracking() : DbSet;
+            => asNoTracking ? DbSet.AsNoTracking() : DbSet.AsTracking();
 
     /// <summary>
     /// Gets a single entity based on the predicate and tracking options.
