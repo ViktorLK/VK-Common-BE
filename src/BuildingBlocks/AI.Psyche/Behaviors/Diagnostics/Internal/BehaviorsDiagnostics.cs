@@ -10,38 +10,38 @@ namespace VK.Blocks.AI.Psyche.Behaviors.Diagnostics.Internal;
 internal static partial class BehaviorsDiagnostics
 {
     [LoggerMessage(
-        EventId = VKBehaviorsDiagnostics.ExecutionStartedEventId,
+        EventId = VKBehaviorsDiagnosticsConstants.Logs.ExecutionStarted,
         Level = LogLevel.Information,
         Message = "Psyche pipeline execution started. SessionId: {SessionId}, TraceId: {TraceId}")]
-    public static partial void ExecutionStarted(ILogger logger, string sessionId, string traceId);
+    public static partial void ExecutionStarted(this ILogger logger, string sessionId, string traceId);
 
     [LoggerMessage(
-        EventId = VKBehaviorsDiagnostics.ExecutionCompletedEventId,
+        EventId = VKBehaviorsDiagnosticsConstants.Logs.ExecutionCompleted,
         Level = LogLevel.Information,
         Message = "Psyche pipeline execution completed successfully. TraceId: {TraceId}, Duration: {DurationMs}ms")]
-    public static partial void ExecutionCompleted(ILogger logger, string traceId, double durationMs);
+    public static partial void ExecutionCompleted(this ILogger logger, string traceId, double durationMs);
 
     [LoggerMessage(
-        EventId = VKBehaviorsDiagnostics.ExecutionFailedEventId,
+        EventId = VKBehaviorsDiagnosticsConstants.Logs.ExecutionFailed,
         Level = LogLevel.Error,
         Message = "Psyche pipeline execution failed. TraceId: {TraceId}, ErrorCode: {ErrorCode}, Message: {ErrorMessage}")]
-    public static partial void ExecutionFailed(ILogger logger, string traceId, string errorCode, string errorMessage);
+    public static partial void ExecutionFailed(this ILogger logger, string traceId, string errorCode, string errorMessage);
 
     [LoggerMessage(
-        EventId = VKBehaviorsDiagnostics.PipelineStartedEventId,
+        EventId = VKBehaviorsDiagnosticsConstants.Logs.PipelineStarted,
         Level = LogLevel.Information,
         Message = "Psyche pipeline started. PersonaId: {PersonaId}, SessionId: {SessionId}, CorrelationId: {CorrelationId}")]
-    public static partial void PipelineStarted(ILogger logger, VKPersonaId personaId, VKSessionId sessionId, string correlationId);
+    public static partial void PipelineStarted(this ILogger logger, VKPersonaId personaId, VKSessionId sessionId, string correlationId);
 
     [LoggerMessage(
-        EventId = VKBehaviorsDiagnostics.PipelineCompletedEventId,
+        EventId = VKBehaviorsDiagnosticsConstants.Logs.PipelineCompleted,
         Level = LogLevel.Information,
         Message = "Psyche pipeline completed successfully. CorrelationId: {CorrelationId}, Duration: {DurationMs}ms")]
-    public static partial void PipelineCompleted(ILogger logger, string correlationId, double durationMs);
+    public static partial void PipelineCompleted(this ILogger logger, string correlationId, double durationMs);
 
     [LoggerMessage(
-        EventId = VKBehaviorsDiagnostics.PipelineFailedEventId,
+        EventId = VKBehaviorsDiagnosticsConstants.Logs.PipelineFailed,
         Level = LogLevel.Error,
         Message = "Psyche pipeline failed. CorrelationId: {CorrelationId}, ErrorCode: {ErrorCode}, Message: {ErrorMessage}")]
-    public static partial void PipelineFailed(ILogger logger, string correlationId, string errorCode, string errorMessage);
+    public static partial void PipelineFailed(this ILogger logger, string correlationId, string errorCode, string errorMessage);
 }

@@ -116,7 +116,7 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
         int evictedCount = finalEvictedState?.Evicted.Count ?? 0;
         if (evictedCount > 0)
         {
-            WeavingDiagnostics.WeavingTruncated(_logger, context.Request.SessionId, remainingHistoryBudget, activeHistoryTokens, evictedCount);
+            _logger.WeavingTruncated(context.Request.SessionId, remainingHistoryBudget, activeHistoryTokens, evictedCount);
         }
 
         return Task.FromResult(VKResult.Success());

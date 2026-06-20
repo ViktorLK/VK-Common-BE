@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -22,7 +21,7 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
     {
         _logger = VKGuard.NotNull(logger);
 
-        DirectiveDiagnostics.DirectiveInitialized(_logger);
+        _logger.DirectiveInitialized();
     }
 
     public Task<VKResult<VKDirectiveCharter>> GetDirectiveAsync(
@@ -37,7 +36,7 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
             return Task.FromResult(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
         }
 
-        DirectiveDiagnostics.DirectiveResolved(_logger, directiveId.ToString());
+        _logger.DirectiveResolved(directiveId.ToString());
 
         return Task.FromResult(VKResult.Success(directive));
     }

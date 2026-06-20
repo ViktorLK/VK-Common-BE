@@ -1,0 +1,13 @@
+namespace VK.Blocks.AI.VectorStore;
+
+/// <summary>
+/// Supported vector store types.
+/// </summary>
+public enum VKAIVectorStoreType
+{
+    InMemory,
+    Sqlite,
+    Qdrant,
+    Milvus,
+    CosmosDB
+}

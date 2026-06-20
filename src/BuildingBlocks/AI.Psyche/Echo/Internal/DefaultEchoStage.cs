@@ -166,7 +166,7 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
             });
         }
 
-        EchoDiagnostics.EchoTrimmed(_logger, context.Request.SessionId, allEchoes.Count, retained.Count);
+        _logger.EchoTrimmed(context.Request.SessionId, allEchoes.Count, retained.Count);
 
         return VKResult.Success();
     }

@@ -1,7 +1,7 @@
+using VK.Blocks.AI.VectorStore.Engine.Models;
 using VK.Blocks.Core;
-using VK.Blocks.AI.VectorStore.VectorStore.Models;
 
-namespace VK.Blocks.AI.VectorStore.Common.DependencyInjection;
+namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>
 /// Default configuration settings for the AI Vector Store building block.

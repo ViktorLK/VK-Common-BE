@@ -7,31 +7,26 @@ namespace VK.Blocks.Core.Diagnostics;
 public static class VKDiagnosticOffsets
 {
     // ==========================================
-    // AI Block (10000 - 19999)
+    // AI Block (50000 - 69999)
     // ==========================================
-    public const int AI_Agents = 11000;
-    public const int AI_AtomicTools = 12000;
-    public const int AI_Audio = 13000;
-    public const int AI_Chat = 14000;
-    public const int AI_Guardrails = 15000;
-    public const int AI_Prompting = 16000;
-    public const int AI_Text = 17000;
-    public const int AI_Tokenics = 18000;
-    public const int AI_Vectorics = 19000;
+    public const int AI_Agents = 51000;
+    public const int AI_AtomicTools = 52000;
+    public const int AI_Audio = 53000;
+    public const int AI_Chat = 54000;
+    public const int AI_Guardrails = 55000;
+    public const int AI_Prompting = 56000;
+    public const int AI_Text = 57000;
+    public const int AI_Tokenics = 58000;
+    public const int AI_Vectorics = 59000;
 
     // ==========================================
-    // AI.Afferent Block (20000 - 29999)
+    // AI.Psyche Block (70000 - 89999)
     // ==========================================
-    public const int AI_Afferent_Weaving = 21000;
-    public const int AI_Afferent_Knowledge = 22000;
-    public const int AI_Afferent_Memory = 23000;
-    public const int AI_Afferent_Persona = 24000;
-    public const int AI_Afferent_Orchestration = 25000;
-    public const int AI_Afferent_Presence = 26000;
-    public const int AI_Afferent_Reasoning = 27000;
-    public const int AI_Afferent_Framing = 28000;
-    public const int AI_Afferent_Tokenics = 28500;
-    public const int AI_Afferent_Guardrails = 29000;
-    public const int AI_Afferent_Text = 29250;
-    public const int AI_Afferent_Audio = 29500;
+    public const int AI_Psyche_Behaviors = 70000;
+    public const int AI_Psyche_Pattern = 71000;
+    public const int AI_Psyche_Directive = 72000;
+    public const int AI_Psyche_Persona = 73000;
+    public const int AI_Psyche_Knowledge = 74000;
+    public const int AI_Psyche_Echo = 75000;
+    public const int AI_Psyche_Weaving = 76000;
 }

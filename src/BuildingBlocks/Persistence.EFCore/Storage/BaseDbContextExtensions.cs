@@ -54,8 +54,13 @@ internal static class BaseDbContextExtensions
                 setSoftDeleteFilter(modelBuilder);
             }
 
-            if (context.IsMultiTenancyEnabled && typeof(IVKMultiTenant).IsAssignableFrom(entityType.ClrType))
+            if (typeof(IVKMultiTenant).IsAssignableFrom(entityType.ClrType))
             {
+                if (!context.IsMultiTenancyEnabled)
+                {
+                    throw new InvalidOperationException($"Entity '{entityType.ClrType.Name}' implements IVKMultiTenant, but multi-tenancy is not enabled on the DbContext '{context.GetType().Name}'. Please ensure EnableMultiTenancy is set to true and properly passed to the base constructor.");
+                }
+
                 var setMultiTenantFilter = _multiTenantFilterSetters.GetOrAdd(entityType.ClrType, type =>
                 {
                     var concreteMethod = _setMultiTenantFilterMethod.MakeGenericMethod(type);
@@ -95,7 +100,7 @@ internal static class BaseDbContextExtensions
     private static void SetMultiTenantFilter<TEntity>(ModelBuilder modelBuilder, VKBaseDbContext context)
         where TEntity : class, IVKMultiTenant
     {
-        modelBuilder.VKEntity<TEntity>().HasQueryFilter(e => e.TenantId == context.CurrentTenantId);
+        modelBuilder.VKEntity<TEntity>().HasQueryFilter(e => e.TenantId == context.CurrentTenantIdForQueryFilter);
     }
 
 }

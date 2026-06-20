@@ -15,6 +15,12 @@ public abstract class VKBaseDbContext : DbContext
     public string? CurrentTenantId { get; }
 
     /// <summary>
+    /// Evaluated by EF Core Global Query Filters during query execution. Throws if the tenant is missing.
+    /// </summary>
+    public string CurrentTenantIdForQueryFilter => CurrentTenantId 
+        ?? throw new System.InvalidOperationException("Cannot query IVKMultiTenant entity: TenantId is missing from context. If you intend to query across all tenants, use .IgnoreQueryFilters().");
+
+    /// <summary>
     /// Indicates whether MultiTenancy is enabled for this DB Context.
     /// </summary>
     public bool IsMultiTenancyEnabled { get; }

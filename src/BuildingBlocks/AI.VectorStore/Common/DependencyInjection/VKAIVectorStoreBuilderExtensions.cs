@@ -1,9 +1,6 @@
-using VK.Blocks.AI.VectorStore.Retrieval.Internal;
-using VK.Blocks.AI.VectorStore.VectorStore.Internal;
-using VK.Blocks.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.VectorStore.Retrieval.Protocols;
-using VK.Blocks.AI.VectorStore.VectorStore.Protocols;
+using VK.Blocks.AI.VectorStore.Engine.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore;
 
@@ -29,17 +26,6 @@ public static class VKAIVectorStoreBuilderExtensions
         where TImplementation : class, IVKAIVectorStore
     {
         builder.WithScoped<VKAIVectorStoreBlock, IVKAIVectorStore, TImplementation>();
-        return builder;
-    }
-
-    /// <summary>
-    /// Adds high-level Retrieval features (Chunks, Loaders, RAG Bridge) to the vector store.
-    /// </summary>
-    public static IVKAIVectorStoreBuilder AddRetrievalEngine(this IVKAIVectorStoreBuilder builder)
-    {
-        VKGuard.NotNull(builder);
-        builder.Services.TryAddScoped<IVKRetrievalStore, VKVectorStoreRagEngine>();
-        builder.Services.TryAddSingleton<IVKDocumentLoader, VKDocumentLoader>();
         return builder;
     }
 }

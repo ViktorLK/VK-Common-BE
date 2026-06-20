@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <RootNamespace>VK.Blocks.AI.VectorStore</RootNamespace>
     <AssemblyName>VK.Blocks.AI.VectorStore</AssemblyName>
@@ -9,5 +8,6 @@
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
     <ProjectReference Include="..\AI\VK.Blocks.AI.csproj" />
   </ItemGroup>
-
 </Project>
+
+
