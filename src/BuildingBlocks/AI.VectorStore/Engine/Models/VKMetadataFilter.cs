@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace VK.Blocks.AI.VectorStore.VectorStore.Models;
+namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>
 /// Represents a metadata filter for vector search operations.

@@ -14,7 +14,6 @@ internal sealed partial class ContentFeature
         Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<IVKModerationEngine, NoOpVKModerationEngine>(services);
 
         Decorate<IVKChatEngine, VKGovernanceChatDecorator>(services);
-        Decorate<IVKEmbeddingsEngine, VKGovernanceEmbeddingsDecorator>(services);
     }
 
     private static void Decorate<TInterface, TDecorator>(IServiceCollection services)

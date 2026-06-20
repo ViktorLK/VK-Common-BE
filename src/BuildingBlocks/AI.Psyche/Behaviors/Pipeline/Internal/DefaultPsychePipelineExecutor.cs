@@ -52,7 +52,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
     {
         VKGuard.NotNull(context);
 
-        BehaviorsDiagnostics.ExecutionStarted(_logger, context.Request.SessionId.Value.ToString(), context.Request.CorrelationId ?? string.Empty);
+        _logger.ExecutionStarted(context.Request.SessionId.Value.ToString(), context.Request.CorrelationId ?? string.Empty);
         var stopwatch = Stopwatch.StartNew();
 
         // 1. Run BEFORE LLM stages (data gathering, prompt weaving, etc.)
@@ -65,8 +65,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
 
         if (beforeResult.IsFailure)
         {
-            BehaviorsDiagnostics.ExecutionFailed(
-                _logger,
+            _logger.ExecutionFailed(
                 context.Request.CorrelationId ?? string.Empty,
                 beforeResult.FirstError.Code,
                 beforeResult.FirstError.Description);
@@ -75,8 +74,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
 
         if (context.IsAborted)
         {
-            BehaviorsDiagnostics.ExecutionFailed(
-                _logger,
+            _logger.ExecutionFailed(
                 context.Request.CorrelationId ?? string.Empty,
                 VKBehaviorsErrors.EmptyResponse.Code,
                 VKBehaviorsErrors.EmptyResponse.Description);
@@ -97,8 +95,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
         var middlewareResult = await chain(context, cancellationToken).ConfigureAwait(false); // [CS.03]
         if (middlewareResult.IsFailure)
         {
-            BehaviorsDiagnostics.ExecutionFailed(
-                _logger,
+            _logger.ExecutionFailed(
                 context.Request.CorrelationId ?? string.Empty,
                 middlewareResult.FirstError.Code,
                 middlewareResult.FirstError.Description);
@@ -123,8 +120,7 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
 
         if (afterResult.IsFailure)
         {
-            BehaviorsDiagnostics.ExecutionFailed(
-                _logger,
+            _logger.ExecutionFailed(
                 context.Request.CorrelationId ?? string.Empty,
                 afterResult.FirstError.Code,
                 afterResult.FirstError.Description);
@@ -133,16 +129,14 @@ internal sealed class DefaultPsychePipelineExecutor : IVKPsychePipelineExecutor
 
         if (context.Response.Messages.Count == 0)
         {
-            BehaviorsDiagnostics.ExecutionFailed(
-                _logger,
+            _logger.ExecutionFailed(
                 context.Request.CorrelationId ?? string.Empty,
                 VKBehaviorsErrors.EmptyResponse.Code,
                 VKBehaviorsErrors.EmptyResponse.Description);
             return VKResult.Failure<VKPsycheResponse>(VKBehaviorsErrors.EmptyResponse);
         }
 
-        BehaviorsDiagnostics.ExecutionCompleted(
-            _logger,
+        _logger.ExecutionCompleted(
             context.Request.CorrelationId ?? string.Empty,
             stopwatch.Elapsed.TotalMilliseconds);
 

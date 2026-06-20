@@ -13,7 +13,8 @@ internal sealed partial class EmbeddingsFeature
     static partial void RegisterCustom(IServiceCollection services, VKEmbeddingsOptions options)
     {
         _ = options;
-        services.TryAddSingleton<IVKEmbeddingsEngine, NoOpVKEmbeddingsEngine>();
+        services.AddHttpClient();
+        services.TryAddSingleton<IVKEmbeddingsEngine, DefaultEmbeddingsEngine>();
     }
 
     /// <summary>Add embeddings-specific validation logic here</summary>

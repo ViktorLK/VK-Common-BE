@@ -7,20 +7,20 @@ namespace VK.Blocks.AI.Psyche.Echo.Diagnostics.Internal;
 internal static partial class EchoDiagnostics
 {
     [LoggerMessage(
-        EventId = VKEchoDiagnostics.EchoInitializedEventId,
+        EventId = VKEchoDiagnosticsConstants.Logs.EchoInitialized,
         Level = LogLevel.Information,
         Message = "Echo short-term memory tracker initialized.")]
-    public static partial void EchoInitialized(ILogger logger);
+    public static partial void EchoInitialized(this ILogger logger);
 
     [LoggerMessage(
-        EventId = VKEchoDiagnostics.EchoRecordedEventId,
+        EventId = VKEchoDiagnosticsConstants.Logs.EchoRecorded,
         Level = LogLevel.Debug,
         Message = "Recorded memory echo for session {SessionId}. Sender: {SenderRole}, Content length: {ContentLength}.")]
-    public static partial void EchoRecorded(ILogger logger, VKSessionId sessionId, string senderRole, int contentLength);
+    public static partial void EchoRecorded(this ILogger logger, VKSessionId sessionId, string senderRole, int contentLength);
 
     [LoggerMessage(
-        EventId = VKEchoDiagnostics.EchoTrimmedEventId,
+        EventId = VKEchoDiagnosticsConstants.Logs.EchoTrimmed,
         Level = LogLevel.Information,
         Message = "Trimmed dialogue history for session {SessionId}. Original count: {OriginalCount}, Retained count: {RetainedCount}.")]
-    public static partial void EchoTrimmed(ILogger logger, VKSessionId sessionId, int originalCount, int retainedCount);
+    public static partial void EchoTrimmed(this ILogger logger, VKSessionId sessionId, int originalCount, int retainedCount);
 }

@@ -40,8 +40,7 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
         var stopwatch = Stopwatch.StartNew();
         var traceId = request.CorrelationId ?? _guidGenerator.Create().ToString();
 
-        BehaviorsDiagnostics.PipelineStarted(
-            _logger,
+        _logger.PipelineStarted(
             request.PersonaId,
             request.SessionId,
             traceId);
@@ -62,8 +61,7 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
 
         if (executeResult.IsFailure)
         {
-            BehaviorsDiagnostics.PipelineFailed(
-                _logger,
+            _logger.PipelineFailed(
                 traceId,
                 executeResult.FirstError.Code,
                 executeResult.FirstError.Description);
@@ -71,7 +69,7 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
             return VKResult.Failure<VKPsycheResponse>(executeResult.Errors); // [CS.01]
         }
 
-        BehaviorsDiagnostics.PipelineCompleted(_logger, traceId, stopwatch.Elapsed.TotalMilliseconds);
+        _logger.PipelineCompleted(traceId, stopwatch.Elapsed.TotalMilliseconds);
 
         return executeResult;
     }

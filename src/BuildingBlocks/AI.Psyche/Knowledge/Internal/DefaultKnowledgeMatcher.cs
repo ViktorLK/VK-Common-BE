@@ -7,12 +7,12 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche;
+namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
 /// <summary>
 /// Provides unified, high-performance expression tree compilation and matching for <see cref="VKKnowledgeEntry"/> rules.
 /// </summary>
-public static class VKKnowledgeMatcher
+internal static class DefaultKnowledgeMatcher
 {
     private static readonly MethodInfo StringContainsMethod = typeof(string).GetMethod(
         nameof(string.Contains),

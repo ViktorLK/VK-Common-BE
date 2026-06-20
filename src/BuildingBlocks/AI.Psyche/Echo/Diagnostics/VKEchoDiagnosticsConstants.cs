@@ -5,12 +5,15 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Public diagnostic tokens for the Echo feature.
 /// </summary>
-public static class VKEchoDiagnostics
+public static class VKEchoDiagnosticsConstants
 {
     // Logs (Event IDs mapped on Memory block offset range)
-    public const int EchoInitializedEventId = VKDiagnosticOffsets.AI_Afferent_Memory + 101;
-    public const int EchoRecordedEventId = VKDiagnosticOffsets.AI_Afferent_Memory + 102;
-    public const int EchoTrimmedEventId = VKDiagnosticOffsets.AI_Afferent_Memory + 103;
+    public static class Logs
+    {
+        public const int EchoInitialized = VKDiagnosticOffsets.AI_Psyche_Echo + 1;
+        public const int EchoRecorded = VKDiagnosticOffsets.AI_Psyche_Echo + 2;
+        public const int EchoTrimmed = VKDiagnosticOffsets.AI_Psyche_Echo + 3;
+    }
 
     // Metrics (Meter/Counter/Histogram Names)
     public static class Metrics

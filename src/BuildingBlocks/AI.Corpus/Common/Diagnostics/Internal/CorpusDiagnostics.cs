@@ -24,22 +24,22 @@ internal static partial class CorpusDiagnostics
 
     static CorpusDiagnostics()
     {
-        GatheringCandidates = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.GatheringCandidateCount);
-        GatheringDuration   = Meter.CreateHistogram<double>(CorpusDiagnosticsConstants.Metrics.GatheringDuration, "ms");
-        FilteringPassed     = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.FilteringPassedCount);
-        FilteringTotal      = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.FilteringTotalCount);
-        FilteringDuration   = Meter.CreateHistogram<double>(CorpusDiagnosticsConstants.Metrics.FilteringDuration, "ms");
-        FilterEvaluations   = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.FilterEvaluationCount);
-        TrackingInjections  = Meter.CreateCounter<long>(CorpusDiagnosticsConstants.Metrics.TrackingInjectionCount);
-        TrackingDuration    = Meter.CreateHistogram<double>(CorpusDiagnosticsConstants.Metrics.TrackingDuration, "ms");
+        GatheringCandidates = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.GatheringCandidateCount);
+        GatheringDuration = Meter.CreateHistogram<double>(DiagnosticsConstants.Metrics.GatheringDuration, "ms");
+        FilteringPassed = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.FilteringPassedCount);
+        FilteringTotal = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.FilteringTotalCount);
+        FilteringDuration = Meter.CreateHistogram<double>(DiagnosticsConstants.Metrics.FilteringDuration, "ms");
+        FilterEvaluations = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.FilterEvaluationCount);
+        TrackingInjections = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.TrackingInjectionCount);
+        TrackingDuration = Meter.CreateHistogram<double>(DiagnosticsConstants.Metrics.TrackingDuration, "ms");
     }
 
     public static void RecordGathering(string sessionId, int candidateCount, double durationMs)
     {
         TagList tags = new()
         {
-            { CorpusDiagnosticsConstants.Tags.SessionId, sessionId },
-            { CorpusDiagnosticsConstants.Tags.StageName, CorpusDiagnosticsConstants.Activities.Gathering }
+            { DiagnosticsConstants.Tags.SessionId, sessionId },
+            { DiagnosticsConstants.Tags.StageName, DiagnosticsConstants.Activities.Gathering }
         };
 
         GatheringCandidates.Add(candidateCount, tags);
@@ -50,8 +50,8 @@ internal static partial class CorpusDiagnostics
     {
         TagList tags = new()
         {
-            { CorpusDiagnosticsConstants.Tags.SessionId, sessionId },
-            { CorpusDiagnosticsConstants.Tags.StageName, CorpusDiagnosticsConstants.Activities.Filtering }
+            { DiagnosticsConstants.Tags.SessionId, sessionId },
+            { DiagnosticsConstants.Tags.StageName, DiagnosticsConstants.Activities.Filtering }
         };
 
         FilteringPassed.Add(passedCount, tags);
@@ -63,8 +63,8 @@ internal static partial class CorpusDiagnostics
     {
         TagList tags = new()
         {
-            { CorpusDiagnosticsConstants.Tags.FilterName, filterName },
-            { CorpusDiagnosticsConstants.Tags.FilterVerdict, verdict }
+            { DiagnosticsConstants.Tags.FilterName, filterName },
+            { DiagnosticsConstants.Tags.FilterVerdict, verdict }
         };
 
         FilterEvaluations.Add(1, tags);
@@ -74,8 +74,8 @@ internal static partial class CorpusDiagnostics
     {
         TagList tags = new()
         {
-            { CorpusDiagnosticsConstants.Tags.SessionId, sessionId },
-            { CorpusDiagnosticsConstants.Tags.StageName, CorpusDiagnosticsConstants.Activities.Tracking }
+            { DiagnosticsConstants.Tags.SessionId, sessionId },
+            { DiagnosticsConstants.Tags.StageName, DiagnosticsConstants.Activities.Tracking }
         };
 
         TrackingInjections.Add(injectionCount, tags);

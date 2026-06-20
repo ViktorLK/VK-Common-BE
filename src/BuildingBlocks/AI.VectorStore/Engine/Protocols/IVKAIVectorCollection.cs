@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.VectorStore.VectorStore.Protocols;
+namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>
 /// Defines a high-level, generic collection within a vector store.

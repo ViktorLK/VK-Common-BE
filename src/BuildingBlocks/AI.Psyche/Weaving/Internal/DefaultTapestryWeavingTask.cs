@@ -44,7 +44,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 
         if (activeFragments.Count == 0 && context.Fragments.Count > 0)
         {
-            WeavingDiagnostics.WeavingEmptyActive(_logger, context.Request.SessionId);
+            _logger.WeavingEmptyActive(context.Request.SessionId);
             return Task.FromResult(VKResult.Failure(VKWeavingErrors.EmptyActive));
         }
 
@@ -127,7 +127,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
         context.Response.SystemInstructions = systemBuilder.ToString().Trim();
         context.Response.TotalEstimatedTokens = 0;
 
-        WeavingDiagnostics.WeavingAssembled(_logger, context.Request.SessionId, finalMessages.Count);
+        _logger.WeavingAssembled(context.Request.SessionId, finalMessages.Count);
 
         return Task.FromResult(VKResult.Success());
     }

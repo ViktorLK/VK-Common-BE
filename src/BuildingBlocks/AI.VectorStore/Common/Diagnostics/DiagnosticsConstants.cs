@@ -4,7 +4,7 @@ namespace VK.Blocks.AI.VectorStore;
 /// Constants for AI Vector Store diagnostics.
 /// Follows Centralized Semantic Tokens guidelines.
 /// </summary>
-public static class VKAIVectorStoreDiagnosticsConstants
+public static class DiagnosticsConstants
 {
     public static class Metrics
     {

@@ -1,6 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -236,7 +236,7 @@ internal sealed class DefaultFilteringStage : IVKPsycheBeforePipelineStage
         foreach (VKKnowledgeLifecycleEntry entry in sortedCandidates)
         {
             VKCorpusContext tempContext = corpusContext with { InjectedTags = currentTurnInjectedTags };
-            
+
             VKFilterVerdict verdict = VKFilterVerdict.Keep;
             IOrderedEnumerable<IVKKnowledgeLifecycleFilter> sortedFilters = _knowledgeLifecyclefilters.OrderBy(f => f.FilterOrder);
             foreach (IVKKnowledgeLifecycleFilter filter in sortedFilters)

@@ -46,7 +46,7 @@ internal sealed class DefaultPersonaStage : IVKPsycheBeforePipelineStage
             return VKResult.Failure(personaResult.Errors); // [CS.01]
         }
 
-        PersonaDiagnostics.PersonaResolved(_logger, context.Request.PersonaId, personaResult.Value.Name);
+        _logger.PersonaResolved(context.Request.PersonaId, personaResult.Value.Name);
 
         var tierType = VKPromptTierType.Persona;
         var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0

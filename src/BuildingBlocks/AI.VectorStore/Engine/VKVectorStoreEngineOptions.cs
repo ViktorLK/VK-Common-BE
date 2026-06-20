@@ -1,6 +1,6 @@
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.VectorStore.VectorStore;
+namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>
 /// Options for configuring the AI Vector Store Engine feature.

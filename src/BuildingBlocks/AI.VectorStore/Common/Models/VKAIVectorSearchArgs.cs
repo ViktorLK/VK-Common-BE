@@ -30,5 +30,5 @@ public sealed record VKAIVectorSearchArgs
     /// <summary>
     /// [Data Pipeline] Gets or sets the advanced metadata filter (expression tree).
     /// </summary>
-    public VK.Blocks.AI.VectorStore.VectorStore.Models.VKMetadataFilter? AdvancedFilter { get; init; }
+    public VKMetadataFilter? AdvancedFilter { get; init; }
 }

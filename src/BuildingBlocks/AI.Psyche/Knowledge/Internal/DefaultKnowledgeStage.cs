@@ -93,7 +93,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsycheBeforePipelineStage
         {
             foreach (var entry in conditionalEntries)
             {
-                var matcher = VKKnowledgeMatcher.GetMatcher(entry);
+                var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
                 if (scanTexts.Any(text => matcher(text)))
                 {
                     activeEntries.Add(entry);

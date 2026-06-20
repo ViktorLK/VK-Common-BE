@@ -1,4 +1,4 @@
-namespace VK.Blocks.AI.VectorStore.VectorStore.Protocols;
+namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>
 /// Defines the high-level contract for a named collection vector store.

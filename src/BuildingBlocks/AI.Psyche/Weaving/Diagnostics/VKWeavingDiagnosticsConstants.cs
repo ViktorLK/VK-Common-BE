@@ -5,11 +5,14 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Public diagnostics constants for the Weaving Engine.
 /// </summary>
-public static class VKWeavingDiagnostics
+public static class VKWeavingDiagnosticsConstants
 {
-    public const int WeavingTruncatedEventId = VKDiagnosticOffsets.AI_Afferent_Weaving + 1;
-    public const int WeavingAssembledEventId = VKDiagnosticOffsets.AI_Afferent_Weaving + 2;
-    public const int WeavingEmptyActiveEventId = VKDiagnosticOffsets.AI_Afferent_Weaving + 3;
+    public static class Logs
+    {
+        public const int WeavingTruncated = VKDiagnosticOffsets.AI_Psyche_Weaving + 1;
+        public const int WeavingAssembled = VKDiagnosticOffsets.AI_Psyche_Weaving + 2;
+        public const int WeavingEmptyActive = VKDiagnosticOffsets.AI_Psyche_Weaving + 3;
+    }
 
     public static class Metrics
     {

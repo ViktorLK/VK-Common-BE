@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
-using VK.Blocks.AI.VectorStore.VectorStore.Protocols;
 
-namespace VK.Blocks.AI.VectorStore.VectorStore.Internal;
+namespace VK.Blocks.AI.VectorStore.Engine.Internal;
 
 /// <summary>
 /// In-memory implementation of a vector collection.
@@ -44,7 +43,8 @@ internal sealed class InMemoryVectorCollection<T>(
         foreach (var record in records)
         {
             var result = await UpsertAsync(record.Id, record.Document, record.Vector, cancellationToken).ConfigureAwait(false);
-            if (result.IsFailure) return result;
+            if (result.IsFailure)
+                return result;
         }
         return VKResult.Success();
     }

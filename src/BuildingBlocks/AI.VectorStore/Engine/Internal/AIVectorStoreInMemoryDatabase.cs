@@ -3,12 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using VK.Blocks.AI.VectorStore.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
-using VK.Blocks.AI.VectorStore.VectorStore.Models;
-using VK.Blocks.AI.VectorStore.VectorStore.Protocols;
-using VK.Blocks.AI.VectorStore.Common.DependencyInjection;
 
-namespace VK.Blocks.AI.VectorStore.VectorStore.Internal;
+namespace VK.Blocks.AI.VectorStore.Engine.Internal;
 
 /// <summary>
 /// In-memory implementation of <see cref="IVKAIVectorStore"/>.
@@ -21,10 +19,10 @@ internal sealed class AIVectorStoreInMemoryDatabase : IVKAIVectorStore
 
     public AIVectorStoreInMemoryDatabase(
         IVKJsonSerializer jsonSerializer,
-        Microsoft.Extensions.Options.IOptions<VK.Blocks.AI.VectorStore.Common.DependencyInjection.VKAIVectorStoreDefaultsOptions> options)
+        Microsoft.Extensions.Options.IOptions<VKAIVectorStoreDefaultsOptions> options)
     {
         _jsonSerializer = VKGuard.NotNull(jsonSerializer);
-        _options = options?.Value ?? new VK.Blocks.AI.VectorStore.Common.DependencyInjection.VKAIVectorStoreDefaultsOptions();
+        _options = options?.Value ?? new VKAIVectorStoreDefaultsOptions();
     }
 
     public IVKAIVectorCollection<T> Collection<T>(string name) where T : class
@@ -77,8 +75,8 @@ internal sealed class AIVectorStoreInMemoryDatabase : IVKAIVectorStore
             r.Score
         )).Where(r => r.Document is not null);
 
-        VKAIVectorStoreDiagnostics.RecordSearchDuration(stopwatch.Elapsed.TotalSeconds);
-        VKAIVectorStoreDiagnostics.RecordRecallHit(results.Count > 0);
+        AIVectorStoreDiagnostics.RecordSearchDuration(stopwatch.Elapsed.TotalSeconds);
+        AIVectorStoreDiagnostics.RecordRecallHit(results.Count > 0);
 
         return VKResult.Success(genericResults);
     }

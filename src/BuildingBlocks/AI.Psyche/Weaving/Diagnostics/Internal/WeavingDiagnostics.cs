@@ -7,20 +7,20 @@ namespace VK.Blocks.AI.Psyche.Weaving.Diagnostics.Internal;
 internal static partial class WeavingDiagnostics
 {
     [LoggerMessage(
-        EventId = VKWeavingDiagnostics.WeavingTruncatedEventId,
+        EventId = VKWeavingDiagnosticsConstants.Logs.WeavingTruncated,
         Level = LogLevel.Information,
         Message = "Prompt history truncated. SessionId: {SessionId}, BudgetLimit: {Budget}, CurrentTokens: {CurrentTokens}, EvictedCount: {EvictedCount}")]
-    public static partial void WeavingTruncated(ILogger logger, VKSessionId sessionId, int budget, int currentTokens, int evictedCount);
+    public static partial void WeavingTruncated(this ILogger logger, VKSessionId sessionId, int budget, int currentTokens, int evictedCount);
 
     [LoggerMessage(
-        EventId = VKWeavingDiagnostics.WeavingAssembledEventId,
+        EventId = VKWeavingDiagnosticsConstants.Logs.WeavingAssembled,
         Level = LogLevel.Information,
         Message = "Prompt tapestry assembled. SessionId: {SessionId}, MessageCount: {MessageCount}")]
-    public static partial void WeavingAssembled(ILogger logger, VKSessionId sessionId, int messageCount);
+    public static partial void WeavingAssembled(this ILogger logger, VKSessionId sessionId, int messageCount);
 
     [LoggerMessage(
-        EventId = VKWeavingDiagnostics.WeavingEmptyActiveEventId,
+        EventId = VKWeavingDiagnosticsConstants.Logs.WeavingEmptyActive,
         Level = LogLevel.Warning,
         Message = "No active prompt fragments remaining after filters. SessionId: {SessionId}")]
-    public static partial void WeavingEmptyActive(ILogger logger, VKSessionId sessionId);
+    public static partial void WeavingEmptyActive(this ILogger logger, VKSessionId sessionId);
 }

@@ -21,4 +21,10 @@ public static class VKEmbeddingsErrors
     /// Error returned when the embedding feature is disabled in configuration.
     /// </summary>
     public static readonly VKError FeatureDisabled = new("AI.Embeddings.FeatureDisabled", "The embedding feature is disabled.");
+
+    public static readonly VKError EndpointRequired = new("AI.Embeddings.EndpointRequired", "The endpoint is required for the selected provider.");
+    public static readonly VKError ApiKeyRequired = new("AI.Embeddings.ApiKeyRequired", "The API key is required for the selected provider.");
+    public static readonly VKError InvalidResponse = new("AI.Embeddings.InvalidResponse", "The server returned an invalid or empty embeddings response.");
+
+    public static VKError EngineError(string message) => new("AI.Embeddings.EngineError", message);
 }

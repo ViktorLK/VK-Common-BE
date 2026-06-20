@@ -1,4 +1,4 @@
-namespace VK.Blocks.AI.VectorStore.VectorStore.Models;
+namespace VK.Blocks.AI.VectorStore;
 
 /// <summary>
 /// Supported vector store types.

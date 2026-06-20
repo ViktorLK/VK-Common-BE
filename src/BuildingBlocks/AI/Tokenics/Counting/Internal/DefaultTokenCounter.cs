@@ -1,4 +1,3 @@
-
 namespace VK.Blocks.AI.Tokenics.Counting.Internal;
 
 /// <summary>

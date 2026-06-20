@@ -1,5 +1,3 @@
-using VK.Blocks.AI.Prompting.Diagnostics.Internal;
-using VK.Blocks.AI.Prompting.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
