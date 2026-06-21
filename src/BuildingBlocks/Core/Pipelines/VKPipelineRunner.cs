@@ -1,0 +1,125 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace VK.Blocks.Core;
+
+/// <summary>
+/// Helper to chunk and execute pipeline stages safely.
+/// Handles parallel group execution and fail-fast control.
+/// </summary>
+public static class VKPipelineRunner
+{
+    /// <summary>
+    /// Chunks stages into execution groups based on ordering and parallel group selectors.
+    /// </summary>
+    public static List<List<T>> ChunkStages<T>(
+        IEnumerable<T> stages,
+        Func<T, int> orderSelector,
+        Func<T, int?> parallelGroupSelector)
+    {
+        VKGuard.NotNull(stages);
+        VKGuard.NotNull(orderSelector);
+        VKGuard.NotNull(parallelGroupSelector);
+
+        var sorted = stages.OrderBy(orderSelector).ToList();
+        var chunks = new List<List<T>>();
+        List<T>? currentChunk = null;
+
+        foreach (var stage in sorted)
+        {
+            if (currentChunk is null)
+            {
+                currentChunk = [stage];
+                chunks.Add(currentChunk);
+            }
+            else
+            {
+                var prev = currentChunk.Last();
+                var currentGroup = parallelGroupSelector(stage);
+                var prevGroup = parallelGroupSelector(prev);
+                var currentOrder = orderSelector(stage);
+                var prevOrder = orderSelector(prev);
+
+                if ((currentGroup.HasValue && currentGroup == prevGroup) || currentOrder == prevOrder)
+                {
+                    currentChunk.Add(stage);
+                }
+                else
+                {
+                    currentChunk = [stage];
+                    chunks.Add(currentChunk);
+                }
+            }
+        }
+
+        return chunks;
+    }
+
+    /// <summary>
+    /// Executes chunked stages.
+    /// </summary>
+    public static async Task<VKResult> ExecuteChunksAsync<T, TContext>(
+        List<List<T>> chunks,
+        TContext context,
+        Func<TContext, bool> checkAbortedFunc,
+        Func<TContext, VKResult> abortResultFunc,
+        Func<T, bool> isParallelSelector,
+        Func<T, TContext, CancellationToken, Task<VKResult>> executeFunc,
+        CancellationToken cancellationToken) where TContext : class
+    {
+        VKGuard.NotNull(chunks);
+        VKGuard.NotNull(context);
+        VKGuard.NotNull(checkAbortedFunc);
+        VKGuard.NotNull(abortResultFunc);
+        VKGuard.NotNull(isParallelSelector);
+        VKGuard.NotNull(executeFunc);
+
+        foreach (var chunk in chunks)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (checkAbortedFunc(context))
+            {
+                return abortResultFunc(context);
+            }
+
+            var parallel = chunk.Where(isParallelSelector).ToList();
+            var serial = chunk.Where(s => !isParallelSelector(s)).ToList();
+
+            // Run same-layer/same-order parallel stages concurrently
+            if (parallel.Count > 0)
+            {
+                var tasks = parallel.Select(s => executeFunc(s, context, cancellationToken)).ToList();
+                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                foreach (var result in results)
+                {
+                    if (result.IsFailure)
+                    {
+                        return result; // Fail fast on any failure
+                    }
+                }
+            }
+
+            // Run serial stages sequentially
+            foreach (var stage in serial)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (checkAbortedFunc(context))
+                {
+                    return abortResultFunc(context);
+                }
+
+                var result = await executeFunc(stage, context, cancellationToken).ConfigureAwait(false);
+                if (result.IsFailure)
+                {
+                    return result; // Fail fast on failure
+                }
+            }
+        }
+
+        return VKResult.Success();
+    }
+}

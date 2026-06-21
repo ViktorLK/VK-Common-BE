@@ -40,7 +40,7 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
     public bool IsActive => true;
 
     /// <summary>

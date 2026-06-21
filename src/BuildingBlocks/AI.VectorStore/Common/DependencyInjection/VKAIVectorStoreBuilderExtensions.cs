@@ -1,5 +1,4 @@
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.VectorStore.Engine.Internal;
+using VK.Blocks.AI.VectorStore.VecEngine.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.VectorStore;
@@ -14,7 +13,7 @@ public static class VKAIVectorStoreBuilderExtensions
     /// </summary>
     public static IVKAIVectorStoreBuilder AddInMemoryDatabase(this IVKAIVectorStoreBuilder builder)
     {
-        builder.WithScoped<VKAIVectorStoreBlock, IVKAIVectorStore, AIVectorStoreInMemoryDatabase>();
+        builder.WithScoped<VKAIVectorStoreBlock, IVKAIVectorStore, BasicAIVectorStore>();
         return builder;
     }
 

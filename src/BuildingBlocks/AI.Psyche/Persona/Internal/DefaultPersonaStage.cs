@@ -27,7 +27,7 @@ internal sealed class DefaultPersonaStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePersona;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePersona;
     public bool IsActive => true;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)

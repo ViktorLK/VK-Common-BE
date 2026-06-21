@@ -13,7 +13,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsycheBeforePipelineStage
     private readonly IVKKnowledgeStore _store;
     private readonly VKWeavingOptions _weavingOptions;
 
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledge;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledge;
     public bool IsActive => _options.Enabled;
 
     public DefaultKnowledgeStage(

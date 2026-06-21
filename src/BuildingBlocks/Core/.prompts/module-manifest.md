@@ -3,7 +3,7 @@ layer: 3
 id: core-manifest
 scope: building-blocks/core
 # [Specialized Rules for Core] Foundational standards and planning
-requires: CS.02, CS.04, CS.05, AP.02, AP.04, AP.05, PS.01, PS.02, PS.03, PS.04
+requires: CS.02, CS.04, CS.05, AP.02, AP.04, AP.05, PS.01, PS.02, PS.03
 ---
 
 # 🏛️ VK.Blocks Core Manifest (Layer 3)

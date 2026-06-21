@@ -35,7 +35,7 @@ internal sealed class DefaultGatheringStage : IVKPsycheBeforePipelineStage
     }
 
     /// <inheritdoc />
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusGathering;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusGathering;
 
     /// <inheritdoc />
     public bool IsActive => _corpusOptions.Enabled;

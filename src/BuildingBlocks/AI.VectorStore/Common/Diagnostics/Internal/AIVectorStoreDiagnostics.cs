@@ -16,12 +16,12 @@ internal static partial class AIVectorStoreDiagnostics
     static AIVectorStoreDiagnostics()
     {
         SearchDuration = Meter!.CreateHistogram<double>(
-            DiagnosticsConstants.Metrics.SearchDuration,
+            VKDiagnosticsConstants.Metrics.SearchDuration,
             "seconds",
             "Duration of vector search operations");
 
         RecallHits = Meter!.CreateCounter<long>(
-            DiagnosticsConstants.Metrics.RecallHits,
+            VKDiagnosticsConstants.Metrics.RecallHits,
             "hits",
             "Number of successful vector recalls");
     }
@@ -31,7 +31,7 @@ internal static partial class AIVectorStoreDiagnostics
     /// </summary>
     public static void RecordSearchDuration(double seconds, string? modelId = null)
     {
-        SearchDuration.Record(seconds, new TagList { { DiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" } });
+        SearchDuration.Record(seconds, new TagList { { VKDiagnosticsConstants.Tags.ModelId, modelId ?? "unknown" } });
     }
 
     /// <summary>
