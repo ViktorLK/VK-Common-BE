@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>VK.Blocks.VectorStore</RootNamespace>
+    <AssemblyName>VK.Blocks.VectorStore</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+  </ItemGroup>
+</Project>
+
+
