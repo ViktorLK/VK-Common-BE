@@ -13,7 +13,7 @@ internal sealed class DefaultWeavingStage : IVKPsycheBeforePipelineStage
         _weavingEngine = VKGuard.NotNull(weavingEngine);
     }
 
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.Weaving;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.Weaving;
     public bool IsActive => true;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)

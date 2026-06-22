@@ -30,7 +30,7 @@ internal sealed class DefaultDirectiveStage : IVKPsycheBeforePipelineStage
     /// <summary>
     /// Executes early in the weaving pipeline (Order = 5) to guarantee Directive guardrails are loaded first.
     /// </summary>
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheDirective;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheDirective;
     public bool IsActive => true;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)

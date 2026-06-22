@@ -15,11 +15,6 @@ using VK.Blocks.AI.Tokenics.Costing.Internal;
 using VK.Blocks.AI.Tokenics.Counting.Internal;
 using VK.Blocks.AI.Tokenics.Internal;
 using VK.Blocks.AI.Tokenics.Limiting.Internal;
-using VK.Blocks.AI.Vectorics.Embeddings.Internal;
-using VK.Blocks.AI.Vectorics.Internal;
-using VK.Blocks.AI.Vectorics.ReRanking.Internal;
-using VK.Blocks.AI.Vectorics.Retrieval.Internal;
-using VK.Blocks.AI.Vectorics.SemanticCache.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -85,54 +80,6 @@ public static class VKAIBuilderExtensions
     {
         VKGuard.NotNull(builder);
         return VK.Blocks.AI.Prompting.Internal.PromptingFeature.Register(builder, transform);
-    }
-
-    // ========================================================================
-    // 2. VECTORICS SUB-FEATURES
-    // ========================================================================
-
-    /// <summary>
-    /// Adds the Embeddings feature (Vector representation of text).
-    /// </summary>
-    public static IVKAIBuilder AddVKEmbeddings(
-        this IVKAIBuilder builder,
-        Func<VKEmbeddingsOptions, VKEmbeddingsOptions>? transform = null)
-    {
-        VKGuard.NotNull(builder);
-        return EmbeddingsFeature.Register(builder, transform);
-    }
-
-    /// <summary>
-    /// Adds the Retrieval feature (Vector search and RAG).
-    /// </summary>
-    public static IVKAIBuilder AddVKRetrieval(
-        this IVKAIBuilder builder,
-        Func<VKRetrievalOptions, VKRetrievalOptions>? transform = null)
-    {
-        VKGuard.NotNull(builder);
-        return RetrievalFeature.Register(builder, transform);
-    }
-
-    /// <summary>
-    /// Adds the Re-Ranking feature (Refining search results).
-    /// </summary>
-    public static IVKAIBuilder AddVKReRanking(
-        this IVKAIBuilder builder,
-        Func<VKReRankingOptions, VKReRankingOptions>? transform = null)
-    {
-        VKGuard.NotNull(builder);
-        return ReRankingFeature.Register(builder, transform);
-    }
-
-    /// <summary>
-    /// Adds the Semantic Caching feature.
-    /// </summary>
-    public static IVKAIBuilder AddVKSemanticCache(
-        this IVKAIBuilder builder,
-        Func<VKSemanticCacheOptions, VKSemanticCacheOptions>? transform = null)
-    {
-        VKGuard.NotNull(builder);
-        return SemanticCacheFeature.Register(builder, transform);
     }
 
     // ========================================================================
@@ -251,24 +198,6 @@ public static class VKAIBuilderExtensions
     // ========================================================================
 
     /// <summary>
-    /// Adds the Vectorics pillar (Embeddings, Retrieval, SemanticCache, Re-Ranking).
-    /// </summary>
-    public static IVKAIBuilder AddVKVectorics(
-        this IVKAIBuilder builder,
-        Func<VKVectoricsOptions, VKVectoricsOptions>? transform = null)
-    {
-        VKGuard.NotNull(builder);
-        builder = VectoricsFeature.Register(builder, transform);
-
-        builder.AddVKEmbeddings();
-        builder.AddVKRetrieval();
-        builder.AddVKSemanticCache();
-        builder.AddVKReRanking();
-
-        return builder;
-    }
-
-    /// <summary>
     /// Adds the Audio pillar (Speech and Transcription).
     /// </summary>
     public static IVKAIBuilder AddVKAudio(
@@ -334,7 +263,6 @@ public static class VKAIBuilderExtensions
             .AddVKText()
             .AddVKPrompting()
             .AddVKAudio()
-            .AddVKVectorics()
             .AddVKGuardrails()
             .AddVKTokenics()
             .AddVKAgents();

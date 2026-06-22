@@ -53,7 +53,7 @@ internal sealed class DefaultFilteringStage : IVKPsycheBeforePipelineStage
     }
 
     /// <inheritdoc />
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
 
     /// <inheritdoc />
     public bool IsActive => _corpusOptions.Enabled;

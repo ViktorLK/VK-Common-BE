@@ -3,7 +3,7 @@ layer: 3
 id: ai-manifest
 scope: building-blocks/ai
 # [Specialized Rules for AI] Resilience, Performance, and Testing
-requires: CS.04, OR.03
+requires: CS.04, OR.03, AP.05, BB.08
 ---
 
 # 🤖 VK.Blocks AI Manifest (Layer 3)

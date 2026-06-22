@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>VK.Blocks.VectorStore.Sqlite</RootNamespace>
+    <AssemblyName>VK.Blocks.VectorStore.Sqlite</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VectorStore\VK.Blocks.VectorStore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.Resilience" />
+  </ItemGroup>
+
+</Project>

@@ -12,23 +12,26 @@ Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Gener
 
 **Internal Scoping Rule**: An `Internal/` folder at any level means implementation details that MUST NOT be accessible outside that folder's parent scope (via `internal` keyword).
 
-- **`{FeatureName}/` (MANDATORY)**: First-level domain folders for vertical slices (e.g., `ApiKeys/`, `Guids/`).
-    - MUST contain all logic related to that domain (Interfaces, Handlers, Validators, etc.).
+- **`{FeatureName}/` (MANDATORY)**: First-level domain folders for vertical slices (e.g., `Persona/`, `Behaviors/`).
+    - MUST contain all logic related to that domain, forming a mini-vertical-slice (Interfaces, Handlers, Validators, Models, Protocols, Diagnostics, etc.).
     - `Internal/`: Encapsulated implementations for the feature. **MUST NOT** be wrapped in a `Features/` folder.
 - **`Common/` (MANDATORY)**: The unified grouping folder for system foundations.
     - **`DependencyInjection/`**:
         - `VK{ModuleName}BlockExtensions.cs`: **Public entry point** (IServiceCollection).
-        - `VK{ModuleName}BuilderExtensions.cs`: **Public feature API** (IVKBuilder).
-        - `IVK{ModuleName}Builder.cs`: **Public builder interface**.
-        - `VK{ModuleName}Options.cs`: **Public configuration**.
+        - `VK{ModuleName}BuilderExtensions.cs`: **Public feature API** (IVKBuilder) for feature chaining.
+        - `VK{ModuleName}DefaultsOptions.cs`: **Public library configuration defaults** containing the actual configuration properties (e.g., host/port/timeout settings).
+        - `Protocols/`:
+            - `IVK{ModuleName}Builder.cs`: **Public builder interface**.
         - `Internal/`: Registration logic, builders, and validators.
-    - **`Diagnostics/`**:
+    - **`Constants/` (Optional)**: Public cross-cutting constants and scheduling parameters.
+    - **`Diagnostics/` (Optional)**:
         - `DiagnosticsConstants.cs`: Semantic tokens.
-        - `Internal/`: `[LoggerMessage]` and `[VKBlockDiagnostics]` classes.
+        - `Internal/`: `[LoggerMessage]` and `[VKBlockDiagnostics]` classes for Block-level events.
     - **`Models/` (Optional)**: Public cross-boundary data models and settings args.
     - **`Protocols/` (Optional)**: Public cross-boundary interface and delegate definitions.
     - **`Shared/` (Optional)**: Cross-cutting foundation utilities used by 2 or more features. **Strictly Internal** (Visibility governed by **AP.03**).
-- `VK{ModuleName}Block.cs`: **Public** marker type placed directly in the module's root directory. This SHOULD be the only `.cs` file in the root.
+- **`VK{ModuleName}Block.cs`**: **Public** marker type placed directly in the module's root directory.
+- **`VK{ModuleName}Options.cs`**: **Public** marker/identity-anchor options class (implementing `IVKToggleableBlockOptions` or `IVKBlockOptions`), containing no settings properties. Placing this in the root is used for marker/identity purposes.
 
 ### BB.02 — The Marker Pattern ([VKBlockMarker])
 
@@ -71,18 +74,21 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 7.  **SG Integration**: `services.AddGenerated{ModuleName}Handlers();` (If using Source Generators for Handlers/Validators).
 8.  **Feature Toggle**: `if (!options.Enabled) return builder;`
 
+*Note: Lightweight/skeleton Blocks that do not require validation, diagnostics, or core/SG handlers can omit steps 4-7, proceeding directly from step 3 to step 8.*
+
 ### BB.04 — Diagnostics Blueprint
 
 - **Metadata**: Register an `ISecurityMetadataProvider` (if applicable) to provide version info to diagnostics.
 - **Diagnostics Class**: Annotated with `[VKBlockDiagnostics(typeof({ModuleName}Block))]`.
-- **Constants**: Defined in `{ModuleName}DiagnosticsConstants.cs` (`internal static class`). Naming follows AP.03 Internal convention (no `VK` prefix).
+- **Constants**: Defined in `{ModuleName}DiagnosticsConstants.cs` or feature-level subfolders (`Diagnostics/`). Block/Feature-level diagnostics constants MUST be declared as `public static class` using the `VK` prefix (e.g., `VKPsycheDiagnosticsConstants.cs`).
+- **Feature-level Diagnostics**: Complex features can have their own feature-level diagnostics under `{FeatureName}/Diagnostics/`.
 
 ### BB.05 — Options Architecture
 
 - **Immutability**: MUST be a `sealed record` with `init` properties.
 - **Functional Transformation (ADR-016)**: ANY code-based configuration MUST use the **`Func<T, T> configure`** pattern (instead of `Action<T>`) to support immutability via `with` expressions.
-- **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions`).
-- **Interface**: MUST implement `IVKBlockOptions` (as required by AP.04).
+- **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions` or `VKXxxDefaultsOptions`).
+- **Interface**: MUST implement `IVKBlockOptions` (or its variant `IVKToggleableBlockOptions` for blocks supporting feature toggles with an `Enabled` property).
 - **SectionName**: Formatted according to AP.04.
 - **Validation**: MUST have a corresponding `IValidateOptions` implementation.
 
@@ -90,17 +96,20 @@ The `Register` method in `Internal/{ModuleName}BlockRegistration.cs` MUST follow
 
 Complex blocks containing multiple independent features MUST follow this sub-registration pattern:
 
-- **Feature Marker**: Define an internal marker class decorated with `[VKFeatureMarker("FeatureName", typeof(VKParentBlock))]`.
 - **Chained Builder**: Use extension methods on `IVK{ModuleName}Builder` to add features (e.g., `builder.AddFeatureA()`).
-- **Idempotent Feature Registration**: Each feature registration method MUST check its own `[VKFeatureMarker]` before proceeding.
+- **Idempotent Feature Registration**: Each feature registration method MUST check its own feature marker class/registration state before proceeding.
 - **Hierarchical Options**: Feature options MUST reside under the parent block's configuration section (e.g., `VKBlocks:Parent:Feature`).
-- **Convention-over-Configuration**: Prefer **Attribute Inference** (e.g., `[VKFeature(typeof(ParentFeature))]`) over hardcoded name/namespace strings in attributes.
+- **Convention-over-Configuration (Attribute Inference)**: Annotate features using standard attribute markers:
+  ```csharp
+  [VKFeature(typeof(ParentBlock), GenerateArgs = true, GenerateValidator = true)]
+  ```
+  This is preferred over hardcoded name/namespace strings.
 
 ### BB.07 — Options Isolation (One Class, One File)
 
 To maintain vertical slice integrity and prevent structural rot:
 
-- **No Nesting**: Options classes MUST reside in their own dedicated `.cs` files at the root of their functional module.
+- **No Nesting**: Options classes MUST reside in their own dedicated `.cs` files at the root of their functional module/feature.
 - **Strict Prohibition**: It is STRICTLY PROHIBITED to nest Options records within interface files, internal handler files, or other shared classes.
 
 ### BB.08 — Implicit Dependency (Automated Pull-up)

@@ -107,11 +107,11 @@ AI.Psyche/
 │   ├── Internal/                 # 共有内部ユーティリティ (PromptPositionResolver, PromptConstants)
 │   ├── Models/                   # 公開データモデル (VKPsycheContext, VKPsycheRequest/Response, VKPromptFragment)
 │   └── Protocols/                # 公開インターフェース (IVKFragmentMetadata)
-├── Behaviors/                     # パイプライン実行管理
+├── Pipelines/                     # パイプライン実行管理
 │   ├── Diagnostics/Internal/     # [LoggerMessage] SG Diagnostics
-│   ├── Middleware/Protocols/     # IVKPsycheMiddleware, VKPsycheMiddlewareDelegate
-│   ├── Pipeline/Internal/       # DefaultPsychePipeline, DefaultPsychePipelineExecutor, PsychePipelineRunner
-│   └── Pipeline/Protocols/      # IVKPsychePipeline, IVKPsychePipelineExecutor, Stage interfaces
+│   ├── Diagnostics/VKPipelineDiagnosticsConstants.cs
+│   ├── Internal/                 # DefaultPsychePipeline, DefaultPsychePipelineExecutor, PipelinesFeature
+│   └── Protocols/                # IVKPsychePipeline, IVKPsychePipelineExecutor, Stage/Middleware interfaces
 ├── Directive/                     # テナント指令機能
 │   ├── Diagnostics/Internal/     # [LoggerMessage] SG Diagnostics
 │   ├── Internal/                 # DefaultDirectiveStage, InMemoryDirectiveStore, DirectiveFeature
@@ -189,7 +189,7 @@ AI.Psyche/
 - **テンプレート変数置換**: `IVKPromptTemplateEngine` による Mustache スタイル変数展開（Echo ティアは Injection 防御でスキップ）
 - **Depth Injection**: Absolute Position 挿入（グローバル Depth ベースのメッセージ差し込み）
 
-### 🔄 Behaviors Pipeline（行動パイプライン）
+### 🔄 Pipelines（パイプライン）
 
 - **3 フェーズ実行**: Before Stages → Middleware Chain → After Stages の明確な分離
 - **Onion Middleware**: `IVKPsycheMiddleware` による LLM 呼び出し前後のカスタムロジック注入
@@ -206,7 +206,7 @@ AI.Psyche/
 
 - **Source Generated Logging**: 全 Feature に `[LoggerMessage]` SG + `[VKBlockDiagnostics<VKAIPsycheBlock>]` 準拠の構造化ログ
 - **CorrelationId トレーシング**: パイプライン開始時に `IVKGuidGenerator` で自動生成し、全ログメッセージに含める
-- **セマンティックイベント ID**: 各 Feature の公開 Diagnostics 定数（`VKBehaviorsDiagnostics`, `VKEchoDiagnostics` 等）でイベント ID を一元管理
+- **セマンティックイベント ID**: 各 Feature の公開 Diagnostics 定数（`VKPipelineDiagnosticsConstants`, `VKEchoDiagnostics` 等）でイベント ID を一元管理
 - **パイプライン計測**: 開始 / 完了 / 失敗イベントの自動ログ出力、`Stopwatch` による実行時間計測
 
 ---
@@ -337,13 +337,13 @@ builder.Services.TryAddEnumerable(
 | 機能                              | 状態 | 概要                                                    |
 | --------------------------------- | :--: | ------------------------------------------------------- |
 | **Prompt Weaving Pipeline**       |  ✅  | 5 ティア統合パイプラインの実装完了                        |
-| **Behaviors Pipeline**            |  ✅  | Before → Middleware → After の 3 フェーズパイプライン     |
+| **Pipelines**                     |  ✅  | Before → Middleware → After の 3 フェーズパイプライン     |
 | **Onion Middleware**              |  ✅  | LLM 呼び出し制御のための拡張可能なミドルウェアチェーン    |
 | **Expression Tree Matching**      |  ✅  | Knowledge キーワード / 正規表現の高性能マッチング          |
 | **Parallel Stage Execution**      |  ✅  | ParallelGroup ベースの宣言的並列実行                      |
 | **Pattern Feature**               |  ✅  | Few-Shot パターン注入機能                                 |
 | **Template Variable Replacement** |  ✅  | IVKPromptTemplateEngine による動的変数置換                |
-| **OpenTelemetry Metrics**         |  🔄  | `VKBehaviorsDiagnostics.Metrics` 定義済み、計測コード未実装 |
+| **OpenTelemetry Metrics**         |  🔄  | `VKPipelineDiagnosticsConstants.Metrics` 定義済み、計測コード未実装 |
 | **Semantic Knowledge Retrieval**  |  📋  | Vector Store 連携による意味検索ナレッジ取得               |
 | **Incremental State Tracking**    |  📋  | Knowledge マッチング状態の増分追跡による大規模対応         |
 | **Streaming Tapestry**            |  📋  | ストリーミング応答に対応した段階的 Tapestry 組み立て       |

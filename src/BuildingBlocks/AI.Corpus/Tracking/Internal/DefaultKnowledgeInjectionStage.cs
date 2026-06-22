@@ -39,7 +39,7 @@ internal sealed class DefaultKnowledgeInjectionStage : IVKPsycheAfterPipelineSta
     }
 
     /// <inheritdoc />
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.After.UsageRecord;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.After.UsageRecord;
 
     /// <inheritdoc />
     public bool IsActive => _corpusOptions.Enabled && _trackingOptions.EnableUsageTracking;

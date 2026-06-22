@@ -12,7 +12,7 @@ internal sealed class DefaultPatternStage : IVKPsycheBeforePipelineStage
     private readonly IVKPatternStore _store;
     private readonly VKWeavingOptions _weavingOptions;
 
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePattern;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePattern;
 
     public bool IsActive => _options.Enabled;
 
