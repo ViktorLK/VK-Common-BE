@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// These values serve as fallbacks for all AI features.
 /// Following BB.06: Modular Feature Pattern.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), GenerateValidator = true, Namespace = "VK.Blocks.AI.Common.DependencyInjection")]
+[VKFeature(typeof(VKAIBlock), Namespace = "VK.Blocks.AI.Common.DependencyInjection")]
 public sealed partial record VKAIDefaultsOptions : IVKBlockOptions
 {
     /// <summary>

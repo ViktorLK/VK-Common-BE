@@ -2,22 +2,22 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.AI.Psyche;
 
-namespace VK.Blocks.AI.Psyche.Pipelines.Internal;
+namespace VK.Blocks.AI.Psyche.Pipeline.Internal;
 
 /// <summary>
-/// Psyche Pipelines feature marker and registration hub.
+/// Psyche Pipeline feature marker and registration hub.
 /// </summary>
-internal sealed partial class PipelinesFeature
+internal sealed partial class PipelineFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKPipelinesOptions options)
+    static partial void RegisterCustom(IServiceCollection services, VKPipelineOptions options)
     {
         services.TryAddScoped<IVKPsychePipelineExecutor, DefaultPsychePipelineExecutor>();
         services.TryAddScoped<IVKPsychePipeline, DefaultPsychePipeline>();
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKPipelinesOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateCustom(VKPipelineOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

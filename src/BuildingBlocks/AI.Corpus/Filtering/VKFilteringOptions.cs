@@ -5,7 +5,7 @@ namespace VK.Blocks.AI.Corpus;
 /// <summary>
 /// Options for the Filtering feature of AI.Corpus.
 /// </summary>
-[VKFeature(typeof(VKAICorpusBlock), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(VKAICorpusBlock), GenerateArgs = true)]
 public sealed partial record VKFilteringOptions : IVKFilteringOptions
 {
     /// <summary>

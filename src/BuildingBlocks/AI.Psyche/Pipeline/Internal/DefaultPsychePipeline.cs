@@ -3,10 +3,10 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.AI.Psyche.Pipelines.Diagnostics.Internal;
+using VK.Blocks.AI.Psyche.Pipeline.Diagnostics.Internal;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche.Pipelines.Internal;
+namespace VK.Blocks.AI.Psyche.Pipeline.Internal;
 
 /// <summary>
 /// Default implementation of <see cref="IVKPsychePipeline"/>.

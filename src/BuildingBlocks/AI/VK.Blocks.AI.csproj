@@ -15,8 +15,5 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
-    <ProjectReference Include="..\VectorSearch\VK.Blocks.VectorSearch.csproj" />
-    <ProjectReference Include="..\VectorStore\VK.Blocks.VectorStore.csproj" />
-    <ProjectReference Include="..\VectorIngest\VK.Blocks.VectorIngest.csproj" />
   </ItemGroup>
 </Project>

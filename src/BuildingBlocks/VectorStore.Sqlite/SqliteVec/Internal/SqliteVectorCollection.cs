@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using VK.Blocks.VectorStore;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.VectorStore.Sqlite.SqliteVec.Internal;

@@ -5,7 +5,7 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Configuration settings for the Knowledge feature.
 /// </summary>
-[VKFeature(typeof(VKAIPsycheBlock), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(VKAIPsycheBlock), GenerateArgs = true)]
 public sealed partial record VKKnowledgeOptions : IVKKnowledgeOptions
 {
     /// <summary>

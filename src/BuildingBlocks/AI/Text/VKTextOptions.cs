@@ -6,7 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Options for the text generation feature.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(VKAIBlock), GenerateArgs = true)]
 public sealed partial record VKTextOptions : IVKTextOptions
 {
     /// <inheritdoc />

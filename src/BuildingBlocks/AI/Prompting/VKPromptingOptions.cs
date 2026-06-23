@@ -6,7 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Prompting feature.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), GenerateValidator = true)]
+[VKFeature(typeof(VKAIBlock))]
 public sealed partial record VKPromptingOptions : IVKToggleableBlockOptions
 {
     /// <summary>

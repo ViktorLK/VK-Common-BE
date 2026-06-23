@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Token Budgeting feature.
 /// </summary>
-[VKFeature(typeof(TokenicsFeature), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(TokenicsFeature), GenerateArgs = true)]
 public sealed partial record VKBudgetingOptions : IVKBudgetingOptions
 {
     /// <summary>
