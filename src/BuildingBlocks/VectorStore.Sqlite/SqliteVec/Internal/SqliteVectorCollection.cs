@@ -54,4 +54,16 @@ internal sealed class SqliteVectorCollection<T>(
         // [CS.03] ConfigureAwait(false) on all awaits in libraries
         return await database.GetByIdGenericAsync<T>(Name, id, cancellationToken).ConfigureAwait(false);
     }
+
+    public async Task<VKResult<bool>> ExistsAsync(VKMetadataFilter filter, CancellationToken cancellationToken = default)
+    {
+        // [CS.03] ConfigureAwait(false)
+        return await database.ExistsGenericAsync(Name, filter, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<VKResult<IEnumerable<VKVectorRecord<T>>>> QueryAsync(VKMetadataFilter filter, CancellationToken cancellationToken = default)
+    {
+        // [CS.03] ConfigureAwait(false)
+        return await database.QueryGenericAsync<T>(Name, filter, cancellationToken).ConfigureAwait(false);
+    }
 }
