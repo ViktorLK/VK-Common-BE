@@ -3,25 +3,25 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.AI.Psyche.Pipelines.Diagnostics.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.VectorSearch.Common.Diagnostics.Internal;
 
-namespace VK.Blocks.AI.Psyche.Pipelines.Internal;
+namespace VK.Blocks.VectorSearch.Pipeline.Internal;
 
 /// <summary>
-/// Default implementation of <see cref="IVKPsychePipeline"/>.
+/// Default implementation of the Vector Search pipeline.
 /// </summary>
-internal sealed class DefaultPsychePipeline : IVKPsychePipeline
+internal sealed class DefaultVectorSearchPipeline : IVKVectorSearchPipeline
 {
-    private readonly IVKPsychePipelineExecutor _executor;
+    private readonly IVKVectorSearchPipelineExecutor _executor;
     private readonly IVKGuidGenerator _guidGenerator;
-    private readonly ILogger<DefaultPsychePipeline> _logger;
+    private readonly ILogger<DefaultVectorSearchPipeline> _logger;
     private readonly IServiceProvider _services;
 
-    public DefaultPsychePipeline(
-        IVKPsychePipelineExecutor executor,
+    public DefaultVectorSearchPipeline(
+        IVKVectorSearchPipelineExecutor executor,
         IVKGuidGenerator guidGenerator,
-        ILogger<DefaultPsychePipeline> logger,
+        ILogger<DefaultVectorSearchPipeline> logger,
         IServiceProvider services)
     {
         _executor = VKGuard.NotNull(executor);
@@ -30,8 +30,8 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
         _services = VKGuard.NotNull(services);
     }
 
-    public async Task<VKResult<VKPsycheResponse>> RunAsync(
-        VKPsycheRequest request,
+    public async Task<VKResult<VKSearchResult[]>> RunAsync(
+        VKSearchQuery request,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(request);
@@ -39,18 +39,15 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
         var stopwatch = Stopwatch.StartNew();
         var traceId = request.CorrelationId ?? _guidGenerator.Create().ToString();
 
-        _logger.PipelineStarted(
-            request.PersonaId,
-            request.SessionId,
-            traceId);
+        _logger.PipelineStartedWithTrace(traceId);
 
         var requestWithTrace = string.IsNullOrWhiteSpace(request.CorrelationId)
             ? request with { CorrelationId = traceId }
             : request;
 
-        var context = new VKPsycheContext
+        var context = new VKVectorSearchContext
         {
-            Request = requestWithTrace,
+            Query = requestWithTrace,
             Services = _services
         };
 
@@ -60,15 +57,11 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
 
         if (result.IsFailure)
         {
-            _logger.PipelineFailed(
-                traceId,
-                result.FirstError.Code,
-                result.FirstError.Description);
-
+            _logger.PipelineFailedWithTrace(traceId, result.FirstError.ToString());
             return result;
         }
 
-        _logger.PipelineCompleted(traceId, stopwatch.Elapsed.TotalMilliseconds);
+        _logger.PipelineCompletedWithTrace(traceId, stopwatch.Elapsed.TotalMilliseconds);
 
         return result;
     }

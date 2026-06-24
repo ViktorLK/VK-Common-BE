@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Content Guard (formerly Moderation) feature.
 /// </summary>
-[VKFeature(typeof(GuardrailsFeature), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(GuardrailsFeature), GenerateArgs = true)]
 public sealed partial record VKContentOptions : IVKContentOptions
 {
     /// <summary>

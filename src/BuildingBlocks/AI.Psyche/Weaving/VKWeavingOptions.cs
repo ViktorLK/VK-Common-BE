@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Controls the global behavior and strict layout constraints of the Weaving Engine.
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
-[VKFeature(typeof(VKAIPsycheBlock), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(VKAIPsycheBlock), GenerateArgs = true)]
 public sealed partial record VKWeavingOptions : IVKWeavingOptions
 {
 

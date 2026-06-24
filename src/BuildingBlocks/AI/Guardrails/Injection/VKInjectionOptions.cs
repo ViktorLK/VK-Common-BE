@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Injection Guard (Prompt injection defense) feature.
 /// </summary>
-[VKFeature(typeof(GuardrailsFeature), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(GuardrailsFeature), GenerateArgs = true)]
 public sealed partial record VKInjectionOptions : IVKInjectionOptions
 {
     /// <summary>

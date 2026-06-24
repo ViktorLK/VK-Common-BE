@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche.Pipelines.Diagnostics.Internal;
+namespace VK.Blocks.AI.Psyche.Pipeline.Diagnostics.Internal;
 
 /// <summary>
 /// Source-generated logger messages for Psyche Pipeline execution.

@@ -6,7 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Options for Echo (Short-term memory conversation history tracking).
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
-[VKFeature(typeof(VKAIPsycheBlock), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(VKAIPsycheBlock), GenerateArgs = true)]
 public sealed partial record VKEchoOptions : IVKEchoOptions
 {
     /// <summary>

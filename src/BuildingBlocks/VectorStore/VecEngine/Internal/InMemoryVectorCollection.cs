@@ -75,4 +75,20 @@ internal sealed class InMemoryVectorCollection<T>(
         // [CS.01] Return Result pattern, no null references
         return Task.FromResult(database.GetByIdGeneric<T>(Name, id));
     }
+
+    /// <inheritdoc />
+    public Task<VKResult<bool>> ExistsAsync(
+        VKMetadataFilter filter,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(database.ExistsGeneric<T>(Name, filter));
+    }
+
+    /// <inheritdoc />
+    public Task<VKResult<IEnumerable<VKVectorRecord<T>>>> QueryAsync(
+        VKMetadataFilter filter,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(database.QueryGeneric<T>(Name, filter));
+    }
 }

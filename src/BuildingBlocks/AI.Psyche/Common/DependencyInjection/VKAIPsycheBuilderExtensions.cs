@@ -4,7 +4,7 @@ using VK.Blocks.AI.Psyche.Echo.Internal;
 using VK.Blocks.AI.Psyche.Knowledge.Internal;
 using VK.Blocks.AI.Psyche.Pattern.Internal;
 using VK.Blocks.AI.Psyche.Persona.Internal;
-using VK.Blocks.AI.Psyche.Pipelines.Internal;
+using VK.Blocks.AI.Psyche.Pipeline.Internal;
 using VK.Blocks.AI.Psyche.Weaving.Internal;
 using VK.Blocks.Core;
 
@@ -80,10 +80,10 @@ public static class VKAIPsycheBuilderExtensions
     /// </summary>
     public static IVKAIPsycheBuilder AddVKPipeline(
         this IVKAIPsycheBuilder builder,
-        Func<VKPipelinesOptions, VKPipelinesOptions>? transform = null)
+        Func<VKPipelineOptions, VKPipelineOptions>? transform = null)
     {
         VKGuard.NotNull(builder); // [AP.01]
-        PipelinesFeature.Register(builder, transform);
+        PipelineFeature.Register(builder, transform);
         return builder;
     }
 

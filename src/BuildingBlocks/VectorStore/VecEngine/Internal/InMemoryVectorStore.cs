@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using VK.Blocks.VectorStore.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -12,7 +14,7 @@ namespace VK.Blocks.VectorStore.VecEngine.Internal;
 /// Basic in-memory implementation of <see cref="IVKVectorStore"/>.
 /// Following AP.03 Naming Taxonomy.
 /// </summary>
-internal sealed class InMemoryVectorStore : IVKVectorStore
+internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
 {
     private readonly IVKJsonSerializer _jsonSerializer;
     private readonly VKVectorStoreDefaultsOptions _options;
@@ -124,5 +126,100 @@ internal sealed class InMemoryVectorStore : IVKVectorStore
         }
 
         return mag1 <= 0 || mag2 <= 0 ? 0 : dot / (float)(Math.Sqrt(mag1) * Math.Sqrt(mag2));
+    }
+
+    /// <inheritdoc />
+    public async Task<VKResult> UpsertBatchAsync<T>(
+        string collectionName,
+        IEnumerable<(string Id, T Document, VKVector Vector)> records,
+        CancellationToken cancellationToken = default) where T : class
+    {
+        VKGuard.NotNullOrWhiteSpace(collectionName);
+        VKGuard.NotNull(records);
+
+        foreach (var record in records)
+        {
+            var result = UpsertGeneric(collectionName, record.Id, record.Document, record.Vector);
+            if (result.IsFailure)
+            {
+                return result;
+            }
+        }
+
+        return await Task.FromResult(VKResult.Success()).ConfigureAwait(false);
+    }
+
+    internal VKResult<bool> ExistsGeneric<T>(string collectionName, VKMetadataFilter filter) where T : class
+    {
+        VKGuard.NotNull(filter); // [AP.01] VKGuard boundary
+
+        if (!_collections.TryGetValue(collectionName, out var collection))
+        {
+            return VKResult.Success(false);
+        }
+
+        foreach (var entry in collection.Values)
+        {
+            var document = _jsonSerializer.Deserialize<T>(entry.DataJson);
+            if (document is null) continue;
+
+            if (MatchFilter(document, filter))
+            {
+                return VKResult.Success(true);
+            }
+        }
+
+        return VKResult.Success(false);
+    }
+
+    private static bool MatchFilter<T>(T document, VKMetadataFilter filter) where T : class
+    {
+        if (document is null || filter is null) return false;
+
+        var prop = typeof(T).GetProperty("Metadata");
+        if (prop is null) return false;
+
+        var metadata = prop.GetValue(document);
+        if (metadata is null) return false;
+
+        var propertiesProp = metadata.GetType().GetProperty("Properties");
+        if (propertiesProp is null) return false;
+
+        var properties = propertiesProp.GetValue(metadata) as IDictionary<string, string>;
+        if (properties is null) return false;
+
+        foreach (var kvp in filter.EqualityFilters)
+        {
+            if (!properties.TryGetValue(kvp.Key, out var value) || value != kvp.Value?.ToString())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    internal VKResult<IEnumerable<VKVectorRecord<T>>> QueryGeneric<T>(string collectionName, VKMetadataFilter filter) where T : class
+    {
+        VKGuard.NotNull(filter); // [AP.01] VKGuard boundary
+
+        if (!_collections.TryGetValue(collectionName, out var collection))
+        {
+            return VKResult.Success(Enumerable.Empty<VKVectorRecord<T>>());
+        }
+
+        var results = new List<VKVectorRecord<T>>();
+        foreach (var entry in collection)
+        {
+            var document = _jsonSerializer.Deserialize<T>(entry.Value.DataJson);
+            if (document is null) continue;
+
+            if (MatchFilter(document, filter))
+            {
+                results.Add(new VKVectorRecord<T>(entry.Key, document, 1.0f));
+            }
+        }
+
+        return VKResult.Success<IEnumerable<VKVectorRecord<T>>>(results);
     }
 }

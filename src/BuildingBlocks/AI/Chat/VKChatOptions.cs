@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Chat feature.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), GenerateArgs = true, GenerateValidator = true)]
+[VKFeature(typeof(VKAIBlock), GenerateArgs = true)]
 public sealed partial record VKChatOptions : IVKChatOptions
 {
     /// <summary>

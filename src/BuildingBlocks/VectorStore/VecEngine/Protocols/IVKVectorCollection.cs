@@ -61,5 +61,19 @@ public interface IVKVectorCollection<T> where T : class
     Task<VKResult<VKVectorRecord<T>?>> GetByIdAsync(
         string id,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if any document exists in the collection matching the specified metadata filter.
+    /// </summary>
+    Task<VKResult<bool>> ExistsAsync(
+        VKMetadataFilter filter,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Queries the collection for documents matching the specified metadata filter.
+    /// </summary>
+    Task<VKResult<IEnumerable<VKVectorRecord<T>>>> QueryAsync(
+        VKMetadataFilter filter,
+        CancellationToken cancellationToken = default);
 }
 

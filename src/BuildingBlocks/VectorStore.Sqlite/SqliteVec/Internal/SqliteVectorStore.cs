@@ -277,6 +277,112 @@ internal sealed class SqliteVectorStore : IVKVectorStore
         }
     }
 
+    internal async Task<VKResult<bool>> ExistsGenericAsync(
+        string collectionName,
+        VKMetadataFilter filter,
+        CancellationToken ct)
+    {
+        VKGuard.NotNull(filter); // [AP.01]
+
+        await EnsureCollectionInitializedAsync(collectionName, ct).ConfigureAwait(false);
+
+        using var connection = await GetOpenConnectionAsync(ct).ConfigureAwait(false);
+
+        try
+        {
+            var metaTable = GetMetadataTableName(collectionName);
+            var sqlBuilder = new System.Text.StringBuilder($"SELECT COUNT(1) FROM {metaTable}");
+
+            var conditions = new List<string>();
+            using var cmd = new SqliteCommand();
+
+            int paramIndex = 0;
+            foreach (var kvp in filter.EqualityFilters)
+            {
+                var paramName = $"@p{paramIndex++}";
+                conditions.Add($"(json_extract(Data, '$.{kvp.Key}') = {paramName} OR json_extract(Data, '$.Metadata.Properties.{kvp.Key}') = {paramName})");
+                cmd.Parameters.AddWithValue(paramName, kvp.Value?.ToString() ?? string.Empty);
+            }
+
+            if (conditions.Count > 0)
+            {
+                sqlBuilder.Append(" WHERE ").Append(string.Join(" AND ", conditions));
+            }
+
+            cmd.CommandText = sqlBuilder.ToString();
+            cmd.Connection = connection;
+
+            var count = (long?)await _pipeline.ExecuteAsync(async ct => await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false), ct).ConfigureAwait(false); // [CS.03]
+            return VKResult.Success(count.HasValue && count.Value > 0);
+        }
+        catch (SqliteException ex)
+        {
+            _logger.CommandFailed(ex, $"Exists in {collectionName}");
+            AIVectorStoreSqliteDiagnostics.RecordError();
+            return VKResult.Failure<bool>(VKSqliteVecErrors.Database.ExecutionFailed);
+        }
+    }
+
+    internal async Task<VKResult<IEnumerable<VKVectorRecord<T>>>> QueryGenericAsync<T>(
+        string collectionName,
+        VKMetadataFilter filter,
+        CancellationToken ct) where T : class
+    {
+        VKGuard.NotNull(filter); // [AP.01]
+
+        await EnsureCollectionInitializedAsync(collectionName, ct).ConfigureAwait(false);
+
+        using var connection = await GetOpenConnectionAsync(ct).ConfigureAwait(false);
+
+        try
+        {
+            var metaTable = GetMetadataTableName(collectionName);
+            var sqlBuilder = new System.Text.StringBuilder($"SELECT Id, Data FROM {metaTable}");
+
+            var conditions = new List<string>();
+            using var cmd = new SqliteCommand();
+
+            int paramIndex = 0;
+            foreach (var kvp in filter.EqualityFilters)
+            {
+                var paramName = $"@p{paramIndex++}";
+                conditions.Add($"(json_extract(Data, '$.{kvp.Key}') = {paramName} OR json_extract(Data, '$.Metadata.Properties.{kvp.Key}') = {paramName})");
+                cmd.Parameters.AddWithValue(paramName, kvp.Value?.ToString() ?? string.Empty);
+            }
+
+            if (conditions.Count > 0)
+            {
+                sqlBuilder.Append(" WHERE ").Append(string.Join(" AND ", conditions));
+            }
+
+            cmd.CommandText = sqlBuilder.ToString();
+            cmd.Connection = connection;
+
+            var results = new List<VKVectorRecord<T>>();
+            using var reader = await _pipeline.ExecuteAsync(async ct => await cmd.ExecuteReaderAsync(ct).ConfigureAwait(false), ct).ConfigureAwait(false); // [CS.03]
+
+            while (await reader.ReadAsync(ct).ConfigureAwait(false)) // [CS.03]
+            {
+                var id = reader.GetString(0);
+                var dataJson = reader.GetString(1);
+                var document = _jsonSerializer.Deserialize<T>(dataJson);
+
+                if (document is not null)
+                {
+                    results.Add(new VKVectorRecord<T>(id, document, 1.0f));
+                }
+            }
+
+            return VKResult.Success(results.AsEnumerable());
+        }
+        catch (SqliteException ex)
+        {
+            _logger.CommandFailed(ex, $"Query in {collectionName}");
+            AIVectorStoreSqliteDiagnostics.RecordError();
+            return VKResult.Failure<IEnumerable<VKVectorRecord<T>>>(VKSqliteVecErrors.Database.ExecutionFailed);
+        }
+    }
+
     private string GetMetadataTableName(string collectionName) => $"VK_AI_Metadata_{collectionName}";
     private string GetVectorTableName(string collectionName) => $"VK_AI_Vectors_{collectionName}";
 
