@@ -29,6 +29,8 @@
   <ItemGroup>
     <ProjectReference Include="..\AI\VK.Blocks.AI.csproj" />
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\VectorStore\VK.Blocks.VectorStore.csproj" />
+    <ProjectReference Include="..\VectorSearch\VK.Blocks.VectorSearch.csproj" />
   </ItemGroup>
 
 </Project>

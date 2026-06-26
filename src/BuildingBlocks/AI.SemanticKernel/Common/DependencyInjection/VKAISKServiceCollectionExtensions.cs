@@ -18,11 +18,9 @@ using VK.Blocks.AI.SemanticKernel.Common.Filters;
 using VK.Blocks.AI.SemanticKernel.Common.Filters.Internal;
 using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.AI.SemanticKernel.Common.Plugins.Internal;
-using VK.Blocks.AI.SemanticKernel.Retrieval.Internal;
 using VK.Blocks.AI.SemanticKernel.Text.Internal;
-using VK.Blocks.AI.SemanticKernel.Vectorics.ReRanking.Internal;
-using VK.Blocks.AI.SemanticKernel.Vectorics.SemanticCache.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.VectorStore;
 
 namespace VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
 
@@ -84,17 +82,14 @@ public static class VKAISKServiceCollectionExtensions
         services.TryAddScoped(sp => sp.GetRequiredService<IAISKKernelFactory>().CreateKernel());
 
         // 5. Modern Vector Store (SK Native)
-        services.TryAddSingleton<VectorStore, InMemoryVectorStore>();
+        services.TryAddSingleton<Microsoft.Extensions.VectorData.VectorStore, Microsoft.SemanticKernel.Connectors.InMemory.InMemoryVectorStore>();
 
         // 6. Feature Engines Mapping (Replace NoOp implementations registered by VK.Blocks.AI)
         services.Replace(ServiceDescriptor.Scoped<IVKChatEngine, AISKChatEngine>());
         services.Replace(ServiceDescriptor.Scoped<IVKEmbeddingsEngine, AISKEmbeddingEngine>());
-        services.Replace(ServiceDescriptor.Scoped<IVKRetrievalEngine, AISKRetrievalEngine>());
-        services.Replace(ServiceDescriptor.Scoped<IVKReRanker, AISKReRankerEngine>());
         services.Replace(ServiceDescriptor.Scoped<IVKTextEngine, AISKTextEngine>());
         services.Replace(ServiceDescriptor.Scoped<IVKSpeechEngine, AISKSpeechEngine>());
         services.Replace(ServiceDescriptor.Scoped<IVKTranscriptionEngine, AISKTranscriptionEngine>());
-        services.Replace(ServiceDescriptor.Scoped<IVKSemanticCache, AISKSemanticCache>());
 
         // Agents Mapping
         services.TryAddSingleton<AISKAgentToolAdapter>();

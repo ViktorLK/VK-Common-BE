@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
+using VK.Blocks.VectorStore;
 
 namespace VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
 
@@ -11,11 +11,10 @@ namespace VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
 internal sealed class NoOpAISKEmbeddingEngine : IVKEmbeddingsEngine
 {
     /// <inheritdoc />
-    public Task<VKResult<VKEmbeddingsResponse>> GetEmbeddingsAsync(
-        IEnumerable<string> inputs,
-        VKEmbeddingsArgs? args = null,
+    public Task<VKResult<VKVector>> GenerateAsync(
+        string text,
         CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(VKResult.Failure<VKEmbeddingsResponse>(VKEmbeddingsErrors.FeatureDisabled));
+        return Task.FromResult(VKResult.Failure<VKVector>(VKError.Failure("AI.Embeddings.FeatureDisabled", "The embeddings feature is disabled.")));
     }
 }

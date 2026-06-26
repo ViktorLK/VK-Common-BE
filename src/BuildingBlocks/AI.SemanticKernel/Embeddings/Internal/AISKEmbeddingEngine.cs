@@ -1,21 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
 using VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.VectorStore;
 using Embedding = Microsoft.Extensions.AI.Embedding<float>;
 
 namespace VK.Blocks.AI.SemanticKernel.Embeddings.Internal;
 
 /// <summary>
-/// AISK implementation of <see cref="IVKEmbeddingEngine"/>.
+/// AISK implementation of <see cref="IVKEmbeddingsEngine"/>.
 /// </summary>
 internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingsOptions>, IVKEmbeddingsEngine
 {
@@ -33,77 +30,28 @@ internal sealed class AISKEmbeddingEngine : AISKEngineBase<VKEmbeddingsOptions>,
     }
 
     /// <inheritdoc />
-    public Task<VKResult<VKEmbeddingsResponse>> GetEmbeddingsAsync(
-        IEnumerable<string> inputs,
-        VKEmbeddingsArgs? args = null,
+    public async Task<VKResult<VKVector>> GenerateAsync(
+        string text,
         CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNull(inputs);
+        // [RuleID: AP.01]
+        VKGuard.NotNull(text);
 
-        return ExecuteAsync(async (ct) =>
+        try
         {
-            if (!inputs.Any())
+            var embeddings = await _defaultEmbeddingService.GenerateAsync([text], cancellationToken: cancellationToken).ConfigureAwait(false); // [RuleID: CS.03]
+            if (embeddings == null || embeddings.Count == 0)
             {
-                return new VKEmbeddingsResponse
-                {
-                    Vectors = [],
-                    ModelId = GetEffectiveModelId(args)
-                };
+                return VKResult.Failure<VKVector>(VKError.Failure("AI.Embeddings.Failed", "Failed to generate embedding vector."));
             }
 
-            var stopwatch = Stopwatch.StartNew();
-            var items = inputs.ToList();
-            int totalCount = items.Count;
-            int batchSize = FeatureOptions.BatchSize ?? 16;
-
-            // Resolve Service
-            var embeddingService = GetEmbeddingService(args);
-            string? modelId = GetEffectiveModelId(args);
-
-            // Observability: Start
-            Logger.LogEmbeddingGeneration(totalCount, batchSize);
-            if (GetEffectiveEnableAudit())
-            {
-                Logger.LogChatAudit("GetEmbeddingsAsync", args?.UserId, modelId);
-            }
-
-            List<VKEmbeddingsVector> allResults = [];
-            long totalInputTokens = 0;
-
-            for (int i = 0; i < totalCount; i += batchSize)
-            {
-                var batch = items.Skip(i).Take(batchSize).ToList();
-                var embeddings = await embeddingService.GenerateAsync(batch, cancellationToken: ct).ConfigureAwait(false);
-
-                allResults.AddRange(embeddings.Select(e => new VKEmbeddingsVector { Values = e.Vector.ToArray() }));
-
-                if (embeddings.Usage is { } usage)
-                {
-                    totalInputTokens += usage.InputTokenCount ?? 0;
-                }
-
-                Logger.LogEmbeddingBatchCompleted(modelId, batch.Count);
-            }
-
-            // Observability: End
-            double duration = stopwatch.Elapsed.TotalSeconds;
-            AISKMetrics.RecordEmbeddingDuration(duration, modelId);
-            AISKMetrics.RecordEmbeddingItems(totalCount, modelId);
-
-            var response = new VKEmbeddingsResponse
-            {
-                Vectors = allResults,
-                ModelId = modelId,
-                Usage = totalInputTokens > 0 ? new VKAITokenUsage { InputTokens = totalInputTokens } : null
-            };
-
-            return response;
-        }, args, VKEmbeddingsErrors.FeatureDisabled, cancellationToken);
-    }
-
-    private IEmbeddingGenerator<string, Embedding> GetEmbeddingService(VKEmbeddingsArgs? args)
-    {
-        _ = args;
-        return _defaultEmbeddingService;
+            var values = embeddings[0].Vector;
+            return VKResult.Success(new VKVector { Values = values });
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to generate embedding.");
+            return VKResult.Failure<VKVector>(VKError.Failure("AI.Embeddings.Exception", ex.Message));
+        }
     }
 }
