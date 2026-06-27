@@ -113,6 +113,15 @@ graph TD
 - **注入履歴の永続化**: `IVKKnowledgeInjectionStore` を介した注入ログの記録・取得。
 - **グレースフルデグラデーション**: 追跡記録の失敗時も Pipeline を中断せず続行。
 
+### 📥 Ingesting（ナレッジインジェスト）
+
+`IVKCorpusIngestingService` を介して、ナレッジソース（ドキュメントまたは生テキスト）をライフサイクルルール（`VKKnowledgeLifecycle`）とともにベクトルストアへ登録する機能を提供します。
+
+- **ドキュメントインジェスト**: 指定されたパスや URI のドキュメントをロード・解析し、`VKKnowledgeLifecycle` メタデータとともに自動的に分割・インデックス化します。
+- **テキスト直接インジェスト**: メモリ上の生テキストを即座に分割・インデックス化し、一時的なナレッジやコンテキストとして登録します。
+- **非同期ジョブキューイング**: 長時間の処理が予想されるドキュメントインジェストを `QueueIngestDocumentAsync` により非同期にバックグラウンド実行し、`IVKIngestingStatusStore` を通じて状態（`Pending / Processing / Completed / Failed`）を追跡します。
+- **ドキュメント物理削除**: `DeleteDocumentAsync` により、ドキュメント ID に紐づくすべてのベクトルチャンクをベクトルストアから物理的に一括削除します。
+
 ### 🎯 ライフサイクルプリセット
 
 `VKKnowledgeLifecyclePresets` による T-Shirt Sizing 定数:
@@ -192,6 +201,37 @@ var entry = new VKKnowledgeLifecycleEntry
 };
 ```
 
+### ナレッジのインジェスト（登録）
+
+`IVKCorpusIngestingService` を使用して、メタデータとしてのライフサイクルルールと紐づけたナレッジ登録を行います。
+
+```csharp
+// 1. 同期ドキュメントインジェスト
+await corpusIngestingService.IngestDocumentAsync(
+    source: "s3://docs/manual.pdf",
+    collectionName: "product-manuals",
+    lifecycle: new VKKnowledgeLifecycle
+    {
+        StickyTurns = VKKnowledgeLifecyclePresets.Sticky.Topic,
+        CooldownTurns = VKKnowledgeLifecyclePresets.Cooldown.Short
+    }
+);
+
+// 2. 非同期ジョブのキューイングとステータス確認
+var queueResult = await corpusIngestingService.QueueIngestDocumentAsync(
+    source: "s3://docs/large_manual.pdf",
+    collectionName: "product-manuals",
+    lifecycle: VKKnowledgeLifecyclePresets.Sticky.Topic
+);
+
+if (queueResult.IsSuccess)
+{
+    string jobId = queueResult.Value;
+    var statusResult = await corpusIngestingService.GetIngestingStatusAsync(jobId);
+}
+```
+
+
 ---
 
 ## フォルダ構成
@@ -243,6 +283,18 @@ AI.Corpus/
 │       ├── DefaultFilteringStage.cs
 │       ├── FilteringFeature.cs
 │       └── (17 Filter implementations)
+├── Ingesting/
+│   ├── VKIngestingOptions.cs
+│   ├── Models/
+│   │   ├── VKIngestingJobStatus.cs
+│   │   └── VKIngestingStatus.cs
+│   ├── Protocols/
+│   │   ├── IVKCorpusIngestingService.cs
+│   │   └── IVKIngestingStatusStore.cs
+│   └── Internal/
+│       ├── DefaultCorpusIngestingService.cs
+│       ├── InMemoryIngestingStatusStore.cs
+│       └── IngestingFeature.cs
 └── Tracking/
     ├── VKTrackingOptions.cs
     ├── Models/

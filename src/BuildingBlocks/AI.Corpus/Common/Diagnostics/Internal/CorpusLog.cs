@@ -37,4 +37,22 @@ internal static partial class CorpusLog
         Level = LogLevel.Debug,
         Message = "Tracking recorded {InjectionCount} injections for session {SessionId} at turn {Turn}")]
     public static partial void TrackingRecorded(ILogger logger, int injectionCount, string sessionId, int turn);
+
+    [LoggerMessage(
+        EventId = 5001,
+        Level = LogLevel.Error,
+        Message = "Failed to delete document {DocumentId} from collection {CollectionName}")]
+    public static partial void FailedToDeleteDocument(ILogger logger, string documentId, string collectionName, System.Exception ex);
+
+    [LoggerMessage(
+        EventId = 5002,
+        Level = LogLevel.Error,
+        Message = "Failed to ingest text into document {DocumentId} and collection {CollectionName}")]
+    public static partial void FailedToIngestText(ILogger logger, string documentId, string collectionName, System.Exception ex);
+
+    [LoggerMessage(
+        EventId = 5003,
+        Level = LogLevel.Error,
+        Message = "Asynchronous ingestion job {JobId} failed")]
+    public static partial void AsynchronousIngestionJobFailed(ILogger logger, string jobId, System.Exception ex);
 }

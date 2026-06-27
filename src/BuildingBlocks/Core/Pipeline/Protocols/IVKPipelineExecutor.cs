@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Defines the contract for orchestrating and executing generic pipelines.
+/// Defines the contract for orchestrating and executing generic pipeline.
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
 /// <typeparam name="TResponse">The response type.</typeparam>

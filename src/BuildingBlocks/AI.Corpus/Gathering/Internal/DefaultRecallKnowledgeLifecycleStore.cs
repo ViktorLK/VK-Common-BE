@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Corpus.Diagnostics.Internal;
 using VK.Blocks.AI.Psyche;
-using VK.Blocks.AI.Recall;
+using VK.Blocks.VectorSearch;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Corpus.Gathering.Internal;
@@ -44,10 +44,14 @@ internal sealed class DefaultRecallKnowledgeLifecycleStore : IVKRecallKnowledgeL
     {
         VKGuard.NotNull(context);
 
+        string searchText = context.ScanTexts.Count > 0
+            ? context.ScanTexts[^1]
+            : context.SessionId.Value.ToString();
+
         // Map the context state into a search query.
         VKSearchQuery query = new()
         {
-            Text = context.SessionId.Value.ToString(),
+            Text = searchText,
             TopK = _options.DefaultTopK
         };
 
@@ -68,8 +72,17 @@ internal sealed class DefaultRecallKnowledgeLifecycleStore : IVKRecallKnowledgeL
             VKKnowledgeLifecycle options;
             try
             {
-                options = _jsonSerializer.Deserialize<VKKnowledgeLifecycle>(result.Document.Metadata)
-                    ?? new VKKnowledgeLifecycle();
+                var vectorMeta = _jsonSerializer.Deserialize<VK.Blocks.VectorStore.VKVectorMetadata>(result.Document.Metadata);
+                if (vectorMeta != null && vectorMeta.Properties.TryGetValue("lifecycle", out var lifecycleJson))
+                {
+                    options = _jsonSerializer.Deserialize<VKKnowledgeLifecycle>(lifecycleJson)
+                        ?? new VKKnowledgeLifecycle();
+                }
+                else
+                {
+                    options = _jsonSerializer.Deserialize<VKKnowledgeLifecycle>(result.Document.Metadata)
+                        ?? new VKKnowledgeLifecycle();
+                }
             }
             catch (Exception ex)
             {
