@@ -28,6 +28,11 @@ public sealed record VKVectorSearchArgs
     public IDictionary<string, string> Filters { get; init; } = new Dictionary<string, string>();
 
     /// <summary>
+    /// Gets the target collection name.
+    /// </summary>
+    public string? CollectionName { get; init; }
+
+    /// <summary>
     /// [Data Pipeline] Gets or sets the advanced metadata filter (expression tree).
     /// </summary>
     public VKMetadataFilter? AdvancedFilter { get; init; }

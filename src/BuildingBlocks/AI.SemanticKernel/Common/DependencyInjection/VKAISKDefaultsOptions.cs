@@ -5,7 +5,7 @@ namespace VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
 /// <summary>
 /// Default options for Semantic Kernel implementations.
 /// </summary>
-[VKFeature(typeof(VKAISKBlock), GenerateValidator = true, Namespace = "VK.Blocks.AI.SemanticKernel.Common.DependencyInjection")]
+[VKFeature(typeof(VKAISKBlock), Namespace = "VK.Blocks.AI.SemanticKernel.Common.DependencyInjection")]
 public sealed partial record VKAISKDefaultsOptions : IVKBlockOptions
 {
 

@@ -28,11 +28,6 @@ public sealed class VKFeatureAttribute(Type parent, string? name = null) : Attri
     /// </summary>
     public bool GenerateArgs { get; set; } = false;
 
-    /// <summary>
-    /// Gets or sets a value indicating whether to generate a standard Options Validator boilerplate.
-    /// Defaults to false.
-    /// </summary>
-    public bool GenerateValidator { get; set; } = false;
 
     /// <summary>
     /// Gets or sets the custom configuration section name. 

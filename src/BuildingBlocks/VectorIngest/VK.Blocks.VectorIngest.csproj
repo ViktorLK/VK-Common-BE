@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>VK.Blocks.VectorIngest</RootNamespace>
+    <AssemblyName>VK.Blocks.VectorIngest</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\VectorStore\VK.Blocks.VectorStore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>VK.Blocks.AI</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+</Project>

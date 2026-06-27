@@ -60,7 +60,8 @@ internal sealed class DefaultGatheringStage : IVKPsycheBeforePipelineStage
         {
             SessionId = context.Request.SessionId,
             CurrentTurn = currentTurn,
-            PersonaId = context.Request.PersonaId.Value.ToString()
+            PersonaId = context.Request.PersonaId.Value.ToString(),
+            ScanTexts = [context.Request.UserInput]
         };
 
         // Fetch dynamic entries from the recall database

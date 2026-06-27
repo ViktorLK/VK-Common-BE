@@ -22,15 +22,28 @@ internal static class DefaultKnowledgeMatcher
         nameof(Regex.IsMatch),
         [typeof(string), typeof(string), typeof(RegexOptions), typeof(TimeSpan)])!;
 
-    private static readonly ConcurrentDictionary<VKKnowledgeId, Func<string, bool>> _compiledMatchers = new();
+    // TODO: Transition to Scheme A (Event-driven cache invalidation) once a unified Application/Domain Event bus is introduced.
+    // This will allow subscribing to KnowledgeUpdated/Deleted events to invalidate matchers instead of state hash check.
+    private static readonly ConcurrentDictionary<VKKnowledgeId, (int StateHash, Func<string, bool> Matcher)> CompiledMatchers = new();
 
     /// <summary>
-    /// Gets the matching delegate for the specified knowledge entry. Compiles and caches it if not present.
+    /// Gets the matching delegate for the specified knowledge entry. Compiles and caches it if not present,
+    /// or if the entry's configuration has changed.
     /// </summary>
     public static Func<string, bool> GetMatcher(VKKnowledgeEntry entry)
     {
         VKGuard.NotNull(entry);
-        return _compiledMatchers.GetOrAdd(entry.Id, _ => CompileMatcher(entry));
+
+        var currentHash = GetEntryStateHash(entry);
+
+        if (CompiledMatchers.TryGetValue(entry.Id, out var cached) && cached.StateHash == currentHash)
+        {
+            return cached.Matcher;
+        }
+
+        var matcher = CompileMatcher(entry);
+        CompiledMatchers[entry.Id] = (currentHash, matcher);
+        return matcher;
     }
 
     /// <summary>
@@ -40,8 +53,28 @@ internal static class DefaultKnowledgeMatcher
     {
         if (!entryId.IsEmpty)
         {
-            _compiledMatchers.TryRemove(entryId, out _);
+            CompiledMatchers.TryRemove(entryId, out _);
         }
+    }
+
+    private static int GetEntryStateHash(VKKnowledgeEntry entry)
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(entry.TriggerType);
+        hashCode.Add(entry.FilterLogic);
+        if (entry.Keys is not null)
+        {
+            foreach (var key in entry.Keys)
+            {
+                if (key is not null)
+                {
+                    hashCode.Add(key.Text);
+                    hashCode.Add(key.MatchType);
+                    hashCode.Add(key.CaseSensitive);
+                }
+            }
+        }
+        return hashCode.ToHashCode();
     }
 
     private static Func<string, bool> CompileMatcher(VKKnowledgeEntry entry)

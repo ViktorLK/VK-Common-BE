@@ -48,6 +48,18 @@ public static class VKAICorpusBuilderExtensions
     }
 
     /// <summary>
+    /// Adds the Ingesting feature to the AI.Corpus building block.
+    /// </summary>
+    public static IVKAICorpusBuilder AddVKIngesting(
+        this IVKAICorpusBuilder builder,
+        Func<VKIngestingOptions, VKIngestingOptions>? transform = null)
+    {
+        VKGuard.NotNull(builder);
+        Ingesting.Internal.IngestingFeature.Register(builder, transform);
+        return builder;
+    }
+
+    /// <summary>
     /// Automatically enables all standard AI.Corpus features.
     /// </summary>
     public static IVKAICorpusBuilder AddVKDefaultFeatures(this IVKAICorpusBuilder builder)
@@ -56,6 +68,7 @@ public static class VKAICorpusBuilderExtensions
         return builder
             .AddVKGathering()
             .AddVKFiltering()
-            .AddVKTracking();
+            .AddVKTracking()
+            .AddVKIngesting();
     }
 }
