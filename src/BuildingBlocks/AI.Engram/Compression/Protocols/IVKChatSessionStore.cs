@@ -23,4 +23,22 @@ public interface IVKChatSessionStore
         VKChatSessionId id,
         string summary,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the session memory fields.
+    /// </summary>
+    Task<VKResult> UpdateSessionMemoryAsync(
+        VKChatSessionId id,
+        string summary,
+        string? narrativeSummary = null,
+        string? structuredFacts = null,
+        string? relationGraph = null,
+        string? timeline = null,
+        string? contradictions = null,
+        string? actionItems = null,
+        string? confidenceAnnotations = null,
+        string? predictiveCues = null,
+        float? valence = null,
+        float? arousal = null,
+        CancellationToken cancellationToken = default) => UpdateSummaryAsync(id, summary, cancellationToken);
 }

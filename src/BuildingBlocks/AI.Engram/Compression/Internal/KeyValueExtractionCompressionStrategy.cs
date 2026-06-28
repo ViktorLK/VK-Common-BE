@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram.Compression.Internal;
@@ -54,7 +53,7 @@ internal sealed class KeyValueExtractionCompressionStrategy : IVKCompressionStra
             }
 
             string responseContent = result.Value.Message.Content ?? "[]";
-            
+
             // Basic sanitization to clean up model output wrap
             responseContent = responseContent.Trim();
             if (responseContent.StartsWith("```"))

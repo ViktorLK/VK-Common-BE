@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram.Compression.Internal;
@@ -197,18 +196,109 @@ internal sealed partial class DefaultCompressionService : IVKCompressionService
             updatedSummary = secondaryCompressResult.Value;
         }
 
+        string? narrative = ExtractBlock(updatedSummary, "===NARRATIVE===");
+        string? facts = ExtractBlock(updatedSummary, "===FACTS===");
+        string? graph = ExtractBlock(updatedSummary, "===GRAPH===");
+        string? timeline = ExtractBlock(updatedSummary, "===TIMELINE===");
+        string? contradictions = ExtractBlock(updatedSummary, "===CONTRADICTIONS===");
+        string? actionItems = ExtractBlock(updatedSummary, "===ACTION_ITEMS===");
+        string? confidence = ExtractBlock(updatedSummary, "===CONFIDENCE===");
+        string? cues = ExtractBlock(updatedSummary, "===CUES===");
+
+        float? valence = null;
+        float? arousal = null;
+
+        if (_options.EnableEmotionalTagging)
+        {
+            string? emotionBlock = ExtractBlock(updatedSummary, "===EMOTION===");
+            if (!string.IsNullOrWhiteSpace(emotionBlock))
+            {
+                var parts = emotionBlock.Split(new[] { ',', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var part in parts)
+                {
+                    var kv = part.Split(':');
+                    if (kv.Length == 2)
+                    {
+                        var key = kv[0].Trim();
+                        var valStr = kv[1].Trim();
+                        if (key.Equals("Valence", StringComparison.OrdinalIgnoreCase) && float.TryParse(valStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float v))
+                        {
+                            valence = Math.Clamp(v, -1.0f, 1.0f);
+                        }
+                        else if (key.Equals("Arousal", StringComparison.OrdinalIgnoreCase) && float.TryParse(valStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float a))
+                        {
+                            arousal = Math.Clamp(a, 0.0f, 1.0f);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (narrative is null && facts is null)
+        {
+            narrative = updatedSummary;
+        }
+
         // Update session summary store
-        var updateResult = await _sessionStore.UpdateSummaryAsync(sessionId, updatedSummary, cancellationToken).ConfigureAwait(false);
+        var updateResult = await _sessionStore.UpdateSessionMemoryAsync(
+            sessionId,
+            narrative ?? string.Empty,
+            narrativeSummary: narrative,
+            structuredFacts: facts,
+            relationGraph: graph,
+            timeline: timeline,
+            contradictions: contradictions,
+            actionItems: actionItems,
+            confidenceAnnotations: confidence,
+            predictiveCues: cues,
+            valence: valence,
+            arousal: arousal,
+            cancellationToken: cancellationToken).ConfigureAwait(false); // [CS.03]
+
         if (updateResult.IsFailure)
         {
             LogCompressionFailed(_logger, sessionId.ToString(), string.Join("; ", updateResult.Errors.Select(e => e.Description)));
-            return VKResult.Failure<string?>(updateResult.Errors);
+            return VKResult.Failure<string?>(updateResult.Errors); // [CS.01]
         }
 
-        int compressedTokens = _tokenCounter.CountTokens(updatedSummary);
+        int compressedTokens = _tokenCounter.CountTokens(narrative ?? updatedSummary);
         LogCompressionCompleted(_logger, totalTokens, compressedTokens);
 
-        return VKResult.Success<string?>(updatedSummary);
+        return VKResult.Success<string?>(narrative ?? updatedSummary); // [CS.01]
+    }
+
+    private static string? ExtractBlock(string content, string blockHeader)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return null;
+
+        int startIndex = content.IndexOf(blockHeader, StringComparison.OrdinalIgnoreCase);
+        if (startIndex == -1)
+            return null;
+
+        startIndex += blockHeader.Length;
+        // Skip optional newline
+        while (startIndex < content.Length && (content[startIndex] == '\r' || content[startIndex] == '\n'))
+        {
+            startIndex++;
+        }
+
+        // Find next header
+        int endIndex = content.Length;
+        string[] allHeaders = new[] { "===NARRATIVE===", "===FACTS===", "===GRAPH===", "===TIMELINE===", "===CONTRADICTIONS===", "===ACTION_ITEMS===", "===CONFIDENCE===", "===CUES===", "===EMOTION===" };
+        foreach (var h in allHeaders)
+        {
+            if (h.Equals(blockHeader, StringComparison.OrdinalIgnoreCase))
+                continue;
+            int nextIndex = content.IndexOf(h, startIndex, StringComparison.OrdinalIgnoreCase);
+            if (nextIndex != -1 && nextIndex < endIndex)
+            {
+                endIndex = nextIndex;
+            }
+        }
+
+        var block = content[startIndex..endIndex].Trim();
+        return string.IsNullOrWhiteSpace(block) ? null : block;
     }
 
     [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Compression triggered: total tokens {TotalTokens}/{Budget}, turns {Turns}/{MaxTurns} (Reason: {Reason}) for session {SessionId}.")]
