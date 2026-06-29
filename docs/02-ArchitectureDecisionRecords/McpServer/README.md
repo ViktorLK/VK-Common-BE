@@ -12,14 +12,23 @@
 
 ---
 
+#### [ADR-002: Relocation of Mcp Server to Tools Directory](./adr-002-relocation-of-mcp-server-to-tools-directory.md)
+
+**Status**: ✅ Accepted  
+**概要**: クラスライブラリ（BuildingBlocks）と開発補助ツールの物理的境界を厳密化するため、`src/McpServer` から `src/Tools/McpServer` へプロジェクトを移設し、名前空間を `VK.Tools` に統一する設計。  
+**キーワード**: Project Relocation, Directory Cleanup, Namespace Standardization
+
+---
+
 ## 🎯 ADR の読み方ガイド
 
 ### アーキテクチャとエコシステムの理解用
 1. **ADR-001**: なぜ TypeScript を捨てて .NET へ移行したのか、その技術的背景とトレードオフを理解するために読んでください。
+2. **ADR-002**: 開発補助用のクローズドなツール群と公開製品ライブラリを物理および名前空間レベルでどのように分離・構造化しているかを理解するために読んでください。
 
 ## 🔗 関連ドキュメント
 - [Project Documentation](../../README.md)
 - [BuildingBlock Standards](../../03-Standards/01-core-standards.md)
 
-**Last Updated**: 2026-05-05  
-**Total ADRs**: 1
+**Last Updated**: 2026-06-07  
+**Total ADRs**: 2

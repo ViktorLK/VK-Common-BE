@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram.Compression.Internal;
@@ -100,7 +99,8 @@ internal sealed partial class TopicSegmentationCompressionStrategy : IVKCompress
                 segmentLines.Add(lines[i]);
             }
 
-            if (segmentLines.Count == 0) continue;
+            if (segmentLines.Count == 0)
+                continue;
 
             string segmentContent = string.Join("\n", segmentLines);
             string summarizationPrompt = $"Summarize this section of conversation history related to the topic '{segment.Title}':\n\n{segmentContent}";

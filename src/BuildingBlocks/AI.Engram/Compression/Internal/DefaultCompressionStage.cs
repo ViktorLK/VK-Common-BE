@@ -5,11 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
-using VK.Blocks.AI.Psyche;
-using VK.Blocks.AI.Psyche.Common.Internal;
-using VK.Blocks.AI.Engram.Compression.Models;
 using VK.Blocks.AI.Engram.Compression.Internal;
+using VK.Blocks.AI.Engram.Compression.Models;
+using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram.Compression;
@@ -46,7 +44,7 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
     }
 
     public bool IsActive => _options.Enabled;
-    public VKStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
+    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
 
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
@@ -65,61 +63,113 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
 
         var chatSessionId = new VKChatSessionId(context.Request.SessionId.Value);
 
-        // 1. Fetch and inject the existing L2 summary if it exists
+        // 1. Fetch and inject the existing L2 memory if it exists
         var existingSessionResult = await _sessionStore.GetAsync(chatSessionId, cancellationToken).ConfigureAwait(false);
-        if (existingSessionResult.IsSuccess && existingSessionResult.Value is not null && !string.IsNullOrWhiteSpace(existingSessionResult.Value.Summary))
+        if (existingSessionResult.IsSuccess && existingSessionResult.Value is not null)
         {
-            var updatedSummary = existingSessionResult.Value.Summary;
+            var session = existingSessionResult.Value;
+            var memoryContentBuilder = new System.Text.StringBuilder();
 
-            // Inject the updated summary fragment into context
-            var knowledgeEntry = new VKKnowledgeEntry
+            var narrative = session.NarrativeSummary ?? session.Summary;
+            if (!string.IsNullOrWhiteSpace(narrative))
             {
-                Id = VKKnowledgeId.New(_guidGenerator),
-                TriggerType = VKKnowledgeTriggerType.Constant,
-                Segment = new VKPromptSegment
-                {
-                    Content = updatedSummary,
-                    IsEnabled = true,
-                    RelativeDepth = VKPromptRelativeDepth.AfterPersona,
-                    DepthPriority = 500
-                }
-            };
+                memoryContentBuilder.AppendLine("### Conversation Narrative Summary");
+                memoryContentBuilder.AppendLine(narrative);
+                memoryContentBuilder.AppendLine();
+            }
 
-            var coord = PromptPositionResolver.Resolve(knowledgeEntry.Segment, PromptLayout.DefaultRenderOrders);
-
-            var knowledgeFragment = new VKPromptFragment
+            if (!string.IsNullOrWhiteSpace(session.StructuredFacts))
             {
-                TierType = VKPromptTierType.Knowledge,
-                RenderOrder = coord.RenderOrder,
-                Segment = knowledgeEntry.Segment,
-                Metadata = knowledgeEntry
-            };
+                memoryContentBuilder.AppendLine("### Extracted Facts & Context");
+                memoryContentBuilder.AppendLine(session.StructuredFacts);
+                memoryContentBuilder.AppendLine();
+            }
 
-            context.AddFragment(knowledgeFragment);
-
-            // Inject the metadata fragment
-            var metadataFragment = new VKPromptFragment
+            if (!string.IsNullOrWhiteSpace(session.RelationGraph))
             {
-                TierType = VKPromptTierType.Knowledge,
-                RenderOrder = coord.RenderOrder - 1,
-                Segment = new VKPromptSegment
+                memoryContentBuilder.AppendLine("### Entity Relationships");
+                memoryContentBuilder.AppendLine(session.RelationGraph);
+                memoryContentBuilder.AppendLine();
+            }
+
+            if (_options.EnableTimelineExtraction && !string.IsNullOrWhiteSpace(session.Timeline))
+            {
+                memoryContentBuilder.AppendLine("### Event Timeline");
+                memoryContentBuilder.AppendLine(session.Timeline);
+                memoryContentBuilder.AppendLine();
+            }
+
+            if (_options.EnableContradictionDetection && !string.IsNullOrWhiteSpace(session.Contradictions))
+            {
+                memoryContentBuilder.AppendLine("### Identified Contradictions / Changed Minds (Pay Attention)");
+                memoryContentBuilder.AppendLine(session.Contradictions);
+                memoryContentBuilder.AppendLine();
+            }
+
+            if (_options.EnableActionItemExtraction && !string.IsNullOrWhiteSpace(session.ActionItems))
+            {
+                memoryContentBuilder.AppendLine("### Pending Action Items & Commitments");
+                memoryContentBuilder.AppendLine(session.ActionItems);
+                memoryContentBuilder.AppendLine();
+            }
+
+            if (_options.EnablePredictiveCue && !string.IsNullOrWhiteSpace(session.PredictiveCues))
+            {
+                memoryContentBuilder.AppendLine("### Predictive Cues for Current Context");
+                memoryContentBuilder.AppendLine(session.PredictiveCues);
+                memoryContentBuilder.AppendLine();
+            }
+
+            var fullMemoryContent = memoryContentBuilder.ToString().Trim();
+
+            if (!string.IsNullOrWhiteSpace(fullMemoryContent))
+            {
+                // Inject the updated memory fragment into context
+                var knowledgeEntry = new VKKnowledgeEntry
                 {
-                    Content = string.Empty,
-                    IsEnabled = true,
-                    Role = VKChatRole.System,
-                    RelativeDepth = VKPromptRelativeDepth.AfterPersona,
-                    DepthPriority = 499
-                },
-                Metadata = new VKCompressionSummaryMetadata
+                    Id = VKKnowledgeId.New(_guidGenerator),
+                    TriggerType = VKKnowledgeTriggerType.Constant,
+                    Segment = new VKPromptSegment
+                    {
+                        Content = fullMemoryContent,
+                        IsEnabled = true,
+                        RelativeDepth = VKPromptRelativeDepth.AfterPersona,
+                        DepthPriority = 500
+                    }
+                };
+
+                var knowledgeFragment = new VKPromptFragment
                 {
-                    SessionId = chatSessionId,
-                    Summary = updatedSummary,
-                    OriginalTokenCount = echoFragments.Count,
-                    CompressedTokenCount = updatedSummary.Length / 4,
-                    CompressedAt = _timeProvider.GetUtcNow()
-                }
-            };
-            context.AddFragment(metadataFragment);
+                    TierType = VKPromptTierType.Knowledge,
+                    Segment = knowledgeEntry.Segment,
+                    Metadata = knowledgeEntry
+                };
+
+                context.AddFragment(knowledgeFragment);
+
+                // Inject the metadata fragment
+                var metadataFragment = new VKPromptFragment
+                {
+                    TierType = VKPromptTierType.Knowledge,
+                    Segment = new VKPromptSegment
+                    {
+                        Content = string.Empty,
+                        IsEnabled = true,
+                        Role = VKChatRole.System,
+                        RelativeDepth = VKPromptRelativeDepth.AfterPersona,
+                        DepthPriority = 499
+                    },
+                    Metadata = new VKCompressionSummaryMetadata
+                    {
+                        SessionId = chatSessionId,
+                        Summary = narrative ?? string.Empty,
+                        OriginalTokenCount = echoFragments.Count,
+                        CompressedTokenCount = fullMemoryContent.Length / 4,
+                        CompressedAt = _timeProvider.GetUtcNow()
+                    }
+                };
+                context.AddFragment(metadataFragment);
+            }
         }
 
         if (echoFragments.Count == 0)

@@ -35,6 +35,7 @@
 **キーワード**: Synchronization, Abstraction, Idempotency, No-Op Fallback
 
 ---
+
 #### [ADR-005: Use Static Abstract Interface for Configuration Section Resolution](./adr-005-use-static-abstract-interface-for-configuration-section-resolution.md)
 
 **Status**: ✅ Accepted  
@@ -56,17 +57,24 @@
 **Status**: ✅ Accepted  
 **概要**: プロパティを `IVKBlockMarker` に集約し、Source Generator による `Instance` シングルトン注入を導入。再帰的な依存関係検証をリフレクションなしで高速化。  
 **キーワード**: Source Generator, Singleton Pattern, Zero-Reflection, Dependency Tree
+
+---
+
 #### [ADR-008: Robust BuildingBlock Dependency Validation through Pre-order Traversal and Cycle Detection](./adr-008-robust-building-block-dependency-validation.md)
 
 **Status**: ✅ Accepted  
 **概要**: 親の検証を先行させる Pre-order 走査と、`HashSet` による循環参照検知を導入。依存関係エラーの特定を容易にし、`StackOverflow` を防止。  
 **キーワード**: Pre-order Traversal, Circular Dependency, Cycle Detection
 
+---
+
 #### [ADR-009: Standardization of Building Block Naming and Structural Conventions](./adr-009-standardization-of-building-block-naming-and-structural-conventions.md)
 
 **Status**: ✅ Accepted  
 **概要**: 公開 API への `VK` プレフィックス付与と第1層階層への配置、および内部実装からのプレフィックス除去と `Internal/` フォルダへの隠蔽を全モジュール共通の標準規約として定義。  
 **キーワード**: Naming Convention, Project Structure, Encapsulation, VK Prefix
+
+---
 
 #### [ADR-010: High-Performance Infrastructure Optimizations in Core Library](./adr-010-high-performance-infrastructure-optimizations-in-core-library.md)
 
@@ -90,11 +98,15 @@
 **概要**: DI 拡張メソッドを Registration, Query, Builder の 3 つの責務に分離。複雑な依存関係検証ロジックの保守性を向上し、インテリセンスの利便性を最適化。  
 **キーワード**: Dependency Injection, Separation of Concerns, DX, Builder Pattern
 
+---
+
 #### [ADR-013: Comprehensive Result Pattern Standardization with VKError](./adr-013-comprehensive-result-pattern-standardization-with-vkerror.md)
 
 **Status**: ✅ Accepted  
 **概要**: `Result` 型を `VKResult` へ刷新し、成功インスタンスのキャッシュによる GC 負荷低減と、`VKError` によるエラー定数管理を標準化。  
 **キーワード**: Result Pattern, VKError, Performance, Standardization
+
+---
 
 #### [ADR-014: Adoption of Hierarchical Configuration Pattern for Dynamic Call Behaviors](/docs/02-ArchitectureDecisionRecords/Core/adr-014-adoption-of-hierarchical-configuration-pattern-for-dynamic-call-behaviors.md)
 
@@ -128,7 +140,21 @@
 
 ---
 
-**Last Updated**: 2026-05-19  
-**Total ADRs**: 17
+#### [ADR-018: Standardized Entry Filtering and Verdict Engine](./adr-018-standardized-entry-filtering-and-verdict-engine.md)
 
+**Status**: ✅ Accepted  
+**概要**: 複数モジュールに跨るオブジェクトやデータの評価・サニタイズ処理を統一するため、`IVKEntryFilter<TItem, TContext>` および共通の判定レコード `VKFilterVerdict` を Core 側に一元定義する設計。  
+**キーワード**: Entry Filtering, VKFilterVerdict, Composable Filters, Code Sharing
 
+---
+
+#### [ADR-019: Standardized Pipeline Execution Framework](./adr-019-standardized-pipeline-execution-framework.md)
+
+**Status**: ✅ Accepted  
+**概要**: 状態コンテキストを共有する多段階のワークフロー実行を標準化するため、Core 側にジェネリックな `IVKPipeline`、`VKPipelineExecutorBase`、およびミドルウェア機構を定義する設計。  
+**キーワード**: Pipeline Executor, Composable Stages, Middleware Hook
+
+---
+
+**Last Updated**: 2026-06-22  
+**Total ADRs**: 19

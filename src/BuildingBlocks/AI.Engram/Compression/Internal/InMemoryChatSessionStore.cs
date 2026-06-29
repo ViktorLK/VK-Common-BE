@@ -26,14 +26,15 @@ internal sealed class InMemoryChatSessionStore : IVKChatSessionStore
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (id.IsEmpty) throw new ArgumentException("SessionId cannot be empty.", nameof(id));
+        if (id.IsEmpty)
+            throw new ArgumentException("SessionId cannot be empty.", nameof(id));
 
         if (_sessions.TryGetValue(id, out var session))
         {
             return Task.FromResult(VKResult.Success(session));
         }
 
-        return Task.FromResult(VKResult.Failure<VKChatSession>(Errors.SessionNotFound));
+        return Task.FromResult(VKResult.Failure<VKChatSession>(VKCompressionErrors.SessionNotFound));
     }
 
     public Task<VKResult> UpdateSummaryAsync(
@@ -41,8 +42,27 @@ internal sealed class InMemoryChatSessionStore : IVKChatSessionStore
         string summary,
         CancellationToken cancellationToken = default)
     {
+        return UpdateSessionMemoryAsync(id, summary, narrativeSummary: summary, cancellationToken: cancellationToken);
+    }
+
+    public Task<VKResult> UpdateSessionMemoryAsync(
+        VKChatSessionId id,
+        string summary,
+        string? narrativeSummary = null,
+        string? structuredFacts = null,
+        string? relationGraph = null,
+        string? timeline = null,
+        string? contradictions = null,
+        string? actionItems = null,
+        string? confidenceAnnotations = null,
+        string? predictiveCues = null,
+        float? valence = null,
+        float? arousal = null,
+        CancellationToken cancellationToken = default)
+    {
         cancellationToken.ThrowIfCancellationRequested();
-        if (id.IsEmpty) throw new ArgumentException("SessionId cannot be empty.", nameof(id));
+        if (id.IsEmpty)
+            throw new ArgumentException("SessionId cannot be empty.", nameof(id));
         VKGuard.NotNull(summary);
 
         var now = _timeProvider.GetUtcNow();
@@ -54,12 +74,32 @@ internal sealed class InMemoryChatSessionStore : IVKChatSessionStore
                 Id = id,
                 PersonaId = VKPersonaId.Empty,
                 Summary = summary,
+                NarrativeSummary = narrativeSummary,
+                StructuredFacts = structuredFacts,
+                RelationGraph = relationGraph,
+                Timeline = timeline,
+                Contradictions = contradictions,
+                ActionItems = actionItems,
+                ConfidenceAnnotations = confidenceAnnotations,
+                PredictiveCues = predictiveCues,
+                Valence = valence,
+                Arousal = arousal,
                 CreatedAt = now,
                 UpdatedAt = now
             },
             updateValueFactory: (_, existing) => existing with
             {
                 Summary = summary,
+                NarrativeSummary = narrativeSummary ?? existing.NarrativeSummary,
+                StructuredFacts = structuredFacts ?? existing.StructuredFacts,
+                RelationGraph = relationGraph ?? existing.RelationGraph,
+                Timeline = timeline ?? existing.Timeline,
+                Contradictions = contradictions ?? existing.Contradictions,
+                ActionItems = actionItems ?? existing.ActionItems,
+                ConfidenceAnnotations = confidenceAnnotations ?? existing.ConfidenceAnnotations,
+                PredictiveCues = predictiveCues ?? existing.PredictiveCues,
+                Valence = valence ?? existing.Valence,
+                Arousal = arousal ?? existing.Arousal,
                 UpdatedAt = now
             });
 
