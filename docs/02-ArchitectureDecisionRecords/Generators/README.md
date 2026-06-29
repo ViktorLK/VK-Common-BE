@@ -37,12 +37,23 @@
 
 ---
 
+### Domain Model & Type Safety (ドメインモデルと型安全)
+
+#### [ADR-004: Automated Strongly Typed ID Generation](./adr-004-automated-strongly-typed-id-generation.md)
+
+**Status**: ✅ Accepted  
+**概要**: エンティティやセッションの識別子への `Guid` 直呼びによる型混同を防ぐため、`[VKStronglyTypedId]` 属性からシリアライズ、型変換、および EF Core 値コンバータを備えた専用構造体をソース生成する設計。  
+**キーワード**: Strongly Typed ID, Roslyn Source Generators, Type Safety, EF Core ValueConverter
+
+---
+
 ## 🎯 ADR の読み方ガイド
 
 ### Source Generator 設計の理解用
 
 1. **ADR-002**: `CompilationProvider.Combine` の禁止や `WhereNotNull` の活用など、IDE とビルドパイプラインを重くしない「真の Incremental Pipeline」の概念
 2. **ADR-001**: ターゲットフレームワークの制約をバイパスしつつ、外部NuGetパッケージに依存しないゼロデペンデンシー設計の維持手法
+3. **ADR-004**: 増分ジェネレータ（Incremental Generator）におけるコンパイル空間の型検出（HasEfCore 判定）と、環境に依存しない条件付きコード生成テクニック
 
 ### インフラストラクチャ自動化の理解用
 
@@ -56,5 +67,5 @@
 
 ---
 
-**Last Updated**: 2026-03-06  
-**Total ADRs**: 3
+**Last Updated**: 2026-06-05  
+**Total ADRs**: 4

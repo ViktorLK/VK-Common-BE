@@ -56,6 +56,14 @@
 
 ---
 
+#### [ADR-007: Standardize Tenant Resolution Result Pattern and Error Handling](/docs/02-ArchitectureDecisionRecords/MultiTenancy/adr-007-standardize-tenant-resolution-result-pattern-and-error-handling.md)
+
+**Status**: ✅ Accepted  
+**概要**: 以前の独自 `TenantResolutionResult` 構造を廃止し、VK.Blocks 標準の `Result<T>` パターンに完全準拠させ、境界で RFC 7807 (Problem Details) 準拠のエラーレスポンスを一貫して返すよう標準化する設計。  
+**キーワード**: `Result Pattern`, `Error Handling`, `Standardization`, `RFC 7807`
+
+---
+
 ## 🎯 ADR の読み方ガイド
 
 ### アーキテクチャとセキュア設計の理解用
@@ -63,6 +71,7 @@
 1. **ADR-001**: モジュールの根幹となるパイプライン化の設計意図を理解するための最初のドキュメントです。
 2. **ADR-005**: セキュリティに直結する必須設定であり、テナントの漏洩を防ぐ「Fail-Safe」の仕組みを理解できます。
 3. **ADR-006**: 本番環境での設定ミスが招く重大なリスクとその防御策について解説しています。
+4. **ADR-007**: 独自のエラー結果型から標準の `Result<T>` モナドと RFC 7807 への完全準拠に向けた統一・規格化プロセスを理解できます。
 
 ### 拡張と後方互換の理解用
 
@@ -73,5 +82,5 @@
 - [Architectural Audit Report: MultiTenancy Module (2026-03-10)](/docs/04-AuditReports/MultiTenancy/MultiTenancy_20260310.md)
 
 ---
-**Last Updated**: 2026-03-12
-**Total ADRs**: 6
+**Last Updated**: 2026-03-13
+**Total ADRs**: 7

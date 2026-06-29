@@ -7,55 +7,55 @@
 
 ## 2. Context (背景)
 
-目前系统的 `ErrorType` 仅涵盖了基础的 `Failure`, `Validation`, `NotFound`, `Conflict`, Unauthorized`, `Forbidden`。这些基本类型能够满足 CRUD 类应用的需求，但在处理分布式系统、第三方集成以及生产环境的可观测性时，语义粒度严重不足。
+現在、システムの `ErrorType` は基礎的な `Failure`, `Validation`, `NotFound`, `Conflict`, `Unauthorized`, `Forbidden` のみをカバーしている。これらの基本タイプは CRUD クラスのアプリケーション要件を満たすには十分であるが、分散システムやサードパーティの統合、および本番環境の可観測性（Observability）を処理する際には、セマンティックの粒度が著しく不足している。
 
-具体场景包括：
-1. **限流 (Rate Limiting)**: API 密钥超限时，通常需要返回 HTTP 429。
-2. **基础设施不可用 (Service Unavailable)**: 当 Redis 或数据库瞬时过载时，需要返回 HTTP 503 以触发前端的退避机制。
-3. **第三方服务故障 (External Error)**: 调用 Google OAuth 等服务失败时，需要区分是 internal bug (500) 还是外部依赖 (502/504) 问题。
+具体的なシナリオ：
+1. **レート制限 (Rate Limiting)**: API キーの制限を超えた場合、通常は HTTP 429 を返却する必要がある。
+2. **インフラ利用不可 (Service Unavailable)**: Redis やデータベースが一時的に過負荷状態になった場合、フロントエンドのバックオフメカニズムをトリガーするために HTTP 503 を返却する必要がある。
+3. **外部サービス障害 (External Error)**: Google OAuth などの外部サービス呼び出しが失敗した際、内部のバグ (500) なのか、外部の依存関係 (502/504) の問題なのかを区別する必要がある。
 
 ## 3. Problem Statement (問題定義)
 
-1. **HTTP 映射模糊**：限流等错误目前只能映射到 `Failure (500)` 或 `Validation (400)`，这违反了 RESTful 最佳实践，也不利于客户端精确处理。
-2. **可观测性缺失**：在监控面板中，我们无法根据 `ErrorType` 直接统计出由于第三方服务导致的问题比例。
-3. **开发者体验 (DX)**：开发者在定义业务报错时，往往需要手动硬编码状态码或在错误码字符串中隐含状态，增加了维护成本。
+1. **曖昧な HTTP マッピング**: 現在、レート制限などのエラーは `Failure (500)` または `Validation (400)` にしかマッピングできず、これは RESTful のベストプラクティスに反し、クライアント側での正確なエラーハンドリングも困難にしている。
+2. **可観測性の欠如**: 監視ダッシュボードにおいて、サードパーティサービスに起因するエラーの発生割合を `ErrorType` から直接集計・把握することができない。
+3. **開発者体験 (DX)**: 開発者がビジネスエラーを定義する際、ステータスコードを手動でハードコーディングするか、エラーコードの文字列に暗黙的にステータスを含める必要があり、メンテナンスコストが増加している。
 
 ## 4. Decision (決定事項)
 
-在 `VK.Blocks.Core` 中扩展 `ErrorType` 枚举，新增以下类型：
+`VK.Blocks.Core` の `ErrorType` 列挙型を拡張し、以下のタイプを新規追加する：
 
-1. **`TooManyRequests` (HTTP 429)**: 专门用于 API 密钥限流逻辑。
-2. **`ServiceUnavailable` (HTTP 503)**: 用于基础设施级或系统临时过载。
-3. **`Timeout` (HTTP 504/408)**: 专门用于后端依赖处理超时。
-4. **`ExternalError` (HTTP 502/504)**: 用于外部集成（如 OAuth, Blob Storage API）返回的异常。
+1. **`TooManyRequests` (HTTP 429)**: API キーのレート制限ロジック専用。
+2. **`ServiceUnavailable` (HTTP 503)**: インフラレベルまたはシステムの一時的な過負荷用。
+3. **`Timeout` (HTTP 504/408)**: バックエンド依存処理のタイムアウト専用。
+4. **`ExternalError` (HTTP 502/504)**: 外部統合（OAuth、Blob Storage API など）から返された異常用。
 
-同时：
-- 更新 `VK.Blocks.ExceptionHandling` 的 `ProblemDetailsFactory`，使其支持新状态码对应的标准标题。
-- 更新 `VK.Blocks.Web` 的 `ErrorTypeExtensions.ToStatusCode()` 方法，完成 1:1 的映射逻辑。
+同時に以下を行う：
+- `VK.Blocks.ExceptionHandling` の `ProblemDetailsFactory` を更新し、新しいステータスコードに対応する標準タイトルをサポートする。
+- `VK.Blocks.Web` の `ErrorTypeExtensions.ToStatusCode()` メソッドを更新し、1:1 のマッピングロジックを実装する。
 
 ## 5. Alternatives Considered (代替案の検討)
 
-### Option 1: 在 Error record 中直接定义 StatusCode
-- **Approach**: 给 `Error` 增加一个 `int StatusCode` 属性。
-- **Rejected Reason**: 这会将 Infrastructure 层（HTTP）的概念泄露到 Core/Domain 层。`ErrorType` 应该是语义化的，至于它映射到 HTTP 还是 gRPC 状态码，应该是表示层决定的。
+### Option 1: Error レコードに直接 StatusCode を定義する
+- **Approach**: `Error` に `int StatusCode` プロパティを追加する。
+- **Rejected Reason**: これにより、インフラストラクチャ層（HTTP）の概念が Core/Domain 層に漏洩することになる。`ErrorType` はセマンティック（意味論的）なものであるべきであり、それが HTTP または gRPC のどちらのステータスコードにマッピングされるかは、表現層が決めるべきである。
 
-### Option 2: 保持 ErrorType 不变，在错误 Code 中解析
-- **Approach**: 通过前缀识别，如 `ApiKey.TooManyRequests` -> 429。
-- **Rejected Reason**: 逻辑过于散乱，且对 `VKApiController` 的自动化映射不友好，增加了反射或字符串匹配的性能开销。
+### Option 2: ErrorType は変更せず、エラーの Code で解析する
+- **Approach**: プレフィックスで識別する（例：`ApiKey.TooManyRequests` -> 429）。
+- **Rejected Reason**: ロジックが散乱し、`VKApiController` での自動マッピングが難しくなる上、リフレクションや文字列マッチングによるパフォーマンス上のオーバーヘッドが増加するため。
 
 ## 6. Consequences & Mitigation (結果と緩和策)
 
-- **Positive**: 极大地提升了系统的生产就绪度 (Production Ready)。API 报错语义达到了国际工业级标准。
-- **Negative**: 增加了一点枚举定义的复杂性。
-- **Mitigation**: 在 `Error.cs` 中添加了详细的 XML 注释，并在 `VK.Blocks.Web` 中提供了统一转换扩展，屏蔽底层细节。
+- **Positive**: システムの Production-Ready（本番稼働対応）レベルが大幅に向上する。API エラーのセマンティクスがグローバルな工業標準レベルに到達する。
+- **Negative**: 列挙型定義の複雑性がわずかに増加する。
+- **Mitigation**: `Error.cs` に詳細な XML コメントを追加し、`VK.Blocks.Web` で統一された変換拡張を提供することで、低レイヤーの詳細をカプセル化する。
 
-## 7. Implementation & Security (実装詳細とセキュリティ考察)
+## 7. Implementation & Security (実装詳細とセキュリティ考慮)
 
 ### Implementation Note
 ```csharp
 public enum ErrorType
 {
-    // ... 原有项
+    // ... 既存の項目
     TooManyRequests = 6,     // 429
     ServiceUnavailable = 7,  // 503
     Timeout = 8,             // 504/408
@@ -64,7 +64,7 @@ public enum ErrorType
 ```
 
 ### Security Observation
-细化的错误类型有助于安全团队在监控中识别由于暴力破解（由 429 统计反映）或外部攻击导致的系统异常。
+詳細化されたエラータイプは、セキュリティチームが監視システムにおいて、ブルートフォース攻撃（429 統計に反映）や外部攻撃に起因するシステムの異常を特定するのに役立つ。
 
 ---
 **Last Updated**: 2026-03-26  

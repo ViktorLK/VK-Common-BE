@@ -54,6 +54,22 @@
 
 ---
 
+#### [ADR-017: Extraction of Vectorics Abstractions to Standalone Modules](./adr-017-extraction-of-vectorics-abstractions-to-standalone-modules.md)
+
+**Status**: ✅ Accepted  
+**概要**: ベクトル空間インデクシングと生成推論の責務をクリーンに分離するため、埋め込み生成、リランキング、RAG、セマンティックキャッシュといった Vectorics 関連機能群を `VK.Blocks.AI` から廃止し、独立した Building Block（`VectorStore`, `VectorSearch`）へと再編成する設計。  
+**キーワード**: Code Decoupling, Assembly Separation, Vectorics Demarcation
+
+---
+
+#### [ADR-018: Context Expansion Architecture for Context-Aware Prompt Enrichment](./adr-018-context-expansion-architecture-for-context-aware-prompt-enrichment.md)
+
+**Status**: ✅ Accepted  
+**概要**: システムプロンプトやユーザー指示のコンテキストを安全かつ動的に拡張するため、不変なオプション設計に基づき `IVKContextExpansionStrategy` と標準化された実行ステージ `DefaultContextExpansionStage` を導入する設計。  
+**キーワード**: Context Expansion, Strategy Pattern, Prompt Enrichment
+
+---
+
 ### Observability & Cost Control
 
 #### [ADR-006: Unified Token Usage Tracking and Cost Observation](./adr-006-unified-token-usage-tracking-and-cost-observation.md)
@@ -61,6 +77,14 @@
 **Status**: 📝 Draft  
 **概要**: プロバイダー間で異なるトークン計数方式を統一し、コストの透明性と予算ベースの制御（サーキットブレーカー）を実現するための基盤を定義します。  
 **キーワード**: Token Usage, Cost Control, Circuit Breaker
+
+---
+
+#### [ADR-016: Standardized Observability Diagnostics Constants](./adr-016-standardized-observability-diagnostics-constants.md)
+
+**Status**: ✅ Accepted  
+**概要**: 各AIサブ機能にオフセットベースの一意イベントIDと標準化診断定数クラスを導入し、ログやメトリクスの競合を防ぎつつ一貫した監視を可能にする可観測性設計。  
+**キーワード**: Event ID Offset, OpenTelemetry, LoggerMessage
 
 ---
 
@@ -102,7 +126,7 @@
 
 ### Advanced Features (RAG & Resiliency)
 
-#### [ADR-009: Retrieval-Augmented Generation (RAG) Interface Strategy](./adr-009-retrieval-augmented-generation-(rag)-interface-strategy.md)
+#### [ADR-009: Retrieval-Augmented Generation (RAG) Interface Strategy](<./adr-009-retrieval-augmented-generation-(rag)-interface-strategy.md>)
 
 **Status**: 📝 Draft  
 **概要**: 検索（Retrieval）と生成（Generation）をクリーンに分離し、特定のベクトル DB に依存しないポータブルな RAG 実装の指針を定義します。  
@@ -139,21 +163,28 @@
 ## 🎯 ADR の読み方ガイド
 
 ### アーキテクチャとポータビリティの理解用
+
 1. **ADR-001**: なぜ AI ライブラリにおいてプロバイダー抽象化が不可欠なのか、その背景とトレードオフを理解するために最初に読んでください。
 2. **ADR-005**: 柔軟な設定管理を実現するための「継承から組合せへ」の転換理由と、その実装方針を理解するために読んでください。
 3. **ADR-015**: 設定インターフェース命名のOptionsサフィックス標準化について理解するために読んでください。
+4. **ADR-017**: ベクトルインデクシングや検索の技術と、LLM生成のオーケストレーションを物理アセンブリ・名前空間レベルで疎結合にする意義を学ぶために読んでください。
+5. **ADR-018**: プロンプトテンプレートを静的・動的ナレッジで安全に拡張するための、Context Expansion 構造とトークン管理について理解するために読んでください。
 
 ### 運用、コスト、レジリエンスの理解用
+
 1. **ADR-006**: 産業レベルの AI 運用に不可欠なトークン管理とコスト制御の考え方を理解するために読んでください。
 2. **ADR-010**: クラウド障害に強い、複数のプロバイダーを組み合わせた高可用な設計を理解するために読んでください。
+3. **ADR-016**: 複数の AI サブ機能にまたがるトレース、ログ ID、メトリクス名を衝突なく設計し、統一ダッシュボードを構築する手法を理解するために読んでください。
 
 ### 品質管理とガバナンスの理解用
+
 1. **ADR-008**: 企業レベルで必須となる安全性（検閲）の自動化とガバナンス戦略について理解するために読んでください。
 2. **ADR-012**: 非決定的な AI システムの品質をどのように「数値」で保証し、継続的デリバリーを実現するかを理解するために読んでください。
 3. **ADR-014**: 静的解析による安全なオプション制御（AP.05）と、Settings側とOverrides側の美しい対称設計について理解するために読んでください。
 
 ## 🔗 関連ドキュメント
+
 - [AI Module Manifest](../../../src/BuildingBlocks/AI/module-manifest.md)
 
-**Last Updated**: 2026-05-18  
-**Total ADRs**: 15
+**Last Updated**: 2026-06-24  
+**Total ADRs**: 18
