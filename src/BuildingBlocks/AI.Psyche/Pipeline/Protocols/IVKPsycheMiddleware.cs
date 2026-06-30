@@ -6,4 +6,4 @@ namespace VK.Blocks.AI.Psyche;
 /// Middleware interface for controlling the flow of Psyche pipeline executions (Onion model).
 /// Follows CS.01, CS.03.
 /// </summary>
-public interface IVKPsycheMiddleware : IVKMiddleware<VKPsycheContext, VKPsycheResponse>;
+public interface IVKPsycheMiddleware : IVKMiddleware<VKPsycheContext>;

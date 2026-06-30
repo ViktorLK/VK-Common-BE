@@ -23,7 +23,7 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
         _options = VKGuard.NotNull(options).Value;
     }
 
-    public async Task<VKResult<VKPsycheResponse>> WeavePromptAsync(
+    public async Task<VKResult> WeavePromptAsync(
         VKPsycheContext context,
         CancellationToken cancellationToken)
     {
@@ -63,14 +63,14 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
 
         if (hasFailed && failedResult is not null)
         {
-            return VKResult.Failure<VKPsycheResponse>(failedResult.Errors); // // [CS.01]
+            return VKResult.Failure(failedResult.Errors); // // [CS.01]
         }
 
         if (context.Response.Messages.Count == 0)
         {
-            return VKResult.Failure<VKPsycheResponse>(VKWeavingErrors.NoTapestry);
+            return VKResult.Failure(VKWeavingErrors.NoTapestry);
         }
 
-        return VKResult.Success(context.Response.Build());
+        return VKResult.Success();
     }
 }
