@@ -4,17 +4,13 @@ using System.Threading.Tasks;
 using VK.Blocks.AI;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Afferent.Audio.Internal;
+namespace VK.Blocks.AI.Afferent.IngressAudio.Internal;
 
-/// <summary>
-/// Production-grade implementation of <see cref="IVKAudioTranscriber"/>.
-/// Complies with AP.01, AP.03, CS.03, and CS.01.
-/// </summary>
-internal sealed class DefaultAudioTranscriber : IVKAudioTranscriber
+internal sealed class DefaultIngressAudioService : IVKIngressAudioService
 {
     private readonly IVKTranscriptionEngine _transcriptionEngine;
 
-    public DefaultAudioTranscriber(IVKTranscriptionEngine transcriptionEngine)
+    public DefaultIngressAudioService(IVKTranscriptionEngine transcriptionEngine)
     {
         _transcriptionEngine = VKGuard.NotNull(transcriptionEngine);
     }
@@ -23,11 +19,10 @@ internal sealed class DefaultAudioTranscriber : IVKAudioTranscriber
     {
         VKGuard.NotNull(audioStream);
 
-        // // [CS.03] configureAwait false on all internal library async calls
         var result = await _transcriptionEngine.TranscribeAsync(audioStream, null, cancellationToken).ConfigureAwait(false);
         if (result.IsFailure)
         {
-            return VKResult.Failure<string>(AudioErrors.TranscriptionFailed);
+            return VKResult.Failure<string>(IngressAudioErrors.TranscriptionFailed);
         }
 
         return VKResult.Success(result.Value);
