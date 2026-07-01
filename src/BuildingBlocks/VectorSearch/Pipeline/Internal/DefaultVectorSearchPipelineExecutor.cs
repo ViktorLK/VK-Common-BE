@@ -51,29 +51,35 @@ internal sealed class DefaultVectorSearchPipelineExecutor : VKPipelineExecutorBa
         return result;
     }
 
-    protected override async Task<VKResult<VKSearchResult[]>> InvokeTerminalAsync(
+    protected override async Task<VKResult> InvokeTerminalAsync(
         VKVectorSearchContext context,
         CancellationToken cancellationToken)
     {
         if (context.State<SemanticCacheHitState>()?.IsHit == true)
         {
             _logger.CacheHitBypassed();
-            return VKResult.Success(context.Results);
+            return VKResult.Success();
         }
 
         if (context.Services.GetService(typeof(IVKSearchStrategy)) is not IVKSearchStrategy searchStrategy)
         {
-            return VKResult.Failure<VKSearchResult[]>(VKVectorSearchPipelineErrors.SearchStrategyNotFound);
+            return VKResult.Failure(VKVectorSearchPipelineErrors.SearchStrategyNotFound);
         }
 
         var searchResult = await searchStrategy.SearchAsync(context.Query, cancellationToken).ConfigureAwait(false);
         if (searchResult.IsFailure)
         {
-            return VKResult.Failure<VKSearchResult[]>(searchResult.Errors);
+            return VKResult.Failure(searchResult.Errors);
         }
 
         context.Results = searchResult.Value;
-        return VKResult.Success(searchResult.Value);
+        return VKResult.Success();
+    }
+
+    protected override VKSearchResult[] BuildResponse(VKVectorSearchContext context)
+    {
+        VKGuard.NotNull(context);
+        return context.Results;
     }
 
     protected override bool CheckAborted(VKVectorSearchContext context) => context.IsAborted;

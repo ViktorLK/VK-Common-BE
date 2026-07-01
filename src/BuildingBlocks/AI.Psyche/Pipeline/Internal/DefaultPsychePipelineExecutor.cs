@@ -57,23 +57,23 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         return result;
     }
 
-    protected override async Task<VKResult<VKPsycheResponse>> InvokeTerminalAsync(
+    protected override async Task<VKResult> InvokeTerminalAsync(
         VKPsycheContext context,
         CancellationToken cancellationToken)
     {
         if (context.Response.Messages.Count == 0)
         {
-            return VKResult.Failure<VKPsycheResponse>(VKPipelineErrors.EmptyResponse);
+            return VKResult.Failure(VKPipelineErrors.EmptyResponse);
         }
 
         if (context.IsWeaveOnly)
         {
-            return VKResult.Success(context.Response.Build());
+            return VKResult.Success();
         }
 
         if (context.Services.GetService(typeof(IVKChatEngine)) is not IVKChatEngine chatEngine)
         {
-            return VKResult.Failure<VKPsycheResponse>(VKPipelineErrors.ChatEngineNotFound);
+            return VKResult.Failure(VKPipelineErrors.ChatEngineNotFound);
         }
 
         var chatArgs = context.Args<VKChatArgs>();
@@ -81,7 +81,7 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         var chatResult = await chatEngine.SendAsync(context.Response.Messages, chatArgs, cancellationToken).ConfigureAwait(false);
         if (chatResult.IsFailure)
         {
-            return VKResult.Failure<VKPsycheResponse>(chatResult.Errors);
+            return VKResult.Failure(chatResult.Errors);
         }
 
         context.SetState(chatResult.Value);
@@ -92,7 +92,13 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
             context.Response.Usage = chatResult.Value.Usage;
         }
 
-        return VKResult.Success(context.Response.Build());
+        return VKResult.Success();
+    }
+
+    protected override VKPsycheResponse BuildResponse(VKPsycheContext context)
+    {
+        VKGuard.NotNull(context);
+        return context.Response.Build();
     }
 
     protected override bool CheckAborted(VKPsycheContext context) => context.IsAborted;

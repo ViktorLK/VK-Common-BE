@@ -9,6 +9,7 @@ using VK.Blocks.AI.Guardrails.Content.Internal;
 using VK.Blocks.AI.Guardrails.Injection.Internal;
 using VK.Blocks.AI.Guardrails.Internal;
 using VK.Blocks.AI.Guardrails.Privacy.Internal;
+using VK.Blocks.AI.ImageGeneration.Internal;
 using VK.Blocks.AI.Text.Internal;
 using VK.Blocks.AI.Tokenics.Budgeting.Internal;
 using VK.Blocks.AI.Tokenics.Costing.Internal;
@@ -60,6 +61,17 @@ public static class VKAIBuilderExtensions
     {
         VKGuard.NotNull(builder);
         return TextFeature.Register(builder, transform);
+    }
+
+    /// <summary>
+    /// Adds the Image Generation feature (text to image).
+    /// </summary>
+    public static IVKAIBuilder AddVKImageGeneration(
+        this IVKAIBuilder builder,
+        Func<VKImageGenerationOptions, VKImageGenerationOptions>? transform = null)
+    {
+        VKGuard.NotNull(builder);
+        return ImageGenerationFeature.Register(builder, transform);
     }
 
     /// <summary>
@@ -261,6 +273,7 @@ public static class VKAIBuilderExtensions
         return builder
             .AddVKChat()
             .AddVKText()
+            .AddVKImageGeneration()
             .AddVKPrompting()
             .AddVKAudio()
             .AddVKGuardrails()

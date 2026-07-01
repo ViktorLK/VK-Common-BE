@@ -33,9 +33,9 @@ internal sealed partial class DefaultSearchGuardMiddleware : IVKVectorSearchMidd
 
     public int MiddlewareOrder => VKVectorSearchPipelineScheduler.Middleware.SearchGuard;
 
-    public async Task<VKResult<VKSearchResult[]>> InvokeAsync(
+    public async Task<VKResult> InvokeAsync(
         VKVectorSearchContext context,
-        VKPipelineDelegate<VKSearchResult[]> next,
+        VKPipelineDelegate next,
         CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context);
@@ -52,27 +52,27 @@ internal sealed partial class DefaultSearchGuardMiddleware : IVKVectorSearchMidd
         if (text.Length < _options.MinLength)
         {
             _logger.SearchGuardBlocked(text, $"Length {text.Length} is less than MinLength {_options.MinLength}");
-            return VKResult.Failure<VKSearchResult[]>(VKVectorSearchPipelineErrors.QueryTooShort);
+            return VKResult.Failure(VKVectorSearchPipelineErrors.QueryTooShort);
         }
 
         if (text.Length > _options.MaxLength)
         {
             _logger.SearchGuardBlocked(text, $"Length {text.Length} exceeds MaxLength {_options.MaxLength}");
-            return VKResult.Failure<VKSearchResult[]>(VKVectorSearchPipelineErrors.QueryTooLong);
+            return VKResult.Failure(VKVectorSearchPipelineErrors.QueryTooLong);
         }
 
         // 2. SQL Injection check
         if (_options.EnableSqlInjectionProtection && SqlInjectionRegex().IsMatch(text))
         {
             _logger.SearchGuardBlocked(text, "SQL Injection pattern detected.");
-            return VKResult.Failure<VKSearchResult[]>(VKVectorSearchPipelineErrors.QuerySecurityViolation);
+            return VKResult.Failure(VKVectorSearchPipelineErrors.QuerySecurityViolation);
         }
 
         // 3. Prompt Injection / Jailbreak check
         if (_options.EnablePromptInjectionProtection && PromptInjectionRegex().IsMatch(text))
         {
             _logger.SearchGuardBlocked(text, "Prompt Injection / Jailbreak pattern detected.");
-            return VKResult.Failure<VKSearchResult[]>(VKVectorSearchPipelineErrors.QuerySecurityViolation);
+            return VKResult.Failure(VKVectorSearchPipelineErrors.QuerySecurityViolation);
         }
 
         // 4. Custom blocklist phrases check
@@ -83,7 +83,7 @@ internal sealed partial class DefaultSearchGuardMiddleware : IVKVectorSearchMidd
                 if (text.Contains(phrase, StringComparison.OrdinalIgnoreCase))
                 {
                     _logger.SearchGuardBlocked(text, $"Blocked phrase '{phrase}' matched.");
-                    return VKResult.Failure<VKSearchResult[]>(VKVectorSearchPipelineErrors.QuerySecurityViolation);
+                    return VKResult.Failure(VKVectorSearchPipelineErrors.QuerySecurityViolation);
                 }
             }
         }

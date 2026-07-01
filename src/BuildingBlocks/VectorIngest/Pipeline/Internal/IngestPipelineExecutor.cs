@@ -18,20 +18,27 @@ internal sealed class IngestPipelineExecutor : VKPipelineExecutorBase<IngestCont
     /// </summary>
     public IngestPipelineExecutor(
         IEnumerable<IVKIngestPipelineStage> stages,
-        IEnumerable<IVKMiddleware<IngestContext, VKIngestResponse>> middlewares)
+        IEnumerable<IVKMiddleware<IngestContext>> middlewares)
         : base(stages, Array.Empty<IVKAfterPipelineStage<IngestContext>>(), middlewares)
     {
     }
 
     /// <inheritdoc />
-    protected override Task<VKResult<VKIngestResponse>> InvokeTerminalAsync(IngestContext context, CancellationToken cancellationToken)
+    protected override Task<VKResult> InvokeTerminalAsync(IngestContext context, CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context); // [AP.01] VKGuard boundary
 
-        return Task.FromResult(VKResult.Success(new VKIngestResponse
+        return Task.FromResult(VKResult.Success());
+    }
+
+    /// <inheritdoc />
+    protected override VKIngestResponse BuildResponse(IngestContext context)
+    {
+        VKGuard.NotNull(context);
+        return new VKIngestResponse
         {
             ProcessedChunksCount = context.Chunks.Count
-        })); // [CS.01] Result only
+        };
     }
 
     /// <inheritdoc />

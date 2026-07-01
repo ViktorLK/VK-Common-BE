@@ -18,7 +18,7 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
 {
     private readonly List<List<IVKBeforePipelineStage<TContext>>> _beforeChunks;
     private readonly List<List<IVKAfterPipelineStage<TContext>>> _afterChunks;
-    private readonly List<IVKMiddleware<TContext, TResponse>> _middlewares;
+    private readonly List<IVKMiddleware<TContext>> _middlewares;
 
     /// <summary>
     /// Initializes a new instance of <see cref="VKPipelineExecutorBase{TContext, TResponse}"/>.
@@ -26,7 +26,7 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
     protected VKPipelineExecutorBase(
         IEnumerable<IVKBeforePipelineStage<TContext>> beforeStages,
         IEnumerable<IVKAfterPipelineStage<TContext>> afterStages,
-        IEnumerable<IVKMiddleware<TContext, TResponse>> middlewares)
+        IEnumerable<IVKMiddleware<TContext>> middlewares)
     {
         VKGuard.NotNull(beforeStages);
         VKGuard.NotNull(afterStages);
@@ -49,7 +49,12 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
     /// <summary>
     /// Invokes the terminal action (e.g., the actual LLM engine call).
     /// </summary>
-    protected abstract Task<VKResult<TResponse>> InvokeTerminalAsync(TContext context, CancellationToken cancellationToken);
+    protected abstract Task<VKResult> InvokeTerminalAsync(TContext context, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Builds the final immutable TResponse from the context state after all stages run.
+    /// </summary>
+    protected abstract TResponse BuildResponse(TContext context);
 
     /// <summary>
     /// Checks if the execution context has been marked as aborted.
@@ -88,7 +93,7 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
         }
 
         // 2. Build the middleware delegate onion chain starting from terminalAction
-        VKPipelineDelegate<TResponse> chain = () => InvokeTerminalAsync(context, cancellationToken);
+        VKPipelineDelegate chain = () => InvokeTerminalAsync(context, cancellationToken);
 
         // Wrap middlewares in reverse order (onion style)
         for (int i = _middlewares.Count - 1; i >= 0; i--)
@@ -101,7 +106,7 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
         var middlewareResult = await chain().ConfigureAwait(false);
         if (middlewareResult.IsFailure)
         {
-            return middlewareResult;
+            return VKResult.Failure<TResponse>(middlewareResult.Errors);
         }
 
         // 3. Run AFTER stages
@@ -119,6 +124,6 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
             return VKResult.Failure<TResponse>(afterResult.Errors);
         }
 
-        return middlewareResult;
+        return VKResult.Success(BuildResponse(context));
     }
 }

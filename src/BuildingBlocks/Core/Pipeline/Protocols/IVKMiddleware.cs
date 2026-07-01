@@ -7,8 +7,7 @@ namespace VK.Blocks.Core;
 /// Defines a middleware that can intercept and participate in an execution flow.
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
-/// <typeparam name="TResponse">The response type.</typeparam>
-public interface IVKMiddleware<in TContext, TResponse> where TContext : class
+public interface IVKMiddleware<in TContext> where TContext : class
 {
     /// <summary>
     /// Gets the order in which the middleware is executed.
@@ -22,8 +21,8 @@ public interface IVKMiddleware<in TContext, TResponse> where TContext : class
     /// <param name="next">The delegate to invoke the next middleware or terminal action.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The response result.</returns>
-    Task<VKResult<TResponse>> InvokeAsync(
+    Task<VKResult> InvokeAsync(
         TContext context,
-        VKPipelineDelegate<TResponse> next,
+        VKPipelineDelegate next,
         CancellationToken cancellationToken);
 }
