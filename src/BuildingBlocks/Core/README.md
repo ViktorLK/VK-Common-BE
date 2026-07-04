@@ -21,23 +21,27 @@
 ```mermaid
 graph TD
     subgraph "VK.Blocks.Core"
-        DI["DependencyInjection<br/>Block Registration / Query / Builder"]
+        Attributes["Attributes<br/>VKStronglyTypedId / VKBlockMarker / VKFeature"]
+        DI["Common/DependencyInjection<br/>Block Registration / Query / Builder"]
         Results["Results<br/>VKResult / VKError / Railway Extensions"]
         Domain["Domain<br/>Entity / ValueObject / AggregateRoot"]
         Guards["Guards<br/>VKGuard (Fluent Defensive)"]
-        Diagnostics["Diagnostics<br/>VKBlockDiagnostics / ActivitySource"]
+        Diagnostics["Common/Diagnostics<br/>VKBlockDiagnostics / ActivitySource"]
         Exceptions["Exceptions<br/>VKBaseException / RFC 7807"]
         Security["Security<br/>PII Masking / Auth Policies"]
-        Reflection["Reflection<br/>Metadata Cache / Expression Cache"]
-        Pagination["Pagination<br/>Offset / Cursor Paging"]
+        Shared["Common/Shared<br/>Metadata Cache / Expression Cache"]
+        Tenancy["Tenancy<br/>VKTenantId / IVKMultiTenant"]
+        Specifications["Specifications<br/>IVKSpecification / VKSpecification / Evaluator"]
     end
 
     DI -->|"IVKBlockMarker"| Domain
     Results -->|"VKError"| Exceptions
     Guards -->|"Throw Helper"| Exceptions
-    Security -->|"FrozenDictionary"| Reflection
+    Security -->|"FrozenDictionary"| Shared
     Diagnostics -->|"OTel Tags"| Results
+    Specifications -->|"In-Memory Evaluation"| Domain
 
+    style Attributes fill:#1a1a2e,stroke:#533483,color:#fff
     style DI fill:#1a1a2e,stroke:#e94560,color:#fff
     style Results fill:#1a1a2e,stroke:#0f3460,color:#fff
     style Domain fill:#1a1a2e,stroke:#16213e,color:#fff
@@ -45,8 +49,9 @@ graph TD
     style Diagnostics fill:#1a1a2e,stroke:#e94560,color:#fff
     style Exceptions fill:#1a1a2e,stroke:#0f3460,color:#fff
     style Security fill:#1a1a2e,stroke:#16213e,color:#fff
-    style Reflection fill:#1a1a2e,stroke:#533483,color:#fff
-    style Pagination fill:#1a1a2e,stroke:#e94560,color:#fff
+    style Shared fill:#1a1a2e,stroke:#533483,color:#fff
+    style Tenancy fill:#1a1a2e,stroke:#0f3460,color:#fff
+    style Specifications fill:#1a1a2e,stroke:#e94560,color:#fff
 ```
 
 ### 設計原則とパターン
@@ -54,7 +59,7 @@ graph TD
 | カテゴリ                     | 適用パターン                                                                                           |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------ |
 | **Design Principles**        | SOLID, DRY, Fail-Fast, Defensive Programming                                                           |
-| **Design Patterns**          | Result Pattern (Railway-Oriented), Null Object, Marker Interface, Static Generic Caching, Throw Helper |
+| **Design Patterns**          | Result Pattern (Railway-Oriented), Specification Pattern, Null Object, Marker Interface, Static Generic Caching, Throw Helper |
 | **Architectural Principles** | Separation of Concerns, Dependency Inversion, Zero-Reflection                                          |
 | **Enterprise Patterns**      | Value Object, Entity, Aggregate Root, Domain Event                                                     |
 
@@ -62,7 +67,13 @@ graph TD
 
 ## 主な機能
 
-### 🧱 依存性注入パイプライン (`DependencyInjection/`)
+### 🏷️ グローバル・メタデータ属性 (`Attributes/`)
+
+- **`[VKStronglyTypedId]`**: Source Generator と連携し、コンパイル時に型安全なドメイン ID（`VKTenantId` 等）および `.IsNullOrEmpty()` 等のヘルパー/拡張メソッドを自動生成
+- **`[VKBlockMarker]` / `[VKFeature]`**: 登録対象となる BuildingBlock と Feature を明示し、自動 DI 解決の基点となるマーク
+- **`[VKGenerateArgs]`**: `IVKBlockOptions` から動的な Request-Scoped Overrides 処理を行うための Args クラスを自動生成
+
+### 🧱 依存性注入パイプライン (`Common/DependencyInjection/`)
 
 - **4ファイル責務分離**: Query / Registration / Builder / ServiceCollection に明確に分離
 - **マーカーパターン**: `IVKBlockMarker` + `IVKBlockMarkerProvider<TSelf>` による型安全なブロック識別
@@ -83,7 +94,7 @@ graph TD
 - **Throw Helper**: `[DoesNotReturn]` によるJIT最適化と `[CallerArgumentExpression]` による自動パラメータ名解決
 - **リソース安全**: `HasElements` のフォールバックにおける `IDisposable` 安全破棄
 
-### 📊 診断・可観測性 (`Diagnostics/`)
+### 📊 診断・可観測性 (`Common/Diagnostics/`)
 
 - **`[VKBlockDiagnostics]`**: Source Generator による `ActivitySource` / `Meter` の自動生成
 - **`VKStopwatchExtensions.RecordProcess`**: `Activity.Current` への自動タグ付け
@@ -94,24 +105,32 @@ graph TD
 - **`VKEntity<TId>`**: 型安全な ID ベースの等価比較と ORM 互換性
 - **`VKValueObject`**: アロケーションフリーな構造的等価比較（LINQ 非依存）
 - **`VKAggregateRoot<TId>`**: ドメインイベント管理
+- **領域イベント**: `IVKDomainEvent` および `IVKEventDispatcher` によるドメイン状態変化の伝搬
+
+### 🧩 仕様パターン (`Specifications/`)
+
+- **`IVKSpecification<T>`** / **`VKSpecification<T>`**: クエリ条件をカプセル化し、データベース問い合わせ（`IQueryable` 経由）およびメモリ内検証（`IsSatisfiedBy` 経由）の両用に対応した強タイプ規約。
+- **メモリ内検証 (`IsSatisfiedBy`)**: 内部式木（Expression Tree）を自動で `Func<T, bool>` 委托にコンパイル・キャッシュし、メモリ内検証を高パフォーマンスで実現。
+- **コレクションフィルタ拡張**: `IEnumerable<T>.Where(specification)` によるメモリ内リストに対するシームレスなフィルタリングを提供。
+- **組み合わせ規約 (And, Or, Not)**: 単一の規約を論理結合し、複雑なドメイン検証ルールを段階的に構築可能。
+
+### 🔑 複数テナント管理 (`Tenancy/`)
+
+- **`VKTenantId`**: プリミティブ・オブセッションを排除した型安全なテナント識別子（`record struct`）。`VKTenantIdExtensions.IsNullOrEmpty()` を含む各種ヘルパーメソッドを自動生成
+- **`IVKMultiTenant` / `IVKMultiTenantEntity`**: マルチテナンシー等価性を保証するデータ抽象化契約
 
 ### 🔒 セキュリティ基盤 (`Security/`)
 
 - **`VKSensitiveDataAttribute`** / **`VKRedactedAttribute`**: プロパティレベルの PII マスキング宣言
 - **`PropertySecurityCache<T>`**: `FrozenDictionary` による高速セキュリティメタデータ参照
-- **`VKAuthPolicies`**: 認証グループポリシー定数（User / Service / Internal）
+- **`VKAuthPolicies` / `VKSecurityPolicies`**: 認証・認可の共通ポリシー定数
 
-### ⚡ 高性能ユーティリティ (`Reflection/`, `Guids/`)
+### ⚡ 高性能ユーティリティ (`Common/Shared/`, `Guids/`)
 
 - **`VKEntityMetadata`**: `ConcurrentDictionary` + BitFlags によるエンティティ機能キャッシュ
 - **`VKTypeMetadataCache`**: JIT 特殊化される Static Generic Caching
 - **`VKExpressionCache`**: `ExpressionEqualityComparer` による Expression Tree キャッシュ
 - **`SequentialGuidGenerator`**: `stackalloc` + `BinaryPrimitives` によるアロケーションフリー GUID 生成
-
-### 📄 ページネーション (`Pagination/`, `Results/`)
-
-- **`VKPagedResult<T>`**: オフセットベースのページネーション結果（`sealed record`）
-- **`VKCursorPagedResult<T>`**: カーソルベースのページネーション結果（`sealed record`）
 
 ---
 

@@ -1,4 +1,4 @@
-﻿namespace VK.Blocks.Core;
+namespace VK.Blocks.Core;
 
 /// <summary>
 /// Constants for multi-tenant identification and orchestration.

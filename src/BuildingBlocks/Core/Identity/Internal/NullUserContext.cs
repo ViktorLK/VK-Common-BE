@@ -17,7 +17,7 @@ internal sealed class NullUserContext : IVKUserContext
     public string? UserName => null;
 
     /// <inheritdoc />
-    public string? TenantId => null;
+    public VKTenantId? TenantId => null;
 
     /// <inheritdoc />
     public IReadOnlyList<string> Roles => _emptyRoles;
