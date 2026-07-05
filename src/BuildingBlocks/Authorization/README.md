@@ -19,14 +19,14 @@
 
 ### 設計原則・パターン
 
-| カテゴリ | 採用パターン |
-|---|---|
-| **Design Principles** | Separation of Concerns, Interface Segregation (ISP), Open/Closed (OCP), Dependency Inversion (DIP), **Zero-Reflection** |
-| **Architectural Style** | Vertical Slice Architecture (Feature-Driven), **BB.01-BB.05 Compliance** |
-| **Architectural Pattern** | BuildingBlock Composition, Provider-Evaluator-Handler Pipeline, **Modular Registration** |
-| **Design Patterns** | Strategy (Provider/Evaluator の差し替え), Template Method (AuthorizationHandler 基盤), Builder (Fluent DI Registration), **Marker Interface (IVKBlockMarker)** |
-| **Enterprise Patterns** | Result Pattern (構造化エラー伝播), Options Validation (Fail-Fast), Source Generator (自動コード生成), **Immutable Options (init-only records)** |
-| **Cross-Cutting** | SuperAdmin バイパス, Global Query Filter 連携, ConfigureAwait(false) 徹底 |
+| カテゴリ                  | 採用パターン                                                                                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Design Principles**     | Separation of Concerns, Interface Segregation (ISP), Open/Closed (OCP), Dependency Inversion (DIP), **Zero-Reflection**                                        |
+| **Architectural Style**   | Vertical Slice Architecture (Feature-Driven), **BB.01-BB.05 Compliance**                                                                                       |
+| **Architectural Pattern** | BuildingBlock Composition, Provider-Evaluator-Handler Pipeline, **Modular Registration**                                                                       |
+| **Design Patterns**       | Strategy (Provider/Evaluator の差し替え), Template Method (AuthorizationHandler 基盤), Builder (Fluent DI Registration), **Marker Interface (IVKBlockMarker)** |
+| **Enterprise Patterns**   | Result Pattern (構造化エラー伝播), Options Validation (Fail-Fast), Source Generator (自動コード生成), **Immutable Options (init-only records)**                |
+| **Cross-Cutting**         | SuperAdmin バイパス, Global Query Filter 連携, ConfigureAwait(false) 徹底                                                                                      |
 
 ### 認可パイプライン全体像
 
@@ -242,18 +242,42 @@ Authorization/
 - `VKAuthorizationOptions.SuperAdminRole` で設定可能
 - `StrictTenantIsolation` フラグでテナント分離のバイパス可否を制御
 
-### 🛡️ 認可の指定方式 (Attribute-Driven vs Named Policy)
- 
- 本モジュールは、モダンな属性駆動（IAuthorizationRequirementData）と、従来の ASP.NET Core 名前付きポリシーの両方をサポートしています。
- 
- | 方式 | 対象機能 | 指定例 | 特徴 |
- |---|---|---|---|
- | **属性駆動 (Attribute)** | Permissions, Roles, Dynamic, Entitlements | `[RequireFinanceRead]` | **推奨。** SGにより自動生成。ポリシー文字列を介さず型安全で高性能。 |
- | **名前付きポリシー (Policy)** | WorkingHours, InternalNetwork, MinimumRank | `[Authorize(Policy = "WorkingHoursOnly")]` | 共通の定型ルールを文字列で一括指定。`AddVKAuthorizationPolicies` で登録が必要。 |
- 
- ---
- 
- ### 📈 組み込みオブザーバビリティ
+### 🛡️ 認可の指定方式 (Attribute-Driven vs Named Policy & Composite Policies)
+
+本モジュールは、モダンな属性駆動（IAuthorizationRequirementData）と、従来の ASP.NET Core 名前付きポリシーの両方をサポートしています。
+
+| 方式                          | 対象機能                                   | 指定例                                     | 特徴                                                                |
+| ----------------------------- | ------------------------------------------ | ------------------------------------------ | ------------------------------------------------------------------- |
+| **属性駆動 (Attribute)**      | Permissions, Roles, Dynamic, Entitlements  | `[RequireFinanceRead]`                     | **推奨。** SGにより自動生成。ポリシー文字列を介さず型安全で高性能。 |
+| **名前付きポリシー (Policy)** | WorkingHours, InternalNetwork, MinimumRank | `[Authorize(Policy = "WorkingHoursOnly")]` | 該当 Feature 有効化時に自動登録される単体ポリシー。                 |
+
+#### 複合ポリシーの流式（Fluent）カスタマイズ
+
+ビジネス要件に応じて、複数の原子 Requirement（時間・IP・職級等）を組み合わせた**複合ポリシー（Composite Policy）**を、App レイヤーの DI 登録時に極めてクリーンに定義できます。
+
+本ライブラリは `AuthorizationPolicyBuilder` に対する流式拡張メソッドを提供しています：
+
+```csharp
+// Program.cs
+services.AddAuthorizationBuilder()
+    .AddPolicy("FinancialDataWrite", policy => policy
+        .RequireAuthenticatedUser()
+        .RequireVKWorkingHours(new TimeOnly(9, 0), new TimeOnly(18, 0)) // 勤務時間制限
+        .RequireVKInternalNetwork(new[] { "10.0.0.0/8" })              // 内網制限
+        .RequireVKMinimumRank(VKEmployeeRank.Senior));                  // 職位制限
+```
+
+これにより、コントローラー側では一行の属性指定だけで、複数のセキュリティ要件をアトミックに検証できます：
+
+```csharp
+[Authorize(Policy = "FinancialDataWrite")]
+[HttpPost("financial-record")]
+public async Task<IActionResult> WriteRecord(...) => Ok();
+```
+
+---
+
+### 📈 組み込みオブザーバビリティ
 
 - **OpenTelemetry 準拠**: `ActivitySource` / `Meter` による分散トレーシングとメトリクス
 - **Counter**: `authorization.decisions` — 認可判定回数 (Allowed/Denied)
@@ -280,13 +304,13 @@ services.AddVKAuthorizationBlock(configuration)
 
 本モジュールは `VK.Blocks.Generators` の以下6つのソースジェネレーターと連携し、ボイラープレートの排除とコンパイル時安全性を実現します：
 
-| ジェネレーター | 生成内容 |
-|---|---|
-| **`PermissionsCatalogGenerator`** | `[GeneratePermissions]` / `[AuthorizePermission]` の定義・使用箇所を二重スキャンし、`PermissionsCatalog` 定数クラスと型安全な `[Require{Permission}]` 属性を生成。FNV-1a ハッシュによるメタデータ変更検知付き |
-| **`PermissionHandlerGenerator`** | `[GeneratePermissionHandler]` 属性から Claims ベースまたは Database ベースの `IPermissionProvider` 実装を自動生成 |
-| **`EnumPolicyGenerator`** | `[GeneratePolicy]` 属性付き `enum` から Requirement + Attribute + Handler の三点セットを生成。`Equals` / `GreaterThanOrEqual` / `In` 等の比較演算子をサポート |
-| **`MinimumRankGenerator`** | `[GenerateRankAuthorize]` 属性付き `enum` から `[Require{Rank}Attribute]` を生成し、`MinimumRankRequirement` に接続 |
-| **`AuthorizationHandlersGenerator`** | `IAuthorizationHandler` / `IPermissionEvaluator` 実装と上記生成ハンドラーを統合的にスキャンし、`TryAddEnumerable` による DI 一括登録コードを生成 |
+| ジェネレーター                       | 生成内容                                                                                                                                                                                                              |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`PermissionsCatalogGenerator`**    | `[GeneratePermissions]` / `[AuthorizePermission]` の定義・使用箇所を二重スキャンし、`PermissionsCatalog` 定数クラスと型安全な `[Require{Permission}]` 属性を生成。FNV-1a ハッシュによるメタデータ変更検知付き         |
+| **`PermissionHandlerGenerator`**     | `[GeneratePermissionHandler]` 属性から Claims ベースまたは Database ベースの `IPermissionProvider` 実装を自動生成                                                                                                     |
+| **`EnumPolicyGenerator`**            | `[GeneratePolicy]` 属性付き `enum` から Requirement + Attribute + Handler の三点セットを生成。`Equals` / `GreaterThanOrEqual` / `In` 等の比較演算子をサポート                                                         |
+| **`MinimumRankGenerator`**           | `[GenerateRankAuthorize]` 属性付き `enum` から `[Require{Rank}Attribute]` を生成し、`MinimumRankRequirement` に接続                                                                                                   |
+| **`AuthorizationHandlersGenerator`** | `IAuthorizationHandler` / `IPermissionEvaluator` 実装と上記生成ハンドラーを統合的にスキャンし、`TryAddEnumerable` による DI 一括登録コードを生成                                                                      |
 | **`AuthorizationMetadataGenerator`** | コントローラー / アクションメソッドに付与された認可属性を横断的にスキャンし、エンドポイント別の認可トポロジーマップ (`AuthorizationMetadata.Endpoints`) をコンパイル時に生成。FNV-1a ハッシュによる構成変更検知に対応 |
 
 > [!TIP]
@@ -339,7 +363,7 @@ services.TryAddEnumerable(ServiceDescriptor.Scoped<IAuthorizationHandler, Employ
 
 // B. エンドポイントの構成メタデータ (AuthorizationMetadataGenerator)
 //    現在の全エンドポイントの認可設定を抽出。API Gateway連携や診断ダッシュボードに活用可能
-AuthorizationMetadata.Endpoints["ProcessHighValueInvoice"] = new EndpointAuthorizationInfo 
+AuthorizationMetadata.Endpoints["ProcessHighValueInvoice"] = new EndpointAuthorizationInfo
 {
     Permissions = ["finance.invoices.manage"],
     MinimumRank = "Middle",
@@ -351,18 +375,18 @@ AuthorizationMetadata.Endpoints["ProcessHighValueInvoice"] = new EndpointAuthori
 
 ## 採用技術
 
-| 技術 | 用途 |
-|---|---|
-| **.NET 10** | ターゲットフレームワーク |
-| **ASP.NET Core Authorization** | `IAuthorizationHandler` / `IAuthorizationRequirementData` パイプライン |
-| **Microsoft.Extensions.Options** | 構成バインディング・ValidateOnStart |
-| **Source Generator** | `[VKBlockDiagnostics]` による診断コード自動生成 |
-| **OpenTelemetry Semantic Conventions** | メトリクス名・タグ設計 |
-| **System.Diagnostics.Metrics** | Counter / Histogram によるランタイム計測 |
-| **System.Net.IPAddress** | CIDR マッチング / IPv4-IPv6 正規化 |
-| **Span\<T\> / stackalloc** | ゼロアロケーション IP バイト比較 |
-| **Result\<T\> Pattern** | 構造化エラーハンドリング (例外排除) |
-| **VK.Blocks.Core** | BuildingBlock マーカー / DI 基盤 / Result 型 |
+| 技術                                   | 用途                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------- |
+| **.NET 10**                            | ターゲットフレームワーク                                               |
+| **ASP.NET Core Authorization**         | `IAuthorizationHandler` / `IAuthorizationRequirementData` パイプライン |
+| **Microsoft.Extensions.Options**       | 構成バインディング・ValidateOnStart                                    |
+| **Source Generator**                   | `[VKBlockDiagnostics]` による診断コード自動生成                        |
+| **OpenTelemetry Semantic Conventions** | メトリクス名・タグ設計                                                 |
+| **System.Diagnostics.Metrics**         | Counter / Histogram によるランタイム計測                               |
+| **System.Net.IPAddress**               | CIDR マッチング / IPv4-IPv6 正規化                                     |
+| **Span\<T\> / stackalloc**             | ゼロアロケーション IP バイト比較                                       |
+| **Result\<T\> Pattern**                | 構造化エラーハンドリング (例外排除)                                    |
+| **VK.Blocks.Core**                     | BuildingBlock マーカー / DI 基盤 / Result 型                           |
 
 ---
 
@@ -389,7 +413,7 @@ services.AddVKCoreBlock();
 
 // VK 認可ブロックと標準機能（ハンドラー・ポリシー等）を一括登録
 services.AddVKAuthorizationBlock(configuration)
-    .AddDefaultFeatures() // パーミッション、ロール、各ポリシー等を一括有効化
+    .AddVKAuthorizationDefaultFeatures() // パーミッション、ロール、各ポリシー等を一括有効化
     .AddPermissionProvider<MyPermissionProvider>();
 ```
 
@@ -397,44 +421,49 @@ services.AddVKAuthorizationBlock(configuration)
 
 ```json
 {
-  "VKBlocks": {
-    "Authorization": {
-      "Enabled": true,
-      "SuperAdminRole": "SuperAdmin",
-      "Permissions": {
-        "Enabled": true,
-        "PermissionClaimType": "permissions"
-      },
-      "Roles": {
-        "Enabled": true,
-        "RoleClaimType": "role"
-      },
-      "TenantIsolation": {
-        "Enabled": true,
-        "StrictTenantIsolation": true,
-        "TenantClaimType": "tenant_id"
-      },
-      "Entitlements": {
-        "Enabled": true
-      },
-      "WorkingHours": {
-        "Enabled": true,
-        "WorkStart": "09:00",
-        "WorkEnd": "18:00"
-      },
-      "InternalNetwork": {
-        "Enabled": true,
-        "InternalCidrs": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.1/32"]
-      },
-      "MinimumRank": {
-        "Enabled": true,
-        "RankClaimType": "rank"
-      },
-      "DynamicPolicies": {
-        "Enabled": true
-      }
+    "VKBlocks": {
+        "Authorization": {
+            "Enabled": true,
+            "SuperAdminRole": "SuperAdmin",
+            "Permissions": {
+                "Enabled": true,
+                "PermissionClaimType": "permissions"
+            },
+            "Roles": {
+                "Enabled": true,
+                "RoleClaimType": "role"
+            },
+            "TenantIsolation": {
+                "Enabled": true,
+                "StrictTenantIsolation": true,
+                "TenantClaimType": "tenant_id"
+            },
+            "Entitlements": {
+                "Enabled": true
+            },
+            "WorkingHours": {
+                "Enabled": true,
+                "WorkStart": "09:00",
+                "WorkEnd": "18:00"
+            },
+            "InternalNetwork": {
+                "Enabled": true,
+                "InternalCidrs": [
+                    "10.0.0.0/8",
+                    "172.16.0.0/12",
+                    "192.168.0.0/16",
+                    "127.0.0.1/32"
+                ]
+            },
+            "MinimumRank": {
+                "Enabled": true,
+                "RankClaimType": "rank"
+            },
+            "DynamicPolicies": {
+                "Enabled": true
+            }
+        }
     }
-  }
 }
 ```
 
@@ -467,8 +496,8 @@ dotnet test --filter "FullyQualifiedName~VK.Blocks.Authorization"
 
 ## 監査履歴
 
-| 日付 | スコア | レポート |
-|---|---|---|
+| 日付       | スコア             | レポート                                                                                   |
+| ---------- | ------------------ | ------------------------------------------------------------------------------------------ |
 | 2026-05-10 | 96/100 (Fast: 98%) | [Authorization_20260510.md](/docs/04-AuditReports/Authorization/Authorization_20260510.md) |
 
 ---
@@ -476,5 +505,3 @@ dotnet test --filter "FullyQualifiedName~VK.Blocks.Authorization"
 ## ライセンス
 
 本プロジェクトは [MIT License](/LICENSE) の下で公開されています。
-
-

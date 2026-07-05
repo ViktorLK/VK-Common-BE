@@ -41,7 +41,7 @@ public sealed class OAuthProviderMapperGenerator : IIncrementalGenerator
                 AttributeFullName,
                 predicate: (node, _) => node is ClassDeclarationSyntax,
                 transform: GetMapperInfo)
-            .Where(m => m != null);
+            .Where(m => m is not null);
 
         // 2. Identify the current assembly name to ensure we only generate for the right project
         var assemblyName = context.CompilationProvider.Select((c, _) => c.AssemblyName);
@@ -88,7 +88,7 @@ public sealed class OAuthProviderMapperGenerator : IIncrementalGenerator
         }
 
         // Filter out nulls once
-        var validMappers = mappers.Where(m => m != null).Cast<MapperInfo>().ToList();
+        var validMappers = mappers.Where(m => m is not null).Cast<MapperInfo>().ToList();
 
         // Standardize the suffix for the filename only
         // SAFE: assemblyName is guaranteed to be non-null by the ShouldExecute guard above.

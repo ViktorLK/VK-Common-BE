@@ -53,10 +53,10 @@ internal sealed class DefaultDynamicPoliciesEvaluator(
         var finalResult = requirement.Operator switch
         {
             DynamicPoliciesConstants.OperatorEquals => VKResult.Success(string.Equals(claimValue, requirement.Value?.ToString(), StringComparison.OrdinalIgnoreCase)),
-            DynamicPoliciesConstants.OperatorExists => VKResult.Success(claimValue != null),
+            DynamicPoliciesConstants.OperatorExists => VKResult.Success(claimValue is not null),
             DynamicPoliciesConstants.OperatorContains => VKResult.Success(
-                claimValue != null &&
-                requirement.Value != null &&
+                claimValue is not null &&
+                requirement.Value is not null &&
                 claimValue.Contains(requirement.Value.ToString()!, StringComparison.OrdinalIgnoreCase)),
             _ => VKResult.Failure<bool>(VKAuthorizationErrors.InvalidOperator)
         };

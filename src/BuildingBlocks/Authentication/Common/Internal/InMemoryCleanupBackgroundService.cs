@@ -16,7 +16,7 @@ namespace VK.Blocks.Authentication.Common.Internal;
 internal sealed class InMemoryCleanupBackgroundService(
     IServiceProvider serviceProvider,
     IEnumerable<IInMemoryCacheCleanup> cleanupProviders,
-    IOptions<VKAuthenticationOptions> options,
+    IOptions<VKAuthenticationDefaultsOptions> options,
     ILogger<InMemoryCleanupBackgroundService> logger) : BackgroundService
 {
     private int _activeProvidersCount;

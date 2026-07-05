@@ -1,5 +1,3 @@
-using System.Security.Claims;
-using VK.Blocks.Authorization.Roles.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
@@ -7,11 +5,9 @@ namespace VK.Blocks.Authorization;
 /// <summary>
 /// Configuration options for the Roles authorization feature.
 /// </summary>
-public sealed record VKRoleOptions : IVKBlockOptions
+[VKFeature(typeof(VKAuthorizationBlock), "Roles", GenerateArgs = true)]
+public sealed partial record VKRoleOptions : IVKRoleOptions
 {
-    /// <inheritdoc />
-    public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:{VKAuthorizationBlock.BlockName}:{RolesConstants.FeatureName}";
-
     /// <summary>
     /// Gets a value indicating whether the roles feature is enabled.
     /// </summary>
@@ -19,6 +15,7 @@ public sealed record VKRoleOptions : IVKBlockOptions
 
     /// <summary>
     /// Gets the claim type used to extract the user's role.
+    /// If null, the global default RoleClaimType is used.
     /// </summary>
-    public string RoleClaimType { get; init; } = ClaimTypes.Role;
+    public string? RoleClaimType { get; init; }
 }

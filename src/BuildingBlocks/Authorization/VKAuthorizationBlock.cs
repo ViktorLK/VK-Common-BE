@@ -1,4 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
@@ -9,4 +9,3 @@ namespace VK.Blocks.Authorization;
 [ExcludeFromCodeCoverage]
 [VKBlockMarker(Dependencies = [typeof(VKCoreBlock)])]
 public sealed partial class VKAuthorizationBlock;
-

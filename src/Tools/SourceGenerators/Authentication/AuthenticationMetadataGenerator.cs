@@ -157,7 +157,7 @@ public sealed class AuthenticationMetadataGenerator : IIncrementalGenerator
             {
                 return new EndpointMetadata(
                     EndpointName: g.Key,
-                    AuthGroup: g.Select(m => m.AuthGroup).FirstOrDefault(r => r != null),
+                    AuthGroup: g.Select(m => m.AuthGroup).FirstOrDefault(r => r is not null),
                     Schemes: [.. g.SelectMany(m => m.Schemes).Distinct()],
                     Policies: [.. g.SelectMany(m => m.Policies).Distinct()],
                     IsAnonymous: g.Any(m => m.IsAnonymous)
@@ -191,7 +191,7 @@ public sealed class AuthenticationMetadataGenerator : IIncrementalGenerator
             sb.AppendLine($"        [\"{m.EndpointName}\"] = new VKEndpointAuthInfo");
             sb.AppendLine("        {");
             sb.AppendLine($"            EndpointName = \"{m.EndpointName}\",");
-            sb.AppendLine($"            AuthGroup = {(m.AuthGroup != null ? $"\"{m.AuthGroup}\"" : "null")},");
+            sb.AppendLine($"            AuthGroup = {(m.AuthGroup is not null ? $"\"{m.AuthGroup}\"" : "null")},");
             sb.Append("            Schemes = new string[] { ");
             sb.Append(string.Join(", ", m.Schemes.Select(s => $"\"{s}\"")));
             sb.AppendLine(" },");

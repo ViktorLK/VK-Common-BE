@@ -166,7 +166,7 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
         // 2. Add usages if not already defined
         foreach (var passive in passivePermissions)
         {
-            if (passive != null && !merged.ContainsKey(passive.Value))
+            if (passive is not null && !merged.ContainsKey(passive.Value))
             {
                 merged[passive.Value] = passive;
             }

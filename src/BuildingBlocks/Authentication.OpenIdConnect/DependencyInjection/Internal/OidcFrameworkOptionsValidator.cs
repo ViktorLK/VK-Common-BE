@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal;
 
-namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
+namespace VK.Blocks.Authentication.OpenIdConnect.Common.DependencyInjection.Internal;
 
 /// <summary>
 /// A validator that ensures each OpenIdConnectOptions configuration has a corresponding
@@ -11,7 +12,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
 /// Complies with BB.05.
 /// </summary>
 internal sealed class OidcFrameworkOptionsValidator(
-    IOptions<VKOidcOptions> oidcOptions,
+    IOptions<VKOidcDefaultsOptions> oidcOptions,
     ILogger<OidcFrameworkOptionsValidator> logger) : IValidateOptions<OpenIdConnectOptions>
 {
     /// <inheritdoc />
@@ -23,18 +24,26 @@ internal sealed class OidcFrameworkOptionsValidator(
             return ValidateOptionsResult.Success;
         }
 
+        var failures = new List<string>();
+
         // We use the scheme name to find the provider configuration
         // In our setup, schemeName == providerName (or custom override)
         if (!oidcOptions.Value.Providers.TryGetValue(name, out var provider))
         {
             logger.LogOidcMappingError(name, OidcConstants.StartupTraceId);
-            return ValidateOptionsResult.Fail(string.Format(OidcConstants.MissingConfigErrorMessage, name));
+            failures.Add(string.Format(OidcConstants.MissingConfigErrorMessage, name));
+        }
+        else
+        {
+            // Log successful registration ONCE during first resolution
+            logger.LogOidcProviderRegistered(name, provider.Authority, OidcConstants.StartupTraceId);
         }
 
-        // Log successful registration ONCE during first resolution
-        logger.LogOidcProviderRegistered(name, provider.Authority, OidcConstants.StartupTraceId);
+        if (failures.Count > 0)
+        {
+            return ValidateOptionsResult.Fail(failures);
+        }
 
         return ValidateOptionsResult.Success;
     }
 }
-

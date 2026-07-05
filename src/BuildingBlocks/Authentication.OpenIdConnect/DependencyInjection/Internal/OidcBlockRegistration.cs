@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -11,70 +10,49 @@ using VK.Blocks.Authentication.OpenIdConnect.Diagnostics.Internal;
 using VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
+namespace VK.Blocks.Authentication.OpenIdConnect.Common.DependencyInjection.Internal;
 
-/// <summary>
-/// Principal registration logic for the OpenIdConnect building block.
-/// Complies with BB.03.2 (Internal Core).
-/// </summary>
-internal static class OidcBlockRegistration
+// [SG Registration]
+internal static partial class OidcBlockRegistration
 {
-    public static IVKBlockBuilder<VKAuthenticationBlock> Register(
-        IVKBlockBuilder<VKAuthenticationBlock> builder,
-        IConfiguration configuration,
-        Func<VKOidcOptions, VKOidcOptions>? transform = null)
+    // [SG Hook]
+    static partial void RegisterBlockCustom(IVKOidcBuilder builder)
     {
-        VKGuard.NotNull(builder);
-        VKGuard.NotNull(configuration);
-
         var services = builder.Services;
+        var configuration = builder.Configuration;
 
-        // 1. Check-Self & Prerequisite (BB.03.2.1)
-        if (services.IsVKBlockRegistered<VKOidcBlock>())
-        {
-            return builder;
-        }
+        // Register defaults feature
+        AuthenticationOpenIdConnectDefaultsFeature.Register(builder);
 
-        // 2. Options Registration (BB.03.2.2)
-        // ADR-016: Use functional transformation to support immutable options
-        VKOidcOptions oidcOptions = services.AddVKBlockOptions<VKOidcOptions>(configuration, transform);
-
-        // 3. Mark-Self (BB.03.2.3)
-        services.AddVKBlockMarker<VKOidcBlock>();
-
-        // 4. Options Validation (BB.03.2.4)
-        services.TryAddEnumerableSingleton<IValidateOptions<VKOidcOptions>, OidcOptionsValidator>();
+        // Register custom validators
         services.TryAddEnumerableSingleton<IValidateOptions<OpenIdConnectOptions>, OidcFrameworkOptionsValidator>();
 
-        // 5. Diagnostics (BB.03.2.5)
+        // Diagnostics
         services.TryAddSingleton<IVKSecurityMetadataProvider, OidcMetadataProvider>();
 
-        // 6. Feature Toggle (BB.03.2.6)
-        if (!oidcOptions.Enabled)
+        // Retrieve options configured so far
+        var oidcOptions = services.GetVKServiceInstance<VKOidcOptions>();
+        if (oidcOptions == null || !oidcOptions.Enabled)
         {
-            return builder;
+            return;
         }
 
-        if (oidcOptions.Providers.Count == 0 || oidcOptions.Providers.All(p => !p.Value.Enabled))
+        var defaults = services.GetVKServiceInstance<VKOidcDefaultsOptions>();
+        if (defaults == null)
         {
-            return builder;
+            return;
         }
 
-        // 7. Core Services (BB.03.2.7)
-        RegisterCoreServices(services, oidcOptions);
+        if (defaults.Providers.Count == 0 || defaults.Providers.All(p => !p.Value.Enabled))
+        {
+            return;
+        }
 
-        return builder;
-    }
-
-    private static void RegisterCoreServices(
-        IServiceCollection services,
-        VKOidcOptions oidcOptions)
-    {
         // Mappers (Source Generated)
         services.AddVKOidcGeneratedMappers();
 
         // Standard IDP Registration
-        foreach (var pair in oidcOptions.Providers)
+        foreach (var pair in defaults.Providers)
         {
             var providerName = pair.Key;
             var providerOptions = pair.Value;
@@ -93,12 +71,12 @@ internal static class OidcBlockRegistration
                     options.ClientId = providerOptions.ClientId;
                     options.ClientSecret = providerOptions.ClientSecret;
                     options.CallbackPath = providerOptions.CallbackPath;
-                    options.SaveTokens = oidcOptions.SaveTokens;
-                    options.RequireHttpsMetadata = oidcOptions.RequireHttpsMetadata;
+                    options.SaveTokens = defaults.SaveTokens;
+                    options.RequireHttpsMetadata = defaults.RequireHttpsMetadata;
 
-                    if (oidcOptions.BackchannelTimeoutSeconds > 0)
+                    if (defaults.BackchannelTimeoutSeconds > 0)
                     {
-                        options.BackchannelTimeout = TimeSpan.FromSeconds(oidcOptions.BackchannelTimeoutSeconds);
+                        options.BackchannelTimeout = TimeSpan.FromSeconds(defaults.BackchannelTimeoutSeconds);
                     }
 
                     if (providerOptions.ResponseType is not null)
@@ -122,4 +100,3 @@ internal static class OidcBlockRegistration
         services.TryAddSingleton<IConfigureOptions<AuthorizationOptions>, OidcPolicyConfiguration>();
     }
 }
-

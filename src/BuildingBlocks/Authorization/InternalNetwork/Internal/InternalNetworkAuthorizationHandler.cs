@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -18,7 +18,7 @@ namespace VK.Blocks.Authorization.InternalNetwork.Internal;
 /// </summary>
 internal sealed class InternalNetworkAuthorizationHandler(
     IVKIpAddressProvider ipAddressProvider,
-    IOptions<VKAuthorizationOptions> globalOptions,
+    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
     IOptions<VKInternalNetworkOptions> networkOptions,
     ILogger<InternalNetworkAuthorizationHandler> logger)
     : AuthorizationHandler<VKInternalNetworkRequirement>, IVKInternalNetworkEvaluator
@@ -26,7 +26,7 @@ internal sealed class InternalNetworkAuthorizationHandler(
     private static string PolicyName => InternalNetworkConstants.FeatureName;
 
     private readonly IVKIpAddressProvider _ipAddressProvider = VKGuard.NotNull(ipAddressProvider);
-    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
     private readonly VKInternalNetworkOptions _networkOptions = VKGuard.NotNull(networkOptions).Value;
     private readonly ILogger<InternalNetworkAuthorizationHandler> _logger = VKGuard.NotNull(logger);
 
@@ -40,7 +40,7 @@ internal sealed class InternalNetworkAuthorizationHandler(
             return;
         }
 
-        var result = await IsInternalNetworkAsync(context.User, new VKInternalNetworkArgs { AllowedCidrs = requirement.AllowedCidrs })
+        var result = await IsInternalNetworkAsync(context.User, new VKInternalNetworkArgs { InternalCidrs = requirement.AllowedCidrs })
             .ConfigureAwait(false);
 
         context.ApplyResult(requirement, result, this);
@@ -55,11 +55,12 @@ internal sealed class InternalNetworkAuthorizationHandler(
         var userId = user?.Identity?.Name ?? VKBlocksConstants.SystemIdentity;
 
         // 0. Merge settings (AP.05)
-        var activeCidrs = args.MergeWith(VKInternalNetworkArgs.Empty).AllowedCidrs.MergeWith(_networkOptions.InternalCidrs);
-        var remoteIp = args.MergeWith(VKInternalNetworkArgs.Empty).RemoteIp;
+        var mergedOptions = args.Merge(_networkOptions);
+        var activeCidrs = mergedOptions.InternalCidrs;
+        var remoteIp = args?.RemoteIp;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
-        if (user != null && user.IsSuperAdmin(_globalOptions))
+        if (user is not null && user.IsSuperAdmin(_globalOptions))
         {
             _logger.LogInternalNetworkGranted(userId, remoteIp ?? IPAddress.None, $"{InternalNetworkConstants.FeatureName} (Bypassed)");
             return ValueTask.FromResult(VKResult.Success(true));
@@ -164,4 +165,3 @@ internal sealed class InternalNetworkAuthorizationHandler(
         return true;
     }
 }
-

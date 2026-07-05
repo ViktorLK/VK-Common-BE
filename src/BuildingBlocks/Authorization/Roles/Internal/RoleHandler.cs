@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -16,12 +16,12 @@ namespace VK.Blocks.Authorization.Roles.Internal;
 /// </summary>
 internal sealed class RoleHandler(
     IEnumerable<IVKRoleProvider> roleProviders,
-    IOptions<VKAuthorizationOptions> globalOptions,
+    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
     ILogger<RoleHandler> logger)
     : AuthorizationHandler<VKRoleRequirement>, IVKRoleEvaluator
 {
     private readonly List<IVKRoleProvider> _providers = [.. VKGuard.NotNull(roleProviders)];
-    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
@@ -68,6 +68,20 @@ internal sealed class RoleHandler(
             return VKResult.Success(true);
         }
 
+        // 2. Request-level RoleClaimType override check (AP.05)
+        var localClaimType = args?.RoleClaimType;
+        if (localClaimType is not null)
+        {
+            foreach (var role in roles)
+            {
+                if (user.HasClaim(localClaimType, role))
+                {
+                    logger.LogRoleGranted(role, userId);
+                    return VKResult.Success(true);
+                }
+            }
+        }
+
         var requiredRolesStr = string.Join(", ", roles);
         var policyName = roles.Length == 1
             ? $"{RolesConstants.PolicyPrefix}:{roles[0]}"
@@ -112,7 +126,7 @@ internal sealed class RoleHandler(
 
         if (finalResult.IsSuccess && finalResult.Value)
         {
-            if (matchedRole != null)
+            if (matchedRole is not null)
             {
                 logger.LogRoleGranted(matchedRole, userId);
             }
@@ -125,4 +139,3 @@ internal sealed class RoleHandler(
         return finalResult;
     }
 }
-

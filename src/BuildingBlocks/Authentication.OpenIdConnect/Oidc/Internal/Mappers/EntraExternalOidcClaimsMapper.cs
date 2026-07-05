@@ -8,7 +8,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal.Mappers;
 /// Specialized claims mapper for Microsoft Entra External ID (CIAM) providers.
 /// </summary>
 [VKOAuthProvider(OidcConstants.EntraExternal)]
-public sealed class EntraExternalOidcClaimsMapper : VKOAuthClaimsMapperBase
+internal sealed class EntraExternalOidcClaimsMapper : VKOAuthClaimsMapperBase
 {
     /// <inheritdoc />
     public override IEnumerable<Claim> MapToClaims(VKExternalIdentity userInfo)

@@ -33,7 +33,7 @@ public sealed class ObservabilityCodeFixProvider : CodeFixProvider
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        if (root == null)
+        if (root is null)
         {
             return;
         }
@@ -47,7 +47,7 @@ public sealed class ObservabilityCodeFixProvider : CodeFixProvider
                 .OfType<MethodDeclarationSyntax>()
                 .FirstOrDefault();
 
-            if (methodDeclaration != null)
+            if (methodDeclaration is not null)
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
@@ -110,7 +110,7 @@ public sealed class ObservabilityCodeFixProvider : CodeFixProvider
 
         // 3. Handle Method Body
         var body = methodDeclaration.Body;
-        if (body == null || body.Statements.Count == 0)
+        if (body is null || body.Statements.Count == 0)
         {
             // Inject full template for empty methods
             var placeholderResult = (StatementSyntax)generator.LocalDeclarationStatement("result",
@@ -169,7 +169,7 @@ public sealed class ObservabilityCodeFixProvider : CodeFixProvider
 
         // 4. Handle Usings
         var root = (CompilationUnitSyntax?)await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        if (root != null)
+        if (root is not null)
         {
             var usings = root.Usings;
             var systemDiagnostics = "System.Diagnostics";

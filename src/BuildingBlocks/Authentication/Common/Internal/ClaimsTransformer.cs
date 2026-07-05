@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Claims;
@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.Authentication.Diagnostics.Internal;
+using VK.Blocks.Authentication.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.Common.Internal;
@@ -105,4 +105,3 @@ internal sealed class ClaimsTransformer(
         return principal;
     }
 }
-

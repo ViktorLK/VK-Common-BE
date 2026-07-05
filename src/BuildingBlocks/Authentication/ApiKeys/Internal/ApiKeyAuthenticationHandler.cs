@@ -47,7 +47,7 @@ internal sealed class ApiKeyAuthenticationHandler(
 
         if (context.TenantId is not null)
         {
-            claims.Add(new Claim(VKClaimConstants.TenantId, context.TenantId));
+            claims.Add(new Claim(VKClaimConstants.TenantId, context.TenantId.ToString()!));
         }
 
         foreach (string scope in context.Scopes)

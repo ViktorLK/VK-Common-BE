@@ -1,4 +1,3 @@
-using VK.Blocks.Authorization.TenantIsolation.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
@@ -6,11 +5,9 @@ namespace VK.Blocks.Authorization;
 /// <summary>
 /// Configuration options for the Tenant Isolation authorization feature.
 /// </summary>
-public sealed record VKTenantIsolationOptions : IVKBlockOptions
+[VKFeature(typeof(VKAuthorizationBlock), GenerateArgs = true)]
+public sealed partial record VKTenantIsolationOptions : IVKTenantIsolationOptions
 {
-    /// <inheritdoc />
-    public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:{VKAuthorizationBlock.BlockName}:{TenantIsolationConstants.FeatureName}";
-
     /// <summary>
     /// Gets a value indicating whether the tenant isolation feature is enabled.
     /// </summary>
@@ -18,12 +15,14 @@ public sealed record VKTenantIsolationOptions : IVKBlockOptions
 
     /// <summary>
     /// Gets the claim type used to extract the tenant identifier.
+    /// If null, the global default TenantClaimType is used.
     /// </summary>
-    public string TenantClaimType { get; init; } = VKAuthorizationClaimTypes.TenantId;
+    public string? TenantClaimType { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether tenant isolation is strictly enforced.
     /// If false, users with the SuperAdmin role can view all tenants.
+    /// If null, the global default StrictTenantIsolation is used.
     /// </summary>
-    public bool StrictTenantIsolation { get; init; } = true;
+    public bool? StrictTenantIsolation { get; init; }
 }

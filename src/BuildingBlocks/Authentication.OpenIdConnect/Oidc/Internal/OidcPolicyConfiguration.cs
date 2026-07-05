@@ -8,9 +8,12 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal;
 /// Automatically configures individual authorization policies for discovered OIDC providers.
 /// Enables fine-grained authorization like [Authorize(Policy = "VK.Group.Google")].
 /// </summary>
-internal sealed class OidcPolicyConfiguration(IOptions<VKOidcOptions> oidcOptions) : IConfigureOptions<AuthorizationOptions>
+internal sealed class OidcPolicyConfiguration(
+    IOptions<VKOidcOptions> oidcOptions,
+    IOptions<VKOidcDefaultsOptions> defaultsOptions) : IConfigureOptions<AuthorizationOptions>
 {
     private readonly IOptions<VKOidcOptions> _oidcOptions = VKGuard.NotNull(oidcOptions);
+    private readonly IOptions<VKOidcDefaultsOptions> _defaultsOptions = VKGuard.NotNull(defaultsOptions);
 
     /// <inheritdoc />
     public void Configure(AuthorizationOptions options)
@@ -22,8 +25,10 @@ internal sealed class OidcPolicyConfiguration(IOptions<VKOidcOptions> oidcOption
             return;
         }
 
+        var defaults = _defaultsOptions.Value;
+
         // We use the metadata generated specifically for the OIDC assembly.
-        foreach (var pair in vkOidcOptions.Providers)
+        foreach (var pair in defaults.Providers)
         {
             var providerName = pair.Key;
             var providerOptions = pair.Value;

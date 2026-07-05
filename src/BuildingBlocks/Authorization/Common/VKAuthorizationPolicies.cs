@@ -41,9 +41,4 @@ public static class VKAuthorizationPolicies
     /// Backwards compatibility or specific example (to be deprecated if too specific).
     /// </summary>
     public const string SeniorAndAbove = nameof(SeniorAndAbove);
-
-    /// <summary>
-    /// Sample composite policy for financial data write operations.
-    /// </summary>
-    public const string FinancialDataWrite = nameof(FinancialDataWrite);
 }
