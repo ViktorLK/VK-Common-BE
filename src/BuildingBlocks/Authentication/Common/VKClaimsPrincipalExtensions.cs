@@ -51,7 +51,7 @@ public static class VKClaimsPrincipalExtensions
         {
             Id = userId,
             Username = principal.FindFirst(VKClaimConstants.PreferredUsername)?.Value ?? "Unknown",
-            TenantId = principal.FindFirst(VKClaimConstants.TenantId)?.Value,
+            TenantId = VKTenantId.FromNullable(principal.FindFirst(VKClaimConstants.TenantId)?.Value),
             Email = principal.FindFirst(ClaimTypes.Email)?.Value
         };
     }
@@ -82,10 +82,11 @@ public static class VKClaimsPrincipalExtensions
     /// </summary>
     /// <param name="principal">The claims principal.</param>
     /// <returns>The tenant identifier if found; otherwise, null.</returns>
-    public static string? GetTenantId(this ClaimsPrincipal? principal)
+    public static VKTenantId? GetTenantId(this ClaimsPrincipal? principal)
     {
-        return principal?.FindFirst(VKClaimConstants.TenantId)?.Value
-               ?? principal?.FindFirst(VKClaimConstants.AzureTenantId)?.Value;
+        var tenantId = principal?.FindFirst(VKClaimConstants.TenantId)?.Value
+                       ?? principal?.FindFirst(VKClaimConstants.AzureTenantId)?.Value;
+        return VKTenantId.FromNullable(tenantId);
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -16,14 +16,14 @@ namespace VK.Blocks.Authorization.MinimumRank.Internal;
 /// </summary>
 internal sealed class MinimumRankAuthorizationHandler(
     IVKRankProvider rankProvider,
-    IOptions<VKAuthorizationOptions> globalOptions,
+    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
     ILogger<MinimumRankAuthorizationHandler> logger)
     : AuthorizationHandler<VKMinimumRankRequirement>, IVKMinimumRankEvaluator
 {
     private static string PolicyName => MinimumRankConstants.FeatureName;
 
     private readonly IVKRankProvider _rankProvider = VKGuard.NotNull(rankProvider);
-    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
     private readonly ILogger<MinimumRankAuthorizationHandler> _logger = VKGuard.NotNull(logger);
 
     /// <inheritdoc />
@@ -56,6 +56,7 @@ internal sealed class MinimumRankAuthorizationHandler(
         // 0. Merge settings (AP.05)
         var minimumRank = args.MergeWith(VKMinimumRankArgs.Empty).MinimumRank.MergeWith(0);
         var enumType = args.MergeWith(VKMinimumRankArgs.Empty).EnumType;
+        var rankClaimType = args?.RankClaimType;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
         if (user.IsSuperAdmin(_globalOptions))
@@ -67,8 +68,16 @@ internal sealed class MinimumRankAuthorizationHandler(
 
         var sw = Stopwatch.StartNew();
 
-        // 2. Resolve rank via provider
-        var rankValueStr = await _rankProvider.GetRankAsync(user, ct).ConfigureAwait(false);
+        // 2. Resolve rank via local override or rank provider
+        string? rankValueStr;
+        if (rankClaimType is not null)
+        {
+            rankValueStr = user.FindFirstValue(rankClaimType);
+        }
+        else
+        {
+            rankValueStr = await _rankProvider.GetRankAsync(user, ct).ConfigureAwait(false);
+        }
 
         if (string.IsNullOrEmpty(rankValueStr))
         {
@@ -110,4 +119,3 @@ internal sealed class MinimumRankAuthorizationHandler(
         return VKResult.Success(false);
     }
 }
-

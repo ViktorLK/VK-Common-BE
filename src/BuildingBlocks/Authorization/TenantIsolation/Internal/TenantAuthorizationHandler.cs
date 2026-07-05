@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -17,7 +17,7 @@ namespace VK.Blocks.Authorization.TenantIsolation.Internal;
 /// </summary>
 internal sealed class TenantAuthorizationHandler(
     IVKUserTenantProvider tenantProvider,
-    IOptions<VKAuthorizationOptions> globalOptions,
+    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
     IOptions<VKTenantIsolationOptions> tenantOptions,
     ILogger<TenantAuthorizationHandler> logger)
     : AuthorizationHandler<VKTenantIsolationRequirement>, IVKTenantEvaluator
@@ -25,7 +25,7 @@ internal sealed class TenantAuthorizationHandler(
     private static string PolicyName => TenantIsolationConstants.FeatureName;
 
     private readonly IVKUserTenantProvider _tenantProvider = VKGuard.NotNull(tenantProvider);
-    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
     private readonly VKTenantIsolationOptions _tenantOptions = VKGuard.NotNull(tenantOptions).Value;
     private readonly ILogger<TenantAuthorizationHandler> _logger = VKGuard.NotNull(logger);
 
@@ -56,9 +56,11 @@ internal sealed class TenantAuthorizationHandler(
 
         // 0. Merge settings (AP.05)
         var targetTenantId = args.MergeWith(VKTenantIsolationArgs.Empty).TargetTenantId;
+        var strict = args?.StrictTenantIsolation ?? _tenantOptions.StrictTenantIsolation ?? _globalOptions.StrictTenantIsolation;
+        var claimType = args?.TenantClaimType ?? _tenantOptions.TenantClaimType ?? _globalOptions.TenantClaimType;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
-        if (!_tenantOptions.StrictTenantIsolation && user.IsSuperAdmin(_globalOptions))
+        if (!strict && user.IsSuperAdmin(_globalOptions))
         {
             _logger.LogTenantCheckSucceeded(userId, "GLOBAL", targetTenantId ?? "ANY", PolicyName);
             return ValueTask.FromResult(VKResult.Success(true));
@@ -66,7 +68,7 @@ internal sealed class TenantAuthorizationHandler(
 
 
         var sw = Stopwatch.StartNew();
-        var userTenantId = _tenantProvider.GetUserTenantId(user);
+        var userTenantId = args?.TenantClaimType is not null ? user.FindFirstValue(args.TenantClaimType) : _tenantProvider.GetUserTenantId(user);
 
         // 2. Logic Evaluation
         var isAllowed = !string.IsNullOrEmpty(userTenantId) &&
@@ -95,4 +97,3 @@ internal sealed class TenantAuthorizationHandler(
         return ValueTask.FromResult(VKResult.Success(false));
     }
 }
-

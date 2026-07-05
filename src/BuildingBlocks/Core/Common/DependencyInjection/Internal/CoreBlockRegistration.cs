@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
 using VK.Blocks.Core.Guids.Internal;
 using VK.Blocks.Core.Identity.Internal;
 using VK.Blocks.Core.Serialization.Internal;
@@ -29,6 +30,7 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton<IVKJsonSerializer, SystemTextJsonSerializer>();
         services.TryAddSingleton<IVKEnvironmentProvider, VKDefaultEnvironmentProvider>();
         services.TryAddSingleton<IVKUserContext, NullUserContext>();
+        services.TryAddSingleton<IVKSyncStateStore, VKNoOpSyncStateStore>();
 
         // 3. Mark-Self (Success Commit)
         // AP.02: Register marker immediately to enable dependency resolution.

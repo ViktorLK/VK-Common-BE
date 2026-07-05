@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -45,4 +45,3 @@ internal static class InMemoryCleanupRegistration
         services.TryAddEnumerableSingleton<IHostedService, InMemoryCleanupBackgroundService>();
     }
 }
-

@@ -98,7 +98,7 @@ public sealed class VKMapperGenerator : IIncrementalGenerator
                 continue;
 
             var sourceProp = sourceProps.FirstOrDefault(p => p.Name == destProp.Name && p.Type.Equals(destProp.Type, SymbolEqualityComparer.Default));
-            if (sourceProp != null)
+            if (sourceProp is not null)
             {
                 sb.AppendLine($"            {destProp.Name} = source.{sourceProp.Name},");
             }

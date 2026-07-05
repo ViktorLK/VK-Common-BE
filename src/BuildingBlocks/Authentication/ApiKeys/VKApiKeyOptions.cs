@@ -7,12 +7,9 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration settings for the API Key authentication.
 /// </summary>
-public sealed record VKApiKeyOptions : IVKBlockOptions
+[VKFeature(typeof(VKAuthenticationBlock))]
+public sealed partial record VKApiKeyOptions : IVKToggleableBlockOptions
 {
-    /// <summary>
-    /// The configuration section name for ApiKey options.
-    /// </summary>
-    public static string SectionName => $"{VKAuthenticationOptions.SectionName}:{VKAuthenticationOptions.ApiKeySection}";
 
     /// <summary>
     /// Gets or sets a value indicating whether API key authentication is enabled.

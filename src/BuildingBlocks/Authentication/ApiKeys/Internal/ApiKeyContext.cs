@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using VK.Blocks.Core;
+
 namespace VK.Blocks.Authentication.ApiKeys.Internal;
 
 /// <summary>
@@ -21,7 +23,7 @@ internal sealed record ApiKeyContext
     /// <summary>
     /// Gets the tenant identifier associated with the API key, if any.
     /// </summary>
-    internal string? TenantId { get; init; }
+    internal VKTenantId? TenantId { get; init; }
 
     /// <summary>
     /// Gets the list of scopes authorized for the API key.

@@ -6,12 +6,9 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration options for OAuth providers.
 /// </summary>
-public sealed record VKOAuthOptions : IVKBlockOptions
+[VKFeature(typeof(VKAuthenticationBlock))]
+public sealed partial record VKOAuthOptions : IVKToggleableBlockOptions
 {
-    /// <summary>
-    /// Gets the configuration section name for OAuth options.
-    /// </summary>
-    public static string SectionName => $"{VKAuthenticationOptions.SectionName}:{VKAuthenticationOptions.OAuthSection}";
 
     /// <summary>
     /// Gets or sets a value indicating whether OAuth provider registration is enabled.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
@@ -18,7 +18,7 @@ namespace VK.Blocks.Authorization.WorkingHours.Internal;
 internal sealed class WorkingHoursAuthorizationHandler(
     TimeProvider timeProvider,
     IVKWorkingHoursProvider workingHoursProvider,
-    IOptions<VKAuthorizationOptions> globalOptions,
+    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
     IOptions<VKWorkingHoursOptions> workingHoursOptions,
     ILogger<WorkingHoursAuthorizationHandler> logger)
     : AuthorizationHandler<VKWorkingHoursRequirement>, IVKWorkingHoursEvaluator
@@ -27,7 +27,7 @@ internal sealed class WorkingHoursAuthorizationHandler(
 
     private readonly TimeProvider _timeProvider = VKGuard.NotNull(timeProvider);
     private readonly IVKWorkingHoursProvider _workingHoursProvider = VKGuard.NotNull(workingHoursProvider);
-    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
     private readonly VKWorkingHoursOptions _workingHoursOptions = VKGuard.NotNull(workingHoursOptions).Value;
     private readonly ILogger<WorkingHoursAuthorizationHandler> _logger = VKGuard.NotNull(logger);
 
@@ -43,7 +43,7 @@ internal sealed class WorkingHoursAuthorizationHandler(
 
         var result = await IsWithinWorkingHoursAsync(
                 context.User,
-                new VKWorkingHoursArgs { Start = requirement.Start, End = requirement.End })
+                new VKWorkingHoursArgs { WorkStart = requirement.Start, WorkEnd = requirement.End })
             .ConfigureAwait(false);
 
         context.ApplyResult(requirement, result, this);
@@ -59,8 +59,9 @@ internal sealed class WorkingHoursAuthorizationHandler(
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
 
         // 0. Merge settings (AP.05)
-        var activeStart = args.MergeWith(VKWorkingHoursArgs.Empty).Start.MergeWith(_workingHoursOptions.WorkStart);
-        var activeEnd = args.MergeWith(VKWorkingHoursArgs.Empty).End.MergeWith(_workingHoursOptions.WorkEnd);
+        var mergedOptions = args.Merge(_workingHoursOptions);
+        var activeStart = mergedOptions.WorkStart;
+        var activeEnd = mergedOptions.WorkEnd;
 
         // 1. SuperAdmin Bypass Logic (Centralized via extension)
         if (user.IsSuperAdmin(_globalOptions))
@@ -97,4 +98,3 @@ internal sealed class WorkingHoursAuthorizationHandler(
         return VKResult.Success(false);
     }
 }
-

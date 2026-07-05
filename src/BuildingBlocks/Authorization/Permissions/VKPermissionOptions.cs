@@ -1,4 +1,3 @@
-using VK.Blocks.Authorization.Permissions.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
@@ -6,11 +5,9 @@ namespace VK.Blocks.Authorization;
 /// <summary>
 /// Configuration options for the Permissions authorization feature.
 /// </summary>
-public sealed record VKPermissionOptions : IVKBlockOptions
+[VKFeature(typeof(VKAuthorizationBlock), "Permissions", GenerateArgs = true)]
+public sealed partial record VKPermissionOptions : IVKPermissionOptions
 {
-    /// <inheritdoc />
-    public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:{VKAuthorizationBlock.BlockName}:{PermissionsConstants.FeatureName}";
-
     /// <summary>
     /// Gets a value indicating whether the permissions feature is enabled.
     /// </summary>

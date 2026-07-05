@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 
@@ -30,4 +30,3 @@ internal sealed class DynamicRequirementHandler(
         context.ApplyResult(requirement, result, this);
     }
 }
-

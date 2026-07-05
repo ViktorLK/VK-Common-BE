@@ -157,7 +157,7 @@ public sealed class AuthorizationMetadataGenerator : IIncrementalGenerator
                     EndpointName: g.Key,
                     Permissions: [.. g.SelectMany(m => m.Permissions).Distinct()],
                     Roles: [.. g.SelectMany(m => m.Roles).Distinct()],
-                    MinimumRank: g.Select(m => m.MinimumRank).FirstOrDefault(r => r != null),
+                    MinimumRank: g.Select(m => m.MinimumRank).FirstOrDefault(r => r is not null),
                     RequiresInternalNetwork: g.Any(m => m.RequiresInternalNetwork),
                     RequiresWorkingHours: g.Any(m => m.RequiresWorkingHours)
                 );
@@ -196,7 +196,7 @@ public sealed class AuthorizationMetadataGenerator : IIncrementalGenerator
             sb.Append("                Roles = new string[] { ");
             sb.Append(string.Join(", ", m.Roles.Select(r => $"\"{r}\"")));
             sb.AppendLine(" },");
-            sb.AppendLine($"                MinimumRank = {(m.MinimumRank != null ? $"\"{m.MinimumRank}\"" : "null")},");
+            sb.AppendLine($"                MinimumRank = {(m.MinimumRank is not null ? $"\"{m.MinimumRank}\"" : "null")},");
             sb.AppendLine($"                RequiresInternalNetwork = {m.RequiresInternalNetwork.ToString().ToLowerInvariant()},");
             sb.AppendLine($"                RequiresWorkingHours = {m.RequiresWorkingHours.ToString().ToLowerInvariant()}");
             sb.AppendLine("            },");

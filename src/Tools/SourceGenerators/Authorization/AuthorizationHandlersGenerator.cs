@@ -84,7 +84,7 @@ public sealed class AuthorizationHandlersGenerator : IIncrementalGenerator
 
         // Check base classes (e.g. AuthorizationHandler<T>)
         var baseType = classSymbol.BaseType;
-        while (baseType != null)
+        while (baseType is not null)
         {
             if (baseType.Name.StartsWith("AuthorizationHandler"))
             {

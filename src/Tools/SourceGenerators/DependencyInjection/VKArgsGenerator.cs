@@ -34,17 +34,17 @@ public sealed class VKArgsGenerator : IIncrementalGenerator
     private static ArgsTargetInfo? TransformToTarget(GeneratorAttributeSyntaxContext ctx)
     {
         var symbol = (INamedTypeSymbol)ctx.TargetSymbol;
-        
+
         var properties = symbol.GetMembers()
             .OfType<IPropertySymbol>()
-            .Where(p => p.DeclaredAccessibility == Accessibility.Public 
-                        && !p.IsStatic 
-                        && !p.IsReadOnly) 
+            .Where(p => p.DeclaredAccessibility == Accessibility.Public
+                        && !p.IsStatic
+                        && !p.IsReadOnly)
             .Select(p => new PropertyInfo(
                 Name: p.Name,
                 Type: p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)),
                 // Ensure everything becomes nullable in Args
-                IsAlreadyNullable: p.Type.NullableAnnotation == NullableAnnotation.Annotated || p.Type.ToDisplayString().EndsWith("?")
+                IsAlreadyNullable: p.Type.NullableAnnotation is NullableAnnotation.Annotated || p.Type.ToDisplayString().EndsWith("?")
             ))
             .ToImmutableArray();
 
@@ -76,7 +76,7 @@ public sealed class VKArgsGenerator : IIncrementalGenerator
         foreach (var prop in target.Properties)
         {
             var propType = prop.Type;
-            
+
             // If the property type is another "Options" class, use the corresponding "Args" class
             if (propType.EndsWith("Options"))
             {

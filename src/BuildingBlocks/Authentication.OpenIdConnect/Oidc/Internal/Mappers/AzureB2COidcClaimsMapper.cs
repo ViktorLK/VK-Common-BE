@@ -8,7 +8,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal.Mappers;
 /// Specialized claims mapper for Azure B2C OpenID Connect providers.
 /// </summary>
 [VKOAuthProvider(OidcConstants.AzureB2C)]
-public sealed class AzureB2COidcClaimsMapper : VKOAuthClaimsMapperBase
+internal sealed class AzureB2COidcClaimsMapper : VKOAuthClaimsMapperBase
 {
     /// <inheritdoc />
     public override IEnumerable<Claim> MapToClaims(VKExternalIdentity userInfo)

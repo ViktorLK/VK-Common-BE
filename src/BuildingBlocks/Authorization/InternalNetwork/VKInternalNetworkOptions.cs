@@ -7,11 +7,9 @@ namespace VK.Blocks.Authorization;
 /// <summary>
 /// Configuration options for the Internal Network authorization feature.
 /// </summary>
-public sealed record VKInternalNetworkOptions : IVKBlockOptions
+[VKFeature(typeof(VKAuthorizationBlock), GenerateArgs = true)]
+public sealed partial record VKInternalNetworkOptions : IVKInternalNetworkOptions
 {
-    /// <inheritdoc />
-    public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:{VKAuthorizationBlock.BlockName}:{InternalNetworkConstants.FeatureName}";
-
     /// <summary>
     /// Gets a value indicating whether the internal network feature is enabled.
     /// </summary>

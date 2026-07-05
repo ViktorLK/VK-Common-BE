@@ -17,12 +17,12 @@ namespace VK.Blocks.Authorization.Permissions.Internal;
 /// </summary>
 internal sealed class PermissionHandler(
     IEnumerable<IVKPermissionProvider> permissionProviders,
-    IOptions<VKAuthorizationOptions> globalOptions,
+    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
     ILogger<PermissionHandler> logger)
     : AuthorizationHandler<VKPermissionRequirement>, IVKPermissionEvaluator
 {
     private readonly List<IVKPermissionProvider> _providers = [.. VKGuard.NotNull(permissionProviders)];
-    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(

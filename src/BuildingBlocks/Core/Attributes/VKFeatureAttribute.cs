@@ -22,15 +22,21 @@ public sealed class VKFeatureAttribute(Type parent, string? name = null) : Attri
     public Type Parent { get; } = parent;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to generate behavioral boilerplate 
+    /// Gets or sets a value indicating whether to generate behavioral boilerplate
     /// (per-request Args record and the corresponding Options Provider for merging).
     /// Defaults to false.
     /// </summary>
     public bool GenerateArgs { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the feature should be registered as a default feature
+    /// in the block's default features extension method.
+    /// Defaults to true.
+    /// </summary>
+    public bool IsDefault { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets the custom configuration section name. 
+    /// Gets or sets the custom configuration section name.
     /// If null, defaults to "{Parent.SectionName}:{Name}".
     /// </summary>
     public string? SectionName { get; set; }

@@ -48,7 +48,7 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
 
         var isPartial = recordDeclaration.Modifiers.Any(m => m.Text == "partial");
 
-        var hasEfCore = context.SemanticModel.Compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter`2") != null;
+        var hasEfCore = context.SemanticModel.Compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter`2") is not null;
 
         return new TargetRecordStruct(
             Namespace: symbol.ContainingNamespace.ToDisplayString(),
@@ -101,7 +101,7 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         sb.AppendLine($"    public static implicit operator {target.Name}(Guid value) => new(value);");
         sb.AppendLine($"    public static {target.Name} New(IVKGuidGenerator generator) => new(generator.Create());");
         sb.AppendLine();
-        sb.AppendLine($"    public static {target.Name} Parse(string s, IFormatProvider? provider) => new(Guid.Parse(s, provider));");
+        sb.AppendLine($"    public static {target.Name} Parse(string s, IFormatProvider? provider = null) => new(Guid.Parse(s, provider));");
         sb.AppendLine($"    public static bool TryParse(string? s, IFormatProvider? provider, out {target.Name} result)");
         sb.AppendLine("    {");
         sb.AppendLine("        if (Guid.TryParse(s, provider, out var guid))");
@@ -112,6 +112,23 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         sb.AppendLine("        result = Empty;");
         sb.AppendLine("        return false;");
         sb.AppendLine("    }");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine($"    /// Determines whether the specified <see cref=\"{target.Name}\"/> is null or empty.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine($"    public static bool IsNullOrEmpty([System.Diagnostics.CodeAnalysis.NotNullWhen(false)] {target.Name}? id) => !id.HasValue || id.Value.IsEmpty;");
+        sb.AppendLine("}");
+        sb.AppendLine();
+        sb.AppendLine("/// <summary>");
+        sb.AppendLine($"/// Extension methods for nullable <see cref=\"{target.Name}\"/>.");
+        sb.AppendLine("/// </summary>");
+        sb.AppendLine($"public static class {target.Name}Extensions");
+        sb.AppendLine("{");
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine($"    /// Determines whether the <see cref=\"{target.Name}\"/> is null or empty.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine($"    public static bool IsNullOrEmpty([System.Diagnostics.CodeAnalysis.NotNullWhen(false)] this {target.Name}? id) =>");
+        sb.AppendLine($"        {target.Name}.IsNullOrEmpty(id);");
         sb.AppendLine("}");
         sb.AppendLine();
 

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using VK.Blocks.Core;
 
@@ -92,5 +92,3 @@ internal static partial class OidcDiagnostics
         return activity;
     }
 }
-
-

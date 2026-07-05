@@ -1,35 +1,38 @@
-﻿using System;
-using VK.Blocks.Authentication.OpenIdConnect.DependencyInjection.Internal;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.Authentication.OpenIdConnect.Common.DependencyInjection.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.OpenIdConnect;
 
 /// <summary>
-/// Extension methods for configuring OpenIdConnect authentication block.
-/// Complies with BB.03.1 (Public Wrapper).
+/// Fluent extensions for adding OIDC support to the Authentication block.
+/// Complies with Level 1 Public API pattern (AP.03).
 /// </summary>
-public static class VKOidcBlockExtensions
+[ExcludeFromCodeCoverage]
+public static partial class VKOidcBlockExtensions
 {
+    /// <summary>
+    /// Adds OIDC block to the authentication pipeline.
+    /// </summary>
     public static IVKBlockBuilder<VKAuthenticationBlock> AddVKOidcBlock(
         this IVKBlockBuilder<VKAuthenticationBlock> builder)
     {
         VKGuard.NotNull(builder);
-        return OidcBlockRegistration.Register(builder, builder.Configuration);
+        _ = OidcBlockRegistration.Register(builder.Services, builder.Configuration);
+        return builder;
     }
 
     /// <summary>
     /// Adds OIDC block to the authentication pipeline with manual options configuration.
-    /// Following ADR-016: Use 'with' expression to modify immutable options.
     /// </summary>
-    /// <param name="builder">The authentication block builder.</param>
-    /// <param name="configure">The options transformation function.</param>
-    /// <returns>The same builder instance.</returns>
     public static IVKBlockBuilder<VKAuthenticationBlock> AddVKOidcBlock(
         this IVKBlockBuilder<VKAuthenticationBlock> builder,
         Func<VKOidcOptions, VKOidcOptions> configure)
     {
         VKGuard.NotNull(builder);
-        return OidcBlockRegistration.Register(builder, builder.Configuration, configure);
+        _ = OidcBlockRegistration.Register(builder.Services, builder.Configuration, configure);
+        return builder;
     }
 }
-

@@ -40,7 +40,7 @@ internal static class OidcHandlerFactory
                 var mapper = services.GetKeyedService<IVKOAuthClaimsMapper>(providerName)
                              ?? services.GetKeyedService<IVKOAuthClaimsMapper>(OidcConstants.StandardProvider);
 
-                if (mapper == null)
+                if (mapper is null)
                 {
                     logger.LogOidcMappingError(providerName, traceId);
                     OidcDiagnostics.RecordAuthAttempt(providerName, false, VKOidcDiagnosticsConstants.ReasonMapperNotFound);
@@ -84,7 +84,7 @@ internal static class OidcHandlerFactory
         VKGuard.NotNull(context);
         VKGuard.NotNullOrWhiteSpace(providerName);
         var principal = context.Principal;
-        if (principal == null)
+        if (principal is null)
         {
             return new VKExternalIdentity
             {

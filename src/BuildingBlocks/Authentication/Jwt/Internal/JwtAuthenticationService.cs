@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using VK.Blocks.Authentication.Diagnostics.Internal;
+using VK.Blocks.Authentication.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.Jwt.Internal;

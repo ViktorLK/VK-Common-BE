@@ -1,5 +1,4 @@
 using System;
-using VK.Blocks.Authorization.WorkingHours.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization;
@@ -7,11 +6,9 @@ namespace VK.Blocks.Authorization;
 /// <summary>
 /// Configuration options for the Working Hours authorization feature.
 /// </summary>
-public sealed record VKWorkingHoursOptions : IVKBlockOptions
+[VKFeature(typeof(VKAuthorizationBlock), GenerateArgs = true)]
+public sealed partial record VKWorkingHoursOptions : IVKWorkingHoursOptions
 {
-    /// <inheritdoc />
-    public static string SectionName => $"{VKBlocksConstants.VKBlocksConfigPrefix}:{VKAuthorizationBlock.BlockName}:{WorkingHoursConstants.FeatureName}";
-
     /// <summary>
     /// Gets a value indicating whether the working hours feature is enabled.
     /// </summary>

@@ -77,7 +77,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
         if (variable.Initializer?.Value is ObjectCreationExpressionSyntax creation)
         {
             var argumentList = creation.ArgumentList;
-            if (argumentList != null)
+            if (argumentList is not null)
             {
                 var args = argumentList.Arguments;
                 if (args.Count > 0 && context.SemanticModel.GetConstantValue(args[0].Expression, ct).Value is string c)
@@ -92,7 +92,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
                 {
                     // VKErrorType is an enum, try to get its name
                     var typeSymbol = context.SemanticModel.GetSymbolInfo(args[2].Expression, ct).Symbol;
-                    if (typeSymbol != null)
+                    if (typeSymbol is not null)
                     {
                         type = typeSymbol.Name;
                     }
@@ -106,7 +106,7 @@ public sealed class ErrorCatalogGenerator : IIncrementalGenerator
             {
                 type = memberAccess.Name.Identifier.Text;
                 var argumentList = invocation.ArgumentList;
-                if (argumentList != null)
+                if (argumentList is not null)
                 {
                     var args = argumentList.Arguments;
                     if (args.Count > 0 && context.SemanticModel.GetConstantValue(args[0].Expression, ct).Value is string c)

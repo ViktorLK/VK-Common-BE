@@ -5,8 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authentication.Common.Diagnostics.Internal;
 using VK.Blocks.Authentication.Common.Internal;
-using VK.Blocks.Authentication.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.Jwt.Internal;

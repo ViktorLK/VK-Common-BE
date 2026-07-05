@@ -6,12 +6,9 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration options for JWT tokens.
 /// </summary>
-public sealed record VKJwtOptions : IVKBlockOptions
+[VKFeature(typeof(VKAuthenticationBlock))]
+public sealed partial record VKJwtOptions : IVKToggleableBlockOptions
 {
-    /// <summary>
-    /// The configuration section name for Jwt options.
-    /// </summary>
-    public static string SectionName => $"{VKAuthenticationOptions.SectionName}:{VKAuthenticationOptions.JwtSection}";
 
     /// <summary>
     /// Gets or sets a value indicating whether JWT validation is enabled.

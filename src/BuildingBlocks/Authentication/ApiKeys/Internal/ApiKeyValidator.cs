@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Security.Cryptography;
@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.Authentication.Diagnostics.Internal;
+using VK.Blocks.Authentication.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.ApiKeys.Internal;
@@ -97,7 +97,7 @@ internal sealed class ApiKeyValidator(
             if (!await _rateLimiter.IsAllowedAsync(apiKeyRecord.Id, settings.RateLimitPerMinute, settings.RateLimitWindowSeconds, cancellationToken).ConfigureAwait(false))
             {
                 _logger.LogRateLimitExceeded(apiKeyRecord.Id.ToString());
-                AuthenticationDiagnostics.RecordTooManyRequests(apiKeyRecord.Id.ToString(), apiKeyRecord.TenantId ?? string.Empty);
+                AuthenticationDiagnostics.RecordTooManyRequests(apiKeyRecord.Id.ToString(), apiKeyRecord.TenantId?.ToString() ?? string.Empty);
                 AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, false, VKApiKeyErrors.RateLimitExceeded.Code);
                 return VKResult.Failure<ApiKeyContext>(VKApiKeyErrors.RateLimitExceeded);
             }
@@ -110,7 +110,7 @@ internal sealed class ApiKeyValidator(
 
         AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeApiKey, true);
         activity?.SetTag(VKAuthenticationDiagnosticsConstants.TagKeyId, apiKeyRecord.Id.ToString());
-        activity?.SetTag(VKAuthenticationDiagnosticsConstants.TagTenantId, apiKeyRecord.TenantId);
+        activity?.SetTag(VKAuthenticationDiagnosticsConstants.TagTenantId, apiKeyRecord.TenantId?.ToString());
 
         return VKResult.Success(new ApiKeyContext
         {
@@ -179,5 +179,3 @@ internal sealed class ApiKeyValidator(
         }
     }
 }
-
-

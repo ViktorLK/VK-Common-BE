@@ -1,12 +1,13 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using VK.Blocks.Core;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace VK.Blocks.Authorization.Entitlements.Internal;
 
-/// <summary>
-/// Marker class for the Entitlements feature.
-/// </summary>
 [ExcludeFromCodeCoverage]
-[VKFeatureMarker(EntitlementsConstants.FeatureName, typeof(VKAuthorizationBlock))]
-internal sealed partial class EntitlementsFeature;
-
+internal sealed partial class EntitlementsFeature
+{
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKEntitlementsOptions options)
+    {
+        // No custom services to register (handled by MultiTenancy integration block)
+    }
+}
