@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 /// </summary>
 internal sealed partial class KnowledgeFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKKnowledgeOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKKnowledgeOptions options)
     {
         if (!options.Enabled)
             return;
@@ -24,7 +24,7 @@ internal sealed partial class KnowledgeFeature
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKKnowledgeOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKKnowledgeOptions options, List<string> failures)
     {
         VKGuard.NotNull(options);
         VKGuard.NotNull(failures);

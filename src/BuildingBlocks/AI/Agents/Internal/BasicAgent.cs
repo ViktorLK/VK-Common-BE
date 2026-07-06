@@ -77,7 +77,7 @@ internal sealed class BasicAgent : IVKAgent
 
         using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.AgentExecution);
         var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
-        var tenantId = _userContext.TenantId ?? "default";
+        var tenantId = _userContext.TenantId?.ToString() ?? "default";
 
         var sw = Stopwatch.StartNew();
         bool isSuccess = false;

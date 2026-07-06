@@ -11,7 +11,7 @@ namespace VK.Blocks.VectorIngest.Pipeline.Internal;
 internal sealed partial class PipelineFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKPipelineOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKPipelineOptions options)
     {
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKIngestPipelineStage, DocumentLoadStage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKIngestPipelineStage, DocumentWriteSinkStage>());
@@ -20,7 +20,7 @@ internal sealed partial class PipelineFeature
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKPipelineOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKPipelineOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

@@ -10,7 +10,7 @@ internal sealed partial class BudgetingFeature
 {
     /// <summary>Add budgeting services here</summary>
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKBudgetingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKBudgetingOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKTokenBudgeter, DefaultTokenBudgeter>();
@@ -19,7 +19,7 @@ internal sealed partial class BudgetingFeature
 
     /// <summary>Add budgeting-specific validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKBudgetingOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKBudgetingOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

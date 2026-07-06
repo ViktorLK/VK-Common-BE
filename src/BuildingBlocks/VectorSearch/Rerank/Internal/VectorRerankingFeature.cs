@@ -11,14 +11,14 @@ namespace VK.Blocks.VectorSearch.VectorReranking.Internal;
 /// </summary>
 internal sealed partial class VectorRerankingFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKVectorRerankingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKVectorRerankingOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKVectorReranker, NoOpReranker>();
         services.TryAddScoped<IVKVectorSearchAfterPipelineStage, DefaultRerankStage>();
     }
 
-    static partial void ValidateCustom(VKVectorRerankingOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKVectorRerankingOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

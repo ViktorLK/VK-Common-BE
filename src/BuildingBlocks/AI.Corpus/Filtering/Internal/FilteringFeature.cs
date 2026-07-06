@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Corpus.Filtering.Internal;
 /// </summary>
 internal sealed partial class FilteringFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKFilteringOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKFilteringOptions options)
     {
         // Register the filtering stage
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultFilteringStage>());
@@ -76,7 +76,7 @@ internal sealed partial class FilteringFeature
             services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, RecencyBiasFilter>());
     }
 
-    static partial void ValidateCustom(VKFilteringOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKFilteringOptions options, List<string> failures)
     {
         if (options.DefaultCooldownTurns < -1)
         {

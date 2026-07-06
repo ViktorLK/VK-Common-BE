@@ -10,14 +10,14 @@ namespace VK.Blocks.AI.Common.DependencyInjection.Internal;
 internal sealed partial class AIDefaultsFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKAIDefaultsOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKAIDefaultsOptions options)
     {
         Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<VK.Blocks.AI.IVKEngineRouter, VK.Blocks.AI.Common.Routing.Internal.NoOpVKEngineRouter>(services);
     }
 
     /// <summary>Add global validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKAIDefaultsOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKAIDefaultsOptions options, List<string> failures)
     {
         if (options.RetryCount < 0)
         {

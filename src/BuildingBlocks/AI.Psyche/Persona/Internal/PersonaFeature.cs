@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 /// </summary>
 internal sealed partial class PersonaFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKPersonaOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKPersonaOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKPersonaStore, InMemoryPersonaStore>();
@@ -20,7 +20,7 @@ internal sealed partial class PersonaFeature
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKPersonaOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKPersonaOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

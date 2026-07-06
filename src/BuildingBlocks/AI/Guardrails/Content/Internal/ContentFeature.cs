@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Guardrails.Content.Internal;
 internal sealed partial class ContentFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKContentOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKContentOptions options)
     {
         Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<IVKModerationEngine, NoOpVKModerationEngine>(services);
 
@@ -56,7 +56,7 @@ internal sealed partial class ContentFeature
 
     /// <summary>Add content-specific validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKContentOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKContentOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

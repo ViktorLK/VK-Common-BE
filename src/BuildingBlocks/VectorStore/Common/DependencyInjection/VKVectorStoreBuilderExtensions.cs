@@ -6,7 +6,7 @@ namespace VK.Blocks.VectorStore;
 /// <summary>
 /// Fluent extensions for <see cref="IVKVectorStoreBuilder"/>.
 /// </summary>
-public static class VKVectorStoreBuilderExtensions
+public static partial class VKVectorStoreBuilderExtensions
 {
     /// <summary>
     /// Adds the In-Memory vector database implementation.

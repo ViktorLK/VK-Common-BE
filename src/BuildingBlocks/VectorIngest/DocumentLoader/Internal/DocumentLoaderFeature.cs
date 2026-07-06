@@ -10,14 +10,14 @@ namespace VK.Blocks.VectorIngest.DocumentLoader.Internal;
 internal sealed partial class DocumentLoaderFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKDocumentLoaderOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKDocumentLoaderOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKDocumentLoader, DefaultDocumentLoader>(); // [AP.02] TryAdd
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKDocumentLoaderOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKDocumentLoaderOptions options, System.Collections.Generic.List<string> failures)
     {
         if (options.ChunkSize <= 0)
         {

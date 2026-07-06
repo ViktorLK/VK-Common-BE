@@ -9,13 +9,13 @@ namespace VK.Blocks.VectorSearch.SearchGuard.Internal;
 /// </summary>
 internal sealed partial class SearchGuardFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKSearchGuardOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKSearchGuardOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKVectorSearchMiddleware, DefaultSearchGuardMiddleware>();
     }
 
-    static partial void ValidateCustom(VKSearchGuardOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKSearchGuardOptions options, List<string> failures)
     {
         if (options.MinLength < 0)
         {

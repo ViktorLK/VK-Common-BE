@@ -10,14 +10,14 @@ namespace VK.Blocks.VectorIngest.Parsing.Internal; // [AP.03] Internal namespace
 internal sealed partial class ParsingFeature // [AP.01] sealed partial
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKParsingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKParsingOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKDocumentParserResolver, DefaultDocumentParserResolver>(); // [AP.02] TryAdd idempotent registration
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKParsingOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKParsingOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

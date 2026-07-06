@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Tokenics.Internal;
 internal sealed partial class TokenicsFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKTokenicsOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKTokenicsOptions options)
     {
         services.TryAddSingleton<IVKTokenCounter, DefaultTokenCounter>();
         _ = options;
@@ -19,7 +19,7 @@ internal sealed partial class TokenicsFeature
 
     /// <summary>Add tokenics-level validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKTokenicsOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKTokenicsOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

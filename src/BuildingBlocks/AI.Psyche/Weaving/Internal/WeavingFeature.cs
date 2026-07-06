@@ -7,7 +7,7 @@ namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
 internal sealed partial class WeavingFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKWeavingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKWeavingOptions options)
     {
         _ = options;
 
@@ -26,7 +26,7 @@ internal sealed partial class WeavingFeature
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKWeavingOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKWeavingOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

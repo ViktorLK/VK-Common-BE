@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Audio.Internal;
 internal sealed partial class AudioFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKAudioOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKAudioOptions options)
     {
         _ = services;
         _ = options;
@@ -17,7 +17,7 @@ internal sealed partial class AudioFeature
 
     /// <summary>Add pillar-level validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKAudioOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKAudioOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

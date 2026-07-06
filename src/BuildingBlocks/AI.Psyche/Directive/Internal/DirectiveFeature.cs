@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 /// </summary>
 internal sealed partial class DirectiveFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKDirectiveOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKDirectiveOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKDirectiveStore, InMemoryDirectiveStore>();
@@ -18,7 +18,7 @@ internal sealed partial class DirectiveFeature
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKDirectiveOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKDirectiveOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

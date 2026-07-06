@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Psyche.Pattern.Internal;
 /// </summary>
 internal sealed partial class PatternFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKPatternOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKPatternOptions options)
     {
         if (!options.Enabled)
             return;
@@ -20,7 +20,7 @@ internal sealed partial class PatternFeature
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKPatternOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKPatternOptions options, List<string> failures)
     {
         VKGuard.NotNull(options);
         VKGuard.NotNull(failures);

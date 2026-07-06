@@ -9,7 +9,7 @@ namespace VK.Blocks.VectorSearch.Retrieval.Internal;
 /// </summary>
 internal sealed partial class RetrievalFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKRetrievalOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKRetrievalOptions options)
     {
         _ = options;
 
@@ -21,7 +21,7 @@ internal sealed partial class RetrievalFeature
         services.TryAddScoped<IVKRetrievalStore, DefaultRetrievalStore>();
     }
 
-    static partial void ValidateCustom(VKRetrievalOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKRetrievalOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

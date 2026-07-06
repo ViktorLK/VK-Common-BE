@@ -10,14 +10,14 @@ namespace VK.Blocks.VectorIngest.Indexing.Internal; // [AP.03] Internal namespac
 internal sealed partial class IndexingFeature // [AP.01] sealed partial
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKIndexingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKIndexingOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKIndexingService, DefaultIndexingService>(); // [AP.02] TryAdd idempotent registration
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKIndexingOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKIndexingOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

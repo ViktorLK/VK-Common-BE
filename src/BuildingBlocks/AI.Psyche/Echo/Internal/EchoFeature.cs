@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// </summary>
 internal sealed partial class EchoFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKEchoOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKEchoOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKEchoStore, InMemoryEchoStore>();
@@ -18,7 +18,7 @@ internal sealed partial class EchoFeature
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKEchoOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKEchoOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         if (options.TokenBudgetRatio < 0.0 || options.TokenBudgetRatio > 1.0)

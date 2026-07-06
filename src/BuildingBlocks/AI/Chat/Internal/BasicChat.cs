@@ -48,7 +48,7 @@ internal sealed partial class BasicChat : IVKChat
 
         using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.ChatRequest);
         var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
-        var tenantId = _userContext.TenantId ?? "default";
+        var tenantId = _userContext.TenantId?.ToString() ?? "default";
 
         var sw = Stopwatch.StartNew();
         bool isSuccess = false;
@@ -131,7 +131,7 @@ internal sealed partial class BasicChat : IVKChat
 
         using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.ChatRequest);
         var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
-        var tenantId = _userContext.TenantId ?? "default";
+        var tenantId = _userContext.TenantId?.ToString() ?? "default";
 
         // Audit Start for Streaming
         bool enableAudit = (args is IVKAIAuditOptions a ? a.EnableAudit : null) ?? _options.EnableAudit ?? _globalOptions.EnableAudit;

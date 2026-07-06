@@ -9,8 +9,6 @@ namespace VK.Blocks.Authentication;
 /// </summary>
 public static partial class VKAuthenticationBuilderExtensions
 {
-
-
     /// <summary>
     /// Registers a custom JWT refresh token validator.
     /// </summary>

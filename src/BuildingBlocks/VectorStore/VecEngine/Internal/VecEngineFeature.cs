@@ -7,13 +7,13 @@ namespace VK.Blocks.VectorStore.VecEngine.Internal;
 /// </summary>
 internal sealed partial class VecEngineFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKVecEngineOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKVecEngineOptions options)
     {
         _ = services;
         _ = options;
     }
 
-    static partial void ValidateCustom(VKVecEngineOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKVecEngineOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

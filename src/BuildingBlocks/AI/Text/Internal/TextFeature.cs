@@ -10,12 +10,12 @@ namespace VK.Blocks.AI.Text.Internal;
 internal sealed partial class TextFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKTextOptions options) =>
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKTextOptions options) =>
         services.TryAddSingleton<IVKTextEngine, NoOpVKTextEngine>();
 
     /// <summary>Add text-specific validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKTextOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKTextOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

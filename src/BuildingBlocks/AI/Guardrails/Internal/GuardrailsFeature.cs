@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Guardrails.Internal;
 internal sealed partial class GuardrailsFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKGuardrailsOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKGuardrailsOptions options)
     {
         _ = services;
         _ = options;
@@ -17,7 +17,7 @@ internal sealed partial class GuardrailsFeature
 
     /// <summary>Add guardrail-level validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKGuardrailsOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKGuardrailsOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

@@ -10,14 +10,14 @@ namespace VK.Blocks.AI.Audio.Speech.Internal;
 internal sealed partial class SpeechFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKSpeechOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKSpeechOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKSpeechEngine, NoOpVKSpeechEngine>();
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKSpeechOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKSpeechOptions options, List<string> failures)
     {
         if (string.IsNullOrWhiteSpace(options.Voice))
         {

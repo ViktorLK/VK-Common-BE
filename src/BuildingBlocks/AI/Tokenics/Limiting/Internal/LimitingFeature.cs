@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Tokenics.Limiting.Internal;
 internal sealed partial class LimitingFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKLimitingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKLimitingOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKTokenRateLimiter, DefaultTokenRateLimiter>();
@@ -18,7 +18,7 @@ internal sealed partial class LimitingFeature
 
     /// <summary>Add limiting-specific validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKLimitingOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKLimitingOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;
