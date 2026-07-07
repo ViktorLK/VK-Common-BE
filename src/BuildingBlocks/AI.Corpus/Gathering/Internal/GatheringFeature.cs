@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Corpus.Gathering.Internal;
 /// </summary>
 internal sealed partial class GatheringFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKGatheringOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKGatheringOptions options)
     {
         _ = options;
 
@@ -21,7 +21,7 @@ internal sealed partial class GatheringFeature
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultGatheringStage>());
     }
 
-    static partial void ValidateCustom(VKGatheringOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKGatheringOptions options, List<string> failures)
     {
         if (options.DefaultTokenBudget <= 0)
         {

@@ -10,7 +10,7 @@ namespace VK.Blocks.VectorSearch.SemanticCache.Internal;
 /// </summary>
 internal sealed partial class SemanticCacheFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKSemanticCacheOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKSemanticCacheOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKSemanticCacheService, DefaultSemanticCacheService>();
@@ -18,7 +18,7 @@ internal sealed partial class SemanticCacheFeature
         services.TryAddScoped<IVKVectorSearchAfterPipelineStage, SemanticCacheWriteStage>();
     }
 
-    static partial void ValidateCustom(VKSemanticCacheOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKSemanticCacheOptions options, List<string> failures)
     {
         if (options.ScoreThreshold is < 0.0 or > 1.0)
         {

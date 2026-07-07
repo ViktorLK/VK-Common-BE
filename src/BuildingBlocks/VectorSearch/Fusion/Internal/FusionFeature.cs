@@ -9,13 +9,13 @@ namespace VK.Blocks.VectorSearch.Fusion.Internal;
 /// </summary>
 internal sealed partial class FusionFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKFusionOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKFusionOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKScoreFusion, ReciprocalRankFusion>();
     }
 
-    static partial void ValidateCustom(VKFusionOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKFusionOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

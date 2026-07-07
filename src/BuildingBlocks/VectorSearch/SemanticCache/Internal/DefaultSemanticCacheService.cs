@@ -57,7 +57,7 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
 
         var searchArgs = new VKVectorSearchArgs
         {
-            TenantId = _userContext.TenantId ?? "Default",
+            TenantId = _userContext.TenantId ?? VKTenantId.Empty,
             Limit = 1,
             MinScore = (float)_options.ScoreThreshold
         };

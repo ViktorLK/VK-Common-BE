@@ -45,7 +45,7 @@ internal sealed class DefaultVectorSearchStrategy : IVKSearchStrategy
         var embeddingVector = embeddingResult.Value;
         var args = new VKVectorSearchArgs
         {
-            TenantId = _userContext.TenantId ?? "Default",
+            TenantId = _userContext.TenantId ?? VKTenantId.Empty, // TODO
             Limit = query.TopK,
             MinScore = query.Threshold.HasValue ? (float)query.Threshold.Value : 0.0f,
             CollectionName = query.CollectionName
@@ -54,7 +54,7 @@ internal sealed class DefaultVectorSearchStrategy : IVKSearchStrategy
         // Check if the store supports native hybrid path for potential acceleration
         if (_vectorStore is IVKHybridCapableVectorStore)
         {
-            // Accelerated path could be executed here if configured, 
+            // Accelerated path could be executed here if configured,
             // but for pure vector search we fall back to standard collection search.
         }
 

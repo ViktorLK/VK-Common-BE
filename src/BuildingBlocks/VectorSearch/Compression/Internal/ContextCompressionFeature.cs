@@ -11,14 +11,14 @@ namespace VK.Blocks.VectorSearch.ContextCompression.Internal;
 /// </summary>
 internal sealed partial class ContextCompressionFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKContextCompressionOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKContextCompressionOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKContextCompressionStrategy, DefaultContextCompressionStrategy>();
         services.TryAddScoped<IVKVectorSearchAfterPipelineStage, DefaultContextCompressionStage>();
     }
 
-    static partial void ValidateCustom(VKContextCompressionOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKContextCompressionOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

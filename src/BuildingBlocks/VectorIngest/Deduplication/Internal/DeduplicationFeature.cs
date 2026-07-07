@@ -10,14 +10,14 @@ namespace VK.Blocks.VectorIngest.Deduplication.Internal;
 internal sealed partial class DeduplicationFeature // [AP.01] sealed partial
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKDeduplicationOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKDeduplicationOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKDeduplicationChecker, VectorStoreDeduplicationChecker>(); // [AP.02] TryAdd idempotent registration
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKDeduplicationOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKDeduplicationOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

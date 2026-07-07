@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.VectorStore;
 
@@ -10,7 +11,7 @@ public sealed record VKVectorSearchArgs
     /// <summary>
     /// Gets the target tenant ID for the search.
     /// </summary>
-    public required string TenantId { get; init; }
+    public required VKTenantId TenantId { get; init; }
 
     /// <summary>
     /// Gets the maximum number of results to return.

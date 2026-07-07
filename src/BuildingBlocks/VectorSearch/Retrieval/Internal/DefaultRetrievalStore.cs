@@ -64,7 +64,7 @@ internal sealed class DefaultRetrievalStore : IVKRetrievalStore
 
         var searchArgs = args ?? new VKVectorSearchArgs
         {
-            TenantId = _userContext.TenantId ?? "Default",
+            TenantId = _userContext.TenantId ?? VKTenantId.Empty, // TODO
             Limit = _defaults.DefaultLimit,
             MinScore = (float)_defaults.DefaultMinScore
         };

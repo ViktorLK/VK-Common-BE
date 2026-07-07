@@ -11,14 +11,14 @@ namespace VK.Blocks.VectorSearch.ContextExpansion.Internal;
 /// </summary>
 internal sealed partial class ContextExpansionFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKContextExpansionOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKContextExpansionOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKContextExpansionStrategy, NoOpContextExpansionStrategy>();
         services.TryAddScoped<IVKVectorSearchAfterPipelineStage, DefaultContextExpansionStage>();
     }
 
-    static partial void ValidateCustom(VKContextExpansionOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKContextExpansionOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Audio.Transcription.Internal;
 internal sealed partial class TranscriptionFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKTranscriptionOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKTranscriptionOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKTranscriptionEngine, NoOpVKTranscriptionEngine>();
@@ -18,7 +18,7 @@ internal sealed partial class TranscriptionFeature
 
     /// <summary>Add STT-specific validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKTranscriptionOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKTranscriptionOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

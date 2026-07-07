@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Prompting.Internal;
 internal sealed partial class PromptingFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKPromptingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKPromptingOptions options)
     {
         services.TryAddSingleton<IVKPromptTemplateEngine, BasicVKPromptTemplateEngine>();
         services.TryAddSingleton<IVKPromptRegistry, VKPromptRegistry>();
@@ -29,7 +29,7 @@ internal sealed partial class PromptingFeature
 
     /// <summary>Add prompting-specific validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKPromptingOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKPromptingOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

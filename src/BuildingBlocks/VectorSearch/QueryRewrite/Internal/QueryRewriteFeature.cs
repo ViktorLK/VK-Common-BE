@@ -8,14 +8,14 @@ namespace VK.Blocks.VectorSearch.QueryRewrite.Internal;
 /// </summary>
 internal sealed partial class QueryRewriteFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKQueryRewriteOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKQueryRewriteOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKQueryRewriter, NoOpQueryRewriter>();
         services.TryAddScoped<IVKVectorSearchBeforePipelineStage, DefaultQueryRewriteStage>();
     }
 
-    static partial void ValidateCustom(VKQueryRewriteOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKQueryRewriteOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

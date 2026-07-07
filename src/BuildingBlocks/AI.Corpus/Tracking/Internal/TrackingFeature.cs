@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Corpus.Tracking.Internal;
 /// </summary>
 internal sealed partial class TrackingFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKTrackingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKTrackingOptions options)
     {
         _ = options;
 
@@ -19,7 +19,7 @@ internal sealed partial class TrackingFeature
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheAfterPipelineStage, DefaultKnowledgeInjectionStage>());
     }
 
-    static partial void ValidateCustom(VKTrackingOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKTrackingOptions options, List<string> failures)
     {
         _ = options;
     }

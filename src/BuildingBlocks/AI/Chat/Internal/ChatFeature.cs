@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Chat.Internal;
 internal sealed partial class ChatFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKChatOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKChatOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKChatEngine, NoOpVKChatEngine>();
@@ -20,7 +20,7 @@ internal sealed partial class ChatFeature
     }
 
     // [SG Hook] Optional validation hook
-    static partial void ValidateCustom(VKChatOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKChatOptions options, List<string> failures)
     {
         if (string.IsNullOrWhiteSpace(options.ModelId))
         {

@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Guardrails.Injection.Internal;
 internal sealed partial class InjectionFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKInjectionOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKInjectionOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKInjectionDetector, NoOpVKInjectionDetector>();
@@ -17,7 +17,7 @@ internal sealed partial class InjectionFeature
 
     /// <summary>Add injection-specific validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKInjectionOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKInjectionOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

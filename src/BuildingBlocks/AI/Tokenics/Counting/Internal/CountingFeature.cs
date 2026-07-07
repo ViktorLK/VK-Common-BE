@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Tokenics.Counting.Internal;
 internal sealed partial class CountingFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKCountingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKCountingOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKTokenCounter, DefaultTokenCounter>();
@@ -17,7 +17,7 @@ internal sealed partial class CountingFeature
 
     /// <summary>Add counting-specific validation logic here</summary>
     // [SG Hook]
-    static partial void ValidateCustom(VKCountingOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKCountingOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

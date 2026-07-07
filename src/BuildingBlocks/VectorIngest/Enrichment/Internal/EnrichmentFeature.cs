@@ -11,7 +11,7 @@ namespace VK.Blocks.VectorIngest.Enrichment.Internal; // [AP.03] Internal namesp
 internal sealed partial class EnrichmentFeature // [AP.01] sealed partial
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKEnrichmentOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKEnrichmentOptions options)
     {
         _ = options;
         services.TryAddSingleton(TimeProvider.System); // [CS.06] register TimeProvider.System if not already registered, [AP.02] TryAdd
@@ -19,7 +19,7 @@ internal sealed partial class EnrichmentFeature // [AP.01] sealed partial
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKEnrichmentOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKEnrichmentOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;

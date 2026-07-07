@@ -10,14 +10,14 @@ namespace VK.Blocks.AI.ImageGeneration.Internal;
 internal sealed partial class ImageGenerationFeature
 {
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKImageGenerationOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKImageGenerationOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKImageGenerationEngine, NoOpVKImageGenerationEngine>();
     }
 
     // [SG Hook]
-    static partial void ValidateCustom(VKImageGenerationOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKImageGenerationOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

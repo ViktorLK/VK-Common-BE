@@ -55,7 +55,7 @@ internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
         var embeddingVector = embeddingResult.Value;
         var searchArgs = new VKVectorSearchArgs
         {
-            TenantId = _userContext.TenantId ?? "Default",
+            TenantId = _userContext.TenantId ?? VKTenantId.Empty,
             Limit = query.TopK,
             MinScore = query.Threshold.HasValue ? (float)query.Threshold.Value : 0.0f,
             CollectionName = query.CollectionName

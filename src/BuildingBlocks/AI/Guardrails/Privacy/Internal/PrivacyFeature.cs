@@ -10,7 +10,7 @@ internal sealed partial class PrivacyFeature
 {
     /// <summary>Add privacy services here</summary>
     // [SG Hook]
-    static partial void RegisterCustom(IServiceCollection services, VKPrivacyOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKPrivacyOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKPrivacyFilter, NoOpVKPrivacyFilter>();

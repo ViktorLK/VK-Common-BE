@@ -10,14 +10,14 @@ namespace VK.Blocks.AI.Corpus.Ingesting.Internal;
 /// </summary>
 internal sealed partial class IngestingFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKIngestingOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKIngestingOptions options)
     {
         _ = options;
         services.TryAddSingleton<IVKIngestingStatusStore, InMemoryIngestingStatusStore>();
         services.TryAddScoped<IVKCorpusIngestingService, DefaultCorpusIngestingService>();
     }
 
-    static partial void ValidateCustom(VKIngestingOptions options, List<string> failures)
+    static partial void ValidateFeatureCustom(VKIngestingOptions options, List<string> failures)
     {
         _ = options;
         _ = failures;

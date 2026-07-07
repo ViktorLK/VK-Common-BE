@@ -9,14 +9,14 @@ namespace VK.Blocks.VectorSearch.Pipeline.Internal;
 /// </summary>
 internal sealed partial class PipelineFeature
 {
-    static partial void RegisterCustom(IServiceCollection services, VKPipelineOptions options)
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKPipelineOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKVectorSearchPipelineExecutor, DefaultVectorSearchPipelineExecutor>();
         services.TryAddScoped<IVKVectorSearchPipeline, DefaultVectorSearchPipeline>();
     }
 
-    static partial void ValidateCustom(VKPipelineOptions options, System.Collections.Generic.List<string> failures)
+    static partial void ValidateFeatureCustom(VKPipelineOptions options, System.Collections.Generic.List<string> failures)
     {
         _ = options;
         _ = failures;
