@@ -6,7 +6,6 @@ namespace VK.Blocks.Persistence;
 /// </summary>
 public interface IVKAuditProvider
 {
-
     /// <summary>
     /// Gets the unique identifier of the current user.
     /// </summary>
@@ -16,5 +15,4 @@ public interface IVKAuditProvider
     /// Gets the current UTC date and time.
     /// </summary>
     DateTimeOffset UtcNow { get; }
-
 }

@@ -2,6 +2,7 @@ using System;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Persistence;
 
@@ -14,7 +15,8 @@ public interface IVKUnitOfWork<TDbContext> : IVKUnitOfWork
     /// <summary>
     /// Executes the specified operation within a transaction, handling transient failures via an Execution Strategy.
     /// </summary>
-    Task ExecuteInTransactionAsync(
+    // [CS.01]
+    Task<VKResult> ExecuteInTransactionAsync(
         Func<IVKUnitOfWork<TDbContext>, CancellationToken, Task> operation,
         IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
         CancellationToken cancellationToken = default);

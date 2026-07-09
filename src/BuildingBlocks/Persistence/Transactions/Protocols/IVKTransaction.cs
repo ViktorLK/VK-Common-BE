@@ -15,8 +15,6 @@ public interface IVKTransaction : IDisposable, IAsyncDisposable
     /// </summary>
     Guid TransactionId { get; }
 
-
-
     /// <summary>
     /// Commits the transaction.
     /// </summary>
