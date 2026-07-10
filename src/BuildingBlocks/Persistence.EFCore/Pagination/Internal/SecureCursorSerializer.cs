@@ -39,7 +39,7 @@ internal sealed class SecureCursorSerializer : IVKCursorSerializer
     /// <param name="jsonSerializer">The JSON serializer.</param>
     /// <param name="timeProvider">The time provider for expiry checks. Defaults to <see cref="TimeProvider.System"/>.</param>
     public SecureCursorSerializer(
-        IOptions<VKCursorSerializerOptions> options,
+        IOptions<VKPaginationOptions> options,
         IVKJsonSerializer jsonSerializer,
         TimeProvider? timeProvider = null)
     {
@@ -50,7 +50,7 @@ internal sealed class SecureCursorSerializer : IVKCursorSerializer
         if (string.IsNullOrWhiteSpace(signingKey))
         {
             throw new InvalidOperationException(
-                $"A non-empty signing key must be configured under '{VKCursorSerializerOptions.SectionName}:{nameof(VKCursorSerializerOptions.SigningKey)}'.");
+                $"A non-empty signing key must be configured under '{VKPaginationOptions.SectionName}:{nameof(VKPaginationOptions.SigningKey)}'.");
         }
 
         _signingKey = Encoding.UTF8.GetBytes(signingKey);
