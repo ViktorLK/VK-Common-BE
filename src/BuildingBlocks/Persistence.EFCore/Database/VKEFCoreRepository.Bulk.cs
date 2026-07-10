@@ -5,12 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.EFCore.BulkOperations.Internal;
+using VK.Blocks.Persistence.EFCore.Database.Internal;
 using VK.Blocks.Persistence.EFCore.Diagnostics.Internal;
 
 namespace VK.Blocks.Persistence.EFCore;
 
-public partial class VKEfCoreRepository<TEntity>
+public partial class VKEFCoreRepository<TEntity>
 {
 #if NET8_0
     /// <inheritdoc />
@@ -22,7 +22,7 @@ public partial class VKEfCoreRepository<TEntity>
         VKGuard.NotNull(predicate);
         VKGuard.NotNull(setPropertyAction);
 
-        var propertySetter = new VKEfCorePropertySetter<TEntity>();
+        var propertySetter = new VKEFCorePropertySetter<TEntity>();
         setPropertyAction(propertySetter);
 
         // Bulk updates bypass the ChangeTracker, so Interceptors are NOT triggered.
@@ -37,11 +37,10 @@ public partial class VKEfCoreRepository<TEntity>
         return updatedRows;
     }
 
-    /// <inheritdoc />
-    public async Task<int> ExecuteDeleteAsync(
+    private async Task<int> ExecuteDeleteInternalAsync(
         Expression<Func<TEntity, bool>> predicate,
-        bool forceDelete = false,
-        CancellationToken cancellationToken = default)
+        bool forceDelete,
+        CancellationToken cancellationToken)
     {
         VKGuard.NotNull(predicate);
 
@@ -49,7 +48,7 @@ public partial class VKEfCoreRepository<TEntity>
 
         if (!forceDelete && VKTypeMetadataCache.IsSoftDelete<TEntity>())
         {
-            var propertySetter = new VKEfCorePropertySetter<TEntity>();
+            var propertySetter = new VKEFCorePropertySetter<TEntity>();
 
             // Bulk deletes bypass the ChangeTracker. For Soft Delete, we are actually doing an Update.
             // We must manually invoke the processor to set IsDeleted = true and generic auditing fields.
@@ -81,7 +80,7 @@ public partial class VKEfCoreRepository<TEntity>
 
         var updatedRows = await DbSet.Where(predicate).ExecuteUpdateAsync(builder =>
         {
-            var adapter = new EfCorePropertySetterAdapter<TEntity>(builder);
+            var adapter = new EFCorePropertySetterAdapter<TEntity>(builder);
             setPropertyAction(adapter);
 
             // Bulk updates bypass the ChangeTracker, so Interceptors are NOT triggered.
@@ -94,11 +93,10 @@ public partial class VKEfCoreRepository<TEntity>
         return updatedRows;
     }
 
-    /// <inheritdoc />
-    public async Task<int> ExecuteDeleteAsync(
+    private async Task<int> ExecuteDeleteInternalAsync(
         Expression<Func<TEntity, bool>> predicate,
-        bool forceDelete = false,
-        CancellationToken cancellationToken = default)
+        bool forceDelete,
+        CancellationToken cancellationToken)
     {
         VKGuard.NotNull(predicate);
 
@@ -108,7 +106,7 @@ public partial class VKEfCoreRepository<TEntity>
         {
             var softDeletedRows = await query.ExecuteUpdateAsync(builder =>
             {
-                var adapter = new EfCorePropertySetterAdapter<TEntity>(builder);
+                var adapter = new EFCorePropertySetterAdapter<TEntity>(builder);
 
                 // Bulk deletes bypass the ChangeTracker. For Soft Delete, we are actually doing an Update.
                 // We must manually invoke the processor to set IsDeleted = true and generic auditing fields.
@@ -127,4 +125,51 @@ public partial class VKEfCoreRepository<TEntity>
         return deletedRows;
     }
 #endif
+
+    /// <inheritdoc />
+    public Task<int> ExecuteDeleteAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecuteDeleteInternalAsync(predicate, forceDelete: false, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<int> ExecuteHardDeleteAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        return ExecuteDeleteInternalAsync(predicate, forceDelete: true, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<int> ExecuteUpdateAsync(
+        IVKSpecification<TEntity> specification,
+        Action<IVKPropertySetter<TEntity>> setPropertyAction,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(specification);
+        var predicate = specification.Criteria ?? (e => true);
+        return ExecuteUpdateAsync(predicate, setPropertyAction, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<int> ExecuteDeleteAsync(
+        IVKSpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(specification);
+        var predicate = specification.Criteria ?? (e => true);
+        return ExecuteDeleteInternalAsync(predicate, forceDelete: false, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<int> ExecuteHardDeleteAsync(
+        IVKSpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(specification);
+        var predicate = specification.Criteria ?? (e => true);
+        return ExecuteDeleteInternalAsync(predicate, forceDelete: true, cancellationToken);
+    }
 }

@@ -12,7 +12,7 @@ using VK.Blocks.Persistence.EFCore.Diagnostics.Internal;
 namespace VK.Blocks.Persistence.EFCore;
 
 /// <summary>
-/// Interceptor for multi-tenancy concerns, including TenantId injection during saves 
+/// Interceptor for multi-tenancy concerns, including TenantId injection during saves
 /// and Schema switching during connection opening.
 /// </summary>
 public sealed class VKTenantInterceptor(
@@ -65,10 +65,10 @@ public sealed class VKTenantInterceptor(
 
             if (VKEntityMetadata.IsMultiTenantEntity(type) && entry.Entity is IVKMultiTenantEntity multiTenantEntity)
             {
-                if (string.IsNullOrWhiteSpace(multiTenantEntity.TenantId))
+                if (multiTenantEntity.TenantId.IsNullOrEmpty())
                 {
                     var tenantId = _tenantProvider.GetCurrentTenantId();
-                    if (string.IsNullOrWhiteSpace(tenantId))
+                    if (tenantId.IsNullOrEmpty())
                     {
                         throw new InvalidOperationException($"Cannot save IVKMultiTenant entity of type '{type.Name}': TenantId is missing from context.");
                     }
@@ -104,7 +104,7 @@ public sealed class VKTenantInterceptor(
         if (string.IsNullOrEmpty(command.CommandText))
             return;
 
-        _logger.LogSwitchingSchema(schema, _tenantContext.CurrentTenant!.Id);
+        _logger.LogSwitchingSchema(schema, _tenantContext.CurrentTenant!.Id.Value.ToString());
         command.ExecuteNonQuery();
     }
 
@@ -120,7 +120,7 @@ public sealed class VKTenantInterceptor(
         if (string.IsNullOrEmpty(command.CommandText))
             return;
 
-        _logger.LogSwitchingSchemaAsync(schema, _tenantContext.CurrentTenant!.Id);
+        _logger.LogSwitchingSchemaAsync(schema, _tenantContext.CurrentTenant!.Id.Value.ToString());
         await command.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
@@ -137,7 +137,7 @@ public sealed class VKTenantInterceptor(
             return $"SET search_path TO {schema}";
         }
 
-        // SQL Server: Not natively supported via connection-level switch in a clean way 
+        // SQL Server: Not natively supported via connection-level switch in a clean way
         // without affecting permissions, usually handled via HasDefaultSchema in OnModelCreating.
         // But for dynamic switches, some use custom SESSION_CONTEXT or equivalent.
 

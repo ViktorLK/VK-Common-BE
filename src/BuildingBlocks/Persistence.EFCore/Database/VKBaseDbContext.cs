@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using VK.Blocks.Core;
 using VK.Blocks.MultiTenancy;
-using VK.Blocks.Persistence.EFCore.Storage;
+using VK.Blocks.Persistence.EFCore.Database.Internal;
 
 namespace VK.Blocks.Persistence.EFCore;
 
@@ -12,12 +13,12 @@ public abstract class VKBaseDbContext : DbContext
     /// <summary>
     /// The current tenant identifier retrieved from the provider.
     /// </summary>
-    public string? CurrentTenantId { get; }
+    public VKTenantId? CurrentTenantId { get; }
 
     /// <summary>
     /// Evaluated by EF Core Global Query Filters during query execution. Throws if the tenant is missing.
     /// </summary>
-    public string CurrentTenantIdForQueryFilter => CurrentTenantId 
+    public VKTenantId CurrentTenantIdForQueryFilter => CurrentTenantId
         ?? throw new System.InvalidOperationException("Cannot query IVKMultiTenant entity: TenantId is missing from context. If you intend to query across all tenants, use .IgnoreQueryFilters().");
 
     /// <summary>
@@ -30,11 +31,11 @@ public abstract class VKBaseDbContext : DbContext
     /// </summary>
     /// <param name="options">The options for this context.</param>
     /// <param name="tenantProvider">The tenant provider to resolve the current tenant context.</param>
-    /// <param name="persistenceOptions">The EF Core options containing feature flags.</param>
-    protected VKBaseDbContext(DbContextOptions options, IVKTenantProvider? tenantProvider = null, VKPersistenceEFCoreOptions? persistenceOptions = null) : base(options)
+    /// <param name="defaultOptions">The EF Core options containing feature flags.</param>
+    protected VKBaseDbContext(DbContextOptions options, IVKTenantProvider? tenantProvider = null, VKPersistenceEFCoreDefaultsOptions? defaultOptions = null) : base(options)
     {
         CurrentTenantId = tenantProvider?.GetCurrentTenantId();
-        IsMultiTenancyEnabled = persistenceOptions?.EnableMultiTenancy ?? false;
+        IsMultiTenancyEnabled = defaultOptions?.EnableMultiTenancy ?? false;
     }
 
     /// <summary>

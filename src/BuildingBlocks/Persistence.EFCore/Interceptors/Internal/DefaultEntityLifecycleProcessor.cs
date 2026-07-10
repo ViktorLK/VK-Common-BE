@@ -2,12 +2,12 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.EFCore;
+namespace VK.Blocks.Persistence.EFCore.Interceptors.Internal;
 
 /// <summary>
 /// Default implementation of <see cref="IVKEntityLifecycleProcessor"/>.
 /// </summary>
-public sealed class VKEntityLifecycleProcessor(IVKAuditProvider auditProvider) : IVKEntityLifecycleProcessor
+internal sealed class DefaultEntityLifecycleProcessor(IVKAuditProvider auditProvider) : IVKEntityLifecycleProcessor
 {
     private readonly IVKAuditProvider _auditProvider = auditProvider;
 
@@ -56,6 +56,11 @@ public sealed class VKEntityLifecycleProcessor(IVKAuditProvider auditProvider) :
 
             if (VKEntityMetadata.IsSoftDelete(entry.Entity.GetType()) && entry.Entity is IVKSoftDelete softDelete)
             {
+                if (PhysicalDeleteRegistry.ShouldPhysicalDelete(entry.Entity))
+                {
+                    continue;
+                }
+
                 entry.State = EntityState.Modified;
 
                 softDelete.IsDeleted = true;

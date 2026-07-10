@@ -10,15 +10,15 @@ namespace VK.Blocks.Persistence.EFCore;
 /// </summary>
 /// <typeparam name="TEntity">The entity type.</typeparam>
 
-public sealed class VKEfCorePropertySetter<TEntity> : IVKPropertySetter<TEntity> where TEntity : class
+public sealed class VKEFCorePropertySetter<TEntity> : IVKPropertySetter<TEntity> where TEntity : class
 {
     private readonly ParameterExpression _parameter = Expression.Parameter(typeof(SetPropertyCalls<TEntity>));
     private Expression _currentExpressionChain;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="VKEfCorePropertySetter{TEntity}"/> class.
+    /// Initializes a new instance of the <see cref="VKEFCorePropertySetter{TEntity}"/> class.
     /// </summary>
-    public VKEfCorePropertySetter()
+    public VKEFCorePropertySetter()
     {
         _currentExpressionChain = _parameter;
     }
@@ -28,7 +28,7 @@ public sealed class VKEfCorePropertySetter<TEntity> : IVKPropertySetter<TEntity>
         Expression<Func<TEntity, TProperty>> propertyExpression,
         TProperty value)
     {
-        var method = EfCoreMethodInfoCache<TEntity>.SetPropertyValueMethod.MakeGenericMethod(typeof(TProperty));
+        var method = EFCoreMethodInfoCache<TEntity>.SetPropertyValueMethod.MakeGenericMethod(typeof(TProperty));
 
         _currentExpressionChain = Expression.Call(
             _currentExpressionChain,
@@ -45,7 +45,7 @@ public sealed class VKEfCorePropertySetter<TEntity> : IVKPropertySetter<TEntity>
         Expression<Func<TEntity, TProperty>> propertyExpression,
         Expression<Func<TEntity, TProperty>> valueExpression)
     {
-        var method = EfCoreMethodInfoCache<TEntity>.SetPropertyExpressionMethod.MakeGenericMethod(typeof(TProperty));
+        var method = EFCoreMethodInfoCache<TEntity>.SetPropertyExpressionMethod.MakeGenericMethod(typeof(TProperty));
 
         _currentExpressionChain = Expression.Call(
             _currentExpressionChain,

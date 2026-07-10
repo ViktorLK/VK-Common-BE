@@ -3,13 +3,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Query;
 
-namespace VK.Blocks.Persistence.EFCore.Caches.Internal;
+namespace VK.Blocks.Persistence.EFCore.Database.Internal;
 
 /// <summary>
 /// Cache for MethodInfo of property setter methods.
 /// </summary>
 /// <typeparam name="TEntity">The entity type.</typeparam>
-internal static class EfCoreMethodInfoCache<TEntity>
+internal static class EFCoreMethodInfoCache<TEntity>
 {
     /// <summary>
     /// The MethodInfo for SetProperty(Expression, Value).

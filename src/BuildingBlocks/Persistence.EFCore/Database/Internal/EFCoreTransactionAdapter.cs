@@ -3,18 +3,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace VK.Blocks.Persistence.EFCore.Storage.Internal;
+namespace VK.Blocks.Persistence.EFCore.Database.Internal;
 
 /// <summary>
 /// Adapter for EF Core transactions to <see cref="IVKTransaction"/>.
 /// </summary>
-internal sealed class EfCoreTransactionAdapter(IDbContextTransaction transaction) : IVKTransaction
+internal sealed class EFCoreTransactionAdapter(IDbContextTransaction transaction) : IVKTransaction
 {
-
     /// <inheritdoc />
     public Guid TransactionId => transaction.TransactionId;
-
-
 
     /// <inheritdoc />
     public async Task CommitAsync(CancellationToken cancellationToken = default)

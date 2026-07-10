@@ -2,20 +2,19 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using VK.Blocks.MultiTenancy;
 
-namespace VK.Blocks.Persistence.EFCore.MultiTenancy.Internal;
+namespace VK.Blocks.Persistence.EFCore.Interceptors.Internal;
 
 /// <summary>
 /// Configures DbContext options based on the current tenant's information.
 /// Supports dynamic connection strings for database-level isolation.
 /// </summary>
 internal sealed class MultiTenantDbContextOptionsConfigurator(
-    IOptions<VKPersistenceEFCoreOptions> options,
+    VKPersistenceEFCoreDefaultsOptions options,
     IServiceProvider serviceProvider) : IVKDbContextOptionsConfigurator
 {
-    private readonly VKPersistenceEFCoreOptions _options = options.Value;
+    private readonly VKPersistenceEFCoreDefaultsOptions _options = options;
 
     public void Configure(DbContextOptionsBuilder builder, IServiceProvider _)
     {

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace VK.Blocks.Persistence.EFCore.Lifecycle.Internal;
+namespace VK.Blocks.Persistence.EFCore.Interceptors.Internal;
 
 /// <summary>
 /// A default, no-op implementation of <see cref="IVKEntityLifecycleProcessor"/>

@@ -4,14 +4,13 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.EFCore.Storage;
+namespace VK.Blocks.Persistence.EFCore.Database.Internal;
 
 /// <summary>
 /// Extension methods for <see cref="VKBaseDbContext"/>.
 /// </summary>
 internal static class BaseDbContextExtensions
 {
-
     private static readonly MethodInfo _setSoftDeleteFilterMethod = typeof(BaseDbContextExtensions)
         .GetMethod(nameof(SetSoftDeleteFilter), BindingFlags.NonPublic | BindingFlags.Static) ?? throw new InvalidOperationException($"NotFound {nameof(SetSoftDeleteFilter)}");
 

@@ -9,6 +9,6 @@ internal static partial class PersistenceBlockRegistration
     // [SG Hook]
     static partial void RegisterBlockCustom(IVKPersistenceBuilder builder)
     {
-        PersistenceDefaultsFeature.Register(builder);
+        PersistenceFeature.Register(builder);
     }
 }

@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Persistence.Auditing.Internal;
-using VK.Blocks.Persistence;
 
 namespace VK.Blocks.Persistence.Common.DependencyInjection.Internal;
 
 /// <summary>
-/// Partial implementation for Persistence Defaults feature hooks.
+/// Partial implementation for Persistence feature hooks.
 /// </summary>
-internal sealed partial class PersistenceDefaultsFeature
+internal sealed partial class PersistenceFeature
 {
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPersistenceOptions options)
