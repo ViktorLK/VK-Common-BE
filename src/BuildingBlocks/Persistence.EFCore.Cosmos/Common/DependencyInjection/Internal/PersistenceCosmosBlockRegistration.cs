@@ -1,0 +1,70 @@
+﻿using System;
+using Microsoft.Azure.Cosmos;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
+using VK.Blocks.Persistence;
+using VK.Blocks.Persistence.Cosmos.Connection;
+using VK.Blocks.Persistence.Cosmos.Connection.Internal;
+using VK.Blocks.Persistence.Cosmos.Repositories.Internal;
+using VK.Blocks.Persistence.Cosmos.Provisioning.Internal;
+using VK.Blocks.Persistence.Cosmos.ChangeFeed.Internal;
+using VK.Blocks.Persistence.Cosmos.Confliction.Internal;
+using VK.Blocks.Persistence.Cosmos.Query.Internal;
+using VK.Blocks.Persistence.Cosmos.ServerSide.Internal;
+using VK.Blocks.Persistence.Cosmos.Failover.Internal;
+using VK.Blocks.Persistence.Cosmos;
+
+namespace VK.Blocks.Persistence.Cosmos.Common.DependencyInjection.Internal;
+
+/// <summary>
+/// Controls DI mapping for Cosmos DB building block.
+/// </summary>
+internal static partial class PersistenceCosmosBlockRegistration
+{
+    static partial void RegisterBlockCustom(IVKPersistenceCosmosBuilder builder)
+    {
+        var services = builder.Services;
+        var configuration = builder.Configuration;
+        PersistenceCosmosBlock.Register(builder);
+        var options = services.GetVKServiceInstance<VKPersistenceCosmosOptions>()!;
+
+        // 7. Core Services
+        services.TryAddSingleton<IVKCosmosDbConnection, CosmosDbConnection>();
+
+        services.AddDbContext<VKCosmosDbContext>((sp, dbBuilder) =>
+        {
+            var opt = sp.GetRequiredService<VKPersistenceCosmosOptions>();
+            dbBuilder.UseCosmos(opt.ConnectionString, opt.DatabaseName);
+        });
+
+        services.TryAddScoped<DbContext>(sp => sp.GetRequiredService<VKCosmosDbContext>());
+        services.TryAddScoped(typeof(IVKReadRepository<>), typeof(CosmosBaseRepository<>));
+        services.TryAddScoped(typeof(IVKWriteRepository<>), typeof(CosmosBaseRepository<>));
+        services.TryAddScoped(typeof(IVKBaseRepository<>), typeof(CosmosBaseRepository<>));
+        services.TryAddScoped(typeof(IVKCosmosRepository<>), typeof(CosmosBaseRepository<>));
+        services.TryAddSingleton(typeof(IVKCosmosQueryRepository<>), typeof(CosmosQueryRepository<>));
+
+        services.TryAddSingleton<IVKCosmosServerSideManager, CosmosServerSideManager>();
+        services.TryAddSingleton<IVKCosmosContainerProvisioner, CosmosContainerProvisioner>();
+        services.TryAddSingleton<IVKCosmosFailoverManager, CosmosFailoverManager>();
+
+        services.TryAddSingleton<CosmosIndexPolicyBuilder>();
+        services.TryAddSingleton<CompositeIndexProvisioner>();
+        services.TryAddSingleton<ChangeFeedObserverFactory>();
+        services.TryAddSingleton<OptimisticConcurrencyHandler>();
+        services.TryAddSingleton<CustomConflictResolver>();
+
+        if (options.EnableSessionTokenPropagation)
+        {
+            services.TryAddSingleton<SessionTokenManager>();
+            services.TryAddSingleton<IVKCosmosSessionTokenAccessor>(sp => sp.GetRequiredService<SessionTokenManager>());
+        }
+
+        services.TryAddSingleton<IVKCosmosTransactionalBatchFactory, CosmosTransactionalBatchFactory>();
+    }
+}
+
+
+
