@@ -7,7 +7,7 @@ namespace VK.Blocks.Persistence.EFCore;
 /// Configuration options for the pagination feature.
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
-[VKFeature(typeof(VKPersistenceEFCoreBlock))]
+
 public sealed partial record VKPaginationOptions : IVKBlockOptions
 {
     /// <summary>

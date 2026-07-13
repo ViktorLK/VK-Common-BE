@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
 using VK.Blocks.Persistence.Auditing.Internal;
 
 namespace VK.Blocks.Persistence.Common.DependencyInjection.Internal;
@@ -9,20 +10,20 @@ namespace VK.Blocks.Persistence.Common.DependencyInjection.Internal;
 /// <summary>
 /// Partial implementation for Persistence feature hooks.
 /// </summary>
-internal sealed partial class PersistenceFeature
+internal sealed partial class PersistenceBlock
 {
     // [SG Hook]
-    static partial void RegisterFeatureCustom(IServiceCollection services, VKPersistenceOptions options)
+    static partial void RegisterBlockCustom(IVKPersistenceBuilder builder)
     {
-        if (!options.EnableAuditing)
+        if (!builder.Services.GetVKServiceInstance<VKPersistenceOptions>()!.EnableAuditing)
         {
-            services.TryAddScoped<IVKAuditProvider>(sp =>
+            builder.Services.TryAddScoped<IVKAuditProvider>(sp =>
                 new NoOpAuditProvider(sp.GetRequiredService<TimeProvider>()));
         }
     }
 
     // [SG Hook]
-    static partial void ValidateFeatureCustom(VKPersistenceOptions options, List<string> failures)
+    static partial void ValidateBlockCustom(VKPersistenceOptions options, List<string> failures)
     {
         if (options.DefaultCommandTimeoutSeconds <= 0)
         {
@@ -42,3 +43,4 @@ internal sealed partial class PersistenceFeature
         }
     }
 }
+

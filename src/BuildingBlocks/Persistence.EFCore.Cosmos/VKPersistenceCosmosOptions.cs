@@ -5,8 +5,7 @@ namespace VK.Blocks.Persistence.Cosmos;
 /// <summary>
 /// Represents the configuration options for Cosmos DB persistence.
 /// </summary>
-[VKFeature(typeof(VKPersistenceCosmosBlock))]
-public sealed partial record VKPersistenceCosmosOptions : IVKBlockOptions
+public sealed partial record VKPersistenceCosmosOptions
 {
     /// <summary>
     /// Gets the connection string to Cosmos DB.
@@ -104,6 +103,7 @@ public sealed partial record VKPersistenceCosmosOptions : IVKBlockOptions
     /// </summary>
     public string? AccountEndpoint { get; init; }
 }
+
 
 
 

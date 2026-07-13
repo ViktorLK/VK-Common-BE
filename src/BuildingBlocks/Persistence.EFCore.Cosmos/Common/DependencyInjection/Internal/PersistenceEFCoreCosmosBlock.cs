@@ -21,13 +21,13 @@ namespace VK.Blocks.Persistence.Cosmos.Common.DependencyInjection.Internal;
 /// <summary>
 /// Controls DI mapping for Cosmos DB building block.
 /// </summary>
-internal static partial class PersistenceCosmosBlockRegistration
+internal sealed partial class PersistenceEFCoreCosmosBlock
 {
-    static partial void RegisterBlockCustom(IVKPersistenceCosmosBuilder builder)
+    static partial void RegisterBlockCustom(IVKPersistenceEFCoreCosmosBuilder builder)
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
-        PersistenceCosmosBlock.Register(builder);
+        PersistenceEFCoreCosmosBlock.Register(builder);
         var options = services.GetVKServiceInstance<VKPersistenceCosmosOptions>()!;
 
         // 7. Core Services
@@ -65,6 +65,8 @@ internal static partial class PersistenceCosmosBlockRegistration
         services.TryAddSingleton<IVKCosmosTransactionalBatchFactory, CosmosTransactionalBatchFactory>();
     }
 }
+
+
 
 
 

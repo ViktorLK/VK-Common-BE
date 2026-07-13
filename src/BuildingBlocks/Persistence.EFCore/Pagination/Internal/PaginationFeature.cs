@@ -8,6 +8,7 @@ namespace VK.Blocks.Persistence.EFCore.Pagination.Internal;
 /// <summary>
 /// Pagination feature marker and registration hub.
 /// </summary>
+[VKFeature(typeof(VKPersistenceEFCoreBlock), OptionsType = typeof(VKPaginationOptions))]
 internal sealed partial class PaginationFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPaginationOptions options)

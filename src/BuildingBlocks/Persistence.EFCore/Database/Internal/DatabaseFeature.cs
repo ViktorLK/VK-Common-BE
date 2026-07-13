@@ -1,3 +1,4 @@
+using VK.Blocks.Core;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,6 +7,7 @@ namespace VK.Blocks.Persistence.EFCore.Database.Internal;
 /// <summary>
 /// Database feature marker and registration hub.
 /// </summary>
+[VKFeature(typeof(VKPersistenceEFCoreBlock), OptionsType = typeof(VKDatabaseOptions))]
 internal sealed partial class DatabaseFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKDatabaseOptions options)
