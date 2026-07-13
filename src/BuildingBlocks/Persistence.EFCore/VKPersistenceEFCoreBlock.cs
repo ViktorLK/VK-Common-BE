@@ -1,4 +1,4 @@
-using VK.Blocks.Core;
+﻿using VK.Blocks.Core;
 
 namespace VK.Blocks.Persistence.EFCore;
 
@@ -7,3 +7,4 @@ namespace VK.Blocks.Persistence.EFCore;
 /// </summary>
 [VKBlockMarker(Dependencies = [typeof(VKCoreBlock)])]
 public sealed partial class VKPersistenceEFCoreBlock;
+

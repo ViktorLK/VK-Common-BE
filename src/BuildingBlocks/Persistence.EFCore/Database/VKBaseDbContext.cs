@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Core;
 using VK.Blocks.MultiTenancy;
 using VK.Blocks.Persistence.EFCore.Database.Internal;
@@ -32,7 +32,7 @@ public abstract class VKBaseDbContext : DbContext
     /// <param name="options">The options for this context.</param>
     /// <param name="tenantProvider">The tenant provider to resolve the current tenant context.</param>
     /// <param name="defaultOptions">The EF Core options containing feature flags.</param>
-    protected VKBaseDbContext(DbContextOptions options, IVKTenantProvider? tenantProvider = null, VKPersistenceEFCoreDefaultsOptions? defaultOptions = null) : base(options)
+    protected VKBaseDbContext(DbContextOptions options, IVKTenantProvider? tenantProvider = null, VKPersistenceEFCoreOptions? defaultOptions = null) : base(options)
     {
         CurrentTenantId = tenantProvider?.GetCurrentTenantId();
         IsMultiTenancyEnabled = defaultOptions?.EnableMultiTenancy ?? false;
@@ -54,3 +54,4 @@ public abstract class VKBaseDbContext : DbContext
         modelBuilder.ApplyConcurrencyToken();
     }
 }
+

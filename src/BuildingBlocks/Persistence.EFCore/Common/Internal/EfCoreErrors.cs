@@ -1,4 +1,4 @@
-﻿using VK.Blocks.Core;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Persistence.EFCore.Common.Internal;
 
@@ -6,7 +6,7 @@ namespace VK.Blocks.Persistence.EFCore.Common.Internal;
 /// Domain-specific error constants for the EF Core Persistence module.
 /// Follows CS.01: {ModuleName}.{Category}.{Reason} format.
 /// </summary>
-internal static class EfCoreErrors
+internal static class EFCoreErrors
 {
     public static class Transaction
     {
@@ -24,7 +24,7 @@ internal static class EfCoreErrors
         public static readonly VKError PrimaryKeyNotFound = VKError.NotFound(
             "Persistence.EFCore.Repository.PrimaryKeyNotFound",
             "The primary key for the specified entity could not be found.");
-            
+
         public static readonly VKError EntityNotFound = VKError.NotFound(
             "Persistence.EFCore.Repository.EntityNotFound",
             "The requested entity was not found in the database.");
@@ -39,10 +39,9 @@ internal static class EfCoreErrors
         public static readonly VKError InvalidPageSize = VKError.Validation(
             "Persistence.EFCore.Pagination.InvalidPageSize",
             "Page size must be greater than zero.");
-            
+
         public static readonly VKError PageSizeLimitExceeded = VKError.Validation(
             "Persistence.EFCore.Pagination.PageSizeLimitExceeded",
             "The requested page size exceeds the maximum allowed limit.");
     }
 }
-

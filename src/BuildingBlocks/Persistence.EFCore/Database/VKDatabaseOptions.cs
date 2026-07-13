@@ -8,7 +8,7 @@ namespace VK.Blocks.Persistence.EFCore;
 /// Configuration options for the Database feature.
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
-[VKFeature(typeof(VKPersistenceEFCoreBlock))]
+
 public sealed partial record VKDatabaseOptions : IVKBlockOptions
 {
     /// <summary>

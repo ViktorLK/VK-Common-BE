@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,10 +11,10 @@ namespace VK.Blocks.Persistence.EFCore.Interceptors.Internal;
 /// Supports dynamic connection strings for database-level isolation.
 /// </summary>
 internal sealed class MultiTenantDbContextOptionsConfigurator(
-    VKPersistenceEFCoreDefaultsOptions options,
+    VKPersistenceEFCoreOptions options,
     IServiceProvider serviceProvider) : IVKDbContextOptionsConfigurator
 {
-    private readonly VKPersistenceEFCoreDefaultsOptions _options = options;
+    private readonly VKPersistenceEFCoreOptions _options = options;
 
     public void Configure(DbContextOptionsBuilder builder, IServiceProvider _)
     {
@@ -66,3 +66,4 @@ internal sealed class MultiTenantDbContextOptionsConfigurator(
         ((IDbContextOptionsBuilderInfrastructure)builder).AddOrUpdateExtension(extension);
     }
 }
+

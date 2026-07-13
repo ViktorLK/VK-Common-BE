@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>VK.Blocks.Persistence.EFCore.Cosmos</RootNamespace>
+    <AssemblyName>VK.Blocks.Persistence.EFCore.Cosmos</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Cosmos" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Cosmos" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\Persistence\VK.Blocks.Persistence.csproj" />
+    <ProjectReference Include="..\Persistence.EFCore\VK.Blocks.Persistence.EFCore.csproj" />
+    <ProjectReference Include="..\Infrastructure.Azure\VK.Blocks.Infrastructure.Azure.csproj" Condition="Exists('..\Infrastructure.Azure\VK.Blocks.Infrastructure.Azure.csproj')" />
+  </ItemGroup>
+
+
+</Project>
