@@ -2,7 +2,7 @@ using System.IO;
 using Microsoft.Azure.Cosmos;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.Cosmos.Connection.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Connection.Internal;
 
 /// <summary>
 /// Cosmos DB custom serializer integrated with the VK system JSON serializer.

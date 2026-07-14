@@ -1,4 +1,4 @@
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Defines the authentication modes supported by VK Cosmos DB persistence.

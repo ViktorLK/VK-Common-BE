@@ -1,4 +1,4 @@
-namespace VK.Blocks.Persistence.Cosmos.Connection;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Connection;
 
 /// <summary>
 /// Public accessor for Cosmos DB session token state.

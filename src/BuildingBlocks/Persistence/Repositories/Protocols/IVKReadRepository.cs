@@ -127,16 +127,16 @@ public interface IVKReadRepository<TEntity> where TEntity : class
     /// Asynchronously determines whether any element of a sequence satisfies a condition.
     /// </summary>
     Task<bool> AnyAsync(
-        Expression<Func<TEntity, bool>>? predicate = null, 
-        VKQueryOptions? options = null, 
+        Expression<Func<TEntity, bool>>? predicate = null,
+        VKQueryOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Asynchronously returns the number of elements in a sequence.
     /// </summary>
     Task<int> CountAsync(
-        Expression<Func<TEntity, bool>>? predicate = null, 
-        VKQueryOptions? options = null, 
+        Expression<Func<TEntity, bool>>? predicate = null,
+        VKQueryOptions? options = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

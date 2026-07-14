@@ -3,10 +3,9 @@ using System.Net;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos;
-using VK.Blocks.Persistence.Cosmos.Common.Diagnostics.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Common.Diagnostics.Internal;
 
-namespace VK.Blocks.Persistence.Cosmos.Confliction.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Confliction.Internal;
 
 /// <summary>
 /// Maps Cosmos DB HTTP status 412 concurrency conflicts into typed business Result failures.

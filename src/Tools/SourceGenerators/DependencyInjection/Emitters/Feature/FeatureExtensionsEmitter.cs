@@ -4,13 +4,13 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using VK.Tools.SourceGenerators.Feature.Models;
+using VK.Tools.SourceGenerators.DependencyInjection.Models;
 using VK.Tools.SourceGenerators.Extensions;
 using VK.Tools.SourceGenerators.Utilities;
 
-namespace VK.Tools.SourceGenerators.Feature.Internal;
+namespace VK.Tools.SourceGenerators.DependencyInjection.Emitters.Feature;
 
-internal static class BuilderExtensionsEmitter
+internal static class FeatureExtensionsEmitter
 {
     public static void Emit(
         SourceProductionContext ctx,
@@ -27,7 +27,7 @@ internal static class BuilderExtensionsEmitter
 
         var targetInfos = targets.Select(t =>
         {
-            var ns = t.BuilderTypeFullName.Replace("global::", "");
+            var ns = t.Identity.BuilderTypeFullName.Replace("global::", "");
             var lastDot = ns.LastIndexOf('.');
             var blockNamespace = lastDot > -1 ? ns.Substring(0, lastDot) : ns;
 
@@ -50,7 +50,7 @@ internal static class BuilderExtensionsEmitter
             var first = group.First();
             var blockNamespace = first.BlockNamespace;
             var baseBuilderName = first.BaseBuilderName;
-            var builderTypeFullName = first.Target.BuilderTypeFullName;
+            var builderTypeFullName = first.Target.Identity.BuilderTypeFullName;
 
             // Check if the extension class already exists in the compilation and is NOT partial
             var typeSymbol = compilation.GetTypeByMetadataName($"{blockNamespace}.{extensionsClassName}");
@@ -79,16 +79,16 @@ internal static class BuilderExtensionsEmitter
             sb.AppendLine($"public static partial class {extensionsClassName}");
             sb.AppendLine("{");
 
-            var sortedFeatures = group.Select(x => x.Target).OrderBy(t => t.FeatureName).ToList();
+            var sortedFeatures = group.Select(x => x.Target).OrderBy(t => t.Identity.FeatureName).ToList();
 
             foreach (var target in sortedFeatures)
             {
                 // Check if the specific AddVK{FeatureName} method is already manually defined in the class
                 if (typeSymbol is not null)
                 {
-                    var methodExists = typeSymbol.GetMembers($"AddVK{target.FeatureName}")
+                    var methodExists = typeSymbol.GetMembers($"AddVK{target.Identity.FeatureName}")
                         .OfType<IMethodSymbol>()
-                        .Any(m => m.Parameters.Length > 0 && m.Parameters[0].Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == target.BuilderTypeFullName);
+                        .Any(m => m.Parameters.Length > 0 && m.Parameters[0].Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == target.Identity.BuilderTypeFullName);
 
                     if (methodExists)
                     {
@@ -97,14 +97,23 @@ internal static class BuilderExtensionsEmitter
                 }
 
                 sb.AppendLine("    /// <summary>");
-                sb.AppendLine($"    /// Adds the {target.FeatureName} feature.");
+                sb.AppendLine($"    /// Adds the {target.Identity.FeatureName} feature.");
                 sb.AppendLine("    /// </summary>");
-                sb.AppendLine($"    public static {target.BuilderTypeFullName} AddVK{target.FeatureName}(");
-                sb.AppendLine($"        this {target.BuilderTypeFullName} builder,");
-                sb.AppendLine($"        Func<{target.OptionsFullNamespace}.{target.OptionsClassName}, {target.OptionsFullNamespace}.{target.OptionsClassName}>? transform = null)");
+                sb.AppendLine($"    public static {target.Identity.BuilderTypeFullName} AddVK{target.Identity.FeatureName}(");
+                sb.AppendLine($"        this {target.Identity.BuilderTypeFullName} builder,");
+                sb.AppendLine($"        Func<{target.Options.FullNamespace}.{target.Options.ClassName}, {target.Options.FullNamespace}.{target.Options.ClassName}>? transform = null)");
                 sb.AppendLine("    {");
                 sb.AppendLine("        VKGuard.NotNull(builder);");
-                sb.AppendLine($"        {target.Namespace}.Internal.{target.FeatureName}Feature.Register(builder, transform);");
+                
+                var parentBlockName = target.Parent.BlockTypeFullName.Split('.').Last();
+                if (parentBlockName.EndsWith("Block"))
+                    parentBlockName = parentBlockName.Substring(0, parentBlockName.Length - 5);
+                if (parentBlockName.StartsWith("VK"))
+                    parentBlockName = parentBlockName.Substring(2);
+                var isBlockOptions = target.Options.ClassName == $"VK{parentBlockName}Options";
+                
+                var featureClassName = isBlockOptions ? $"{target.Identity.FeatureName}Block" : $"{target.Identity.FeatureName}Feature";
+                sb.AppendLine($"        {target.Identity.Namespace}.Internal.{featureClassName}.Register(builder, transform);");
                 sb.AppendLine("        return builder;");
                 sb.AppendLine("    }");
                 sb.AppendLine();
@@ -130,13 +139,13 @@ internal static class BuilderExtensionsEmitter
                 sb.AppendLine("        VKGuard.NotNull(builder);");
                 sb.AppendLine("        return builder");
 
-                var defaultFeatures = sortedFeatures.Where(t => t.IsDefault).ToList();
+                var defaultFeatures = sortedFeatures.Where(t => t.RegisterByDefault).ToList();
                 if (defaultFeatures.Count > 0)
                 {
                     for (int i = 0; i < defaultFeatures.Count; i++)
                     {
                         var target = defaultFeatures[i];
-                        sb.AppendLine($"            .AddVK{target.FeatureName}()" + (i == defaultFeatures.Count - 1 ? ";" : ""));
+                        sb.AppendLine($"            .AddVK{target.Identity.FeatureName}()" + (i == defaultFeatures.Count - 1 ? ";" : ""));
                     }
                 }
                 else

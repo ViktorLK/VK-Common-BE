@@ -1,4 +1,4 @@
-﻿using VK.Blocks.Core;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Persistence;
 
@@ -58,4 +58,3 @@ public sealed partial record VKPersistenceOptions : IVKToggleableBlockOptions
     /// </summary>
     public int ConcurrencyRetryCount { get; init; } = 3;
 }
-

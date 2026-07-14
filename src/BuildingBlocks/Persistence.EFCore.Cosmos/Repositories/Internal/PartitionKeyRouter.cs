@@ -1,7 +1,7 @@
 using Microsoft.Azure.Cosmos;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.Cosmos.Repositories.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Repositories.Internal;
 
 /// <summary>
 /// Forces partition route computation to prevent hot partition issues.
@@ -35,4 +35,3 @@ internal static class PartitionKeyRouter
         return new PartitionKey(val);
     }
 }
-

@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos;
-using VK.Blocks.Persistence.Cosmos.Connection;
-using VK.Blocks.Persistence.Cosmos.Common.Diagnostics.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Common.Diagnostics.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Connection;
 
-namespace VK.Blocks.Persistence.Cosmos.Provisioning.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Provisioning.Internal;
 
 /// <summary>
 /// Dynamic container provisioner supporting Hierarchical Partition Keys, TTL, and Analytical Store.

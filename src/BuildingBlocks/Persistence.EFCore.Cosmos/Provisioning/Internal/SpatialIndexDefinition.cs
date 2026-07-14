@@ -1,6 +1,6 @@
 using Microsoft.Azure.Cosmos;
 
-namespace VK.Blocks.Persistence.Cosmos.Provisioning.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Provisioning.Internal;
 
 /// <summary>
 /// Defines a spatial index to be applied to a path in Cosmos DB container.

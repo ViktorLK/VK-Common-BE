@@ -1,6 +1,6 @@
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Internal error registry for the Cosmos building block.

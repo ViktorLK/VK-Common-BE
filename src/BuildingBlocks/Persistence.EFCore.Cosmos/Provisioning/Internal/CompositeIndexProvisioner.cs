@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos.Common.Diagnostics.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Common.Diagnostics.Internal;
 
-namespace VK.Blocks.Persistence.Cosmos.Provisioning.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Provisioning.Internal;
 
 /// <summary>
 /// Automatically provisions composite indexes necessary for complex ORDER BY scenarios.
@@ -88,7 +88,8 @@ internal sealed class CompositeIndexProvisioner
         System.Collections.ObjectModel.Collection<CompositePath> a,
         System.Collections.ObjectModel.Collection<CompositePath> b)
     {
-        if (a.Count != b.Count) return false;
+        if (a.Count != b.Count)
+            return false;
         for (int i = 0; i < a.Count; i++)
         {
             if (a[i].Path != b[i].Path || a[i].Order != b[i].Order)

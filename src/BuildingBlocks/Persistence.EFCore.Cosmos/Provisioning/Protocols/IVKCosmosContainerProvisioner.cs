@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Public interface for dynamically provisioning Cosmos DB containers.

@@ -1,25 +1,22 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos;
-using VK.Blocks.Persistence.Cosmos.Common.DependencyInjection;
 
-namespace VK.Blocks.Persistence.Cosmos.Connection.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Connection.Internal;
 
 /// <summary>
 /// Controls connection lifetime and topology.
 /// </summary>
 internal sealed class CosmosDbConnection : IVKCosmosDbConnection, IDisposable
 {
-    private readonly VKPersistenceCosmosOptions _options;
+    private readonly VKPersistenceEFCoreCosmosOptions _options;
     private readonly CosmosClient _client;
-    private readonly Database _database;
+    private readonly Microsoft.Azure.Cosmos.Database _database;
 
     public CosmosDbConnection(
-        VKPersistenceCosmosOptions options,
+        VKPersistenceEFCoreCosmosOptions options,
         IVKJsonSerializer vkSerializer,
         IServiceProvider serviceProvider)
     {
@@ -114,7 +111,7 @@ internal sealed class CosmosDbConnection : IVKCosmosDbConnection, IDisposable
 
     public CosmosClient Client => _client;
 
-    public Database Database => _database;
+    public Microsoft.Azure.Cosmos.Database Database => _database;
 
     public Container GetContainer(string containerName)
     {
@@ -163,4 +160,3 @@ internal sealed class CosmosDbConnection : IVKCosmosDbConnection, IDisposable
         _client.Dispose();
     }
 }
-

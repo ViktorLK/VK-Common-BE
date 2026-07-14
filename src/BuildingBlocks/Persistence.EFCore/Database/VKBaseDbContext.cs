@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Core;
 using VK.Blocks.MultiTenancy;
 using VK.Blocks.Persistence.EFCore.Database.Internal;
@@ -54,4 +54,3 @@ public abstract class VKBaseDbContext : DbContext
         modelBuilder.ApplyConcurrencyToken();
     }
 }
-

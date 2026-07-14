@@ -2,27 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using VK.Tools.SourceGenerators.Feature.Models;
+using VK.Tools.SourceGenerators.DependencyInjection.Models;
 using VK.Tools.SourceGenerators.Extensions;
 
-namespace VK.Tools.SourceGenerators.Feature.Internal;
+namespace VK.Tools.SourceGenerators.DependencyInjection.Emitters.Feature;
 
-internal static class ArgsEmitter
+internal static class FeatureArgsEmitter
 {
     public static void Emit(SourceProductionContext ctx, FeatureTarget target, string? assemblyName)
     {
-        var optionsClassName = target.OptionsClassName;
+        var optionsClassName = target.Options.ClassName;
         var baseClassName = optionsClassName.EndsWith("Options") ? optionsClassName.Substring(0, optionsClassName.Length - 7) : optionsClassName;
         var argsClassName = $"{baseClassName}Args";
         var extensionsClassName = $"{argsClassName}Extensions";
 
-        var argsNamespace = assemblyName ?? target.OptionsFullNamespace;
+        var argsNamespace = assemblyName ?? target.Options.FullNamespace;
 
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using System;");
         sb.AppendLine("using VK.Blocks.Core;");
-        sb.AppendLine($"using {target.OptionsFullNamespace};");
-        if (target.OptionsFullNamespace.Contains(".AI") && argsNamespace != "VK.Blocks.AI")
+        sb.AppendLine($"using {target.Options.FullNamespace};");
+        if (target.Options.FullNamespace.Contains(".AI") && argsNamespace != "VK.Blocks.AI")
         {
             sb.AppendLine("using VK.Blocks.AI;");
         }
@@ -30,27 +30,19 @@ internal static class ArgsEmitter
         sb.AppendLine($"namespace {argsNamespace};");
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
-        sb.AppendLine($"/// Automatically generated request-scoped arguments for <see cref=\"{target.OptionsClassName}\"/>.");
+        sb.AppendLine($"/// Automatically generated request-scoped arguments for <see cref=\"{target.Options.ClassName}\"/>.");
         sb.AppendLine("/// </summary>");
 
-        var isAI = target.OptionsFullNamespace.Contains(".AI");
+        var isAI = target.Options.FullNamespace.Contains(".AI");
         var interfaceList = isAI
             ? new List<string> { "IVKAIArgs", $"IVKArgs<{argsClassName}>" }
             : new List<string> { $"IVKArgs<{argsClassName}>" };
-
-        foreach (var overrideInterface in target.ImplementedOverrides)
-        {
-            if (!interfaceList.Contains(overrideInterface))
-            {
-                interfaceList.Add(overrideInterface);
-            }
-        }
 
         var interfaces = " : " + string.Join(", ", interfaceList);
 
         sb.AppendLine($"public partial record {argsClassName}{interfaces}");
         sb.AppendLine("{");
-        sb.AppendLine($"    public static {argsClassName} Empty {{ get; }} = new();");
+        sb.AppendLine($"public static {argsClassName} Empty {{ get; }} = new();");
         sb.AppendLine();
 
         if (isAI)
@@ -89,7 +81,7 @@ internal static class ArgsEmitter
         sb.AppendLine();
         sb.AppendLine($"public static partial class {extensionsClassName}");
         sb.AppendLine("{");
-        sb.AppendLine($"    public static {target.OptionsClassName} Merge(this {argsClassName}? args, {target.OptionsClassName} options)");
+        sb.AppendLine($"    public static {target.Options.ClassName} Merge(this {argsClassName}? args, {target.Options.ClassName} options)");
         sb.AppendLine("    {");
         sb.AppendLine("        if (args is null) return options;");
         sb.AppendLine();
@@ -118,7 +110,7 @@ internal static class ArgsEmitter
             }
         }
 
-        if (isAI && target.IsTimeoutPresent && target.Properties.All(p => p.Name != "Timeout"))
+        if (isAI && target.Options.IsTimeoutPresent && target.Properties.All(p => p.Name != "Timeout"))
         {
             sb.AppendLine("            Timeout = args.Timeout ?? options.Timeout,");
         }

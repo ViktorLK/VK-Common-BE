@@ -1,4 +1,4 @@
-namespace VK.Blocks.Persistence.Cosmos.Connection.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Connection.Internal;
 
 /// <summary>
 /// Manages Cosmos DB session tokens per asynchronous execution context to guarantee read-your-own-writes consistency.

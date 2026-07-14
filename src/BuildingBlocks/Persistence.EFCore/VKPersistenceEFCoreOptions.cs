@@ -1,4 +1,4 @@
-﻿using VK.Blocks.Core;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Persistence.EFCore;
 
@@ -26,6 +26,3 @@ public sealed partial record VKPersistenceEFCoreOptions : IVKBlockOptions
     public bool? EnableMultiTenancy { get; init; }
 
 }
-
-
-

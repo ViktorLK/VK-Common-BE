@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Public interface for Cosmos DB query execution.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -81,7 +81,6 @@ public static partial class VKPersistenceEFCoreBlockExtensions
         services.TryAddScoped(typeof(IVKReadRepository<>), typeof(VKEFCoreReadRepository<>));
         services.TryAddScoped(typeof(IVKWriteRepository<>), typeof(VKEFCoreRepository<>));
         services.TryAddScoped(typeof(IVKBaseRepository<>), typeof(VKEFCoreRepository<>));
+        services.TryAddScoped(typeof(IVKBulkRepository<>), typeof(VKEFCoreRepository<>));
     }
 }
-
-

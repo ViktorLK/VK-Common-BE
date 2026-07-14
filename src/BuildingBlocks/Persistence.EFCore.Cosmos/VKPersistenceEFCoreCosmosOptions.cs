@@ -1,11 +1,11 @@
-﻿using VK.Blocks.Core;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Represents the configuration options for Cosmos DB persistence.
 /// </summary>
-public sealed partial record VKPersistenceCosmosOptions
+public sealed partial record VKPersistenceEFCoreCosmosOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets the connection string to Cosmos DB.
@@ -103,7 +103,3 @@ public sealed partial record VKPersistenceCosmosOptions
     /// </summary>
     public string? AccountEndpoint { get; init; }
 }
-
-
-
-

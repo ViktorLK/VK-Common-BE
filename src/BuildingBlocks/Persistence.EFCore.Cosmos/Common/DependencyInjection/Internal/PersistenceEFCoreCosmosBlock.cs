@@ -1,22 +1,18 @@
-﻿using System;
-using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence;
-using VK.Blocks.Persistence.Cosmos.Connection;
-using VK.Blocks.Persistence.Cosmos.Connection.Internal;
-using VK.Blocks.Persistence.Cosmos.Repositories.Internal;
-using VK.Blocks.Persistence.Cosmos.Provisioning.Internal;
-using VK.Blocks.Persistence.Cosmos.ChangeFeed.Internal;
-using VK.Blocks.Persistence.Cosmos.Confliction.Internal;
-using VK.Blocks.Persistence.Cosmos.Query.Internal;
-using VK.Blocks.Persistence.Cosmos.ServerSide.Internal;
-using VK.Blocks.Persistence.Cosmos.Failover.Internal;
-using VK.Blocks.Persistence.Cosmos;
+using VK.Blocks.Persistence.EFCore.Cosmos.ChangeFeed.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Confliction.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Connection;
+using VK.Blocks.Persistence.EFCore.Cosmos.Connection.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Failover.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Provisioning.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Query.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Repositories.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.ServerSide.Internal;
 
-namespace VK.Blocks.Persistence.Cosmos.Common.DependencyInjection.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Common.DependencyInjection.Internal;
 
 /// <summary>
 /// Controls DI mapping for Cosmos DB building block.
@@ -28,14 +24,14 @@ internal sealed partial class PersistenceEFCoreCosmosBlock
         var services = builder.Services;
         var configuration = builder.Configuration;
         PersistenceEFCoreCosmosBlock.Register(builder);
-        var options = services.GetVKServiceInstance<VKPersistenceCosmosOptions>()!;
+        var options = services.GetVKServiceInstance<VKPersistenceEFCoreCosmosOptions>()!;
 
         // 7. Core Services
         services.TryAddSingleton<IVKCosmosDbConnection, CosmosDbConnection>();
 
         services.AddDbContext<VKCosmosDbContext>((sp, dbBuilder) =>
         {
-            var opt = sp.GetRequiredService<VKPersistenceCosmosOptions>();
+            var opt = sp.GetRequiredService<VKPersistenceEFCoreCosmosOptions>();
             dbBuilder.UseCosmos(opt.ConnectionString, opt.DatabaseName);
         });
 
@@ -65,8 +61,3 @@ internal sealed partial class PersistenceEFCoreCosmosBlock
         services.TryAddSingleton<IVKCosmosTransactionalBatchFactory, CosmosTransactionalBatchFactory>();
     }
 }
-
-
-
-
-
