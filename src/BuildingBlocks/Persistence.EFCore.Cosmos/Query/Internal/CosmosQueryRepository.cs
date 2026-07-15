@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos.Connection;
-using VK.Blocks.Persistence.Cosmos;
-using VK.Blocks.Persistence.Cosmos.Common.Diagnostics.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Common.Diagnostics.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Connection;
 
-namespace VK.Blocks.Persistence.Cosmos.Query.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Query.Internal;
 
 /// <summary>
 /// Implementation of query operations using Cosmos SDK Container.

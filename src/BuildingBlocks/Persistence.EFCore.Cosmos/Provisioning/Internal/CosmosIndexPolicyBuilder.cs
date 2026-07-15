@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos;
 
-namespace VK.Blocks.Persistence.Cosmos.Provisioning.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Provisioning.Internal;
 
 /// <summary>
 /// Dynamic index engine assembling ExcludedPaths and IndexingPolicy setups.

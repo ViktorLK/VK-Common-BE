@@ -50,7 +50,7 @@ internal sealed partial class McpTools
             };
 
             using var process = Process.Start(startInfo);
-            if (process == null)
+            if (process is null)
                 return "[Error] Failed to start powershell process.";
 
             var stdoutTask = process.StandardOutput.ReadToEndAsync(ct);

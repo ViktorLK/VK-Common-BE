@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Configuration properties for provisioning a Cosmos DB Container.

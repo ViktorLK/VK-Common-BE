@@ -1,9 +1,9 @@
 using System;
 using Microsoft.Azure.Cosmos;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos.Connection;
+using VK.Blocks.Persistence.EFCore.Cosmos.Connection;
 
-namespace VK.Blocks.Persistence.Cosmos.ChangeFeed.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.ChangeFeed.Internal;
 
 /// <summary>
 /// Physical factory wrapping Cosmos lease container and processor builder.

@@ -1,4 +1,4 @@
-namespace VK.Blocks.Persistence.Cosmos.Common.Diagnostics;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Common.Diagnostics;
 
 /// <summary>
 /// Static diagnostic constant identifiers.

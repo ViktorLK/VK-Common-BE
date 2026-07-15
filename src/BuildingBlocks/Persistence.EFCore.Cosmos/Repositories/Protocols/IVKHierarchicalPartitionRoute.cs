@@ -1,6 +1,6 @@
 using Microsoft.Azure.Cosmos;
 
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Defines partition routing contract for hierarchical partition keys.

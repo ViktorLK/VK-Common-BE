@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos;
-using VK.Blocks.Persistence.Cosmos.Common.Diagnostics.Internal;
+using VK.Blocks.Persistence.EFCore.Cosmos.Common.Diagnostics.Internal;
 
-namespace VK.Blocks.Persistence.Cosmos.Repositories.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Repositories.Internal;
 
 /// <summary>
 /// Executes a transactional batch of operations atomically within a single logical partition key.

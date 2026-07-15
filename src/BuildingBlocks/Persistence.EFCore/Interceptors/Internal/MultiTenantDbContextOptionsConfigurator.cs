@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,4 +66,3 @@ internal sealed class MultiTenantDbContextOptionsConfigurator(
         ((IDbContextOptionsBuilderInfrastructure)builder).AddOrUpdateExtension(extension);
     }
 }
-

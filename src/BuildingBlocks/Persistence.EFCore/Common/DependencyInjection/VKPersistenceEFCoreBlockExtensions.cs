@@ -1,8 +1,12 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
+using VK.Blocks.Persistence;
+using VK.Blocks.Persistence.EFCore.Interceptors.Internal;
+
+
 
 namespace VK.Blocks.Persistence.EFCore;
 
@@ -47,7 +51,39 @@ public static partial class VKPersistenceEFCoreBlockExtensions
             ApplyFeatureInterceptors(dbBuilder, sp, defaultsOptions);
         });
 
+        // Register lifecycle processors
+        if (defaultsOptions.EnableAuditing == true || defaultsOptions.EnableSoftDelete == true || defaultsOptions.EnableMultiTenancy == true)
+        {
+            builder.Services.TryAddScoped<IVKEntityLifecycleProcessor, DefaultEntityLifecycleProcessor>();
+        }
+        builder.Services.TryAddScoped<IVKEntityLifecycleProcessor, NoOpEntityLifecycleProcessor>();
+
+        // Register fallback audit provider if auditing is enabled
+        var globalPersistenceOptions = builder.Services.GetVKServiceInstance<VKPersistenceOptions>();
+        var enableAuditing = defaultsOptions.EnableAuditing ?? globalPersistenceOptions?.EnableAuditing ?? true;
+        if (enableAuditing)
+        {
+            builder.Services.TryAddScoped<IVKAuditProvider, BasicAuditProvider>();
+        }
+
         RegisterBasePersistenceComponents<TContext>(builder.Services);
+
+        return builder;
+    }
+
+    public static IVKPersistenceEFCoreBuilder AddVKDbContext<TContext>(
+        this IVKPersistenceEFCoreBuilder builder,
+        Action<IVKDbContextBuilder<TContext>>? configure)
+        where TContext : DbContext
+    {
+        VKGuard.NotNull(builder);
+
+        // Call the main registration logic
+        _ = builder.AddVKDbContext<TContext>((Action<DbContextOptionsBuilder, VKDatabaseOptions>?)null);
+
+        // Execute local builder configuration
+        var dbBuilder = new VK.Blocks.Persistence.EFCore.Common.DependencyInjection.Internal.VKDbContextBuilder<TContext>(builder.Services, builder.Configuration);
+        configure?.Invoke(dbBuilder);
 
         return builder;
     }
@@ -81,7 +117,6 @@ public static partial class VKPersistenceEFCoreBlockExtensions
         services.TryAddScoped(typeof(IVKReadRepository<>), typeof(VKEFCoreReadRepository<>));
         services.TryAddScoped(typeof(IVKWriteRepository<>), typeof(VKEFCoreRepository<>));
         services.TryAddScoped(typeof(IVKBaseRepository<>), typeof(VKEFCoreRepository<>));
+        services.TryAddScoped(typeof(IVKBulkRepository<>), typeof(VKEFCoreRepository<>));
     }
 }
-
-

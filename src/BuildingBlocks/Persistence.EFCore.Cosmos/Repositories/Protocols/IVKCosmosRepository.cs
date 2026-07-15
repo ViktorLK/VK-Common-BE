@@ -1,6 +1,6 @@
 using Microsoft.Azure.Cosmos;
 
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Exposes the native Azure Cosmos SDK client and container along with the standard repository methods.

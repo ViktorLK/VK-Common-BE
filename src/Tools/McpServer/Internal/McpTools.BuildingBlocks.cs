@@ -35,7 +35,7 @@ internal sealed partial class McpTools
                 var moduleName = Path.GetFileName(dir);
                 var csprojFile = Directory.GetFiles(dir, "*.csproj").FirstOrDefault();
 
-                if (csprojFile != null)
+                if (csprojFile is not null)
                 {
                     var dependencies = await GetDependenciesAsync(csprojFile, ct).ConfigureAwait(false);
                     modules.Add(new
@@ -145,7 +145,7 @@ public static class VK{blockIdentifier}BlockExtensions
     /// Adds the {blockIdentifier} building block to the service collection.
     /// </summary>
     public static IVK{blockIdentifier}Builder Add{blockIdentifier}Block(
-        this IServiceCollection services, 
+        this IServiceCollection services,
         IConfiguration configuration,
         Func<VK{blockIdentifier}Options, VK{blockIdentifier}Options>? configure = null)
         => {blockIdentifier}BlockRegistration.Register(services, configuration, configure);
@@ -169,7 +169,7 @@ namespace VK.Blocks.{blockIdentifier}.DependencyInjection.Internal;
 internal static class {blockIdentifier}BlockRegistration
 {{
     internal static IVK{blockIdentifier}Builder Register(
-        IServiceCollection services, 
+        IServiceCollection services,
         IConfiguration configuration,
         Func<VK{blockIdentifier}Options, VK{blockIdentifier}Options>? configure = null)
     {{
@@ -298,7 +298,7 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
                     foreach (var id in ruleIds)
                     {
                         var ruleContent = await GetRuleContentInternal(id, ct).ConfigureAwait(false);
-                        if (ruleContent != null)
+                        if (ruleContent is not null)
                         {
                             activeRules[id] = ruleContent;
                         }
@@ -317,7 +317,7 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
 
                 // Parse sections and separate General Body vs ID-based Rules
                 var (preamble, ruleSections) = SplitBodyIntoContext(body);
-                
+
                 if (!string.IsNullOrWhiteSpace(preamble))
                 {
                     generalInstructions.AppendLine($"### 💡 Instructions from {Path.GetFileName(file)}");

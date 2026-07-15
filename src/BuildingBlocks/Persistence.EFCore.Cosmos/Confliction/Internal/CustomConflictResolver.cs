@@ -1,7 +1,7 @@
 using Microsoft.Azure.Cosmos;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.Cosmos.Confliction.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Confliction.Internal;
 
 /// <summary>
 /// Resolution settings for globally distributed multi-region databases.

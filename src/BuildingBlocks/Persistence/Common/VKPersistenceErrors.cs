@@ -19,7 +19,7 @@ public static class VKPersistenceErrors
         public static readonly VKError SaveChangesFailed = VKError.Failure(
             "Persistence.UnitOfWork.SaveChangesFailed",
             "An error occurred while saving changes to the data store.");
-            
+
         /// <summary>
         /// Error for optimistic concurrency conflicts.
         /// </summary>

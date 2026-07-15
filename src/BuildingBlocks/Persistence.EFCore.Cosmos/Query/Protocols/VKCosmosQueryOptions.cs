@@ -1,4 +1,4 @@
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Options for executing queries in Cosmos DB.

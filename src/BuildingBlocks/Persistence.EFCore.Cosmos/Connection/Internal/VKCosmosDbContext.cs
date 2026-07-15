@@ -1,19 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos;
 
-namespace VK.Blocks.Persistence.Cosmos.Connection.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Connection.Internal;
 
 /// <summary>
 /// Default DbContext implementation for the Cosmos provider.
 /// </summary>
 internal sealed class VKCosmosDbContext : DbContext
 {
-    private readonly VKPersistenceCosmosOptions _options;
+    private readonly VKPersistenceEFCoreCosmosOptions _options;
 
     public VKCosmosDbContext(
         DbContextOptions<VKCosmosDbContext> dbContextOptions,
-        VKPersistenceCosmosOptions options)
+        VKPersistenceEFCoreCosmosOptions options)
         : base(dbContextOptions)
     {
         _options = VKGuard.NotNull(options); // [AP.01]
@@ -29,4 +28,3 @@ internal sealed class VKCosmosDbContext : DbContext
         }
     }
 }
-

@@ -15,7 +15,7 @@ internal sealed partial class McpTools
 
     private static string FindProjectRoot()
     {
-        if (_cachedProjectRoot != null)
+        if (_cachedProjectRoot is not null)
             return _cachedProjectRoot;
 
         var currentDir = AppContext.BaseDirectory;

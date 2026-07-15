@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace VK.Blocks.Persistence.Cosmos.Common.Diagnostics.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Common.Diagnostics.Internal;
 
 /// <summary>
 /// Source-generated logger for Cosmos DB operations.
@@ -40,4 +40,3 @@ internal static partial class CosmosLog
     [LoggerMessage(EventId = 2004, Level = LogLevel.Information, Message = "Container {ContainerName} provisioned with TTL={TtlSeconds}s, AnalyticalStore={AnalyticalStoreEnabled}.")]
     public static partial void LogContainerProvisioned(ILogger logger, string containerName, int? ttlSeconds, bool analyticalStoreEnabled);
 }
-

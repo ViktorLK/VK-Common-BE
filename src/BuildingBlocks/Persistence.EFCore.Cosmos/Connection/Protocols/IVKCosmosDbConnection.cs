@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.Cosmos.Connection;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Connection;
 
 /// <summary>
 /// Exposes the bottom physical DB connection.
@@ -18,7 +18,7 @@ public interface IVKCosmosDbConnection
     /// <summary>
     /// Gets the Cosmos database.
     /// </summary>
-    Database Database { get; }
+    Microsoft.Azure.Cosmos.Database Database { get; }
 
     /// <summary>
     /// Gets a container reference.

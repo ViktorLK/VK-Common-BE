@@ -1,4 +1,4 @@
-﻿using VK.Blocks.Core;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Persistence.EFCore.Diagnostics.Internal;
 
@@ -7,4 +7,3 @@ namespace VK.Blocks.Persistence.EFCore.Diagnostics.Internal;
 /// </summary>
 [VKBlockDiagnostics<VKPersistenceEFCoreBlock>]
 internal static partial class PersistenceEFCoreDiagnostics;
-

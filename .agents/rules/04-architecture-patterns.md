@@ -44,8 +44,8 @@ trigger: manual
     - **Visibility**: MUST be declared as `internal`.
     - **Namespace**: SHOULD use the library's flat root namespace (e.g., `namespace VK.Blocks.AI;`).
     - **Naming**: MUST **NOT use the `VK` prefix**.
-- **Public API Surface (`Common/Contracts/` & Foundations)**:
-    - **Location**: Dedicated for types exposed to other BuildingBlocks or the Application layer.
+- **Public API Surface (`Common/Models/`, `Common/Protocols/` & Foundations)**:
+    - **Location**: Dedicated for types exposed to other BuildingBlocks or the Application layer. Public models reside in `Common/Models/`, public interfaces in `Common/Protocols/`.
     - **Visibility**: MUST be declared as `public`.
     - **Namespace**: MUST use the library's flat root namespace (e.g., `namespace VK.Blocks.AI;`).
     - **Naming**: MUST use the **`VK` prefix** (e.g., `VKAIUsage`).
@@ -95,16 +95,18 @@ For concrete implementation classes, strictly adhere to the following semantic p
 - **Dual-Registration**: The framework MUST maintain an **Idempotent Dual-Registration Pattern** (IOptions + Singleton) to allow synchronous access to options during startup.
 - **Implementation Delegation**: For exact structure (`sealed record` + `init`), naming (`VK` prefix), transform (`Func<T,T>`), and validation (`IValidateOptions`), strictly follow **BB.05**.
 
-### AP.05 — Strict Overrides Contract (Mode B)
+### AP.05 — Request-Scoped Args Pattern (SG-Automated)
 
-- **Pattern**: Behavioral settings that change per-request MUST follow a **"Strict Contractual Isolation"** model to prevent accidental exposure of system-level configurations.
-- **Components**:
-    - **Global Settings (`IVK...Settings`)**: Defined on `Options` classes. Groups all configuration parameters.
-    - **Local Overrides (`IVK...Overrides`)**: A separate interface defining ONLY the subset of properties permitted for request-level modification.
-    - **Generated Args (`XxxArgs`)**: A source-generated record that strictly implements the Overrides interface.
-- **Contract-First Automation**:
-    - The Source Generator MUST automatically identify the relationship: `IVK...Settings` -> `IVK...Overrides`.
-    - **Strict Subset**: `Args` properties MUST be derived EXCLUSIVELY from the Overrides interface members.
-    - **Security by Default**: Properties present in `Options` but absent in the `Overrides` interface are automatically excluded. Manual `[VKIgnoreArgs]` is prohibited in favor of this protocol-based exclusion.
-- **Merging Priority**: The implementation MUST use the null-coalescing merge: **`args?.Property ?? _options.Property`**.
-- **Naming**: Overriding records MUST use the **`Args` suffix** (e.g., `VKChatArgs`).
+- **Pattern**: Behavioral settings that change per-request MUST follow a **Source-Generator-driven Args pattern** to prevent accidental exposure of system-level configurations while keeping boilerplate minimal.
+- **ArgsGenerationMode** (configured on `[VKFeature]` attribute):
+    - **`None` (0, default)**: No Args record is generated. Use when the feature has no request-level overrides.
+    - **`Explicit` (1)**: Only properties decorated with `[VKRequestOverride]` are included in the generated Args. **Recommended** for security-sensitive features where opt-in control is critical.
+    - **`Implicit` (2)**: All public non-static, non-readonly properties are included UNLESS decorated with `[VKNoRequestOverride]`. Suitable for features where most settings are safely overridable.
+- **SG-Generated Outputs** (when `ArgsGenerationMode != None`):
+    - **`{BaseName}Args` record**: A `public partial record` implementing `IVKArgs<{BaseName}Args>`. All properties are nullable to support null-coalescing merge. Nested `Options` types are automatically converted to their corresponding `Args` types.
+    - **`{BaseName}ArgsExtensions` class**: Contains a `Merge(this {BaseName}Args? args, VK{FeatureName}Options options)` extension method.
+    - **AI Blocks**: For modules under the `.AI` namespace, the Args record additionally implements `IVKAIArgs` and includes `Context`, `UserId`, and `Timeout` properties.
+- **Merge Strategy**: The generated `Merge` method uses `options with { ... }` expression with **null-coalescing per property**: `Property = args.Property ?? options.Property`. Nested Args types use recursive `args.Nested.Merge(options.Nested)`.
+- **Naming**: Args records MUST use the **`Args` suffix** derived from the Options class name (e.g., `VKChatOptions` → `VKChatArgs`). The `VK` prefix is preserved.
+- **Static Empty**: Every generated Args record includes a `public static {ArgsName} Empty { get; } = new();` for default/no-override scenarios.
+

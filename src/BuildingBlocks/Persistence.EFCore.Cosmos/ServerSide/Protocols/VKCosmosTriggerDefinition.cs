@@ -1,6 +1,6 @@
 using Microsoft.Azure.Cosmos.Scripts;
 
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Defines a Cosmos DB trigger to be registered on a container.

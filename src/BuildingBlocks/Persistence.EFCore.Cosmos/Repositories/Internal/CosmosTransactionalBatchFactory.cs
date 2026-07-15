@@ -1,9 +1,8 @@
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos.Connection;
+using VK.Blocks.Persistence.EFCore.Cosmos.Connection;
 
-namespace VK.Blocks.Persistence.Cosmos.Repositories.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Repositories.Internal;
 
 /// <summary>
 /// Default implementation of the transactional batch factory.

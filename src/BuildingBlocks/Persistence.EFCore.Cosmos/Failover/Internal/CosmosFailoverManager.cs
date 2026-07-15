@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.Cosmos;
-using VK.Blocks.Persistence.Cosmos.Connection;
+using VK.Blocks.Persistence.EFCore.Cosmos.Connection;
 
-namespace VK.Blocks.Persistence.Cosmos.Failover.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Failover.Internal;
 
 /// <summary>
 /// Implementation of failover management using CosmosClient metadata.

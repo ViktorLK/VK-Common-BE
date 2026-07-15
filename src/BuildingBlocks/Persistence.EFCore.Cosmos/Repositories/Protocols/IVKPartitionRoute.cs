@@ -1,4 +1,4 @@
-namespace VK.Blocks.Persistence.Cosmos;
+namespace VK.Blocks.Persistence.EFCore.Cosmos;
 
 /// <summary>
 /// Entities can implement this interface to define their partition routing deterministically,

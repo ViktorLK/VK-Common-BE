@@ -1,15 +1,12 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence.EFCore;
 
-namespace VK.Blocks.Persistence.Cosmos.Repositories.Internal;
+namespace VK.Blocks.Persistence.EFCore.Cosmos.Repositories.Internal;
 
 /// <summary>
 /// Cosmos DB repository implementation that leverages EF Core Cosmos provider and native SDK.
@@ -66,7 +63,7 @@ internal sealed class CosmosBaseRepository<T> : VKEFCoreReadRepository<T>, IVKCo
     public async Task AddRangeAsync(IReadOnlyList<T> entities, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(entities); // [AP.01]
-        
+
         // Performance optimization: Bulk insert using Native SDK instead of EF Core SaveChanges
         var container = GetNativeContainer();
         var tasks = new List<Task>(entities.Count);
@@ -100,7 +97,7 @@ internal sealed class CosmosBaseRepository<T> : VKEFCoreReadRepository<T>, IVKCo
     public async Task<T> UpsertAsync(T entity, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(entity); // [AP.01]
-        
+
         // Native atomic Upsert using Cosmos SDK Container
         var container = GetNativeContainer();
         var partitionKey = PartitionKeyRouter.ComputePartitionKey(entity);
@@ -130,7 +127,7 @@ internal sealed class CosmosBaseRepository<T> : VKEFCoreReadRepository<T>, IVKCo
     public async ValueTask HardDeleteAsync(T entity, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(entity); // [AP.01]
-        
+
         // Physical delete bypassing EF Core soft-delete interceptors
         var container = GetNativeContainer();
         var id = GetId(entity);
@@ -142,7 +139,7 @@ internal sealed class CosmosBaseRepository<T> : VKEFCoreReadRepository<T>, IVKCo
     public async ValueTask HardDeleteRangeAsync(IReadOnlyList<T> entities, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(entities); // [AP.01]
-        
+
         // Physical bulk delete using Native SDK
         var container = GetNativeContainer();
         var tasks = new List<Task>(entities.Count);

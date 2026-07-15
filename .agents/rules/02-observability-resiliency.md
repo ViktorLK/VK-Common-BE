@@ -1,4 +1,4 @@
-﻿---
+---
 trigger: manual
 ---
 
@@ -13,7 +13,7 @@ trigger: manual
 - **Structured Templates**: USE structured log templates with placeholders: `"{Id}"`, `"{TenantId}"`. NO string interpolation.
 - **TraceId**: `TraceId` is MANDATORY in all log entries and error responses.
 - **Exception Context**: Exceptions MUST be logged with full context before mapping to `Result<T>`.
-- **Location**: Feature-specific loggers MUST be placed in `{FeatureName}/Internal/` (e.g. `Permissions/Internal/PermissionsLog.cs`). Only globally shared or infrastructure-level loggers belong in `Diagnostics/Internal/`.
+- **Location**: Feature-specific loggers MUST be placed in `{FeatureName}/Diagnostics/Internal/` (e.g. `Permissions/Diagnostics/Internal/PermissionsLog.cs`). Only globally shared or infrastructure-level loggers belong in `Common/Diagnostics/Internal/`.
 
 #### Metrics & Tracing
 

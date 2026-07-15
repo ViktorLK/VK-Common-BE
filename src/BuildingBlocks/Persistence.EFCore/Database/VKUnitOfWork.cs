@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence;
 using VK.Blocks.Persistence.EFCore.Database.Internal;
 
 namespace VK.Blocks.Persistence.EFCore;
