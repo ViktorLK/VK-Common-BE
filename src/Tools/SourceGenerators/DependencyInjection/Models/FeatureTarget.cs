@@ -8,7 +8,8 @@ internal sealed record FeatureTarget(
     FeatureParentInfo Parent,
     int ArgsGenerationMode,
     bool RegisterByDefault,
-    ImmutableArray<PropertyTarget> Properties);
+    ImmutableArray<PropertyTarget> Properties,
+    ArgsBaseInfo? ArgsBase = null);
 
 internal sealed record FeatureIdentity(
     string Namespace,

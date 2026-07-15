@@ -49,6 +49,9 @@ internal static class FeatureAnchorEmitter
         sb.AppendLine($"    public static {featureClassName} Instance {{ get; }} = new();");
         sb.AppendLine($"    static IVKBlockMarker IVKBlockMarkerProvider<{featureClassName}>.Instance => Instance;");
         sb.AppendLine();
+        sb.AppendLine("    [global::System.ThreadStatic]");
+        sb.AppendLine("    private static bool _isRegistering;");
+        sb.AppendLine();
 
         if (!isBlockOptions && target.Parent.Toggleable && target.Parent.OptionsTypeFullName is not null)
         {
@@ -85,41 +88,48 @@ internal static class FeatureAnchorEmitter
         sb.AppendLine($"        {target.Identity.BuilderTypeFullName} builder,");
         sb.AppendLine($"        Func<{target.Options.ClassName}, {target.Options.ClassName}>? transform = null)");
         sb.AppendLine("    {");
-        sb.AppendLine("        var services = builder.Services;");
-        sb.AppendLine();
-
-        if (!isBlockOptions && target.Parent.Toggleable && target.Parent.OptionsTypeFullName is not null)
-        {
-            sb.AppendLine($"        var parentOptions = services.GetVKBlockOptions<{target.Parent.OptionsTypeFullName}>();");
-            sb.AppendLine("        if (parentOptions is not null && !parentOptions.Enabled)");
-            sb.AppendLine("        {");
-            sb.AppendLine("            return builder;");
-            sb.AppendLine("        }");
-            sb.AppendLine();
-        }
-
-        sb.AppendLine($"        if (services.IsVKBlockRegistered<{featureClassName}>())");
+        sb.AppendLine("        if (_isRegistering)");
         sb.AppendLine("        {");
-        sb.AppendLine("            if (transform is not null)");
-        sb.AppendLine("            {");
-        sb.AppendLine($"                _ = services.AddVKBlockOptions<{target.Options.ClassName}>(builder.Configuration!, transform);");
-        sb.AppendLine("            }");
-        sb.AppendLine("            return builder;");
+        sb.AppendLine($"            throw new global::System.InvalidOperationException($\"Recursive feature registration detected for {featureClassName}! Do not call Register(builder) inside RegisterFeatureCustom(services, options).\");");
         sb.AppendLine("        }");
+        sb.AppendLine("        _isRegistering = true;");
+        sb.AppendLine("        try");
+        sb.AppendLine("        {");
+        sb.AppendLine("            var services = builder.Services;");
         sb.AppendLine();
 
         if (target.Parent.BlockTypeFullName.EndsWith("Feature"))
         {
-            sb.AppendLine("        // Ensure parent feature is registered (Implicit Pull-up)");
-            sb.AppendLine($"        _ = {target.Parent.BlockTypeFullName}.Register(builder);");
+            sb.AppendLine("            // Ensure parent feature is registered (Implicit Pull-up)");
+            sb.AppendLine($"            _ = {target.Parent.BlockTypeFullName}.Register(builder);");
             sb.AppendLine();
         }
 
-        sb.AppendLine($"        var options = services.AddVKBlockOptions<{target.Options.ClassName}>(builder.Configuration!, transform);");
-        sb.AppendLine($"        services.AddVKBlockMarker<{featureClassName}>();");
+        if (!isBlockOptions && target.Parent.Toggleable && target.Parent.OptionsTypeFullName is not null)
+        {
+            sb.AppendLine($"            var parentOptions = services.GetVKBlockOptions<{target.Parent.OptionsTypeFullName}>();");
+            sb.AppendLine("            if (parentOptions is not null && !parentOptions.Enabled)");
+            sb.AppendLine("            {");
+            sb.AppendLine("                return builder;");
+            sb.AppendLine("            }");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine($"            if (services.IsVKBlockRegistered<{featureClassName}>())");
+        sb.AppendLine("            {");
+        sb.AppendLine("                if (transform is not null)");
+        sb.AppendLine("                {");
+        sb.AppendLine($"                    _ = services.AddVKBlockOptions<{target.Options.ClassName}>(builder.Configuration!, transform);");
+        sb.AppendLine("                }");
+        sb.AppendLine("                return builder;");
+        sb.AppendLine("            }");
         sb.AppendLine();
 
-        sb.AppendLine($"        services.TryAddEnumerableSingleton<IValidateOptions<{target.Options.ClassName}>, {featureClassName}>();");
+        sb.AppendLine($"            var options = services.AddVKBlockOptions<{target.Options.ClassName}>(builder.Configuration!, transform);");
+        sb.AppendLine($"            services.AddVKBlockMarker<{featureClassName}>();");
+        sb.AppendLine();
+
+        sb.AppendLine($"            services.TryAddEnumerableSingleton<IValidateOptions<{target.Options.ClassName}>, {featureClassName}>();");
 
         if (target.ArgsGenerationMode != 0)
         {
@@ -130,19 +140,24 @@ internal static class FeatureAnchorEmitter
             {
                 cleanBaseClassName = cleanBaseClassName.Substring(2);
             }
-            sb.AppendLine($"        services.TryAddSingleton<IVK{cleanBaseClassName}OptionsProvider, Default{cleanBaseClassName}OptionsProvider>();");
+            sb.AppendLine($"            services.TryAddSingleton<IVK{cleanBaseClassName}OptionsProvider, Default{cleanBaseClassName}OptionsProvider>();");
         }
 
         if (target.Options.IsToggleable)
         {
             sb.AppendLine();
-            sb.AppendLine("        if (!options.Enabled) return builder;");
+            sb.AppendLine("            if (!options.Enabled) return builder;");
         }
 
         sb.AppendLine();
-        sb.AppendLine("        RegisterFeatureCustom(services, options);");
+        sb.AppendLine("            RegisterFeatureCustom(services, options);");
         sb.AppendLine();
-        sb.AppendLine("        return builder;");
+        sb.AppendLine("            return builder;");
+        sb.AppendLine("        }");
+        sb.AppendLine("        finally");
+        sb.AppendLine("        {");
+        sb.AppendLine("            _isRegistering = false;");
+        sb.AppendLine("        }");
         sb.AppendLine("    }");
         sb.AppendLine();
         sb.AppendLine("    // [SG Hook] Optional registration hook");

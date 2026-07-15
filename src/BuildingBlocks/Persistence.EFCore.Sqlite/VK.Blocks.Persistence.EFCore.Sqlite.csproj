@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>VK.Blocks.Persistence.Sqlite</RootNamespace>
-    <AssemblyName>VK.Blocks.Persistence.Sqlite</AssemblyName>
+    <RootNamespace>VK.Blocks.Persistence.EFCore.Sqlite</RootNamespace>
+    <AssemblyName>VK.Blocks.Persistence.EFCore.Sqlite</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -22,9 +21,9 @@ internal static class FeatureArgsEmitter
         sb.AppendLine("using System;");
         sb.AppendLine("using VK.Blocks.Core;");
         sb.AppendLine($"using {target.Options.FullNamespace};");
-        if (target.Options.FullNamespace.Contains(".AI") && argsNamespace != "VK.Blocks.AI")
+        if (target.ArgsBase is not null && argsNamespace != target.ArgsBase.FullNamespace)
         {
-            sb.AppendLine("using VK.Blocks.AI;");
+            sb.AppendLine($"using {target.ArgsBase.FullNamespace};");
         }
         sb.AppendLine();
         sb.AppendLine($"namespace {argsNamespace};");
@@ -33,36 +32,44 @@ internal static class FeatureArgsEmitter
         sb.AppendLine($"/// Automatically generated request-scoped arguments for <see cref=\"{target.Options.ClassName}\"/>.");
         sb.AppendLine("/// </summary>");
 
-        var isAI = target.Options.FullNamespace.Contains(".AI");
-        var interfaceList = isAI
-            ? new List<string> { "IVKAIArgs", $"IVKArgs<{argsClassName}>" }
-            : new List<string> { $"IVKArgs<{argsClassName}>" };
+        var interfaceList = new List<string> { $"IVKArgs<{argsClassName}>" };
+        if (target.ArgsBase is not null)
+        {
+            interfaceList.Insert(0, target.ArgsBase.TypeName);
+        }
 
         var interfaces = " : " + string.Join(", ", interfaceList);
 
         sb.AppendLine($"public partial record {argsClassName}{interfaces}");
         sb.AppendLine("{");
-        sb.AppendLine($"public static {argsClassName} Empty {{ get; }} = new();");
+        sb.AppendLine($"    public static {argsClassName} Empty {{ get; }} = new();");
         sb.AppendLine();
 
-        if (isAI)
+        var basePropNames = new HashSet<string>();
+        if (target.ArgsBase is not null)
         {
-            sb.AppendLine("    /// <inheritdoc />");
-            sb.AppendLine("    public System.Collections.Generic.IDictionary<string, object> Context { get; init; } = new System.Collections.Generic.Dictionary<string, object>();");
-            sb.AppendLine();
-            sb.AppendLine("    /// <inheritdoc />");
-            sb.AppendLine("    public string? UserId { get; init; }");
-            sb.AppendLine();
-
-            sb.AppendLine("    /// <inheritdoc />");
-            sb.AppendLine("    public TimeSpan? Timeout { get; init; }");
-            sb.AppendLine();
+            foreach (var baseProp in target.ArgsBase.Properties)
+            {
+                var nullableType = baseProp.IsAlreadyNullable || baseProp.Type.EndsWith("?") ? baseProp.Type : $"{baseProp.Type}?";
+                // Context dictionary is initialized to non-null dictionary, handle it or similar defaults
+                if (baseProp.Name == "Context" && (baseProp.Type.Contains("IDictionary") || baseProp.Type.Contains("Dictionary")))
+                {
+                    sb.AppendLine("    /// <inheritdoc />");
+                    sb.AppendLine($"    public {baseProp.Type} Context {{ get; init; }} = new System.Collections.Generic.Dictionary<string, object>();");
+                }
+                else
+                {
+                    sb.AppendLine("    /// <inheritdoc />");
+                    sb.AppendLine($"    public {nullableType} {baseProp.Name} {{ get; init; }}");
+                }
+                sb.AppendLine();
+                basePropNames.Add(baseProp.Name);
+            }
         }
 
         foreach (var prop in target.Properties)
         {
-            // Skip base AI properties as they are handled explicitly above
-            if (isAI && (prop.Name == "Context" || prop.Name == "UserId" || prop.Name == "Timeout"))
+            if (basePropNames.Contains(prop.Name))
             {
                 continue;
             }
@@ -88,9 +95,30 @@ internal static class FeatureArgsEmitter
         sb.AppendLine("        return options with");
         sb.AppendLine("        {");
 
+        // Merge properties from base interface if they exist in options
+        if (target.ArgsBase is not null)
+        {
+            foreach (var baseProp in target.ArgsBase.Properties)
+            {
+                if (!baseProp.ExistsInOptions)
+                {
+                    continue;
+                }
+
+                if (baseProp.Type.EndsWith("Options") || baseProp.Type.EndsWith("Options?") || baseProp.Type.EndsWith("Args") || baseProp.Type.EndsWith("Args?"))
+                {
+                    sb.AppendLine($"            {baseProp.Name} = args.{baseProp.Name}.Merge(options.{baseProp.Name}),");
+                }
+                else
+                {
+                    sb.AppendLine($"            {baseProp.Name} = args.{baseProp.Name} ?? options.{baseProp.Name},");
+                }
+            }
+        }
+
         foreach (var prop in target.Properties)
         {
-            if (isAI && (prop.Name == "Context" || prop.Name == "UserId" || prop.Name == "Timeout"))
+            if (basePropNames.Contains(prop.Name))
             {
                 continue;
             }
@@ -110,7 +138,12 @@ internal static class FeatureArgsEmitter
             }
         }
 
-        if (isAI && target.Options.IsTimeoutPresent && target.Properties.All(p => p.Name != "Timeout"))
+        // Special fallback merge for Timeout if it is present on Options but not explicitly overridden
+        if (target.ArgsBase is not null
+            && target.ArgsBase.Properties.Any(p => p.Name == "Timeout")
+            && target.Options.IsTimeoutPresent
+            && !target.ArgsBase.Properties.First(p => p.Name == "Timeout").ExistsInOptions
+            && target.Properties.All(p => p.Name != "Timeout"))
         {
             sb.AppendLine("            Timeout = args.Timeout ?? options.Timeout,");
         }

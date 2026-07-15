@@ -37,13 +37,13 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **AP.02**   |     | `TryAdd` only. Idempotent registration. Marker-based dependency validation.                       |
 | **AP.03**   | 🟡  | L1:public+VK prefix. L2+:internal+Deep NS (No VK prefix per BB.01).     |
 | **AP.04**   |     | `IVKBlockOptions` + zero-reflection. Immutable after init. Dual-registration pattern.             |
-| **AP.05**   |     | Args pattern: Strict Overrides Contract. Strictly derived from IVK...Overrides interfaces. |
+| **AP.05**   |     | Args pattern: SG-automated via `[VKRequestOverride]`/`[VKNoRequestOverride]` + ArgsGenerationMode. |
 | **BB.01**   |     | Vertical slice (Features at root). Foundations in `Common/` (Mandatory).           |
 | **BB.02**   |     | `[VKBlockMarker]` on `sealed partial class` in module root. Source-generated.                     |
-| **BB.03**   | 🟡  | DI order: Check → Options → Mark → Validate → Diag → Toggle → Services.                           |
+| **BB.03**   | 🟡  | DI order (SG-automated): Check → Options → Mark → Validate → Provider → Toggle → CustomHook.     |
 | **BB.04**   |     | `[VKBlockDiagnostics]` attribute. `DiagnosticsConstants.cs` for semantic tokens.                  |
 | **BB.05**   |     | Options = `sealed record` + `init`. `Func<T,T> transform`. `IValidateOptions`.                    |
-| **BB.06**   |     | Modular Feature Pattern. `[VKFeatureMarker]` + Chained Builder + Hierarchical Options.           |
+| **BB.06**   |     | Modular Feature Pattern. `[VKFeature]` + Chained Builder + Hierarchical Options.                 |
 | **BB.07**   | 🟡  | Options Isolation: One class, one file. No nesting in interfaces/handlers.                        |
 | **BB.08**   | 🟡  | Implicit Dependency: Sub-features MUST pull-up parent pillar registration (SG automated).        |
 | **PS.01**   |     | Implementation plans MUST include Architecture Decision Audit section.                            |

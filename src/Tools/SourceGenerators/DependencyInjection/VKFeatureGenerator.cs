@@ -166,7 +166,42 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
             if (parentBlockName.StartsWith("VK"))
                 parentBlockName = parentBlockName.Substring(2);
 
-            var computedSectionName = sectionNameOverride ?? $"{parentBlockName}:{featureName}";
+            // Walk up the parent hierarchy to construct the full configuration path (e.g. VKBlocks:AI:Tokenics:Counting)
+            var pathParts = new System.Collections.Generic.List<string> { featureName };
+            var curr = parentTypeSymbol;
+            while (curr is not null)
+            {
+                var name = curr.Name;
+                if (name.EndsWith("Block"))
+                {
+                    name = name.Substring(0, name.Length - 5);
+                    if (name.StartsWith("VK")) name = name.Substring(2);
+                    pathParts.Insert(0, name);
+                    break;
+                }
+                if (name.EndsWith("Feature"))
+                {
+                    name = name.Substring(0, name.Length - 7);
+                    if (name.StartsWith("VK")) name = name.Substring(2);
+                    pathParts.Insert(0, name);
+                }
+
+                var featureAttr = curr.GetAttributes()
+                    .FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == "VK.Blocks.Core.VKFeatureAttribute" || a.AttributeClass?.Name == "VKFeatureAttribute");
+                if (featureAttr is not null && featureAttr.ConstructorArguments.Length > 0)
+                {
+                    var parentType = featureAttr.ConstructorArguments[0].Value as INamedTypeSymbol;
+                    if (parentType is not null)
+                    {
+                        curr = parentType;
+                        continue;
+                    }
+                }
+                break;
+            }
+
+            var path = string.Join(":", pathParts);
+            var computedSectionName = sectionNameOverride ?? $"{VKBlocksConstants.VKBlocksConfigPrefix}:{path}";
 
             var rootBlock = FindRootBlockSymbol(parentTypeSymbol);
             var rootNamespace = rootBlock.ContainingNamespace.ToDisplayString();
@@ -205,6 +240,35 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
                 }
             }
 
+            INamedTypeSymbol? argsBaseTypeSymbol = attribute.NamedArguments.FirstOrDefault(n => n.Key == "ArgsBaseType").Value.Value as INamedTypeSymbol;
+            ArgsBaseInfo? argsBaseInfo = null;
+
+            if (argsBaseTypeSymbol is not null)
+            {
+                var baseProps = new List<PropertyTarget>();
+                foreach (var member in argsBaseTypeSymbol.GetMembers().OfType<IPropertySymbol>())
+                {
+                    if (member.DeclaredAccessibility == Accessibility.Public && !member.IsStatic && !member.IsReadOnly)
+                    {
+                        var propType = member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier));
+                        var existsInOptions = optionsTypeSymbol?.GetMembers().OfType<IPropertySymbol>().Any(p => p.Name == member.Name) ?? false;
+                        
+                        baseProps.Add(new PropertyTarget(
+                            Name: member.Name,
+                            Type: propType,
+                            IsAlreadyNullable: member.Type.NullableAnnotation is NullableAnnotation.Annotated || member.Type.ToDisplayString().EndsWith("?"),
+                            ExistsInOptions: existsInOptions
+                        ));
+                    }
+                }
+                
+                argsBaseInfo = new ArgsBaseInfo(
+                    TypeName: argsBaseTypeSymbol.Name,
+                    FullNamespace: argsBaseTypeSymbol.ContainingNamespace.ToDisplayString(),
+                    Properties: baseProps.ToImmutableArray()
+                );
+            }
+
             var isTimeoutPresent = optionsTypeSymbol?.GetMembers().OfType<IPropertySymbol>().Any(p => p.Name == "Timeout") ?? false;
 
             return new FeatureTarget(
@@ -228,7 +292,8 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
                 ),
                 ArgsGenerationMode: argsGenerationMode,
                 RegisterByDefault: registerByDefault,
-                Properties: propertiesList.ToImmutableArray()
+                Properties: propertiesList.ToImmutableArray(),
+                ArgsBase: argsBaseInfo
             );
         }
         catch

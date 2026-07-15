@@ -9,7 +9,7 @@ trigger: manual
 - Application Layer: RETURN `Result<T>` only. NEVER return null.
 - For void operations, use `Result` (non-generic) or `Result<Unit>`. NEVER return bare `void` or `Task` from Application Layer handlers.
 - NEVER use `Result.Failure("raw string")`. ALWAYS use predefined `Error` constants.
-- **Error Constants Hierarchy**: Define error codes using the `{ModuleName}.{Category}.{Reason}` format (e.g., `Auth.ApiKey.Invalid`). Use a global `VKCoreErrors` class for shared cross-block errors, and an `Internal/Errors.cs` class for block-specific errors to prevent constant sprawl.
+- **Error Constants Hierarchy**: Define error codes using the `{ModuleName}.{Category}.{Reason}` format (e.g., `Auth.ApiKey.Invalid`). Use a global `VKCoreErrors` class for shared cross-block errors, and feature-level `VK{FeatureName}Errors.cs` classes (placed at the feature slice root) for feature-specific errors to prevent constant sprawl.
 - Infrastructure Layer: exceptions ARE allowed, but MUST be caught at the boundary and mapped to `Result<T>`.
 - Follow RFC 7807 for HTTP error responses.
 - Result<T> MUST carry structured Error objects, never raw strings or Exception objects.

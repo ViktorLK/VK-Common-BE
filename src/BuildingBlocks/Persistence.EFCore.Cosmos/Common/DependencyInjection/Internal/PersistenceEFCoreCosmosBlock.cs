@@ -23,7 +23,6 @@ internal sealed partial class PersistenceEFCoreCosmosBlock
     {
         var services = builder.Services;
         var configuration = builder.Configuration;
-        PersistenceEFCoreCosmosBlock.Register(builder);
         var options = services.GetVKServiceInstance<VKPersistenceEFCoreCosmosOptions>()!;
 
         // 7. Core Services
