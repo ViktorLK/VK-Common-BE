@@ -24,4 +24,3 @@ public static class VKCoreDiagnosticsConstants
     /// </summary>
     public const string TraceIdTagName = "trace_id";
 }
-

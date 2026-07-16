@@ -3,7 +3,7 @@ namespace VK.Blocks.Persistence.Common.Diagnostics;
 /// <summary>
 /// Constants for persistence diagnostics.
 /// </summary>
-internal static class DiagnosticsConstants
+public static class VKPersistenceDiagnosticsConstants
 {
     /// <summary>Source name for persistence activities.</summary>
     public const string SourceName = "VK.Blocks.Persistence";

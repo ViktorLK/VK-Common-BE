@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+
 namespace VK.Tools.SourceGenerators.DependencyInjection.Models;
 
 internal sealed record BlockTargetInfo(
@@ -6,4 +8,6 @@ internal sealed record BlockTargetInfo(
     string BlockName,
     bool GenerateToggleableMembers,
     bool Toggleable,
-    bool HasGeneratedFeature);
+    bool HasGeneratedFeature,
+    bool IsPartial,
+    Location Location);

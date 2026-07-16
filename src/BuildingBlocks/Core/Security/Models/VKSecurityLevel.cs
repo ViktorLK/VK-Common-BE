@@ -15,4 +15,3 @@ public enum VKSecurityLevel
     /// <summary>Contains highly sensitive data that should be fully redacted (hidden).</summary>
     Redacted = 2
 }
-

@@ -10,4 +10,3 @@ public interface IVKMultiTenant
     /// </summary>
     VKTenantId? TenantId { get; }
 }
-

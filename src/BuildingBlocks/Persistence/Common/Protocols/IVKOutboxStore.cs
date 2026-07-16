@@ -9,7 +9,9 @@ namespace VK.Blocks.Persistence;
 /// Defines the contract for storing outbox messages within the same transaction as domain changes.
 /// Ensures at-least-once delivery of domain events to external consumers.
 /// </summary>
-// TODO: Consider moving this to a dedicated VK.Blocks.Messaging.Outbox BuildingBlock in a future iteration if needed.
+// TODO: Refactor Outbox architecture to separate concerns (DL.04):
+// - Move message query, polling, retry, and processing (GetPendingAsync, MarkAsProcessedAsync) to a dedicated `VK.Blocks.Messaging.Outbox` building block.
+// - Retain the message write contract (SaveAsync) in `VK.Blocks.Persistence` under a simplified `IVKOutboxWriter` interface.
 public interface IVKOutboxStore
 {
     /// <summary>

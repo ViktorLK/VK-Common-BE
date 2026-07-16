@@ -142,4 +142,3 @@ public static class VKBlockQueryExtensions
         return null;
     }
 }
-

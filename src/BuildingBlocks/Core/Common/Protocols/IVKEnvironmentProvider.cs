@@ -13,4 +13,3 @@ public interface IVKEnvironmentProvider
     /// <returns>The value of the environment variable, or null if it does not exist.</returns>
     string? GetVariable(string name);
 }
-

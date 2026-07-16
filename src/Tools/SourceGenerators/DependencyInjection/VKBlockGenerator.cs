@@ -79,13 +79,18 @@ public sealed class VKBlockGenerator : IIncrementalGenerator
         var featureTypeSymbol = context.SemanticModel.Compilation.GetTypeByMetadataName(featureTypeFqn);
         var hasGeneratedFeature = featureTypeSymbol is not null;
 
+        var classDeclaration = (ClassDeclarationSyntax)context.TargetNode;
+        var isPartial = classDeclaration.Modifiers.Any(m => m.Text == "partial");
+
         return new BlockTargetInfo(
             Namespace: symbol.ContainingNamespace.ToDisplayString(),
             ClassName: symbol.Name,
             BlockName: blockName,
             GenerateToggleableMembers: generateToggleableMembers,
             Toggleable: toggleable,
-            HasGeneratedFeature: hasGeneratedFeature
+            HasGeneratedFeature: hasGeneratedFeature,
+            IsPartial: isPartial,
+            Location: classDeclaration.Identifier.GetLocation()
         );
     }
 
@@ -93,6 +98,16 @@ public sealed class VKBlockGenerator : IIncrementalGenerator
     {
         if (!VKBlockGeneratorGuard.ShouldExecute(generatorType, assemblyName))
             return;
+
+        if (!target.IsPartial)
+        {
+            var diagnostic = VKDiagnostics.CreateTypeMustBePartial(
+                "block class",
+                target.ClassName,
+                target.Location);
+            ctx.ReportDiagnostic(diagnostic);
+            return;
+        }
 
         // 1. Generate VK{BlockName}Options record or its SectionName partial
         BlockOptionsEmitter.Emit(ctx, target);

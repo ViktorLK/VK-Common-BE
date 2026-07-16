@@ -32,4 +32,3 @@ public static class VKTenancyConstants
         public const string TenantInvalid = "Tenancy.TenantInvalid";
     }
 }
-

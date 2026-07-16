@@ -23,5 +23,3 @@ public interface IVKBlockOptions
     /// </summary>
     static abstract string SectionName { get; }
 }
-
-

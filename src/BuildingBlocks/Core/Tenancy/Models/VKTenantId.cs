@@ -14,5 +14,5 @@ public partial record struct VKTenantId
     /// Returns null if the input is null or whitespace.
     /// </summary>
     public static VKTenantId? FromNullable(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? null : new VKTenantId(Guid.Parse(value));
+        string.IsNullOrWhiteSpace(value) || !Guid.TryParse(value, out Guid guid) ? null : new VKTenantId(guid);
 }

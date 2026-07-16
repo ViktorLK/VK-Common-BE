@@ -12,38 +12,43 @@ namespace VK.Blocks.Core;
 public sealed class VKFeatureAttribute(Type parent, string? name = null) : Attribute
 {
     /// <summary>
-    /// Gets the logical name of the feature.
-    /// </summary>
-    public string? Name { get; } = name;
-
-    /// <summary>
     /// Gets the parent BuildingBlock marker type.
     /// </summary>
     public Type Parent { get; } = parent;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to generate behavioral boilerplate
-    /// (per-request Args record and the corresponding Options Provider for merging).
-    /// Defaults to false.
+    /// Gets the logical name of the feature.
     /// </summary>
-    public bool GenerateArgs { get; set; } = false;
+    public string? Name { get; } = name;
 
     /// <summary>
-    /// Gets or sets a value indicating whether the feature should be registered as a default feature
-    /// in the block's default features extension method.
-    /// Defaults to true.
+    /// Gets or sets the Options type associated with this feature.
     /// </summary>
-    public bool IsDefault { get; set; } = true;
+    public Type? OptionsType { get; set; }
+
+    /// <summary>
+    /// Gets or sets the argument generation mode for this feature.
+    /// </summary>
+    public VKArgsGenerationMode ArgsGenerationMode { get; set; } = VKArgsGenerationMode.None;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this feature is registered by default when registering the block.
+    /// </summary>
+    public bool RegisterByDefault { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the custom configuration section name.
-    /// If null, defaults to "{Parent.SectionName}:{Name}".
     /// </summary>
     public string? SectionName { get; set; }
 
     /// <summary>
     /// Gets or sets the custom namespace for generated internal components.
-    /// If null, defaults to "{OptionsNamespace}.Internal".
     /// </summary>
     public string? Namespace { get; set; }
+
+    /// <summary>
+    /// Gets or sets the base interface type that the generated Args record should implement (e.g., typeof(IVKAIArgs)).
+    /// If specified, all properties of this interface will be generated on the Args record, and the generated record will implement this interface.
+    /// </summary>
+    public Type? ArgsBaseType { get; set; }
 }

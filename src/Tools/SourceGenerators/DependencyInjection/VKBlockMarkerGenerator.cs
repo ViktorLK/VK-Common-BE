@@ -69,7 +69,8 @@ public sealed class VKBlockMarkerGenerator : IIncrementalGenerator
         return new BlockTarget(
             Namespace: symbol.ContainingNamespace.ToDisplayString(),
             ClassName: symbol.Name,
-            IsPartial: isPartial
+            IsPartial: isPartial,
+            Location: classDeclaration.Identifier.GetLocation()
         );
     }
 
@@ -82,8 +83,11 @@ public sealed class VKBlockMarkerGenerator : IIncrementalGenerator
 
         if (!target.IsPartial)
         {
-            // Note: In a full industrial implementation, we would report a diagnostic warning here
-            // informing the developer that the marker class must be partial.
+            var diagnostic = VKDiagnostics.CreateTypeMustBePartial(
+                "marker class",
+                target.ClassName,
+                target.Location);
+            ctx.ReportDiagnostic(diagnostic);
             return;
         }
 
@@ -106,7 +110,7 @@ public sealed class VKBlockMarkerGenerator : IIncrementalGenerator
         ctx.AddSource($"{target.ClassName}.Instance.g.cs", sb.ToString());
     }
 
-    private sealed record BlockTarget(string Namespace, string ClassName, bool IsPartial);
+    private sealed record BlockTarget(string Namespace, string ClassName, bool IsPartial, Location Location);
 
     private static string ExtractBlockName(string className)
     {

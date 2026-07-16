@@ -65,4 +65,3 @@ public abstract class VKEntity<TId> where TId : notnull
     public static bool operator ==(VKEntity<TId>? left, VKEntity<TId>? right) => Equals(left, right);
     public static bool operator !=(VKEntity<TId>? left, VKEntity<TId>? right) => !Equals(left, right);
 }
-

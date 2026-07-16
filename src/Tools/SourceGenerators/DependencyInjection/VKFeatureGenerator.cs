@@ -416,17 +416,9 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
         }
         else if (!target.Options.IsPartial && !isBlockOptions)
         {
-            var diagnostic = Diagnostic.Create(
-                new DiagnosticDescriptor(
-                    id: "VK001",
-                    title: "Options class must be partial",
-                    messageFormat: "The options class {0} associated with feature {1} must be declared as 'partial' to allow SectionName generation.",
-                    category: "VKBlocks",
-                    defaultSeverity: DiagnosticSeverity.Error,
-                    isEnabledByDefault: true),
-                Location.None,
-                target.Options.ClassName,
-                target.Identity.FeatureName);
+            var diagnostic = VKDiagnostics.CreateTypeMustBePartial(
+                "options class",
+                target.Options.ClassName);
             ctx.ReportDiagnostic(diagnostic);
         }
     }

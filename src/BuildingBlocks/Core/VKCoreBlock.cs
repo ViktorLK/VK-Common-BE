@@ -9,4 +9,3 @@ namespace VK.Blocks.Core;
 [ExcludeFromCodeCoverage(Justification = "Marker type used for dependency resolution and metadata; contains no business logic.")]
 [VKBlockMarker]
 public sealed partial class VKCoreBlock;
-
