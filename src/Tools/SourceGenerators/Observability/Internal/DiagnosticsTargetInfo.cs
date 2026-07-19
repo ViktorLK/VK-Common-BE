@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+
 namespace VK.Tools.SourceGenerators.Observability.Internal;
 
 /// <summary>
@@ -10,4 +12,6 @@ internal abstract record DiagnosticsTargetInfo(
     string? BlockName,
     string? Version,
     string Modifiers,
+    bool IsPartial,
+    Location Location,
     string? Description = null);

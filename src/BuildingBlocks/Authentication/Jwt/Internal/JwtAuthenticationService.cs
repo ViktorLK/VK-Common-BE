@@ -85,6 +85,13 @@ internal sealed class JwtAuthenticationService(
                 return VKResult.Failure<VKAuthenticatedUser>(mappingResult.FirstError);
             }
 
+            // [Rule: Tenant Isolation] Require TenantId if configured (Stage 1)
+            if (jwtOptions.RequireTenantId && mappingResult.Value.TenantId is null)
+            {
+                AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, false, VKAuthenticationErrors.TenantIsolationFailed.Code);
+                return VKResult.Failure<VKAuthenticatedUser>(VKAuthenticationErrors.TenantIsolationFailed);
+            }
+
             AuthenticationDiagnostics.RecordAuthAttempt(VKAuthenticationDiagnosticsConstants.TypeJwt, true);
             activity?.SetTag(VKAuthenticationDiagnosticsConstants.TagUserId, principal.GetUserId());
             return VKResult.Success(mappingResult.Value);

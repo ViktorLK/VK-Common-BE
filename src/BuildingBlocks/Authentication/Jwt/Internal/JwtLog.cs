@@ -64,4 +64,15 @@ internal static partial class JwtLog
         Level = LogLevel.Warning,
         Message = "Potential refresh token replay attack detected! FamilyId: {FamilyId}, JTI: {Jti}. The token has been reused.")]
     internal static partial void LogRefreshTokenReplayDetected(this ILogger logger, string familyId, string jti);
+
+    /// <summary>
+    /// Logs a message indicating that refresh token attempts exceeded the rate limit.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="familyId">The token family identifier.</param>
+    [LoggerMessage(
+        EventId = 2113,
+        Level = LogLevel.Warning,
+        Message = "Refresh token attempts exceeded rate limit. FamilyId: {FamilyId}")]
+    internal static partial void LogRefreshTokenRateLimitExceeded(this ILogger logger, string familyId);
 }

@@ -31,28 +31,28 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
         var genericClassTargets = context.SyntaxProvider
                 .ForAttributeWithMetadataName(
                   GenericAttributeFullName,
-                  predicate: IsPartialClass,
+                  predicate: IsClassDeclaration,
                   transform: TransformToTarget)
                 .WhereNotNull();
 
         var appClassTargets = context.SyntaxProvider
                 .ForAttributeWithMetadataName(
                   AppAttributeFullName,
-                  predicate: IsPartialClass,
+                  predicate: IsClassDeclaration,
                   transform: TransformToTarget)
                 .WhereNotNull();
 
         var markerClassTargets = context.SyntaxProvider
                 .ForAttributeWithMetadataName(
                   MarkerAttributeFullName,
-                  predicate: IsPartialClass,
+                  predicate: IsClassDeclaration,
                   transform: TransformToTarget)
                 .WhereNotNull();
 
         var featureClassTargets = context.SyntaxProvider
                 .ForAttributeWithMetadataName(
                   FeatureAttributeFullName,
-                  predicate: IsPartialClass,
+                  predicate: IsClassDeclaration,
                   transform: TransformToTarget)
                 .WhereNotNull();
 
@@ -76,15 +76,17 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
             (ctx, pair) => EmitAttributeSource(ctx, pair.Left, pair.Right.Left.Left, pair.Right.Left.Right, pair.Right.Right, this.GetType()));
     }
 
-    private static bool IsPartialClass(SyntaxNode node, CancellationToken _)
-        => node is ClassDeclarationSyntax cls &&
-           cls.Modifiers.Any(m => m.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword));
+    private static bool IsClassDeclaration(SyntaxNode node, CancellationToken _)
+        => node is ClassDeclarationSyntax;
 
     private static DiagnosticsTargetInfo? TransformToTarget(
         GeneratorAttributeSyntaxContext ctx,
         CancellationToken _)
     {
         var attr = ctx.Attributes[0];
+        var classDeclaration = (ClassDeclarationSyntax)ctx.TargetNode;
+        var isPartial = classDeclaration.Modifiers.Any(m => m.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword));
+        var location = classDeclaration.Identifier.GetLocation();
 
         // Case A: [VKBlockMarker("id")]
         if (attr.AttributeClass?.ToDisplayString() == MarkerAttributeFullName)
@@ -124,6 +126,8 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
                 BlockName: $"\"{bName}\"",
                 Version: ver is not null ? $"\"{ver}\"" : null,
                 Modifiers: GetModifiers(classSymbolInner),
+                IsPartial: isPartial,
+                Location: location,
                 DependencyTypes: dependencies.Length > 0 ? dependencies : null
             );
         }
@@ -152,6 +156,8 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
                 BlockName: $"\"{fName}\"",
                 Version: ver is not null ? $"\"{ver}\"" : null,
                 Modifiers: GetModifiers(classSymbolInner),
+                IsPartial: isPartial,
+                Location: location,
                 ParentIdentifier: $"{parentTypeName}.BlockIdentifier",
                 IsOptional: optional
             );
@@ -196,6 +202,8 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
             BlockName: $"\"GENERIC_{gName}\"", // Obvious marker
             Version: versionExpression,
             Modifiers: GetModifiers(classSymbol),
+            IsPartial: isPartial,
+            Location: location,
             Description: description
         );
     }
@@ -235,6 +243,16 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
         // Guard against execution in non-VK.Blocks assemblies (Rule: Global Guard)
         if (!VKBlockGeneratorGuard.ShouldExecute(generatorType, assemblyName))
         {
+            return;
+        }
+
+        if (!info.IsPartial)
+        {
+            var diagnostic = VKDiagnostics.CreateTypeMustBePartial(
+                "diagnostics class",
+                info.ClassName,
+                info.Location);
+            ctx.ReportDiagnostic(diagnostic);
             return;
         }
 

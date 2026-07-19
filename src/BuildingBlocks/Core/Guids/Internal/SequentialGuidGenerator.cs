@@ -36,4 +36,3 @@ internal sealed class SequentialGuidGenerator(TimeProvider? timeProvider = null)
         return new Guid(guidBytes);
     }
 }
-

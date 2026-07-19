@@ -54,7 +54,8 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
             Namespace: symbol.ContainingNamespace.ToDisplayString(),
             Name: symbol.Name,
             IsPartial: isPartial,
-            HasEfCore: hasEfCore
+            HasEfCore: hasEfCore,
+            Location: recordDeclaration.Identifier.GetLocation()
         );
     }
 
@@ -67,7 +68,11 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
 
         if (!target.IsPartial)
         {
-            // Error diagnostic should be emitted in a full implementation.
+            var diagnostic = VKDiagnostics.CreateTypeMustBePartial(
+                "strongly-typed ID record struct",
+                target.Name,
+                target.Location);
+            ctx.ReportDiagnostic(diagnostic);
             return;
         }
 
@@ -174,5 +179,5 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         ctx.AddSource($"{target.Name}.g.cs", sb.ToString());
     }
 
-    private sealed record TargetRecordStruct(string Namespace, string Name, bool IsPartial, bool HasEfCore);
+    private sealed record TargetRecordStruct(string Namespace, string Name, bool IsPartial, bool HasEfCore, Location Location);
 }

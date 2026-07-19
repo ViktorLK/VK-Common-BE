@@ -110,3 +110,11 @@ For concrete implementation classes, strictly adhere to the following semantic p
 - **Naming**: Args records MUST use the **`Args` suffix** derived from the Options class name (e.g., `VKChatOptions` → `VKChatArgs`). The `VK` prefix is preserved.
 - **Static Empty**: Every generated Args record includes a `public static {ArgsName} Empty { get; } = new();` for default/no-override scenarios.
 
+### AP.06 — Explicit API & Override Pattern (Anti-Overprotection)
+
+- **Anti-Overprotection / Fallback Rule**: Do NOT register silent `Null/NoOp` fallbacks in the DI container to mask developer configuration omissions. Fallback registrations (e.g., `NoOpAuditProvider`) are ONLY allowed to represent an explicit, documented "disabled" config state (e.g., `EnableAuditing = false`). Missing mandatory configurations MUST fail fast at startup.
+- **No Heuristic Priority**: Do NOT write heuristics (e.g., matching assembly names or class prefixes) to guess whether a user's implementation should take priority over the library's defaults.
+- **Explicit Builder Overrides**: If a block supports custom implementation overrides, they MUST be exposed via explicit chain methods on the builder (e.g., `builder.OverrideAuditProvider<T>()`).
+- **Deterministic Replacement**: Inside `builder.OverrideXxx<T>()` extension methods, using `services.Replace()` is explicitly permitted and recommended. This guarantees deterministic behavior and completely eliminates DI registration order sensitivity.
+
+

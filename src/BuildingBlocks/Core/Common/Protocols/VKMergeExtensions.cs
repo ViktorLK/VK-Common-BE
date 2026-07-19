@@ -28,4 +28,3 @@ public static class VKMergeExtensions
     public static T MergeWith<T>(this T? local, T global) where T : class
         => local ?? global;
 }
-

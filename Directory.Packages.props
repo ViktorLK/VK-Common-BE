@@ -54,10 +54,12 @@
     <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageVersion Include="Asp.Versioning" Version="8.1.0" />
+    <PackageVersion Include="Sustainsys.Saml2.AspNetCore2" Version="2.9.2" />
   </ItemGroup>
   <!-- ==================== Entity Framework Core ==================== -->
   <ItemGroup Label="EntityFramework">
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Cosmos" Version="10.0.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.3" />
@@ -96,9 +98,12 @@
     <PackageVersion Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageVersion Include="Azure.Storage.Blobs.Batch" Version="12.21.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-    <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.47.0" />
+    <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.51.0" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.18.2" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="3.7.1" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="1.21.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.CosmosDB" Version="4.6.0" />
+    <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.2" />
   </ItemGroup>
   <!-- ==================== GraphQL ==================== -->
   <ItemGroup Label="GraphQL">

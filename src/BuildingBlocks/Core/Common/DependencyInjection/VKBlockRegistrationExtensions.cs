@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -38,7 +39,7 @@ public static class VKBlockRegistrationExtensions
     {
         VKGuard.NotNull(services);
 
-        // 1. [AP.02: Check-Prerequisite] — Idempotency & Recursive Validation
+        // 1. [AP.02: Check-Prerequisite] 窶・Idempotency & Recursive Validation
         // This is the "Fail-Fast" gate. Calling the generic IsVKBlockRegistered<TMarker> ensures:
         //   A) Idempotency: If the block (by ID) is already there, we return early.
         //   B) Safety: It recursively walks the dependency tree (IVKBlockMarker.Dependencies)
@@ -48,13 +49,13 @@ public static class VKBlockRegistrationExtensions
             return services;
         }
 
-        // 2. [AP.02: Mark-Self] — Logical Identity Registration
+        // 2. [AP.02: Mark-Self] 窶・Logical Identity Registration
         // We register a string-based identifier marker. This protects the system against
         // "Logical Collisions" where two different classes might try to use the same ID.
         // This marker is internal and used by the infrastructure for untyped dependency checks.
         services.AddSingleton(new BlockRuntimeMarker(TMarker.Instance.Identifier));
 
-        // 3. [Identity Registration] — Concrete Type Access
+        // 3. [Identity Registration] 窶・Concrete Type Access
         // We register the concrete TMarker singleton instance.
         // RATIONALE: This allows developers to inject the specific block class (e.g., VKAuthenticationBlock)
         // to access metadata (Version, ActivitySourceName) with ZERO reflection and full type safety.
@@ -123,7 +124,7 @@ public static class VKBlockRegistrationExtensions
         VKGuard.NotNull(configuration);
         VKGuard.Against(string.IsNullOrWhiteSpace(TOptions.SectionName), "Options SectionName cannot be null or empty.");
 
-        // [IDEMPOTENCY CHECK] — Avoid unnecessary Bind and DI registration when already registered
+        // [IDEMPOTENCY CHECK] 窶・Avoid unnecessary Bind and DI registration when already registered
         if (services.IsVKServiceRegistered<TOptions>())
         {
             var existingOptions = services.GetVKServiceInstance<TOptions>()
@@ -182,5 +183,13 @@ public static class VKBlockRegistrationExtensions
         services.AddOptions<TOptions>().ValidateOnStart();
 
         return options;
+    }
+
+    /// <summary>
+    /// Retrieves a previously registered block options instance from the service collection.
+    /// </summary>
+    public static TOptions? GetVKBlockOptions<TOptions>(this IServiceCollection services) where TOptions : class
+    {
+        return services.FirstOrDefault(sd => sd.ServiceType == typeof(TOptions))?.ImplementationInstance as TOptions;
     }
 }

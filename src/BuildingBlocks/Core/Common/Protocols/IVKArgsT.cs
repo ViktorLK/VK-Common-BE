@@ -12,4 +12,3 @@ public interface IVKArgs<TArgs> : IVKArgs where TArgs : class
     /// </summary>
     static abstract TArgs Empty { get; }
 }
-

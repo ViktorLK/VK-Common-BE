@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+
 namespace VK.Tools.SourceGenerators.Observability.Internal;
 
 /// <summary>
@@ -10,5 +12,7 @@ internal sealed record GenericDiagnosticsInfo(
     string? BlockName,
     string? Version,
     string Modifiers,
+    bool IsPartial,
+    Location Location,
     string? Description = null)
-    : DiagnosticsTargetInfo(Namespace, ClassName, Identifier, BlockName, Version, Modifiers, Description);
+    : DiagnosticsTargetInfo(Namespace, ClassName, Identifier, BlockName, Version, Modifiers, IsPartial, Location, Description);

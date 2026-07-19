@@ -26,5 +26,10 @@ public sealed class VKBlockMarkerAttribute(string? identifier = null) : Attribut
     /// Gets or sets the types of other building blocks this block depends on.
     /// </summary>
     public Type[] Dependencies { get; set; } = [];
-}
 
+    /// <summary>
+    /// Gets or sets a value indicating whether this block is toggleable (has an Enabled property).
+    /// Defaults to true.
+    /// </summary>
+    public bool Toggleable { get; set; } = true;
+}

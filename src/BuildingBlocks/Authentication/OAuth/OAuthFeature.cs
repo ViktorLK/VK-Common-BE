@@ -1,3 +1,5 @@
+using VK.Blocks.Authentication.OAuth;
+using VK.Blocks.Authentication.OAuth.Internal;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
@@ -6,11 +8,12 @@ using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Generated;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Authentication.OAuth.Internal;
+namespace VK.Blocks.Authentication;
 
 /// <summary>
 /// Partial implementation for OAuth feature hooks.
 /// </summary>
+[VKFeature(typeof(VKAuthenticationBlock), OptionsType = typeof(VKOAuthOptions))]
 internal sealed partial class OAuthFeature
 {
     // [SG Hook]

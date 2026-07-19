@@ -20,4 +20,3 @@ public class VKBlockBuilder<TMarker>(IServiceCollection services, IConfiguration
     /// <inheritdoc />
     public IConfiguration Configuration { get; } = configuration;
 }
-

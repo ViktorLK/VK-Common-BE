@@ -22,7 +22,7 @@ public sealed record VKAuthenticatedUser
     /// <summary>
     /// Gets the email address of the user, if available.
     /// </summary>
-    public string? Email { get; init; }
+    public VKSensitiveString? Email { get; init; }
 
     /// <summary>
     /// Gets the tenant identifier the user belongs to, if available.
@@ -38,6 +38,16 @@ public sealed record VKAuthenticatedUser
     /// Gets the roles assigned to the user.
     /// </summary>
     public IReadOnlyList<string> Roles { get; init; } = [];
+
+    /// <summary>
+    /// Gets the impersonator identifier, if the user is being impersonated by an administrator.
+    /// </summary>
+    public string? ImpersonatorId { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether the user's identity was verified via multi-factor authentication (MFA).
+    /// </summary>
+    public bool IsMfaVerified { get; init; } = false;
 
     /// <summary>
     /// Gets the claims associated with the user.

@@ -6,7 +6,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration options for OAuth providers.
 /// </summary>
-[VKFeature(typeof(VKAuthenticationBlock))]
+
 public sealed partial record VKOAuthOptions : IVKToggleableBlockOptions
 {
 

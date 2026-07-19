@@ -32,13 +32,20 @@ internal static class FeatureAnchorEmitter
         sb.AppendLine("using VK.Blocks.Core;");
         sb.AppendLine($"using {target.Options.FullNamespace};");
         sb.AppendLine();
-        sb.AppendLine($"namespace {target.Identity.Namespace}.Internal;");
+        var lastDotIndex = target.Parent.BlockTypeFullName.LastIndexOf('.');
+        var rootNamespace = lastDotIndex > 0 ? target.Parent.BlockTypeFullName.Substring(0, lastDotIndex) : target.Identity.Namespace;
+        if (rootNamespace.StartsWith("global::"))
+        {
+            rootNamespace = rootNamespace.Substring(8);
+        }
+        
+        sb.AppendLine($"namespace {rootNamespace};");
         sb.AppendLine();
         var featureClassName = isBlockOptions ? $"{target.Identity.FeatureName}Block" : $"{target.Identity.FeatureName}Feature";
 
         sb.AppendLine($"[VKFeatureMarker(\"{target.Identity.FeatureName}\", typeof({target.Parent.BlockTypeFullName}))]");
 
-        var interfaceList = new List<string> { "IVKFeatureMarker", $"IVKBlockMarkerProvider<{featureClassName}>", $"IValidateOptions<{target.Options.ClassName}>" };
+        var interfaceList = new List<string> { "IVKFeatureMarker", $"IVKBlockMarkerProvider<{featureClassName}>" };
 
         sb.AppendLine($"internal sealed partial class {featureClassName} : {string.Join(", ", interfaceList)}");
         sb.AppendLine("{");
@@ -52,20 +59,6 @@ internal static class FeatureAnchorEmitter
         sb.AppendLine("    [global::System.ThreadStatic]");
         sb.AppendLine("    private static bool _isRegistering;");
         sb.AppendLine();
-
-        if (!isBlockOptions && target.Parent.Toggleable && target.Parent.OptionsTypeFullName is not null)
-        {
-            sb.AppendLine($"    private readonly {target.Parent.OptionsTypeFullName}? _parentOptions;");
-            sb.AppendLine();
-            sb.AppendLine($"    public {featureClassName}() : this(null) {{ }}");
-            sb.AppendLine();
-            sb.AppendLine("    [global::Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]");
-            sb.AppendLine($"    internal {featureClassName}({target.Parent.OptionsTypeFullName}? parentOptions)");
-            sb.AppendLine("    {");
-            sb.AppendLine("        _parentOptions = parentOptions;");
-            sb.AppendLine("    }");
-            sb.AppendLine();
-        }
 
         sb.AppendLine("    public string Name => FeatureName;");
         sb.AppendLine("    public string Identifier => FeatureIdentifier;");
@@ -129,7 +122,7 @@ internal static class FeatureAnchorEmitter
         sb.AppendLine($"            services.AddVKBlockMarker<{featureClassName}>();");
         sb.AppendLine();
 
-        sb.AppendLine($"            services.TryAddEnumerableSingleton<IValidateOptions<{target.Options.ClassName}>, {featureClassName}>();");
+        sb.AppendLine($"            services.TryAddEnumerableSingleton<IValidateOptions<{target.Options.ClassName}>, {featureClassName}.FeatureOptionsValidator>();");
 
         if (target.ArgsGenerationMode != 0)
         {
@@ -166,26 +159,40 @@ internal static class FeatureAnchorEmitter
 
         sb.AppendLine("    // --- Validation Logic ---");
         sb.AppendLine();
-        sb.AppendLine($"    ValidateOptionsResult IValidateOptions<{target.Options.ClassName}>.Validate(string? name, {target.Options.ClassName} options)");
+        sb.AppendLine($"    internal sealed class FeatureOptionsValidator : IValidateOptions<{target.Options.ClassName}>");
         sb.AppendLine("    {");
-        sb.AppendLine("        if (options is null) return ValidateOptionsResult.Fail(\"Options cannot be null.\");");
-        sb.AppendLine();
-
         if (!isBlockOptions && target.Parent.Toggleable && target.Parent.OptionsTypeFullName is not null)
         {
-            sb.AppendLine("        if (_parentOptions is not null && !_parentOptions.Enabled) return ValidateOptionsResult.Success;");
+            sb.AppendLine($"        private readonly {target.Parent.OptionsTypeFullName}? _parentOptions;");
+            sb.AppendLine();
+            sb.AppendLine($"        public FeatureOptionsValidator() : this(null) {{ }}");
+            sb.AppendLine();
+            sb.AppendLine("        [global::Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]");
+            sb.AppendLine($"        public FeatureOptionsValidator({target.Parent.OptionsTypeFullName}? parentOptions)");
+            sb.AppendLine("        {");
+            sb.AppendLine("            _parentOptions = parentOptions;");
+            sb.AppendLine("        }");
             sb.AppendLine();
         }
-
+        sb.AppendLine($"        public ValidateOptionsResult Validate(string? name, {target.Options.ClassName} options)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            if (options is null) return ValidateOptionsResult.Fail(\"Options cannot be null.\");");
+        sb.AppendLine();
+        if (!isBlockOptions && target.Parent.Toggleable && target.Parent.OptionsTypeFullName is not null)
+        {
+            sb.AppendLine("            if (_parentOptions is not null && !_parentOptions.Enabled) return ValidateOptionsResult.Success;");
+            sb.AppendLine();
+        }
         if (target.Options.IsToggleable)
         {
-            sb.AppendLine("        if (!options.Enabled) return ValidateOptionsResult.Success;");
+            sb.AppendLine("            if (!options.Enabled) return ValidateOptionsResult.Success;");
             sb.AppendLine();
         }
-        sb.AppendLine("        var failures = new List<string>();");
-        sb.AppendLine("        ValidateFeatureCustom(options, failures);");
-        sb.AppendLine("        if (failures.Count > 0) return ValidateOptionsResult.Fail(string.Join(\", \", failures));");
-        sb.AppendLine("        return ValidateOptionsResult.Success;");
+        sb.AppendLine("            var failures = new List<string>();");
+        sb.AppendLine($"            {featureClassName}.ValidateFeatureCustom(options, failures);");
+        sb.AppendLine("            if (failures.Count > 0) return ValidateOptionsResult.Fail(string.Join(\", \", failures));");
+        sb.AppendLine("            return ValidateOptionsResult.Success;");
+        sb.AppendLine("        }");
         sb.AppendLine("    }");
         sb.AppendLine();
         sb.AppendLine("    // [SG Hook] Optional validation hook");

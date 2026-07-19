@@ -1,7 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.Core;
 using VK.Blocks.Core.Guids.Internal;
 using VK.Blocks.Core.Identity.Internal;
 using VK.Blocks.Core.Serialization.Internal;
@@ -37,5 +36,3 @@ internal static class CoreBlockRegistration
         return services.AddVKBlockMarker<VKCoreBlock>();
     }
 }
-
-

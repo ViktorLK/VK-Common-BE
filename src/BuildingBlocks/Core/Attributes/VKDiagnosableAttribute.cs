@@ -8,4 +8,3 @@ namespace VK.Blocks.Core;
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class VKDiagnosableAttribute : Attribute;
-

@@ -13,6 +13,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
 
+    <EmitCompilerGeneratedFiles Condition="'$(Configuration)' == 'Debug' or '$(Configuration)' == ''">true</EmitCompilerGeneratedFiles>
+    <!-- Output to obj/Generated so it is automatically gitignored -->
+    <CompilerGeneratedFilesOutputPath>$(MSBuildProjectDirectory)/obj/Generated</CompilerGeneratedFilesOutputPath>
+
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 

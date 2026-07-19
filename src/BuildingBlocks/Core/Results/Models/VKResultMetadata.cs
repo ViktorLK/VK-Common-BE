@@ -41,4 +41,3 @@ public static class VKResultMetadata
         return factory(errors);
     }
 }
-
