@@ -182,6 +182,27 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
         // Calculate a deterministic hash to allow skipping sync if metadata hasn't changed.
         var metadataHash = uniquePermissions.Count == 0 ? "0000000000000000" : CalculateDeterministicHash(uniquePermissions);
 
+        // Build compile-time JSON string
+        var jsonSb = new System.Text.StringBuilder();
+        jsonSb.Append("[");
+        for (var i = 0; i < uniquePermissions.Count; i++)
+        {
+            var p = uniquePermissions[i];
+            var desc = string.IsNullOrEmpty(p.DisplayName) || p.DisplayName == p.SuggestedIdentifier
+                ? p.Description
+                : $"{p.DisplayName} | {p.Description}";
+            var safeName = p.Value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            var safeModule = p.Module.Replace("\\", "\\\\").Replace("\"", "\\\"");
+            var safeDesc = (desc ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"");
+            jsonSb.Append($"{{\"name\":\"{safeName}\",\"module\":\"{safeModule}\",\"description\":\"{safeDesc}\"}}");
+            if (i < uniquePermissions.Count - 1)
+            {
+                jsonSb.Append(",");
+            }
+        }
+        jsonSb.Append("]");
+        var escapedJson = jsonSb.ToString().Replace("\"", "\\\"");
+
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("using VK.Blocks.Authorization;");
@@ -207,6 +228,9 @@ public sealed class PermissionsCatalogGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine($"        /// <summary>Deterministic hash of all permission metadata (Names, Descriptions, Modules).</summary>");
         sb.AppendLine($"        public const string MetadataHash = \"{metadataHash}\";");
+        sb.AppendLine();
+        sb.AppendLine($"        /// <summary>JSON serialized metadata of all system permissions.</summary>");
+        sb.AppendLine($"        public const string CatalogJson = \"{escapedJson}\";");
         sb.AppendLine();
 
         sb.AppendLine("        /// <summary>A complete list of all permissions defined in the system.</summary>");

@@ -46,4 +46,9 @@ public static class VKJwtErrors
     /// VKError when the token audience does not match configuration.
     /// </summary>
     public static readonly VKError AudienceInvalid = new("Auth.AudienceInvalid", "The token audience is invalid.", VKErrorType.Unauthorized);
+
+    /// <summary>
+    /// VKError when the token refresh attempts exceed the rate limit.
+    /// </summary>
+    public static readonly VKError RateLimitExceeded = new("Auth.RateLimitExceeded", "Too many token refresh attempts.", VKErrorType.TooManyRequests);
 }

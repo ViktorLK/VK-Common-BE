@@ -1,14 +1,16 @@
+using VK.Blocks.Authentication.Jwt.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.Authentication.Common.Extensions;
+using VK.Blocks.Authentication.Common.Internal;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Authentication.Jwt.Internal;
+namespace VK.Blocks.Authentication;
 
 /// <summary>
 /// Partial implementation for JWT feature hooks.
 /// </summary>
+[VKFeature(typeof(VKAuthenticationBlock), OptionsType = typeof(VKJwtOptions))]
 internal sealed partial class JwtFeature
 {
     // [SG Hook]

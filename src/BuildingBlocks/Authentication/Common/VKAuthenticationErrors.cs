@@ -13,4 +13,9 @@ public static class VKAuthenticationErrors
     /// VKError returned when mandatory claims are missing from a principal.
     /// </summary>
     public static readonly VKError InvalidClaims = new("Auth.InvalidClaims", "One or more required claims are missing from the principal.", VKErrorType.Unauthorized);
+
+    /// <summary>
+    /// VKError returned when a tenant identifier is required but missing or invalid.
+    /// </summary>
+    public static readonly VKError TenantIsolationFailed = new("Auth.TenantIsolationFailed", "Tenant isolation check failed: Tenant identifier is missing or invalid.", VKErrorType.Forbidden);
 }

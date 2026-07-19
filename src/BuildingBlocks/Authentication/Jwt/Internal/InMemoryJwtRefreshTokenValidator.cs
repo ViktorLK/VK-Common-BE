@@ -21,6 +21,7 @@ internal sealed class InMemoryJwtRefreshTokenValidator(
     ILogger<InMemoryJwtRefreshTokenValidator> logger) : IVKJwtRefreshValidator, IInMemoryCacheCleanup, IAsyncDisposable
 {
     private readonly ConcurrentDictionary<string, DateTimeOffset> _consumedJtis = new();
+    private readonly ConcurrentDictionary<string, RateLimitState> _refreshRateLimits = new();
     private readonly object _cleanupLock = new();
 
     /// <inheritdoc />
@@ -30,6 +31,7 @@ internal sealed class InMemoryJwtRefreshTokenValidator(
     public ValueTask DisposeAsync()
     {
         _consumedJtis.Clear();
+        _refreshRateLimits.Clear();
         return ValueTask.CompletedTask;
     }
 
@@ -40,6 +42,32 @@ internal sealed class InMemoryJwtRefreshTokenValidator(
         {
             logger.LogInvalidRefreshTokenRequest();
             return ValueTask.FromResult(VKResult.Failure<bool>(JwtRefreshTokenErrors.InvalidIds));
+        }
+
+        // Apply Sliding Window Rate Limiting (Stage 2)
+        if (options.Value.EnableRefreshRateLimiting)
+        {
+            long nowUnix = timeProvider.GetUtcNow().ToUnixTimeSeconds();
+            RateLimitState rateLimitState = _refreshRateLimits.GetOrAdd(familyId, _ => new RateLimitState());
+
+            lock (rateLimitState)
+            {
+                rateLimitState.LastTouchedAt = nowUnix;
+                long windowStart = nowUnix - options.Value.RefreshWindowSeconds;
+
+                while (rateLimitState.Timestamps.TryPeek(out long ts) && ts < windowStart)
+                {
+                    rateLimitState.Timestamps.TryDequeue(out _);
+                }
+
+                if (rateLimitState.Timestamps.Count >= options.Value.MaxRefreshAttempts)
+                {
+                    logger.LogRefreshTokenRateLimitExceeded(familyId);
+                    return ValueTask.FromResult(VKResult.Failure<bool>(VKJwtErrors.RateLimitExceeded));
+                }
+
+                rateLimitState.Timestamps.Enqueue(nowUnix);
+            }
         }
 
         string cacheKey = $"{familyId}:{tokenJti}";
@@ -78,6 +106,9 @@ internal sealed class InMemoryJwtRefreshTokenValidator(
         try
         {
             DateTimeOffset now = timeProvider.GetUtcNow();
+            long nowUnix = now.ToUnixTimeSeconds();
+
+            // 1. Cleanup expired consumed JTIs
             var expiredKeys = _consumedJtis
                 .Where(kvp => kvp.Value < now)
                 .Select(kvp => kvp.Key)
@@ -87,10 +118,27 @@ internal sealed class InMemoryJwtRefreshTokenValidator(
             {
                 _consumedJtis.TryRemove(key, out _);
             }
+
+            // 2. Cleanup inactive rate limit tracking entries (inactive for > 1 hour)
+            var expiredLimitKeys = _refreshRateLimits
+                .Where(kvp => kvp.Value.LastTouchedAt < nowUnix - 3600)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            foreach (string? key in expiredLimitKeys)
+            {
+                _refreshRateLimits.TryRemove(key, out _);
+            }
         }
         finally
         {
             Monitor.Exit(_cleanupLock);
         }
+    }
+
+    private sealed class RateLimitState
+    {
+        public ConcurrentQueue<long> Timestamps { get; } = new();
+        public long LastTouchedAt { get; set; }
     }
 }

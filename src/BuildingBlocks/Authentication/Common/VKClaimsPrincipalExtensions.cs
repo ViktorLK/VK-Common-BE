@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -10,6 +11,11 @@ namespace VK.Blocks.Authentication;
 /// </summary>
 public static class VKClaimsPrincipalExtensions
 {
+    /// <summary>
+    /// The claim type for the impersonating user's identifier.
+    /// </summary>
+    public const string ImpersonatorIdClaim = "vk.impersonator.id";
+
     /// <summary>
     /// Gets the user identifier from the claims principal.
     /// </summary>
@@ -33,6 +39,53 @@ public static class VKClaimsPrincipalExtensions
     }
 
     /// <summary>
+    /// Gets the impersonating user's identifier from the claims principal.
+    /// </summary>
+    /// <param name="principal">The claims principal.</param>
+    /// <returns>The impersonator ID if found; otherwise, null.</returns>
+    public static string? GetImpersonatorId(this ClaimsPrincipal? principal)
+    {
+        return principal?.FindFirst(ImpersonatorIdClaim)?.Value
+               ?? principal?.FindFirst("actor")?.Value
+               ?? principal?.FindFirst(ClaimTypes.Actor)?.Value;
+    }
+
+    /// <summary>
+    /// Determines whether the claims principal is verified via Multi-Factor Authentication (MFA).
+    /// </summary>
+    /// <param name="principal">The claims principal.</param>
+    /// <returns>True if verified via MFA; otherwise, false.</returns>
+    public static bool IsMfaVerified(this ClaimsPrincipal? principal)
+    {
+        if (principal is null)
+        {
+            return false;
+        }
+
+        // Check Authentication Methods References (amr) claim
+        var amrClaims = principal.FindAll("amr");
+        foreach (var claim in amrClaims)
+        {
+            if (claim.Value.Equals("mfa", StringComparison.OrdinalIgnoreCase) ||
+                claim.Value.Equals("totp", StringComparison.OrdinalIgnoreCase) ||
+                claim.Value.Equals("sms", StringComparison.OrdinalIgnoreCase) ||
+                claim.Value.Equals("otp", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        // Check Authentication Context Class Reference (acr) claim
+        var acrValue = principal.FindFirst("acr")?.Value;
+        if (acrValue is not null && acrValue.Contains("mfa", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Gets the JWT ID (jti) from the claims principal.
     /// </summary>
     /// <param name="principal">The claims principal.</param>
@@ -52,7 +105,9 @@ public static class VKClaimsPrincipalExtensions
             Id = userId,
             Username = principal.FindFirst(VKClaimConstants.PreferredUsername)?.Value ?? "Unknown",
             TenantId = VKTenantId.FromNullable(principal.FindFirst(VKClaimConstants.TenantId)?.Value),
-            Email = principal.FindFirst(ClaimTypes.Email)?.Value
+            Email = principal.FindFirst(ClaimTypes.Email)?.Value is { } email ? VKSensitiveString.From(email) : default(VKSensitiveString?),
+            ImpersonatorId = principal.GetImpersonatorId(),
+            IsMfaVerified = principal.IsMfaVerified()
         };
     }
 
@@ -152,10 +207,12 @@ public static class VKClaimsPrincipalExtensions
         {
             Id = id,
             Username = username,
-            Email = principal.GetEmail(),
+            Email = principal.GetEmail() is { } email ? VKSensitiveString.From(email) : default(VKSensitiveString?),
             TenantId = principal.GetTenantId(),
             DisplayName = principal.GetDisplayName(),
             Roles = principal.GetRoles(),
+            ImpersonatorId = principal.GetImpersonatorId(),
+            IsMfaVerified = principal.IsMfaVerified(),
             Claims = claimsDict
         };
 

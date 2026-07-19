@@ -7,7 +7,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration settings for the API Key authentication.
 /// </summary>
-[VKFeature(typeof(VKAuthenticationBlock))]
+
 public sealed partial record VKApiKeyOptions : IVKToggleableBlockOptions
 {
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -305,6 +305,51 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
                     }
                 }
 
+                // Handle 'depends-on' - fetch dependencies on other manifests
+                if (yaml.TryGetValue("depends-on", out var dependsOnStr))
+                {
+                    var items = dependsOnStr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    foreach (var item in items)
+                    {
+                        // Find it in the src/BuildingBlocks directory by its 'id: <item>'
+                        var depManifestPath = FindManifestById(srcPath, item);
+                        if (depManifestPath != null && !promptFiles.Contains(depManifestPath))
+                        {
+                            // Insert the dependency safely and resolve its rules and instructions immediately.
+                            var depContent = await File.ReadAllTextAsync(depManifestPath, ct).ConfigureAwait(false);
+                            var (depYaml, depBody) = ParseMarkdownFile(depContent);
+                            
+                            // Load its rules (requires)
+                            if (depYaml.TryGetValue("requires", out var depRequiresStr))
+                            {
+                                var depRuleIds = ResolveRuleRange(depRequiresStr);
+                                foreach (var id in depRuleIds)
+                                {
+                                    var ruleContent = await GetRuleContentInternal(id, ct).ConfigureAwait(false);
+                                    if (ruleContent is not null)
+                                    {
+                                        activeRules[id] = ruleContent;
+                                    }
+                                }
+                            }
+                            
+                            // Parse sections
+                            var (depPreamble, depRuleSections) = SplitBodyIntoContext(depBody);
+                            if (!string.IsNullOrWhiteSpace(depPreamble))
+                            {
+                                generalInstructions.AppendLine($"### 💡 Instructions from {Path.GetFileName(depManifestPath)} (Dependency)");
+                                generalInstructions.AppendLine(depPreamble.Trim());
+                                generalInstructions.AppendLine();
+                            }
+                            foreach (var section in depRuleSections)
+                            {
+                                activeRules[section.Key] = section.Value;
+                            }
+                            metadata.Add($"Dependency: {Path.GetFileName(Path.GetDirectoryName(Path.GetDirectoryName(depManifestPath)))}/{Path.GetFileName(depManifestPath)}");
+                        }
+                    }
+                }
+
                 // Handle 'overrides' - remove specific rules if explicitly mentioned
                 if (yaml.TryGetValue("overrides", out var overridesStr))
                 {
@@ -505,6 +550,34 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
             // Ignore read errors
         }
         return dependencies;
+    }
+
+    private static string? FindManifestById(string srcPath, string manifestId)
+    {
+        try
+        {
+            var manifestFiles = Directory.GetFiles(srcPath, "module-manifest.md", SearchOption.AllDirectories);
+            foreach (var file in manifestFiles)
+            {
+                var content = File.ReadLines(file).Take(10); // YAML frontmatter is at the top
+                foreach (var line in content)
+                {
+                    if (line.StartsWith("id:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var idVal = line.Split(':', 2)[1].Trim();
+                        if (idVal.Equals(manifestId, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return file;
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Ignore directory search issues
+        }
+        return null;
     }
 }
 

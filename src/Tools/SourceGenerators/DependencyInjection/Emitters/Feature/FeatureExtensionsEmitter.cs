@@ -112,8 +112,14 @@ internal static class FeatureExtensionsEmitter
                     parentBlockName = parentBlockName.Substring(2);
                 var isBlockOptions = target.Options.ClassName == $"VK{parentBlockName}Options";
                 
+                var lastDotIndex = target.Parent.BlockTypeFullName.LastIndexOf('.');
+                var rootNamespace = lastDotIndex > 0 ? target.Parent.BlockTypeFullName.Substring(0, lastDotIndex) : target.Identity.Namespace;
+                if (rootNamespace.StartsWith("global::"))
+                {
+                    rootNamespace = rootNamespace.Substring(8);
+                }
                 var featureClassName = isBlockOptions ? $"{target.Identity.FeatureName}Block" : $"{target.Identity.FeatureName}Feature";
-                sb.AppendLine($"        {target.Identity.Namespace}.Internal.{featureClassName}.Register(builder, transform);");
+                sb.AppendLine($"        global::{rootNamespace}.{featureClassName}.Register(builder, transform);");
                 sb.AppendLine("        return builder;");
                 sb.AppendLine("    }");
                 sb.AppendLine();

@@ -16,6 +16,7 @@ internal static class BlockRegistrationEmitter
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection.Extensions;");
         sb.AppendLine("using Microsoft.Extensions.Options;");
         sb.AppendLine("using VK.Blocks.Core;");
+        sb.AppendLine($"using {target.Namespace};");
         sb.AppendLine();
         sb.AppendLine($"namespace {target.Namespace}.Common.DependencyInjection.Internal;");
         sb.AppendLine();
@@ -42,7 +43,7 @@ internal static class BlockRegistrationEmitter
         sb.AppendLine($"        services.AddVKBlockMarker<{target.ClassName}>();");
         sb.AppendLine();
         sb.AppendLine("        // 4. Validate Options");
-        sb.AppendLine($"        services.TryAddEnumerableSingleton<IValidateOptions<VK{target.BlockName}Options>, {target.BlockName}Block>();");
+        sb.AppendLine($"        services.TryAddEnumerableSingleton<IValidateOptions<VK{target.BlockName}Options>, {target.ClassName}.OptionsValidator>();");
         sb.AppendLine();
         sb.AppendLine("        // 4b. Options Provider Registration");
         sb.AppendLine($"        services.TryAddSingleton<IVK{target.BlockName}OptionsProvider, Default{target.BlockName}OptionsProvider>();");
@@ -59,7 +60,7 @@ internal static class BlockRegistrationEmitter
             sb.AppendLine();
         }
         sb.AppendLine("        // 6. Custom Hook");
-        sb.AppendLine($"        {target.BlockName}Block.Register(builder);");
+        sb.AppendLine($"        {target.ClassName}.Register(builder);");
         sb.AppendLine("        return builder;");
         sb.AppendLine("    }");
         sb.AppendLine("}");

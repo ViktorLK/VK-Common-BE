@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using VK.Blocks.Authentication.Common.Internal;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Authentication.Common.Extensions;
+namespace VK.Blocks.Authentication.Common.Internal;
 
 /// <summary>
 /// Internal service collection extensions for registering in-memory cleanup infrastructure.

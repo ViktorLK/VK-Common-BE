@@ -6,7 +6,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration options for JWT tokens.
 /// </summary>
-[VKFeature(typeof(VKAuthenticationBlock))]
+
 public sealed partial record VKJwtOptions : IVKToggleableBlockOptions
 {
 
@@ -74,6 +74,26 @@ public sealed partial record VKJwtOptions : IVKToggleableBlockOptions
     /// Gets or sets the lifetime of a refresh token in days. Defaults to 30.
     /// </summary>
     public int RefreshTokenLifetimeDays { get; init; } = 30;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether a tenant identifier is strictly required in the identity context.
+    /// </summary>
+    public bool RequireTenantId { get; init; } = false;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether rate limiting is enabled for JWT refresh token operations.
+    /// </summary>
+    public bool EnableRefreshRateLimiting { get; init; } = false;
+
+    /// <summary>
+    /// Gets or sets the sliding window duration in seconds for JWT refresh token rate limiting.
+    /// </summary>
+    public int RefreshWindowSeconds { get; init; } = 60;
+
+    /// <summary>
+    /// Gets or sets the maximum number of refresh attempts allowed within the window.
+    /// </summary>
+    public int MaxRefreshAttempts { get; init; } = 5;
 
     /// <summary>
     /// Determines whether the JWT feature should be activated based on configuration.
