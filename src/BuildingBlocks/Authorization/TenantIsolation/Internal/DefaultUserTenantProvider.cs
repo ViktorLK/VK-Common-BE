@@ -9,10 +9,10 @@ namespace VK.Blocks.Authorization.TenantIsolation.Internal;
 /// </summary>
 internal sealed class DefaultUserTenantProvider(
     IOptions<VKTenantIsolationOptions> options,
-    IOptions<VKAuthorizationDefaultsOptions> globalOptions) : IVKUserTenantProvider
+    IOptions<VKAuthorizationOptions> globalOptions) : IVKUserTenantProvider
 {
     private readonly VKTenantIsolationOptions _options = options.Value;
-    private readonly VKAuthorizationDefaultsOptions _globalOptions = globalOptions.Value;
+    private readonly VKAuthorizationOptions _globalOptions = globalOptions.Value;
 
     /// <inheritdoc />
     public string? GetUserTenantId(ClaimsPrincipal user)

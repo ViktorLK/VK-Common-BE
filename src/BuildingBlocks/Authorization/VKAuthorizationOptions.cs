@@ -7,8 +7,7 @@ namespace VK.Blocks.Authorization;
 /// These values serve as fallbacks for all Authorization features.
 /// Following BB.06: Modular Feature Pattern.
 /// </summary>
-[VKDefaults(typeof(VKAuthorizationBlock))]
-public sealed partial record VKAuthorizationDefaultsOptions : IVKBlockOptions
+public sealed partial record VKAuthorizationOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets the claim type used to extract roles (for SuperAdmin check).
@@ -36,4 +35,9 @@ public sealed partial record VKAuthorizationDefaultsOptions : IVKBlockOptions
     /// If false, users with the SuperAdmin role can view all tenants.
     /// </summary>
     public bool StrictTenantIsolation { get; init; } = true;
+
+    /// <summary>
+    /// Gets the list of policy names that are permitted to fail-open (bypass default fail-closed behavior on evaluation failure).
+    /// </summary>
+    public string[] FailOpenPolicies { get; init; } = [];
 }

@@ -5,8 +5,8 @@ namespace VK.Blocks.Authorization;
 /// <summary>
 /// Configuration options for the Tenant Isolation authorization feature.
 /// </summary>
-[VKFeature(typeof(VKAuthorizationBlock), GenerateArgs = true)]
-public sealed partial record VKTenantIsolationOptions : IVKTenantIsolationOptions
+
+public sealed partial record VKTenantIsolationOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets a value indicating whether the tenant isolation feature is enabled.
@@ -17,6 +17,7 @@ public sealed partial record VKTenantIsolationOptions : IVKTenantIsolationOption
     /// Gets the claim type used to extract the tenant identifier.
     /// If null, the global default TenantClaimType is used.
     /// </summary>
+    [VKRequestOverride]
     public string? TenantClaimType { get; init; }
 
     /// <summary>
@@ -24,5 +25,10 @@ public sealed partial record VKTenantIsolationOptions : IVKTenantIsolationOption
     /// If false, users with the SuperAdmin role can view all tenants.
     /// If null, the global default StrictTenantIsolation is used.
     /// </summary>
+    [VKRequestOverride]
     public bool? StrictTenantIsolation { get; init; }
+
+    /// <summary>Request-specific override for TargetTenantId.</summary>
+    [VKRequestOverride]
+    public string? TargetTenantId { get; init; }
 }

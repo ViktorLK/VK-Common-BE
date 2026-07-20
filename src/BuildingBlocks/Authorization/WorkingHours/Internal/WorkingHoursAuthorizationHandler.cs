@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization.WorkingHours.Internal;
@@ -18,16 +19,17 @@ namespace VK.Blocks.Authorization.WorkingHours.Internal;
 internal sealed class WorkingHoursAuthorizationHandler(
     TimeProvider timeProvider,
     IVKWorkingHoursProvider workingHoursProvider,
-    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
+    IOptions<VKAuthorizationOptions> globalOptions,
     IOptions<VKWorkingHoursOptions> workingHoursOptions,
-    ILogger<WorkingHoursAuthorizationHandler> logger)
+    ILogger<WorkingHoursAuthorizationHandler> logger,
+    IVKAuthorizationAuditHook? auditHook = null)
     : AuthorizationHandler<VKWorkingHoursRequirement>, IVKWorkingHoursEvaluator
 {
     private static string PolicyName => WorkingHoursConstants.FeatureName;
 
     private readonly TimeProvider _timeProvider = VKGuard.NotNull(timeProvider);
     private readonly IVKWorkingHoursProvider _workingHoursProvider = VKGuard.NotNull(workingHoursProvider);
-    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
     private readonly VKWorkingHoursOptions _workingHoursOptions = VKGuard.NotNull(workingHoursOptions).Value;
     private readonly ILogger<WorkingHoursAuthorizationHandler> _logger = VKGuard.NotNull(logger);
 
@@ -45,6 +47,19 @@ internal sealed class WorkingHoursAuthorizationHandler(
                 context.User,
                 new VKWorkingHoursArgs { WorkStart = requirement.Start, WorkEnd = requirement.End })
             .ConfigureAwait(false);
+
+        if (!result.IsSuccess || !result.Value)
+        {
+            if (_globalOptions.ShouldFailOpen(PolicyName, _logger))
+            {
+                result = VKResult.Success(true);
+            }
+        }
+
+        if (auditHook is not null)
+        {
+            await auditHook.AuditDecisionAsync(PolicyName, context.User, result, default).ConfigureAwait(false);
+        }
 
         context.ApplyResult(requirement, result, this);
     }

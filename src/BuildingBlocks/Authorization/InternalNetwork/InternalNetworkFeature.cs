@@ -1,3 +1,5 @@
+using VK.Blocks.Authorization.InternalNetwork;
+using VK.Blocks.Authorization.InternalNetwork.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -8,9 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Authorization.InternalNetwork.Internal;
+namespace VK.Blocks.Authorization;
 
 [ExcludeFromCodeCoverage]
+[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKInternalNetworkOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class InternalNetworkFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKInternalNetworkOptions options)

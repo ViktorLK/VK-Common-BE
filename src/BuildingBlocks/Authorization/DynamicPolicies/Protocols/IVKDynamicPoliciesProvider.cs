@@ -21,4 +21,18 @@ public interface IVKDynamicPoliciesProvider
         ClaimsPrincipal user,
         string attributeName,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the value of a specific attribute for the given user, resource, and environment.
+    /// </summary>
+    /// <param name="user">The user principal.</param>
+    /// <param name="attributeName">The name of the attribute/claim to fetch.</param>
+    /// <param name="resource">The target resource context being evaluated.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A result containing the attribute value if found.</returns>
+    ValueTask<VKResult<string?>> GetAttributeValueAsync(
+        ClaimsPrincipal user,
+        string attributeName,
+        object? resource,
+        CancellationToken cancellationToken = default) => GetAttributeValueAsync(user, attributeName, cancellationToken);
 }

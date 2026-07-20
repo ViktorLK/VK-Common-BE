@@ -17,7 +17,7 @@ public static class VKAuthorizationExtensions
     /// <param name="user">The user to check.</param>
     /// <param name="options">The authorization defaults options.</param>
     /// <returns>True if the user is a SuperAdmin; otherwise, false.</returns>
-    public static bool IsSuperAdmin(this ClaimsPrincipal user, VKAuthorizationDefaultsOptions options)
+    public static bool IsSuperAdmin(this ClaimsPrincipal user, VKAuthorizationOptions options)
     {
         return !string.IsNullOrEmpty(options.SuperAdminRole) &&
                user.HasClaim(options.RoleClaimType, options.SuperAdminRole);

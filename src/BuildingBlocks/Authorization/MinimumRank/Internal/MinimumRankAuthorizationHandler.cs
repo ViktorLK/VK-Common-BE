@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization.MinimumRank.Internal;
@@ -16,14 +17,15 @@ namespace VK.Blocks.Authorization.MinimumRank.Internal;
 /// </summary>
 internal sealed class MinimumRankAuthorizationHandler(
     IVKRankProvider rankProvider,
-    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
-    ILogger<MinimumRankAuthorizationHandler> logger)
+    IOptions<VKAuthorizationOptions> globalOptions,
+    ILogger<MinimumRankAuthorizationHandler> logger,
+    IVKAuthorizationAuditHook? auditHook = null)
     : AuthorizationHandler<VKMinimumRankRequirement>, IVKMinimumRankEvaluator
 {
     private static string PolicyName => MinimumRankConstants.FeatureName;
 
     private readonly IVKRankProvider _rankProvider = VKGuard.NotNull(rankProvider);
-    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
     private readonly ILogger<MinimumRankAuthorizationHandler> _logger = VKGuard.NotNull(logger);
 
     /// <inheritdoc />
@@ -40,6 +42,19 @@ internal sealed class MinimumRankAuthorizationHandler(
                 context.User,
                 new VKMinimumRankArgs { MinimumRank = requirement.MinimumRankValue, EnumType = requirement.EnumType })
             .ConfigureAwait(false);
+
+        if (!result.IsSuccess || !result.Value)
+        {
+            if (_globalOptions.ShouldFailOpen(PolicyName, _logger))
+            {
+                result = VKResult.Success(true);
+            }
+        }
+
+        if (auditHook is not null)
+        {
+            await auditHook.AuditDecisionAsync(PolicyName, context.User, result, default).ConfigureAwait(false);
+        }
 
         context.ApplyResult(requirement, result, this);
     }

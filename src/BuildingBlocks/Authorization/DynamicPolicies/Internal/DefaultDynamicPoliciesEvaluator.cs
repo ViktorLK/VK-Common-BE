@@ -1,16 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization.DynamicPolicies.Internal;
 
 /// <summary>
-/// Evaluates dynamic requirements against values provided by an <see cref="IVKDynamicPoliciesProvider"/>.
+/// Evaluates dynamic requirements (atomic or composite) against values provided by an <see cref="IVKDynamicPoliciesProvider"/>.
 /// </summary>
 internal sealed class DefaultDynamicPoliciesEvaluator(
     IVKDynamicPoliciesProvider provider,
@@ -19,6 +20,7 @@ internal sealed class DefaultDynamicPoliciesEvaluator(
 {
     private readonly IVKDynamicPoliciesProvider _provider = VKGuard.NotNull(provider);
     private readonly ILogger<DefaultDynamicPoliciesEvaluator> _logger = VKGuard.NotNull(logger);
+
     /// <inheritdoc />
     public async ValueTask<VKResult<bool>> EvaluateAsync(
         ClaimsPrincipal user,
@@ -32,51 +34,77 @@ internal sealed class DefaultDynamicPoliciesEvaluator(
         {
             return VKResult.Success(false);
         }
+
         var userId = user.Identity?.Name ?? VKBlocksConstants.UnknownIdentity;
-        var requirementName = $"{requirement.Attribute} {requirement.Operator} {requirement.Value}";
-
         var sw = Stopwatch.StartNew();
-        var result = await _provider.GetAttributeValueAsync(user, requirement.Attribute, ct)
-            .ConfigureAwait(false);
 
-        if (!result.IsSuccess)
+        // 1. Collect all unique attributes required
+        var attributesToLoad = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        CollectAttributes(requirement, attributesToLoad);
+
+        // 2. Load all attributes asynchronously
+        var loadedAttributes = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+        foreach (var attrName in attributesToLoad)
         {
-            var errorResult = VKResult.Failure<bool>(result.FirstError);
-            sw.RecordEvaluation(DynamicPoliciesConstants.FeatureName, errorResult);
-            _logger.LogDynamicAuthorizationError(userId, requirementName, result.FirstError.Code, result.FirstError.Description);
-            return errorResult;
+            var result = await _provider.GetAttributeValueAsync(user, attrName, args.Resource, ct).ConfigureAwait(false);
+            if (!result.IsSuccess)
+            {
+                var errorResult = VKResult.Failure<bool>(result.FirstError);
+                sw.RecordEvaluation(DynamicPoliciesConstants.FeatureName, errorResult);
+                _logger.LogDynamicAuthorizationError(userId, attrName, result.FirstError.Code, result.FirstError.Description);
+                return errorResult;
+            }
+            loadedAttributes[attrName] = result.Value;
         }
 
-
-        var claimValue = result.Value;
-
-        var finalResult = requirement.Operator switch
+        // 3. Build context and specification
+        var authContext = new VKAuthorizationContext
         {
-            DynamicPoliciesConstants.OperatorEquals => VKResult.Success(string.Equals(claimValue, requirement.Value?.ToString(), StringComparison.OrdinalIgnoreCase)),
-            DynamicPoliciesConstants.OperatorExists => VKResult.Success(claimValue is not null),
-            DynamicPoliciesConstants.OperatorContains => VKResult.Success(
-                claimValue is not null &&
-                requirement.Value is not null &&
-                claimValue.Contains(requirement.Value.ToString()!, StringComparison.OrdinalIgnoreCase)),
-            _ => VKResult.Failure<bool>(VKAuthorizationErrors.InvalidOperator)
+            User = user,
+            Resource = args.Resource,
+            Attributes = loadedAttributes
         };
 
-        sw.RecordEvaluation(DynamicPoliciesConstants.FeatureName, finalResult);
-
-        if (finalResult.IsSuccess && finalResult.Value)
+        try
         {
-            _logger.LogDynamicAuthorizationSucceeded(userId, requirementName, requirement.Operator);
-        }
-        else if (finalResult.IsSuccess)
-        {
-            _logger.LogDynamicAuthorizationFailed(userId, requirementName, requirement.Operator, "Value mismatch");
-        }
-        else
-        {
-            _logger.LogDynamicAuthorizationError(userId, requirementName, finalResult.FirstError.Code, finalResult.FirstError.Description);
-        }
+            var spec = VKDynamicRuleSpecification.BuildSpecification(requirement);
+            var isAllowed = spec.IsSatisfiedBy(authContext);
+            var finalResult = VKResult.Success(isAllowed);
 
+            sw.RecordEvaluation(DynamicPoliciesConstants.FeatureName, finalResult);
 
-        return finalResult;
+            if (isAllowed)
+            {
+                _logger.LogDynamicAuthorizationSucceeded(userId, requirement.GetType().Name, "Composite/Atomic Spec");
+            }
+            else
+            {
+                _logger.LogDynamicAuthorizationFailed(userId, requirement.GetType().Name, "Composite/Atomic Spec", "Specification not satisfied");
+            }
+
+            return finalResult;
+        }
+        catch (Exception ex)
+        {
+            var errorResult = VKResult.Failure<bool>(VKAuthorizationErrors.DynamicPoliciesFailed);
+            sw.RecordEvaluation(DynamicPoliciesConstants.FeatureName, errorResult);
+            _logger.LogDynamicAuthorizationError(userId, requirement.GetType().Name, errorResult.FirstError.Code, ex.Message);
+            return errorResult;
+        }
+    }
+
+    private static void CollectAttributes(IAuthorizationRequirement requirement, HashSet<string> attributes)
+    {
+        if (requirement is VKDynamicRequirement req)
+        {
+            attributes.Add(req.Attribute);
+        }
+        else if (requirement is VKCompositeDynamicRequirement composite)
+        {
+            foreach (var child in composite.Requirements)
+            {
+                CollectAttributes(child, attributes);
+            }
+        }
     }
 }

@@ -1,3 +1,5 @@
+using VK.Blocks.Authorization.MinimumRank;
+using VK.Blocks.Authorization.MinimumRank.Internal;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authorization;
@@ -5,9 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Authorization.MinimumRank.Internal;
+namespace VK.Blocks.Authorization;
 
 [ExcludeFromCodeCoverage]
+[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKMinimumRankOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class MinimumRankFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKMinimumRankOptions options)

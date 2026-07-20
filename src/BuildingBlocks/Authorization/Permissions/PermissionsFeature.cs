@@ -1,3 +1,5 @@
+using VK.Blocks.Authorization.Permissions;
+using VK.Blocks.Authorization.Permissions.Internal;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authorization;
@@ -5,9 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Authorization.Permissions.Internal;
+namespace VK.Blocks.Authorization;
 
 [ExcludeFromCodeCoverage]
+[VKFeature(typeof(VKAuthorizationBlock), "Permissions", OptionsType = typeof(VKPermissionOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class PermissionsFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPermissionOptions options)

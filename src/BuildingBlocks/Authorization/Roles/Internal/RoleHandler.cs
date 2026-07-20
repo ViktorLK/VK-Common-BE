@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization.Roles.Internal;
@@ -16,12 +19,16 @@ namespace VK.Blocks.Authorization.Roles.Internal;
 /// </summary>
 internal sealed class RoleHandler(
     IEnumerable<IVKRoleProvider> roleProviders,
-    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
-    ILogger<RoleHandler> logger)
+    IOptions<VKAuthorizationOptions> globalOptions,
+    IOptions<VKRoleOptions> options,
+    ILogger<RoleHandler> logger,
+    Microsoft.Extensions.Caching.Memory.IMemoryCache? memoryCache = null,
+    IVKAuthorizationAuditHook? auditHook = null)
     : AuthorizationHandler<VKRoleRequirement>, IVKRoleEvaluator
 {
     private readonly List<IVKRoleProvider> _providers = [.. VKGuard.NotNull(roleProviders)];
-    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKRoleOptions _options = VKGuard.NotNull(options).Value;
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
@@ -34,6 +41,15 @@ internal sealed class RoleHandler(
         }
 
         var result = await HasRolesAsync(context.User, new VKRoleArgs { Roles = requirement.Roles }).ConfigureAwait(false);
+
+        if (!result.IsSuccess || !result.Value)
+        {
+            if (_globalOptions.ShouldFailOpen(RolesConstants.FeatureName, logger))
+            {
+                result = VKResult.Success(true);
+            }
+        }
+
         context.ApplyResult(requirement, result, this);
     }
 
@@ -66,6 +82,15 @@ internal sealed class RoleHandler(
         if (user.IsSuperAdmin(_globalOptions))
         {
             return VKResult.Success(true);
+        }
+
+        var cacheKey = $"Auth:Roles:{userId}:{string.Join(",", roles)}";
+        if (_options.EnableCaching && memoryCache is not null)
+        {
+            if (memoryCache.TryGetValue<VKResult<bool>>(cacheKey, out var cachedResult) && cachedResult is not null)
+            {
+                return cachedResult;
+            }
         }
 
         // 2. Request-level RoleClaimType override check (AP.05)
@@ -124,6 +149,11 @@ internal sealed class RoleHandler(
         var finalResult = lastError is not null ? VKResult.Failure<bool>(lastError) : VKResult.Success(isAllowed);
         sw.RecordEvaluation(policyName, finalResult);
 
+        if (_options.EnableCaching && memoryCache is not null && finalResult.IsSuccess)
+        {
+            memoryCache.Set(cacheKey, finalResult, TimeSpan.FromMinutes(_options.CacheExpirationMinutes));
+        }
+
         if (finalResult.IsSuccess && finalResult.Value)
         {
             if (matchedRole is not null)
@@ -134,6 +164,11 @@ internal sealed class RoleHandler(
         else
         {
             logger.LogRolesDenied(userId, requiredRolesStr);
+        }
+
+        if (auditHook is not null)
+        {
+            await auditHook.AuditDecisionAsync(policyName, user, finalResult, ct).ConfigureAwait(false);
         }
 
         return finalResult;
