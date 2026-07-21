@@ -93,7 +93,7 @@ public static partial class VKPersistenceEFCoreBlockExtensions
         _ = builder.AddVKDbContext<TContext>((Action<DbContextOptionsBuilder, VKDatabaseOptions>?)null);
 
         // Execute local builder configuration
-        var dbBuilder = new VKDbContextBuilder<TContext>(builder.Services, builder.Configuration);
+        var dbBuilder = new DbContextBuilder<TContext>(builder.Services, builder.Configuration);
         configure?.Invoke(dbBuilder);
 
         return builder;

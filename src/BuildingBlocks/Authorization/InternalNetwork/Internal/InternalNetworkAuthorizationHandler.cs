@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization.InternalNetwork.Internal;
+
 
 /// <summary>
 /// Grants access only when the request originates from within one of the configured
@@ -18,15 +20,16 @@ namespace VK.Blocks.Authorization.InternalNetwork.Internal;
 /// </summary>
 internal sealed class InternalNetworkAuthorizationHandler(
     IVKIpAddressProvider ipAddressProvider,
-    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
+    IOptions<VKAuthorizationOptions> globalOptions,
     IOptions<VKInternalNetworkOptions> networkOptions,
-    ILogger<InternalNetworkAuthorizationHandler> logger)
+    ILogger<InternalNetworkAuthorizationHandler> logger,
+    IVKAuthorizationAuditHook? auditHook = null)
     : AuthorizationHandler<VKInternalNetworkRequirement>, IVKInternalNetworkEvaluator
 {
     private static string PolicyName => InternalNetworkConstants.FeatureName;
 
     private readonly IVKIpAddressProvider _ipAddressProvider = VKGuard.NotNull(ipAddressProvider);
-    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
     private readonly VKInternalNetworkOptions _networkOptions = VKGuard.NotNull(networkOptions).Value;
     private readonly ILogger<InternalNetworkAuthorizationHandler> _logger = VKGuard.NotNull(logger);
 
@@ -42,6 +45,19 @@ internal sealed class InternalNetworkAuthorizationHandler(
 
         var result = await IsInternalNetworkAsync(context.User, new VKInternalNetworkArgs { InternalCidrs = requirement.AllowedCidrs })
             .ConfigureAwait(false);
+
+        if (!result.IsSuccess || !result.Value)
+        {
+            if (_globalOptions.ShouldFailOpen(PolicyName, _logger))
+            {
+                result = VKResult.Success(true);
+            }
+        }
+
+        if (auditHook is not null)
+        {
+            await auditHook.AuditDecisionAsync(PolicyName, context.User, result, default).ConfigureAwait(false);
+        }
 
         context.ApplyResult(requirement, result, this);
     }
@@ -123,7 +139,7 @@ internal sealed class InternalNetworkAuthorizationHandler(
             return false;
         }
 
-        // Use stackalloc to avoid heap allocation (CS.04: ≤ 256 bytes)
+        // Use stackalloc to avoid heap allocation (CS.04: 竕､ 256 bytes)
         Span<byte> networkBytes = stackalloc byte[16];
         Span<byte> ipBytes = stackalloc byte[16];
 

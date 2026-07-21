@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization.TenantIsolation.Internal;
@@ -17,15 +18,16 @@ namespace VK.Blocks.Authorization.TenantIsolation.Internal;
 /// </summary>
 internal sealed class TenantAuthorizationHandler(
     IVKUserTenantProvider tenantProvider,
-    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
+    IOptions<VKAuthorizationOptions> globalOptions,
     IOptions<VKTenantIsolationOptions> tenantOptions,
-    ILogger<TenantAuthorizationHandler> logger)
+    ILogger<TenantAuthorizationHandler> logger,
+    IVKAuthorizationAuditHook? auditHook = null)
     : AuthorizationHandler<VKTenantIsolationRequirement>, IVKTenantEvaluator
 {
     private static string PolicyName => TenantIsolationConstants.FeatureName;
 
     private readonly IVKUserTenantProvider _tenantProvider = VKGuard.NotNull(tenantProvider);
-    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
     private readonly VKTenantIsolationOptions _tenantOptions = VKGuard.NotNull(tenantOptions).Value;
     private readonly ILogger<TenantAuthorizationHandler> _logger = VKGuard.NotNull(logger);
 
@@ -41,6 +43,19 @@ internal sealed class TenantAuthorizationHandler(
 
         var targetTenantId = context.Resource as string;
         var result = await HasSameTenantAsync(context.User, new VKTenantIsolationArgs { TargetTenantId = targetTenantId }).ConfigureAwait(false);
+
+        if (!result.IsSuccess || !result.Value)
+        {
+            if (_globalOptions.ShouldFailOpen(PolicyName, _logger))
+            {
+                result = VKResult.Success(true);
+            }
+        }
+
+        if (auditHook is not null)
+        {
+            await auditHook.AuditDecisionAsync(PolicyName, context.User, result, default).ConfigureAwait(false);
+        }
 
         context.ApplyResult(requirement, result, this);
     }

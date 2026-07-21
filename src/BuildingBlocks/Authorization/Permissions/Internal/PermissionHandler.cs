@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -5,8 +6,10 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Authorization.Common.Shared;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authorization.Permissions.Internal;
@@ -17,12 +20,16 @@ namespace VK.Blocks.Authorization.Permissions.Internal;
 /// </summary>
 internal sealed class PermissionHandler(
     IEnumerable<IVKPermissionProvider> permissionProviders,
-    IOptions<VKAuthorizationDefaultsOptions> globalOptions,
-    ILogger<PermissionHandler> logger)
+    IOptions<VKAuthorizationOptions> globalOptions,
+    IOptions<VKPermissionOptions> options,
+    ILogger<PermissionHandler> logger,
+    Microsoft.Extensions.Caching.Memory.IMemoryCache? memoryCache = null,
+    IVKAuthorizationAuditHook? auditHook = null)
     : AuthorizationHandler<VKPermissionRequirement>, IVKPermissionEvaluator
 {
     private readonly List<IVKPermissionProvider> _providers = [.. VKGuard.NotNull(permissionProviders)];
-    private readonly VKAuthorizationDefaultsOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKAuthorizationOptions _globalOptions = VKGuard.NotNull(globalOptions).Value;
+    private readonly VKPermissionOptions _options = VKGuard.NotNull(options).Value;
 
     /// <inheritdoc />
     protected override async Task HandleRequirementAsync(
@@ -35,6 +42,15 @@ internal sealed class PermissionHandler(
         }
 
         var result = await HasPermissionsAsync(context.User, new VKPermissionArgs { Permissions = requirement.Permissions, Mode = requirement.Mode }).ConfigureAwait(false);
+
+        if (!result.IsSuccess || !result.Value)
+        {
+            if (_globalOptions.ShouldFailOpen(PermissionsConstants.FeatureName, logger))
+            {
+                result = VKResult.Success(true);
+            }
+        }
+
         context.ApplyResult(requirement, result, this);
     }
 
@@ -64,6 +80,15 @@ internal sealed class PermissionHandler(
                 logger.LogPermissionGranted(perm, $"{userId} (Bypassed)");
             }
             return VKResult.Success(true);
+        }
+
+        var cacheKey = $"Auth:Perms:{userId}:{mode}:{string.Join(",", permissionList)}";
+        if (_options.EnableCaching && memoryCache is not null)
+        {
+            if (memoryCache.TryGetValue<VKResult<bool>>(cacheKey, out var cachedResult) && cachedResult is not null)
+            {
+                return cachedResult;
+            }
         }
 
         var compositePolicy = mode == VKPermissionEvaluationMode.All
@@ -124,6 +149,16 @@ internal sealed class PermissionHandler(
 
         // Record aggregated evaluation
         sw.RecordEvaluation(compositePolicy, finalResult);
+
+        if (_options.EnableCaching && memoryCache is not null && finalResult.IsSuccess)
+        {
+            memoryCache.Set(cacheKey, finalResult, TimeSpan.FromMinutes(_options.CacheExpirationMinutes));
+        }
+
+        if (auditHook is not null)
+        {
+            await auditHook.AuditDecisionAsync(compositePolicy, user, finalResult, ct).ConfigureAwait(false);
+        }
 
         return finalResult;
     }

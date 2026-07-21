@@ -9,10 +9,10 @@ namespace VK.Blocks.Authorization.MinimumRank.Internal;
 /// <inheritdoc />
 internal sealed class DefaultRankProvider(
     IOptions<VKMinimumRankOptions> options,
-    IOptions<VKAuthorizationDefaultsOptions> globalOptions) : IVKRankProvider
+    IOptions<VKAuthorizationOptions> globalOptions) : IVKRankProvider
 {
     private readonly VKMinimumRankOptions _options = options.Value;
-    private readonly VKAuthorizationDefaultsOptions _globalOptions = globalOptions.Value;
+    private readonly VKAuthorizationOptions _globalOptions = globalOptions.Value;
 
     /// <inheritdoc />
     public ValueTask<string?> GetRankAsync(ClaimsPrincipal user, CancellationToken ct = default)

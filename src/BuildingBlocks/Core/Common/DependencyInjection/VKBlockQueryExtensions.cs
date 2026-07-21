@@ -83,7 +83,7 @@ public static class VKBlockQueryExtensions
 
         for (int i = 0; i < services.Count; i++)
         {
-            if (services[i].ServiceType == typeof(TService))
+            if (services[i].ServiceType == typeof(TService) && !services[i].IsKeyedService)
             {
                 return true;
             }
@@ -108,7 +108,7 @@ public static class VKBlockQueryExtensions
 
         for (int i = 0; i < services.Count; i++)
         {
-            if (services[i].ServiceType == serviceType)
+            if (services[i].ServiceType == serviceType && !services[i].IsKeyedService)
             {
                 return true;
             }
@@ -133,6 +133,7 @@ public static class VKBlockQueryExtensions
         {
             ServiceDescriptor descriptor = services[i];
             if (descriptor.ServiceType == typeof(TService) &&
+                !descriptor.IsKeyedService &&
                 descriptor.ImplementationInstance is TService instance)
             {
                 return instance;

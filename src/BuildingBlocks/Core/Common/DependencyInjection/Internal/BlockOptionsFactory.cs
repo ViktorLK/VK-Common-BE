@@ -12,25 +12,30 @@ namespace VK.Blocks.Core.DependencyInjection.Internal;
 internal sealed class BlockOptionsFactory<TOptions> : IOptionsFactory<TOptions>
     where TOptions : class, IVKBlockOptions, new()
 {
-    private readonly TOptions _preConfiguredOptions;
+    private readonly BlockOptionsRegistry<TOptions> _registry;
     private readonly IEnumerable<IValidateOptions<TOptions>> _validators;
 
     public BlockOptionsFactory(
-        TOptions preConfiguredOptions,
+        BlockOptionsRegistry<TOptions> registry,
         IEnumerable<IValidateOptions<TOptions>> validators)
     {
-        _preConfiguredOptions = preConfiguredOptions;
+        _registry = registry;
         _validators = validators;
     }
 
     /// <inheritdoc />
     public TOptions Create(string name)
     {
+        if (!_registry.TryGet(name, out var options))
+        {
+            options = new TOptions();
+        }
+
         // 1. Run all validators registered in the DI container
         var failures = new List<string>();
         foreach (var validator in _validators)
         {
-            var result = validator.Validate(name, _preConfiguredOptions);
+            var result = validator.Validate(name, options);
             if (result.Failed)
             {
                 failures.AddRange(result.Failures);
@@ -43,6 +48,6 @@ internal sealed class BlockOptionsFactory<TOptions> : IOptionsFactory<TOptions>
         }
 
         // 2. Return the pre-bound, pre-transformed immutable options instance
-        return _preConfiguredOptions;
+        return options;
     }
 }
