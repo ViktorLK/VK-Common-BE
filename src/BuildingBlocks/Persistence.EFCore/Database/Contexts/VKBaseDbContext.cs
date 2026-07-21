@@ -1,4 +1,6 @@
+using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VK.Blocks.Core;
 using VK.Blocks.MultiTenancy;
 using VK.Blocks.Persistence.EFCore.Database.Internal;
@@ -46,11 +48,27 @@ public abstract class VKBaseDbContext : DbContext
     }
 
     /// <inheritdoc />
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.Properties<VKTenantId>().HaveConversion<VKTenantIdConverter>();
+    }
+
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyGlobalFilters(this);
         modelBuilder.ApplyConcurrencyToken();
+    }
+
+    private sealed class VKTenantIdConverter : ValueConverter<VKTenantId, Guid>
+    {
+        public VKTenantIdConverter() : base(
+            id => id.Value,
+            value => new VKTenantId(value))
+        {
+        }
     }
 }

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.Persistence.EFCore.Database.Internal;
+namespace VK.Blocks.Persistence.EFCore;
 
 /// <summary>
 /// Database feature marker and registration hub.

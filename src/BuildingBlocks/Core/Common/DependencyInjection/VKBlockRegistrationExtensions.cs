@@ -143,8 +143,8 @@ public static class VKBlockRegistrationExtensions
                 // and IOptions/IOptionsFactory injection (resolving existingOptions) might become desynchronized.
                 // Reconfiguration/fluent transforms MUST only occur during the synchronous single-threaded Startup/Configure phase.
                 services.Replace(ServiceDescriptor.Singleton(transformedOptions));
-                services.Replace(ServiceDescriptor.Singleton<IOptionsFactory<TOptions>>(sp =>
-                    new BlockOptionsFactory<TOptions>(transformedOptions, sp.GetServices<IValidateOptions<TOptions>>())));
+                var registry = GetOrCreateRegistry<TOptions>(services);
+                registry.Set(Options.DefaultName, transformedOptions);
 
                 return transformedOptions;
             }
@@ -166,23 +166,106 @@ public static class VKBlockRegistrationExtensions
             options = transform(options);
         }
 
-        // 1. Singleton registration for direct injection & library-internal synchronous access
-        // Registering this early ensures that IsVKServiceRegistered returns true for subsequent calls.
+        // 1. Registering this early ensures that IsVKServiceRegistered returns true for subsequent calls.
         services.TryAddSingleton(options);
 
-        // 2. Custom Factory registration to handle immutable transforms + all validations across IOptions, Snapshot, Monitor
-        // ADR-016: Since the instance is immutable, we register a custom factory that returns the pre-bound,
-        // pre-transformed instance and triggers all registered validation rules.
-        // NOTE (DI REGISTRATION ORDER ROBUSTNESS): We use 'Replace' instead of 'TryAddSingleton' to eliminate order-dependency
-        // fragility, ensuring our custom factory overrides the default one even if AddOptions was called elsewhere beforehand.
-        services.Replace(ServiceDescriptor.Singleton<IOptionsFactory<TOptions>>(sp =>
-            new BlockOptionsFactory<TOptions>(options, sp.GetServices<IValidateOptions<TOptions>>())));
-
+        // 2. Registry + Factory for IOptions pipeline
+        var reg = GetOrCreateRegistry<TOptions>(services);
+        reg.Set(Options.DefaultName, options);
 
         // 3. Validation infrastructure (Still needed for startup check)
-        services.AddOptions<TOptions>().ValidateOnStart();
+        services.AddOptions<TOptions>().ValidateDataAnnotations().ValidateOnStart();
 
         return options;
+    }
+
+    /// <summary>
+    /// [WRAPPER] Keyed variant — registers a named building block options instance
+    /// resolvable via both <c>[FromKeyedServices("key")]</c> direct injection
+    /// and <c>IOptionsSnapshot&lt;T&gt;.Get(key)</c> / <c>IOptionsMonitor&lt;T&gt;.Get(key)</c>.
+    /// Following ADR-016: Supports immutable options (init) via 'with' expressions.
+    /// </summary>
+    /// <typeparam name="TOptions">The type of options to configure.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The root configuration.</param>
+    /// <param name="key">The unique key identifying this options instance.</param>
+    /// <param name="transform">Optional transformation function.</param>
+    /// <returns>The options instance bound at registration time.</returns>
+    public static TOptions AddVKBlockOptions<TOptions>(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string key,
+        Func<TOptions, TOptions>? transform = null)
+        where TOptions : class, IVKBlockOptions, new()
+    {
+        VKGuard.NotNull(services);
+        VKGuard.Against(string.IsNullOrWhiteSpace(key), "Options key cannot be null or empty. Use the non-keyed overload for a single shared instance.");
+        VKGuard.NotNull(configuration);
+        VKGuard.Against(string.IsNullOrWhiteSpace(TOptions.SectionName), "Options SectionName cannot be null or empty.");
+
+        // [IDEMPOTENCY CHECK] — keyed by (TOptions type, key), not just TOptions type
+        var existingDescriptor = services.FirstOrDefault(d =>
+            d.ServiceType == typeof(TOptions) && key.Equals(d.ServiceKey));
+
+        if (existingDescriptor is not null)
+        {
+            var existingOptions = (TOptions)existingDescriptor.KeyedImplementationInstance!;
+
+            if (transform is null)
+            {
+                return existingOptions;
+            }
+
+            // ADR-016 (keyed variant): re-apply transform, replace just this key's registration
+            var transformedOptions = transform(existingOptions);
+            services.Remove(existingDescriptor);
+            services.AddKeyedSingleton(key, transformedOptions);
+
+            var registry = GetOrCreateRegistry<TOptions>(services);
+            registry.Set(key, transformedOptions);
+            return transformedOptions;
+        }
+
+        var targetConfig = configuration.GetSection(TOptions.SectionName);
+        var options = targetConfig.Get<TOptions>() ?? new TOptions();
+
+        if (transform is not null)
+        {
+            options = transform(options);
+        }
+
+        // 1. Keyed singleton for [FromKeyedServices("key")] direct injection
+        services.AddKeyedSingleton(key, options);
+
+        // 2. Registry + Factory for IOptions pipeline
+        var reg = GetOrCreateRegistry<TOptions>(services);
+        reg.Set(key, options);
+
+        // 3. Named validation infrastructure + startup validation
+        services.AddOptions<TOptions>(key).ValidateDataAnnotations().ValidateOnStart();
+
+        return options;
+    }
+
+    private static BlockOptionsRegistry<TOptions> GetOrCreateRegistry<TOptions>(IServiceCollection services)
+        where TOptions : class, IVKBlockOptions, new()
+    {
+        var registryDescriptor = services.FirstOrDefault(d =>
+            d.ServiceType == typeof(BlockOptionsRegistry<TOptions>));
+
+        if (registryDescriptor?.ImplementationInstance is BlockOptionsRegistry<TOptions> existing)
+        {
+            return existing;
+        }
+
+        var registry = new BlockOptionsRegistry<TOptions>();
+        services.AddSingleton(registry);
+        services.Replace(ServiceDescriptor.Singleton<IOptionsFactory<TOptions>>(sp =>
+            new BlockOptionsFactory<TOptions>(
+                sp.GetRequiredService<BlockOptionsRegistry<TOptions>>(),
+                sp.GetServices<IValidateOptions<TOptions>>())));
+
+        return registry;
     }
 
     /// <summary>

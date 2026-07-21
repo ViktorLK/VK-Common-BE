@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core.Guids.Internal;
 using VK.Blocks.Core.Identity.Internal;
 using VK.Blocks.Core.Serialization.Internal;
+using VK.Blocks.Core.Synchronization.Internal;
 using VK.Blocks.Core.Utilities;
 
 namespace VK.Blocks.Core.DependencyInjection.Internal;
@@ -30,6 +31,7 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton<IVKEnvironmentProvider, VKDefaultEnvironmentProvider>();
         services.TryAddSingleton<IVKUserContext, NullUserContext>();
         services.TryAddSingleton<IVKSyncStateStore, VKNoOpSyncStateStore>();
+        services.TryAddSingleton<IVKDistributedLockProvider, InProcessMemoryLockProvider>();
 
         // 3. Mark-Self (Success Commit)
         // AP.02: Register marker immediately to enable dependency resolution.

@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
+using VK.Blocks.Persistence.EFCore.Pagination.Internal;
 
-namespace VK.Blocks.Persistence.EFCore.Pagination.Internal;
+namespace VK.Blocks.Persistence.EFCore;
 
 /// <summary>
 /// Pagination feature marker and registration hub.
