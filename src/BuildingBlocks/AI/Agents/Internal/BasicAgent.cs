@@ -19,7 +19,7 @@ internal sealed class BasicAgent : IVKAgent
 {
     private readonly IVKChatEngine _chatEngine;
     private readonly VKAgentsOptions _options;
-    private readonly VKAIDefaultsOptions _globalOptions;
+    private readonly VKAIOptions _globalOptions;
     private readonly IVKUserContext _userContext;
     private readonly ILogger<BasicAgent> _logger;
     private readonly IReadOnlyList<IVKAtomicToolFilter> _filters;
@@ -32,7 +32,7 @@ internal sealed class BasicAgent : IVKAgent
         IReadOnlyDictionary<string, object>? metadata,
         IVKChatEngine chatEngine,
         IOptions<VKAgentsOptions> options,
-        IOptions<VKAIDefaultsOptions> globalOptions,
+        IOptions<VKAIOptions> globalOptions,
         IVKUserContext userContext,
         ILogger<BasicAgent> logger,
         IEnumerable<IVKAtomicToolFilter>? filters = null)

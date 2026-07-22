@@ -7,13 +7,13 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Chat feature.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), GenerateArgs = true)]
-public sealed partial record VKChatOptions : IVKChatOptions
+public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Chat feature is enabled.
     /// Defaults to true.
     /// </summary>
+    [VKNoRequestOverride]
     public bool Enabled { get; init; } = true;
 
     // --- Connection ---
@@ -29,6 +29,7 @@ public sealed partial record VKChatOptions : IVKChatOptions
 
     /// <inheritdoc />
     public string? Endpoint { get; init; }
+
     // --- Resilience ---
 
     /// <inheritdoc />
@@ -38,15 +39,18 @@ public sealed partial record VKChatOptions : IVKChatOptions
     public int? RetryCount { get; init; }
 
     /// <inheritdoc />
+    [VKNoRequestOverride]
     public int? CircuitBreakerThreshold { get; init; }
 
     /// <inheritdoc />
+    [VKNoRequestOverride]
     public TimeSpan? CircuitBreakerBreakDuration { get; init; }
 
     /// <summary>
     /// Gets or sets the fallback chain for Chat features.
     /// Used for cross-provider resilience when rate limits or transient failures occur.
     /// </summary>
+    [VKNoRequestOverride]
     public IReadOnlyList<VKChatFallbackConfig> ChatFallbacks { get; init; } = [];
 
     // --- Audit ---
@@ -57,12 +61,15 @@ public sealed partial record VKChatOptions : IVKChatOptions
     // --- Quota ---
 
     /// <inheritdoc />
+    [VKNoRequestOverride]
     public long? GlobalTokenLimit { get; init; }
 
     /// <inheritdoc />
+    [VKNoRequestOverride]
     public long? MonthlyTokenBudget { get; init; }
 
     /// <inheritdoc />
+    [VKNoRequestOverride]
     public int? RateLimitPerMinute { get; init; }
 
     // --- Safety ---
@@ -73,6 +80,7 @@ public sealed partial record VKChatOptions : IVKChatOptions
     /// <summary>
     /// Gets or sets whether to log the fully rendered prompt sent to the LLM.
     /// </summary>
+    [VKNoRequestOverride]
     public bool EnablePromptLogging { get; init; } = false;
 
     // --- Chat Specific ---
@@ -105,16 +113,19 @@ public sealed partial record VKChatOptions : IVKChatOptions
     /// <summary>
     /// Gets or sets the maximum context window size for the model.
     /// </summary>
+    [VKNoRequestOverride]
     public int ContextWindowSize { get; init; } = 4096;
 
     /// <summary>
     /// Gets or sets the number of tokens to reserve for the assistant response.
     /// </summary>
+    [VKNoRequestOverride]
     public int ResponseReservedTokens { get; init; } = 512;
 
     /// <summary>
     /// Gets or sets the number of tokens to reserve for the system prompt.
     /// </summary>
+    [VKNoRequestOverride]
     public int SystemPromptReservedTokens { get; init; } = 512;
 
     /// <summary>
@@ -158,5 +169,6 @@ public sealed partial record VKChatOptions : IVKChatOptions
     /// Prevents runaway auto-invocation loops.
     /// Defaults to <c>10</c>. Ignored when <see cref="EnableAutoToolCalling"/> is <c>false</c>.
     /// </summary>
+    [VKNoRequestOverride]
     public int MaxAutoToolCallRounds { get; init; } = 10;
 }

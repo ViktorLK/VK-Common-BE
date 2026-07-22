@@ -1,5 +1,4 @@
 using System;
-using VK.Blocks.AI.Guardrails.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -7,8 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Privacy Guard (PII detection) feature.
 /// </summary>
-[VKFeature(typeof(GuardrailsFeature), GenerateArgs = true)]
-public sealed partial record VKPrivacyOptions : IVKPrivacyOptions
+public sealed partial record VKPrivacyOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Privacy Guard feature is enabled.
@@ -23,12 +21,15 @@ public sealed partial record VKPrivacyOptions : IVKPrivacyOptions
     public string? Endpoint { get; init; }
 
     // --- Resilience ---
+    [VKRequestOverride]
     public TimeSpan? Timeout { get; init; }
+    [VKRequestOverride]
     public int? RetryCount { get; init; }
     public int? CircuitBreakerThreshold { get; init; }
     public TimeSpan? CircuitBreakerBreakDuration { get; init; }
 
     // --- Audit ---
+    [VKRequestOverride]
     public bool? EnableAudit { get; init; }
 
     // --- Quota ---
@@ -37,9 +38,12 @@ public sealed partial record VKPrivacyOptions : IVKPrivacyOptions
     public int? RateLimitPerMinute { get; init; }
 
     // --- Safety ---
+    [VKRequestOverride]
     public bool? EnableContentFilter { get; init; }
 
     // --- Privacy Specific ---
+    [VKRequestOverride]
     public System.Collections.Generic.IReadOnlyList<string>? Categories { get; init; } = ["Email", "Phone", "Person", "Location"];
+    [VKRequestOverride]
     public char? MaskingChar { get; init; } = '*';
 }

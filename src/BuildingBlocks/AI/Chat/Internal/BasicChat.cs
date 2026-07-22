@@ -19,14 +19,14 @@ internal sealed partial class BasicChat : IVKChat
 {
     private readonly IVKChatEngine _engine;
     private readonly VKChatOptions _options;
-    private readonly VKAIDefaultsOptions _globalOptions;
+    private readonly VKAIOptions _globalOptions;
     private readonly IVKUserContext _userContext;
     private readonly ILogger<BasicChat> _logger;
 
     public BasicChat(
         IVKChatEngine engine,
         IOptions<VKChatOptions> options,
-        IOptions<VKAIDefaultsOptions> globalOptions,
+        IOptions<VKAIOptions> globalOptions,
         IVKUserContext userContext,
         ILogger<BasicChat> logger)
     {

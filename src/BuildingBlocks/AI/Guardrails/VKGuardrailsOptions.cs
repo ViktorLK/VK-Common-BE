@@ -6,7 +6,6 @@ namespace VK.Blocks.AI;
 /// Root configuration settings for all AI Guardrails (Content, Privacy, Injections).
 /// Following AP.05: Hierarchical configuration pattern.
 /// </summary>
-[VKFeature(typeof(VKAIBlock))]
 public sealed partial record VKGuardrailsOptions : IVKToggleableBlockOptions
 {
     /// <summary>

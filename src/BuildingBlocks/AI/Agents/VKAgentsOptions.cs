@@ -6,8 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Agents feature.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), GenerateArgs = true)]
-public sealed partial record VKAgentsOptions : IVKAgentsOptions
+public sealed partial record VKAgentsOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Agents feature is enabled.
@@ -16,18 +15,25 @@ public sealed partial record VKAgentsOptions : IVKAgentsOptions
     public bool Enabled { get; init; } = false;
 
     // --- Connection ---
+    [VKRequestOverride]
     public VKAIProviderType? Provider { get; init; }
+    [VKRequestOverride]
     public string? ModelId { get; init; }
+    [VKRequestOverride]
     public VKSensitiveString? ApiKey { get; init; }
+    [VKRequestOverride]
     public string? Endpoint { get; init; }
 
     // --- Resilience ---
+    [VKRequestOverride]
     public TimeSpan? Timeout { get; init; }
+    [VKRequestOverride]
     public int? RetryCount { get; init; }
     public int? CircuitBreakerThreshold { get; init; }
     public TimeSpan? CircuitBreakerBreakDuration { get; init; }
 
     // --- Audit ---
+    [VKRequestOverride]
     public bool? EnableAudit { get; init; }
 
     // --- Quota ---
@@ -36,16 +42,19 @@ public sealed partial record VKAgentsOptions : IVKAgentsOptions
     public int? RateLimitPerMinute { get; init; }
 
     // --- Safety ---
+    [VKRequestOverride]
     public bool? EnableContentFilter { get; init; }
 
     /// <summary>
     /// Gets or sets the maximum number of iterations for an agent.
     /// </summary>
+    [VKRequestOverride]
     public int? MaxIterations { get; init; } = 10;
 
     /// <summary>
     /// Gets or sets the maximum number of tool calls per iteration.
     /// </summary>
+    [VKRequestOverride]
     public int MaxToolCallsPerIteration { get; init; } = 5;
 
     /// <summary>
@@ -101,5 +110,6 @@ public sealed partial record VKAgentsOptions : IVKAgentsOptions
     /// Gets or sets the chat settings for the agent.
     /// Following AP.05: Nested hierarchical configuration.
     /// </summary>
+    [VKRequestOverride]
     public VKChatOptions Chat { get; init; } = new();
 }

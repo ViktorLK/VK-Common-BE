@@ -1,0 +1,29 @@
+using VK.Blocks.AI.Tokenics.Limiting.Internal;
+using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.AI;
+
+/// <summary>
+/// Token Limiting feature marker and registration hub.
+/// </summary>
+[VKFeature(typeof(global::VK.Blocks.AI.TokenicsFeature), OptionsType = typeof(VKLimitingOptions))]
+internal sealed partial class LimitingFeature
+{
+    // [SG Hook]
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKLimitingOptions options)
+    {
+        _ = options;
+        services.TryAddScoped<IVKTokenRateLimiter, DefaultTokenRateLimiter>();
+    }
+
+    /// <summary>Add limiting-specific validation logic here</summary>
+    // [SG Hook]
+    static partial void ValidateFeatureCustom(VKLimitingOptions options, List<string> failures)
+    {
+        _ = options;
+        _ = failures;
+    }
+}

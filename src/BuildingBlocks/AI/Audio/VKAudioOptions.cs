@@ -6,7 +6,6 @@ namespace VK.Blocks.AI;
 /// Root configuration settings for all Audio features (Speech, Transcription).
 /// Following AP.05: Hierarchical configuration pattern.
 /// </summary>
-[VKFeature(typeof(VKAIBlock))]
 public sealed partial record VKAudioOptions : IVKToggleableBlockOptions
 {
     /// <summary>

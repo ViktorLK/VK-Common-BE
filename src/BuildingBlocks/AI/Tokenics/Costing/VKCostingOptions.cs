@@ -1,4 +1,3 @@
-using VK.Blocks.AI.Tokenics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -6,7 +5,6 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Token Costing feature.
 /// </summary>
-[VKFeature(typeof(TokenicsFeature))]
 public sealed partial record VKCostingOptions : IVKToggleableBlockOptions
 {
 

@@ -1,4 +1,3 @@
-using VK.Blocks.AI.Text.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -6,8 +5,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Text Chunking feature.
 /// </summary>
-[VKFeature(typeof(TextFeature))]
-public sealed partial record VKChunkingOptions : IVKChunkingOptions
+public sealed partial record VKChunkingOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Chunking is enabled.

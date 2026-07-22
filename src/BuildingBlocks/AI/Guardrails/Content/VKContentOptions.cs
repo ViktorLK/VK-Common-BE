@@ -1,5 +1,4 @@
 using System;
-using VK.Blocks.AI.Guardrails.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -7,8 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Content Guard (formerly Moderation) feature.
 /// </summary>
-[VKFeature(typeof(GuardrailsFeature), GenerateArgs = true)]
-public sealed partial record VKContentOptions : IVKContentOptions
+public sealed partial record VKContentOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Content Guard feature is enabled.
@@ -23,12 +21,15 @@ public sealed partial record VKContentOptions : IVKContentOptions
     public string? Endpoint { get; init; }
 
     // --- Resilience ---
+    [VKRequestOverride]
     public TimeSpan? Timeout { get; init; }
+    [VKRequestOverride]
     public int? RetryCount { get; init; }
     public int? CircuitBreakerThreshold { get; init; }
     public TimeSpan? CircuitBreakerBreakDuration { get; init; }
 
     // --- Audit ---
+    [VKRequestOverride]
     public bool? EnableAudit { get; init; }
 
     // --- Quota ---
@@ -37,9 +38,12 @@ public sealed partial record VKContentOptions : IVKContentOptions
     public int? RateLimitPerMinute { get; init; }
 
     // --- Safety ---
+    [VKRequestOverride]
     public bool? EnableContentFilter { get; init; }
 
     // --- Content Guard Specific ---
+    [VKRequestOverride]
     public bool? AutoBlockOnFailure { get; init; } = true;
+    [VKRequestOverride]
     public float? SensitivityThreshold { get; init; } = 0;
 }
