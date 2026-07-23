@@ -6,8 +6,7 @@ namespace VK.Blocks.VectorStore;
 /// Default configuration settings for the AI Vector Store building block.
 /// These values serve as fallbacks for all Vector Store features.
 /// </summary>
-[VKDefaults(typeof(VKVectorStoreBlock))]
-public sealed partial record VKVectorStoreDefaultsOptions : IVKBlockOptions
+public sealed partial record VKVectorStoreOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets the type of the vector store.

@@ -1,12 +1,14 @@
+using VK.Blocks.AI.Psyche.Pipeline.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Psyche;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche.Pipeline.Internal;
+namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Psyche Pipeline feature marker and registration hub.
 /// </summary>
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPipelineOptions))]
 internal sealed partial class PipelineFeature
 {
     // [SG Hook]

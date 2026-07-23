@@ -1,12 +1,14 @@
+using VK.Blocks.AI.Psyche.Knowledge.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
-namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
+namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Knowledge feature marker and registration hub.
 /// </summary>
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKKnowledgeOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class KnowledgeFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKKnowledgeOptions options)

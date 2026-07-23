@@ -6,4 +6,4 @@ namespace VK.Blocks.AI.Psyche;
 /// Defines a pipeline stage that runs BEFORE the LLM call in Psyche.
 /// Follows CS.01, CS.03.
 /// </summary>
-public interface IVKPsycheBeforePipelineStage : IVKBeforePipelineStage<VKPsycheContext> {}
+public interface IVKPsycheBeforePipelineStage : IVKBeforePipelineStage<VKPsycheContext> { }

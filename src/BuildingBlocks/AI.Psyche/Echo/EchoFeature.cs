@@ -1,11 +1,14 @@
+using VK.Blocks.AI.Psyche.Echo.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche.Echo.Internal;
+namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Echo feature marker and registration hub.
 /// </summary>
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKEchoOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class EchoFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKEchoOptions options)

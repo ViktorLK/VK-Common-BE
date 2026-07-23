@@ -1,11 +1,14 @@
+using VK.Blocks.AI.Psyche.Persona.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-namespace VK.Blocks.AI.Psyche.Persona.Internal;
+using VK.Blocks.Core;
+namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Persona feature marker and registration hub.
 /// </summary>
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPersonaOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class PersonaFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPersonaOptions options)

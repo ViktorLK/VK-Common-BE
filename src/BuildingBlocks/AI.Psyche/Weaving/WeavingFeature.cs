@@ -1,10 +1,13 @@
+using VK.Blocks.AI.Psyche.Weaving.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
 
 // // [AP.03] Internal implementation inside Internal/ folder without VK prefix
-namespace VK.Blocks.AI.Psyche.Weaving.Internal;
+namespace VK.Blocks.AI.Psyche;
 
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKWeavingOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class WeavingFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKWeavingOptions options)
