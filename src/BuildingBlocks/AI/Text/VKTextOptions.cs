@@ -6,10 +6,10 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Options for the text generation feature.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), GenerateArgs = true)]
-public sealed partial record VKTextOptions : IVKTextOptions
+public sealed partial record VKTextOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <inheritdoc />
+    [VKNoRequestOverride]
     public bool Enabled { get; init; } = true;
 
     // --- Connection ---
@@ -21,15 +21,24 @@ public sealed partial record VKTextOptions : IVKTextOptions
     // --- Resilience ---
     public TimeSpan? Timeout { get; init; }
     public int? RetryCount { get; init; }
+
+    [VKNoRequestOverride]
     public int? CircuitBreakerThreshold { get; init; }
+
+    [VKNoRequestOverride]
     public TimeSpan? CircuitBreakerBreakDuration { get; init; }
 
     // --- Audit ---
     public bool? EnableAudit { get; init; }
 
     // --- Quota ---
+    [VKNoRequestOverride]
     public long? GlobalTokenLimit { get; init; }
+
+    [VKNoRequestOverride]
     public long? MonthlyTokenBudget { get; init; }
+
+    [VKNoRequestOverride]
     public int? RateLimitPerMinute { get; init; }
 
     // --- Safety ---

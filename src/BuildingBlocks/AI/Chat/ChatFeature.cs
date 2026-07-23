@@ -1,0 +1,42 @@
+using VK.Blocks.AI.Chat.Internal;
+using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.AI;
+
+/// <summary>
+/// Chat feature marker and registration hub.
+/// </summary>
+[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKChatOptions), ArgsGenerationMode = VKArgsGenerationMode.Implicit, ArgsBaseType = typeof(IVKAIArgs))]
+internal sealed partial class ChatFeature
+{
+    // [SG Hook]
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKChatOptions options)
+    {
+        _ = options;
+        services.TryAddScoped<IVKChatEngine, NoOpVKChatEngine>();
+        services.TryAddScoped<IVKChat, BasicChat>();
+    }
+
+    // [SG Hook] Optional validation hook
+    static partial void ValidateFeatureCustom(VKChatOptions options, List<string> failures)
+    {
+        if (string.IsNullOrWhiteSpace(options.ModelId))
+        {
+            failures.Add("ModelId is required when Chat is enabled.");
+        }
+
+        if (options.Timeout.HasValue && options.Timeout.Value <= TimeSpan.Zero)
+        {
+            failures.Add("Timeout must be greater than zero.");
+        }
+
+        if (options.RetryCount.HasValue && options.RetryCount.Value < 0)
+        {
+            failures.Add("RetryCount must be greater than or equal to 0.");
+        }
+    }
+}

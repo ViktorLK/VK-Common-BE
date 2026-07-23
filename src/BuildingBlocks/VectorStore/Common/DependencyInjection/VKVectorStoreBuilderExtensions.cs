@@ -1,5 +1,5 @@
-using VK.Blocks.VectorStore.VecEngine.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.VectorStore.VecEngine.Internal;
 
 namespace VK.Blocks.VectorStore;
 

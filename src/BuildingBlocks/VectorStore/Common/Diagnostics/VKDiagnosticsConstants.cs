@@ -1,5 +1,3 @@
-using VK.Blocks.Core.Diagnostics;
-
 namespace VK.Blocks.VectorStore;
 
 /// <summary>

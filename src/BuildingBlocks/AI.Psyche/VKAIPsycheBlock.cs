@@ -6,5 +6,5 @@ namespace VK.Blocks.AI.Psyche;
 /// AI.Psyche Block Marker.
 /// Follows BB.02.
 /// </summary>
-[VKBlockMarker(Dependencies = [typeof(VKAIBlock)])]
+[VKBlockMarker(Dependencies = [typeof(VKAIBlock)], Toggleable = false)]
 public sealed partial class VKAIPsycheBlock;

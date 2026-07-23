@@ -1,0 +1,49 @@
+using VK.Blocks.AI.Psyche.Knowledge.Internal;
+using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
+namespace VK.Blocks.AI.Psyche;
+
+/// <summary>
+/// Knowledge feature marker and registration hub.
+/// </summary>
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKKnowledgeOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+internal sealed partial class KnowledgeFeature
+{
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKKnowledgeOptions options)
+    {
+        if (!options.Enabled)
+            return;
+
+        services.TryAddSingleton<IVKKnowledgeStore, InMemoryKnowledgeStore>();
+        services.TryAddSingleton<IVKKnowledgeRenderer, DefaultKnowledgeRenderer>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultKnowledgeStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultKnowledgeFinalizerStage>());
+
+        // Register non-generic extractor and formatter
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultKnowledgeFormatter>());
+    }
+
+    // [SG Hook]
+    static partial void ValidateFeatureCustom(VKKnowledgeOptions options, List<string> failures)
+    {
+        VKGuard.NotNull(options);
+        VKGuard.NotNull(failures);
+
+        if (options.MaxEntriesToInject < 0)
+        {
+            failures.Add("MaxEntriesToInject must be non-negative.");
+        }
+
+        if (options.ReservedTokens < 0)
+        {
+            failures.Add("ReservedTokens must be non-negative.");
+        }
+
+        if (options.SemanticThreshold is < 0 or > 1)
+        {
+            failures.Add("SemanticThreshold must be between 0 and 1.");
+        }
+    }
+}

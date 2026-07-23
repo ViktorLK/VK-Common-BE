@@ -17,7 +17,7 @@ public static class VKAIConnectionExtensions
     /// <returns>A <see cref="VKResult{T}"/> containing the resolved contract or an error.</returns>
     public static VKResult<VKAIResolvedContract> ResolveConnection(
         this IVKAIProviderOptions settings,
-        VKAIDefaultsOptions globalOptions,
+        VKAIOptions globalOptions,
         IVKAIProviderOverrides? overrides = null)
     {
         VKGuard.NotNull(settings);

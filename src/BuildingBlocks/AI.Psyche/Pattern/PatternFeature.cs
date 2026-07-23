@@ -1,0 +1,30 @@
+using VK.Blocks.AI.Psyche.Pattern.Internal;
+using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.AI.Psyche;
+
+/// <summary>
+/// Pattern feature marker and registration hub.
+/// </summary>
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPatternOptions))]
+internal sealed partial class PatternFeature
+{
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKPatternOptions options)
+    {
+        if (!options.Enabled)
+            return;
+
+        services.TryAddSingleton<IVKPatternStore, InMemoryPatternStore>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultPatternStage>());
+    }
+
+    // [SG Hook]
+    static partial void ValidateFeatureCustom(VKPatternOptions options, List<string> failures)
+    {
+        VKGuard.NotNull(options);
+        VKGuard.NotNull(failures);
+    }
+}

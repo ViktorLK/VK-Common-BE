@@ -5,8 +5,8 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Configuration settings for the Knowledge feature.
 /// </summary>
-[VKFeature(typeof(VKAIPsycheBlock), GenerateArgs = true)]
-public sealed partial record VKKnowledgeOptions : IVKKnowledgeOptions
+
+public sealed partial record VKKnowledgeOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Knowledge feature is enabled.
@@ -17,22 +17,26 @@ public sealed partial record VKKnowledgeOptions : IVKKnowledgeOptions
     /// <summary>
     /// Gets or sets the maximum number of knowledge entries to inject into the prompt context.
     /// </summary>
+    [VKRequestOverride]
     public int? MaxEntriesToInject { get; init; } = 5;
 
     /// <summary>
     /// Gets or sets the number of tokens reserved for knowledge entries in the prompt context.
     /// </summary>
+    [VKRequestOverride]
     public int? ReservedTokens { get; init; } = 256;
 
     /// <summary>
     /// Gets or sets the maximum global recursion depth for key matching jumps and multi-hop retrieval.
     /// Defaults to 2.
     /// </summary>
+    [VKRequestOverride]
     public int? MaxGlobalRecursionDepth { get; init; } = 2;
 
     /// <summary>
     /// Gets or sets the semantic similarity threshold for knowledge entry retrieval.
     /// </summary>
+    [VKRequestOverride]
     public float? SemanticThreshold { get; init; } = 0.75f;
 
     /// <summary>

@@ -6,8 +6,8 @@ namespace VK.Blocks.AI.Psyche;
 /// Options for Echo (Short-term memory conversation history tracking).
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
-[VKFeature(typeof(VKAIPsycheBlock), GenerateArgs = true)]
-public sealed partial record VKEchoOptions : IVKEchoOptions
+
+public sealed partial record VKEchoOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets or sets the ratio of the total context token limit allocated to short-term memory history.
@@ -20,6 +20,7 @@ public sealed partial record VKEchoOptions : IVKEchoOptions
     /// If null, sliding window message-count pruning is disabled, relying entirely on token and turn budgets.
     /// Default is null.
     /// </summary>
+    [VKRequestOverride]
     public int? MaxWindowSize { get; init; } = null;
 
     /// <summary>
@@ -32,6 +33,7 @@ public sealed partial record VKEchoOptions : IVKEchoOptions
     /// Gets or sets the maximum number of complete conversation turns to retain.
     /// Active only when <see cref="PruneUnit"/> is set to <see cref="VKEchoPruneUnit.Turn"/>.
     /// </summary>
+    [VKRequestOverride]
     public int? MaxTurns { get; init; } = null;
 
     /// <summary>

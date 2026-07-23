@@ -5,8 +5,8 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Configuration settings for the Pattern feature.
 /// </summary>
-[VKFeature(typeof(VKAIPsycheBlock))]
-public sealed partial record VKPatternOptions : IVKPatternOptions
+
+public sealed partial record VKPatternOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Pattern feature is enabled.

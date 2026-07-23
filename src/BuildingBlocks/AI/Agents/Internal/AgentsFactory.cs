@@ -33,7 +33,7 @@ internal sealed class AgentsFactory : IVKAgentFactory
 
         var chatEngine = _serviceProvider.GetRequiredService<IVKChatEngine>(); // [CS.07]
         var options = _serviceProvider.GetRequiredService<IOptions<VKAgentsOptions>>(); // [CS.07]
-        var globalOptions = _serviceProvider.GetRequiredService<IOptions<VKAIDefaultsOptions>>(); // [CS.07]
+        var globalOptions = _serviceProvider.GetRequiredService<IOptions<VKAIOptions>>(); // [CS.07]
         var userContext = _serviceProvider.GetRequiredService<IVKUserContext>(); // [CS.07]
         var logger = _serviceProvider.GetRequiredService<ILogger<BasicAgent>>(); // [CS.07]
         var filters = _serviceProvider.GetService<IEnumerable<IVKAtomicToolFilter>>();
