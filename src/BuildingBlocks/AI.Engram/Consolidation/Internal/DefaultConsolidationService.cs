@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Engram.Compression;
+using VK.Blocks.AI.Engram.Consolidation.Diagnostics.Internal;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
@@ -13,38 +14,44 @@ namespace VK.Blocks.AI.Engram.Consolidation.Internal;
 internal sealed class DefaultConsolidationService : IVKConsolidationService
 {
     private readonly IVKMemoryExtractor _memoryExtractor;
-    private readonly IVKChatSessionStore _sessionStore;
-    private readonly IVKSchemaMerger _schemaMerger;
+    private readonly IVKContentSanitizer _sanitizer;
+    private readonly IVKConsolidationStrategy _strategy;
     private readonly SimilarityDeduplicator _deduplicator;
-    private readonly IVKMemoryEchoes _echoes;
+    private readonly IVKMemoryStore _store;
+    private readonly IVKConsolidationPersistenceManager _persistenceManager;
     private readonly IVKGuidGenerator _guidGenerator;
+    private readonly TimeProvider _timeProvider;
     private readonly VKConsolidationOptions _options;
-    private readonly VKDecayOptions _decayOptions;
+    private readonly IVKContradictionArbitrator? _arbitrator;
     private readonly ILogger<DefaultConsolidationService> _logger;
 
     public DefaultConsolidationService(
         IVKMemoryExtractor memoryExtractor,
-        IVKChatSessionStore sessionStore,
-        IVKSchemaMerger schemaMerger,
+        IVKContentSanitizer sanitizer,
+        IVKConsolidationStrategy strategy,
         SimilarityDeduplicator deduplicator,
-        IVKMemoryEchoes echoes,
+        IVKMemoryStore store,
+        IVKConsolidationPersistenceManager persistenceManager,
         IVKGuidGenerator guidGenerator,
+        TimeProvider timeProvider,
         IOptions<VKConsolidationOptions> options,
-        IOptions<VKDecayOptions> decayOptions,
-        ILogger<DefaultConsolidationService> logger)
+        ILogger<DefaultConsolidationService> logger,
+        IVKContradictionArbitrator? arbitrator = null)
     {
         _memoryExtractor = VKGuard.NotNull(memoryExtractor);
-        _sessionStore = VKGuard.NotNull(sessionStore);
-        _schemaMerger = VKGuard.NotNull(schemaMerger);
+        _sanitizer = VKGuard.NotNull(sanitizer);
+        _strategy = VKGuard.NotNull(strategy);
         _deduplicator = VKGuard.NotNull(deduplicator);
-        _echoes = VKGuard.NotNull(echoes);
+        _store = VKGuard.NotNull(store);
+        _persistenceManager = VKGuard.NotNull(persistenceManager);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
+        _timeProvider = VKGuard.NotNull(timeProvider);
         _options = VKGuard.NotNull(options?.Value);
-        _decayOptions = VKGuard.NotNull(decayOptions?.Value);
         _logger = VKGuard.NotNull(logger);
+        _arbitrator = arbitrator;
     }
 
-    public async Task<VKResult> ConsolidateSessionMemoryAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
+    public async Task<VKResult> ConsolidateSessionMemoryAsync(VKPsycheContext context, VKConsolidationArgs? args = null, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
 
@@ -53,119 +60,165 @@ internal sealed class DefaultConsolidationService : IVKConsolidationService
             return VKResult.Success();
         }
 
-        // 1. Try to extract memories from the current round
+        var sessionId = context.Request.SessionId;
+        if (context.State<ConsolidationIdempotencyMarker>() is not null)
+        {
+            _logger.IdempotencySkipped(sessionId.Value.ToString());
+            return VKResult.Success();
+        }
+        context.SetState(new ConsolidationIdempotencyMarker());
+
         if (!_memoryExtractor.TryExtract(context, out var memoriesToSave))
         {
             return VKResult.Success();
         }
 
-        var chatSessionId = new VKChatSessionId(context.Request.SessionId.Value);
+        return await ProcessMemoriesInternalAsync(memoriesToSave, sessionId, sourceL2Entries: [], args, cancellationToken).ConfigureAwait(false);
+    }
 
-        // 2. Retrieve existing L2 memory
-        var sessionResult = await _sessionStore.GetAsync(chatSessionId, cancellationToken).ConfigureAwait(false);
-        if (sessionResult.IsFailure)
+    public async Task<VKResult> ConsolidateSessionMemoryAsync(VKSessionId sessionId, VKConsolidationArgs? args = null, CancellationToken cancellationToken = default)
+    {
+        if (!_options.Enabled || sessionId.IsEmpty)
         {
-            return VKResult.Success(); // No active session memory to merge from
+            return VKResult.Success();
         }
 
-        var session = sessionResult.Value;
-
-        // 3. Schema Update & User Profile Merging
-        string? updatedFacts = session.StructuredFacts;
-        if (_options.EnableSchemaUpdate && !string.IsNullOrWhiteSpace(session.StructuredFacts))
+        var l2Query = await _store.QueryAsync(new VKMemoryQuery
         {
-            var mergeResult = await _schemaMerger.MergeSchemaAsync(
-                session.StructuredFacts,
-                string.Join("\n", memoriesToSave),
-                _options.ConflictStrategy,
-                cancellationToken).ConfigureAwait(false);
+            Category = VKMemoryCategory.MediumTerm,
+            SessionId = sessionId,
+            TopK = 50
+        }, cancellationToken).ConfigureAwait(false);
 
-            if (mergeResult.IsSuccess)
+        if (l2Query.IsFailure || l2Query.Value.Count == 0)
+        {
+            return VKResult.Success();
+        }
+
+        var snapshotL2Entries = l2Query.Value.ToList();
+        var memoriesToSave = snapshotL2Entries.Select(m => m.Content).ToArray();
+
+        return await ProcessMemoriesInternalAsync(memoriesToSave, sessionId, snapshotL2Entries, args, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<VKResult> ProcessMemoriesInternalAsync(
+        string[] memoriesToSave,
+        VKSessionId sessionId,
+        IReadOnlyList<VKMemoryEntry> sourceL2Entries,
+        VKConsolidationArgs? args,
+        CancellationToken cancellationToken)
+    {
+        var safeMemories = _sanitizer.Sanitize(memoriesToSave);
+        if (safeMemories.Length == 0)
+        {
+            return VKResult.Success();
+        }
+
+        var strategyResult = await _strategy.ConsolidateAsync(safeMemories, cancellationToken).ConfigureAwait(false);
+        if (strategyResult.IsFailure)
+        {
+            return VKResult.Failure(strategyResult.Errors);
+        }
+
+        var consolidatedFacts = string.IsNullOrWhiteSpace(strategyResult.Value)
+            ? safeMemories
+            : strategyResult.Value.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var newEntries = BuildMemoryEntries(consolidatedFacts, sessionId);
+        if (newEntries.Count == 0)
+        {
+            return VKResult.Success();
+        }
+
+        await ArbitrateContradictionsAsync(newEntries, cancellationToken).ConfigureAwait(false);
+
+        double similarityThreshold = args?.SimilarityThreshold ?? _options.SimilarityThreshold;
+        double dropLowerThreshold = args?.DropLowerThreshold ?? _options.DropLowerThreshold;
+
+        var deduplicateResult = await _deduplicator.DeduplicateAsync(
+            newEntries,
+            similarityThreshold,
+            dropLowerThreshold,
+            cancellationToken).ConfigureAwait(false);
+
+        var finalEntries = deduplicateResult.IsSuccess ? deduplicateResult.Value : newEntries;
+
+        var persistResult = await _persistenceManager.PersistEntriesAsync(finalEntries, cancellationToken).ConfigureAwait(false);
+        if (persistResult.IsFailure)
+        {
+            return persistResult;
+        }
+
+        if (sourceL2Entries.Count > 0)
+        {
+            foreach (var l2Entry in sourceL2Entries)
             {
-                updatedFacts = mergeResult.Value;
+                await _store.DeleteAsync(l2Entry.Id, tenantId: l2Entry.TenantId, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        // 4. Graph Merging
-        string? updatedGraph = session.RelationGraph;
-        if (_options.EnableGraphMerge && !string.IsNullOrWhiteSpace(session.RelationGraph))
-        {
-            updatedGraph = session.RelationGraph + "\n" + string.Join("\n", memoriesToSave);
-        }
+        return VKResult.Success();
+    }
 
-        // Update L2 store with the consolidated facts and graphs
-        await _sessionStore.UpdateSessionMemoryAsync(
-            chatSessionId,
-            session.Summary,
-            narrativeSummary: session.NarrativeSummary,
-            structuredFacts: updatedFacts,
-            relationGraph: updatedGraph,
-            timeline: session.Timeline,
-            contradictions: session.Contradictions,
-            actionItems: session.ActionItems,
-            confidenceAnnotations: session.ConfidenceAnnotations,
-            predictiveCues: session.PredictiveCues,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
-
-        // 5. Convert to L3 VectorStore entries
-        var newEntries = new List<VKMemoryEntry>();
+    private List<VKMemoryEntry> BuildMemoryEntries(string[] facts, VKSessionId sessionId)
+    {
+        var entries = new List<VKMemoryEntry>();
         float baseImportance = 0.5f;
+        var now = _timeProvider.GetUtcNow();
 
-        // Propagate confidence and salience weighting
-        if (_options.EnableConfidencePropagation && !string.IsNullOrWhiteSpace(session.ConfidenceAnnotations))
+        var batchCount = Math.Min(facts.Length, _options.MaxBatchSize);
+        for (int i = 0; i < batchCount; i++)
         {
-            baseImportance = 0.8f; // Higher importance baseline if confidence was annotated
-        }
-
-        VKEmotionalSignal? entryEmotion = null;
-        if (session.Valence.HasValue && session.Arousal.HasValue)
-        {
-            entryEmotion = new VKEmotionalSignal
+            var fact = facts[i];
+            entries.Add(new VKMemoryEntry
             {
-                Valence = session.Valence.Value,
-                Arousal = session.Arousal.Value
-            };
-
-            float w = session.Valence.Value < 0
-                ? (float)_decayOptions.NegativeEmotionWeight
-                : (float)_decayOptions.PositiveEmotionWeight;
-
-            baseImportance = Math.Clamp(baseImportance + session.Arousal.Value * w, 0.0f, 1.0f);
-        }
-
-        foreach (var fact in memoriesToSave)
-        {
-            newEntries.Add(new VKMemoryEntry
-            {
-                Id = _guidGenerator.Create().ToString(),
+                Id = new VKMemoryId(_guidGenerator.Create()),
                 Content = fact,
-                CreatedAt = DateTimeOffset.UtcNow,
+                CreatedAt = now,
                 Category = VKMemoryCategory.LongTerm,
                 Importance = baseImportance,
-                Emotion = entryEmotion,
+                SessionId = sessionId,
                 Metadata = new Dictionary<string, string>
                 {
-                    { "SessionId", chatSessionId.ToString() },
+                    { "SessionId", sessionId.ToString() },
                     { "Type", "ConsolidatedFact" }
                 }
             });
         }
 
-        // Similarity Deduplication before saving to L3
-        var deduplicateResult = await _deduplicator.DeduplicateAsync(
-            newEntries,
-            _options.SimilarityThreshold,
-            _options.DropLowerThreshold,
-            cancellationToken).ConfigureAwait(false);
+        return entries;
+    }
 
-        var finalEntries = deduplicateResult.IsSuccess ? deduplicateResult.Value : newEntries;
-
-        // Persist final L3 entries
-        foreach (var entry in finalEntries)
+    private async Task ArbitrateContradictionsAsync(List<VKMemoryEntry> newEntries, CancellationToken cancellationToken)
+    {
+        if (_arbitrator is null)
         {
-            await _echoes.SaveAsync(entry, cancellationToken).ConfigureAwait(false);
+            return;
         }
 
-        return VKResult.Success();
+        var searchResult = await _store.QueryAsync(new VKMemoryQuery { TopK = _options.ArbitrationTopK }, cancellationToken).ConfigureAwait(false);
+        if (!searchResult.IsSuccess)
+        {
+            return;
+        }
+
+        var existingCandidates = searchResult.Value.Where(e => !e.IsSuperseded).ToList();
+        foreach (var entry in newEntries)
+        {
+            var arbResult = await _arbitrator.ArbitrateAsync(entry.Content, existingCandidates, cancellationToken).ConfigureAwait(false);
+            if (arbResult.IsSuccess && arbResult.Value.Kind == VKContradictionKind.ExplicitCorrection && !string.IsNullOrWhiteSpace(arbResult.Value.ContradictedMemoryId))
+            {
+                var targetId = arbResult.Value.ContradictedMemoryId;
+                var oldEntry = existingCandidates.FirstOrDefault(c => string.Equals(c.Id.ToString(), targetId, StringComparison.OrdinalIgnoreCase));
+                if (oldEntry is not null)
+                {
+                    var updatedOld = oldEntry with { IsSuperseded = true, SupersededBy = entry.Id };
+                    await _store.UpsertAsync(updatedOld, cancellationToken).ConfigureAwait(false);
+                    _logger.ContradictionArbitrated(oldEntry.Id.ToString(), entry.Id.ToString());
+                }
+            }
+        }
     }
+
+    private sealed record ConsolidationIdempotencyMarker;
 }

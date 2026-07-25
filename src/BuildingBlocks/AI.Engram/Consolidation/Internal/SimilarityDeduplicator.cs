@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using VK.Blocks.Core;
 using VK.Blocks.VectorStore;
 
-namespace VK.Blocks.AI.Engram.Consolidation;
+namespace VK.Blocks.AI.Engram.Consolidation.Internal;
 
 internal sealed class SimilarityDeduplicator
 {
@@ -32,7 +32,6 @@ internal sealed class SimilarityDeduplicator
             return VKResult.Success(candidates);
         }
 
-        // 1. Generate embeddings for all candidate contents in parallel
         var tasks = candidates.Select(c => _embeddingsEngine.GenerateAsync(c.Content, cancellationToken)).ToList();
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
@@ -82,7 +81,6 @@ internal sealed class SimilarityDeduplicator
 
                 if (similarity >= dropLowerThreshold)
                 {
-                    // Drop lower score (DropLower)
                     if (other.Entry.Importance < activeEntry.Importance)
                     {
                         skipIndices.Add(j);
@@ -95,7 +93,6 @@ internal sealed class SimilarityDeduplicator
                 }
                 else if (similarity >= similarityThreshold)
                 {
-                    // Merge via summary (MergeViaSummary) using LLM
                     var mergeResult = await MergeViaSummaryAsync(activeEntry.Content, other.Entry.Content, cancellationToken).ConfigureAwait(false);
                     if (mergeResult.IsSuccess)
                     {
@@ -157,7 +154,7 @@ internal sealed class SimilarityDeduplicator
         }
         catch (Exception ex)
         {
-            return VKResult.Failure<string>(new VKError("AI.Engram.Consolidation.MergeViaSummaryError", ex.Message));
+            return VKResult.Failure<string>(new VKError(VKConsolidationErrors.MergeViaSummaryError.Code, ex.Message));
         }
     }
 }

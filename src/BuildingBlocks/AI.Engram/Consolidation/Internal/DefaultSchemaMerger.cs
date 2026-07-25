@@ -53,7 +53,7 @@ internal sealed class DefaultSchemaMerger : IVKSchemaMerger
         }
         catch (Exception ex)
         {
-            return VKResult.Failure<string>(new VKError("AI.Engram.Consolidation.SchemaMergeError", ex.Message));
+            return VKResult.Failure<string>(new VKError(VKConsolidationErrors.SchemaMergeError.Code, ex.Message));
         }
     }
 }

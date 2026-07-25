@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Engram.Compression.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram.Compression.Internal;
@@ -13,7 +14,7 @@ namespace VK.Blocks.AI.Engram.Compression.Internal;
 /// <summary>
 /// Compression strategy that identifies topic boundaries and summarizes by topic segments.
 /// </summary>
-internal sealed partial class TopicSegmentationCompressionStrategy : IVKCompressionStrategy
+internal sealed class TopicSegmentationCompressionStrategy : IVKCompressionStrategy
 {
     private readonly IVKChatEngine _chatEngine;
     private readonly VKCompressionOptions _options;
@@ -31,24 +32,24 @@ internal sealed partial class TopicSegmentationCompressionStrategy : IVKCompress
         _logger = VKGuard.NotNull(logger);
     }
 
-    public async Task<VKResult<string>> CompressAsync(string content, CancellationToken cancellationToken = default)
+    public async Task<VKResult<string>> CompressAsync(VKCompressionContext context, CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNull(content);
+        VKGuard.NotNull(context);
 
-        if (string.IsNullOrWhiteSpace(content))
+        if (string.IsNullOrWhiteSpace(context.Content))
         {
             return VKResult.Success(string.Empty);
         }
 
-        var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        if (lines.Length == 0)
+        var lines = VKTextTokenizer.SplitLines(context.Content);
+        if (lines.Count == 0)
         {
             return VKResult.Success(string.Empty);
         }
 
         // 1. Build indexed history for LLM segmenter
         var indexedHistory = new StringBuilder();
-        for (int i = 0; i < lines.Length; i++)
+        for (int i = 0; i < lines.Count; i++)
         {
             indexedHistory.AppendLine($"[{i + 1}] {lines[i]}");
         }
@@ -73,17 +74,17 @@ internal sealed partial class TopicSegmentationCompressionStrategy : IVKCompress
         var segmentationResult = await _chatEngine.SendAsync(messages, chatArgs, cancellationToken).ConfigureAwait(false);
         if (!segmentationResult.IsSuccess)
         {
-            LogTopicSegmentationFailed(_logger, segmentationResult.FirstError.Description);
-            return await FallbackSummarizeAsync(content, chatArgs, cancellationToken).ConfigureAwait(false);
+            _logger.TopicSegmentationFailed(segmentationResult.FirstError.Description);
+            return await FallbackSummarizeAsync(context.Content, chatArgs, cancellationToken).ConfigureAwait(false);
         }
 
         string segmentsText = segmentationResult.Value.Message.Content ?? string.Empty;
-        var segments = ParseSegments(segmentsText, lines.Length);
+        var segments = ParseSegments(segmentsText, lines.Count);
 
         if (segments.Count == 0)
         {
-            LogNoValidSegmentsParsed(_logger);
-            return await FallbackSummarizeAsync(content, chatArgs, cancellationToken).ConfigureAwait(false);
+            _logger.NoValidSegmentsParsed();
+            return await FallbackSummarizeAsync(context.Content, chatArgs, cancellationToken).ConfigureAwait(false);
         }
 
         // 3. Summarize each segment
@@ -92,7 +93,7 @@ internal sealed partial class TopicSegmentationCompressionStrategy : IVKCompress
         {
             var segmentLines = new List<string>();
             int startIdx = Math.Max(0, segment.StartLine - 1);
-            int endIdx = Math.Min(lines.Length - 1, segment.EndLine - 1);
+            int endIdx = Math.Min(lines.Count - 1, segment.EndLine - 1);
 
             for (int i = startIdx; i <= endIdx; i++)
             {
@@ -125,7 +126,7 @@ internal sealed partial class TopicSegmentationCompressionStrategy : IVKCompress
     private static List<TopicSegment> ParseSegments(string segmentsText, int maxLines)
     {
         var result = new List<TopicSegment>();
-        var lines = segmentsText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        var lines = VKTextTokenizer.SplitLines(segmentsText);
 
         foreach (var line in lines)
         {
@@ -171,12 +172,6 @@ internal sealed partial class TopicSegmentationCompressionStrategy : IVKCompress
 
         return VKResult.Success(result.Value.Message.Content ?? string.Empty);
     }
-
-    [LoggerMessage(EventId = 301, Level = LogLevel.Warning, Message = "Failed to detect topic boundaries: {Error}. Falling back to single summarization.")]
-    private static partial void LogTopicSegmentationFailed(ILogger logger, string error);
-
-    [LoggerMessage(EventId = 302, Level = LogLevel.Warning, Message = "No valid segments parsed. Falling back to single summarization.")]
-    private static partial void LogNoValidSegmentsParsed(ILogger logger);
 
     private sealed class TopicSegment
     {

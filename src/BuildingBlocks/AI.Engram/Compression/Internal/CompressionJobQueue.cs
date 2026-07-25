@@ -1,4 +1,5 @@
 using System.Threading.Channels;
+using VK.Blocks.AI.Psyche;
 
 namespace VK.Blocks.AI.Engram.Compression.Internal;
 
@@ -8,7 +9,7 @@ namespace VK.Blocks.AI.Engram.Compression.Internal;
 /// </summary>
 internal sealed class CompressionJobQueue
 {
-    private readonly Channel<VKChatSessionId> _channel;
+    private readonly Channel<VKSessionId> _channel;
 
     public CompressionJobQueue()
     {
@@ -18,13 +19,13 @@ internal sealed class CompressionJobQueue
             SingleReader = true,
             SingleWriter = false
         };
-        _channel = Channel.CreateBounded<VKChatSessionId>(options);
+        _channel = Channel.CreateBounded<VKSessionId>(options);
     }
 
     /// <summary>
     /// Enqueues a chat session for compression. Returns false if the queue is full.
     /// </summary>
-    public bool TryEnqueue(VKChatSessionId sessionId)
+    public bool TryEnqueue(VKSessionId sessionId)
     {
         return _channel.Writer.TryWrite(sessionId);
     }
@@ -32,5 +33,5 @@ internal sealed class CompressionJobQueue
     /// <summary>
     /// Gets the channel reader to consume enqueued session IDs.
     /// </summary>
-    public ChannelReader<VKChatSessionId> Reader => _channel.Reader;
+    public ChannelReader<VKSessionId> Reader => _channel.Reader;
 }

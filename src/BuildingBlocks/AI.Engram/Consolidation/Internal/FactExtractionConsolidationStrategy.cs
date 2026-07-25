@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Engram.Consolidation.Strategies;
+namespace VK.Blocks.AI.Engram.Consolidation.Internal;
 
 /// <summary>
 /// Consolidation strategy based on fact extraction using an LLM.

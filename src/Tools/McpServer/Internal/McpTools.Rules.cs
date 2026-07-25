@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -47,48 +47,40 @@ internal sealed partial class McpTools
             }
 
             var ruleFiles = Directory.GetFiles(rulesDir, "0*.md");
-            var targetHeader = $"### {ruleId}";
 
             foreach (var file in ruleFiles)
             {
-                var content = await File.ReadAllTextAsync(file, ct).ConfigureAwait(false);
+                var lines = await File.ReadAllLinesAsync(file, ct).ConfigureAwait(false);
 
-                // Find the header (e.g., ### CS.01)
-                var startIndex = content.IndexOf(targetHeader, StringComparison.OrdinalIgnoreCase);
-                if (startIndex == -1)
+                // Find the header line that starts with ### {ruleId}
+                var startLineIndex = -1;
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var trimmed = lines[i].TrimStart();
+                    if (trimmed.StartsWith($"### {ruleId}", StringComparison.OrdinalIgnoreCase))
+                    {
+                        startLineIndex = i;
+                        break;
+                    }
+                }
+
+                if (startLineIndex == -1)
                     continue;
 
-                // Find the start of the next header (exactly ### followed by a space)
-                // We skip the current header by starting the search after the current line
-                var lineEndIndex = content.IndexOf('\n', startIndex);
-                if (lineEndIndex == -1) lineEndIndex = startIndex + targetHeader.Length;
-
-                var nextHeaderIndex = -1;
-                var searchIndex = lineEndIndex;
-                while ((searchIndex = content.IndexOf("### ", searchIndex, StringComparison.OrdinalIgnoreCase)) != -1)
+                // Find the end line (next level 3 header ### or end of file)
+                var endLineIndex = lines.Length;
+                for (int i = startLineIndex + 1; i < lines.Length; i++)
                 {
-                    // Ensure it's exactly ### (Level 3), not #### (Level 4+)
-                    if (searchIndex == 0 || content[searchIndex - 1] == '\n')
+                    var trimmed = lines[i].TrimStart();
+                    if (trimmed.StartsWith("### ", StringComparison.OrdinalIgnoreCase) && !trimmed.StartsWith("####", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Check if it's ####
-                        if (content.Length > searchIndex + 4 && content[searchIndex + 3] != '#')
-                        {
-                            nextHeaderIndex = searchIndex;
-                            break;
-                        }
+                        endLineIndex = i;
+                        break;
                     }
-                    searchIndex += 4;
                 }
 
-                string ruleContent;
-                if (nextHeaderIndex != -1)
-                {
-                    ruleContent = content.Substring(startIndex, nextHeaderIndex - startIndex).Trim();
-                }
-                else
-                {
-                    ruleContent = content.Substring(startIndex).Trim();
-                }
+                var ruleLines = lines[startLineIndex..endLineIndex];
+                var ruleContent = string.Join("\n", ruleLines).Trim();
 
                 return $"[Architectural Rule: {ruleId}]\nSource: {Path.GetFileName(file)}\n\n{ruleContent}";
             }
