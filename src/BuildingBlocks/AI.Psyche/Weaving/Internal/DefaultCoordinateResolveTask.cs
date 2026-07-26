@@ -16,9 +16,7 @@ internal sealed class DefaultCoordinateResolveTask : IVKWeavingTask
         _options = VKGuard.NotNull(options).Value;
     }
 
-    public int TaskOrder => VKWeavingTaskOrder.CoordinateResolve;
-    public bool IsParallel => false;
-    public int? ParallelGroup => null;
+    public VKPipelineSchedule Schedule => new(VKWeavingTaskOrder.CoordinateResolve);
 
     public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {

@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 /// <summary>
 /// Pipeline stage for injecting persona configuration into the context.
 /// </summary>
-internal sealed class DefaultPersonaStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
 {
     private readonly IVKPersonaStore _store;
     private readonly VKWeavingOptions _weavingOptions;
@@ -27,7 +27,7 @@ internal sealed class DefaultPersonaStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePersona;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePersona;
     public bool IsActive => true;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)

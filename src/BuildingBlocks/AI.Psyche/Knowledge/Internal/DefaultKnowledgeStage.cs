@@ -7,13 +7,13 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
-internal sealed class DefaultKnowledgeStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
 {
     private readonly VKKnowledgeOptions _options;
     private readonly IVKKnowledgeStore _store;
     private readonly VKWeavingOptions _weavingOptions;
 
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledge;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledge;
     public bool IsActive => _options.Enabled;
 
     public DefaultKnowledgeStage(

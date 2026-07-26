@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using VK.Blocks.AI.Psyche;
 
-namespace VK.Blocks.AI.Engram.Consolidation;
+namespace VK.Blocks.AI.Engram.Consolidation.Internal;
 
 internal sealed class DefaultMemoryExtractor : IVKMemoryExtractor
 {

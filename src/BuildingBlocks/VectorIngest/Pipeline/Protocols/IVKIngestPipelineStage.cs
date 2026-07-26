@@ -1,5 +1,5 @@
-using VK.Blocks.VectorIngest.Common.Models.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.VectorIngest.Common.Models.Internal;
 
 namespace VK.Blocks.VectorIngest.Pipeline.Internal;
 
@@ -7,4 +7,4 @@ namespace VK.Blocks.VectorIngest.Pipeline.Internal;
 /// Defines an internal pipeline stage that runs during the document ingestion and indexing pipeline.
 /// Follows CS.01, CS.03, and AP.03.
 /// </summary>
-internal interface IVKIngestPipelineStage : IVKSequentialPipelineStage<IngestContext> { }
+internal interface IVKIngestPipelineStage : IVKPipelineStage<IngestContext> { }

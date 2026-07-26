@@ -3,13 +3,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
-// // [AP.03] Internal implementation inside Internal/ folder without VK prefix
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-// [AP.01] sealed default implementation
+/// <summary>
+/// Weaving task engine implementation utilizing Core <see cref="VKPipelineRunner"/> for task execution.
+/// </summary>
 internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
 {
     private readonly IEnumerable<IVKWeavingTask> _tasks;
@@ -27,7 +27,6 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
         VKPsycheContext context,
         CancellationToken cancellationToken)
     {
-        // // [AP.01] Defensive boundary checks via VKGuard
         VKGuard.NotNull(context);
 
         // Early pruning of disabled tiers so that downstream formatting & truncation tasks ignore them
@@ -40,30 +39,24 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
             context.SetFragments(activeFragments);
         }
 
-        var chunks = WeavingStepRunner.ChunkSteps(
-            _tasks,
-            t => t.TaskOrder,
-            t => t.ParallelGroup);
+        var sortedTasks = _tasks.OrderBy(t => t.Schedule.Order).ToList();
+        var chunks = VKPipelineRunner.ChunkStages(
+            sortedTasks,
+            t => t.Schedule.Order,
+            t => t.Schedule.ParallelGroup);
 
-        bool hasFailed = false;
-        VKResult? failedResult = null;
-
-        var runResult = await WeavingStepRunner.ExecuteChunksAsync(
+        var runResult = await VKPipelineRunner.ExecuteChunksAsync(
             chunks,
             context,
-            t => t.IsParallel,
-            (t, ctx, ct) => t.ExecuteAsync(ctx, ct),
-            ctx => !hasFailed,
-            (ctx, res) =>
-            {
-                hasFailed = true;
-                failedResult = res;
-            },
-            cancellationToken).ConfigureAwait(false); // // [CS.03]
+            checkAbortedFunc: ctx => false,
+            abortResultFunc: ctx => VKResult.Failure(VKWeavingErrors.NoTapestry),
+            isParallelSelector: t => t.Schedule.IsParallel,
+            executeFunc: (t, ctx, ct) => t.ExecuteAsync(ctx, ct),
+            cancellationToken: cancellationToken).ConfigureAwait(false);
 
-        if (hasFailed && failedResult is not null)
+        if (runResult.IsFailure)
         {
-            return VKResult.Failure(failedResult.Errors); // // [CS.01]
+            return runResult;
         }
 
         if (context.Response.Messages.Count == 0)

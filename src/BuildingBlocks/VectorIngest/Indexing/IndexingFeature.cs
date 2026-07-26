@@ -1,0 +1,27 @@
+using VK.Blocks.VectorIngest.Indexing.Internal;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.VectorIngest; // [AP.03] Internal namespace
+
+/// <summary>
+/// Configures and registers dependencies for the Indexing feature.
+/// </summary>
+[VKFeature(typeof(VKVectorIngestBlock), OptionsType = typeof(VKIndexingOptions))]
+internal sealed partial class IndexingFeature // [AP.01] sealed partial
+{
+    // [SG Hook]
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKIndexingOptions options)
+    {
+        _ = options;
+        services.TryAddScoped<IVKIndexingService, DefaultIndexingService>(); // [AP.02] TryAdd idempotent registration
+    }
+
+    // [SG Hook]
+    static partial void ValidateFeatureCustom(VKIndexingOptions options, System.Collections.Generic.List<string> failures)
+    {
+        _ = options;
+        _ = failures;
+    }
+}

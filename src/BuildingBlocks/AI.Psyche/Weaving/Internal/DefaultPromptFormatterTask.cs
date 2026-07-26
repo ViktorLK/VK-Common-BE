@@ -15,9 +15,7 @@ internal sealed class DefaultPromptFormatterTask : IVKWeavingTask
         _formatters = VKGuard.NotNull(formatters);
     }
 
-    public int TaskOrder => VKWeavingTaskOrder.Formatter;
-    public bool IsParallel => false;
-    public int? ParallelGroup => null;
+    public VKPipelineSchedule Schedule => new(VKWeavingTaskOrder.Formatter);
 
     public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {

@@ -5,8 +5,7 @@ namespace VK.Blocks.AI.Engram;
 /// <summary>
 /// Options for the Compression stage.
 /// </summary>
-[VKFeature(typeof(VKAIEngramBlock))]
-public sealed partial record VKCompressionOptions : IVKBlockOptions
+public sealed partial record VKCompressionOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the Compression stage is enabled.
@@ -14,95 +13,58 @@ public sealed partial record VKCompressionOptions : IVKBlockOptions
     public bool Enabled { get; init; } = true;
 
     /// <summary>
-    /// Gets or sets the strategy type to use for compression.
-    /// Defaults to LlmSummary.
+    /// Gets or sets the compression strategy type.
     /// </summary>
+    [VKRequestOverride]
     public VKCompressionStrategyType StrategyType { get; init; } = VKCompressionStrategyType.LlmSummary;
 
     /// <summary>
-    /// Gets or sets the model identifier specifically used for compression.
-    /// If null, the default chat model will be used.
+    /// Gets or sets the token budget limit before compression is triggered.
+    /// </summary>
+    public int TokenBudget { get; init; } = 4096;
+
+    /// <summary>
+    /// Gets or sets the minimum number of turns before compression is evaluated.
+    /// </summary>
+    public int MaxTurnsFloor { get; init; } = 10;
+
+    /// <summary>
+    /// Gets or sets the number of most recent turns to retain without compression.
+    /// </summary>
+    public int RetainRecentTurns { get; init; } = 3;
+
+    /// <summary>
+    /// Gets or sets the target summary token count threshold for trigger.
+    /// </summary>
+    public int SummaryTriggerTokenThreshold { get; init; } = 2048;
+
+    /// <summary>
+    /// Gets or sets the target tokens for summary generation.
+    /// </summary>
+    public int SummaryTargetTokens { get; init; } = 512;
+
+    /// <summary>
+    /// Gets or sets the maximum input tokens for a single compression job.
+    /// </summary>
+    public int MaxInputTokensPerJob { get; init; } = 8192;
+
+    /// <summary>
+    /// Gets or sets the optional model ID override for chat engine summarization calls.
     /// </summary>
     public string? ModelId { get; init; }
 
     /// <summary>
-    /// Gets or sets the token budget allowed for L1 Echo traces before triggering compression.
-    /// Defaults to 4000.
+    /// Gets or sets the enrichment options for compression.
     /// </summary>
-    public int TokenBudget { get; init; } = 4000;
+    public VKCompressionEnrichmentOptions Enrichment { get; init; } = new();
 
     /// <summary>
-    /// Gets or sets the turn floor before triggering compression.
-    /// Defaults to 50.
-    /// </summary>
-    public int MaxTurnsFloor { get; init; } = 50;
-
-    /// <summary>
-    /// Gets or sets the number of recent turns to protect/retain from compression.
-    /// Defaults to 8.
-    /// </summary>
-    public int RetainRecentTurns { get; init; } = 8;
-
-    /// <summary>
-    /// Gets or sets the maximum input token count allowed per LLM compression job.
-    /// Defaults to 6000.
-    /// </summary>
-    public int MaxInputTokensPerJob { get; init; } = 6000;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable automatic background compression worker.
-    /// Defaults to true.
+    /// Gets or sets a value indicating whether automatic background compression is enabled.
     /// </summary>
     public bool EnableAutomaticCompression { get; init; } = true;
 
     /// <summary>
-    /// Gets or sets the automatic background compression interval in minutes.
-    /// Defaults to 30.
+    /// Gets or sets the interval in minutes for automatic background compression sweeps.
     /// </summary>
-    public int AutomaticCompressionIntervalMinutes { get; init; } = 30;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable timeline extraction.
-    /// </summary>
-    public bool EnableTimelineExtraction { get; init; } = false;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable contradiction detection.
-    /// </summary>
-    public bool EnableContradictionDetection { get; init; } = false;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable action item extraction.
-    /// </summary>
-    public bool EnableActionItemExtraction { get; init; } = false;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable confidence annotation.
-    /// </summary>
-    public bool EnableConfidenceAnnotation { get; init; } = false;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable predictive cue extraction.
-    /// </summary>
-    public bool EnablePredictiveCue { get; init; } = false;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable incremental compression.
-    /// </summary>
-    public bool Incremental { get; init; } = false;
-
-    /// <summary>
-    /// Gets or sets the maximum length of L2 summary in incremental mode.
-    /// </summary>
-    public int L2MaxLength { get; init; } = 8000;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable salience weighting.
-    /// </summary>
-    public bool EnableSalienceWeighting { get; init; } = true;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable emotional tagging during compression.
-    /// </summary>
-    public bool EnableEmotionalTagging { get; init; } = false;
+    public int AutomaticCompressionIntervalMinutes { get; init; } = 5;
 }

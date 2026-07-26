@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -8,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
-using VK.Blocks.VectorIngest;
 
 namespace VK.Blocks.VectorIngest.DocumentLoader.Internal; // [AP.03] Internal namespace
 

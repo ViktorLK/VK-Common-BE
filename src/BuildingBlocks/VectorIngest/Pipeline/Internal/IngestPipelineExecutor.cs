@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using VK.Blocks.VectorIngest.Common.Models.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.VectorIngest.Common.Models.Internal;
 
 namespace VK.Blocks.VectorIngest.Pipeline.Internal;
 
@@ -19,7 +19,7 @@ internal sealed class IngestPipelineExecutor : VKPipelineExecutorBase<IngestCont
     public IngestPipelineExecutor(
         IEnumerable<IVKIngestPipelineStage> stages,
         IEnumerable<IVKMiddleware<IngestContext>> middlewares)
-        : base(stages, Array.Empty<IVKAfterPipelineStage<IngestContext>>(), middlewares)
+        : base(stages, middlewares)
     {
     }
 

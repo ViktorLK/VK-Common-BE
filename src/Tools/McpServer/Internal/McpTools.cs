@@ -11,22 +11,20 @@ namespace VK.Tools.McpServer.Internal;
 [McpServerToolType]
 internal sealed partial class McpTools
 {
-    private static string? _cachedProjectRoot;
-
     private static string FindProjectRoot()
     {
-        if (_cachedProjectRoot is not null)
-            return _cachedProjectRoot;
-
         var currentDir = AppContext.BaseDirectory;
         while (!string.IsNullOrEmpty(currentDir))
         {
-            if (Directory.GetFiles(currentDir, "*.sln").Length > 0 || Directory.GetFiles(currentDir, "Directory.Build.props").Length > 0)
+            if (Directory.Exists(Path.Combine(currentDir, ".agents")) ||
+                Directory.GetFiles(currentDir, "*.sln").Length > 0 ||
+                Directory.GetFiles(currentDir, "Directory.Build.props").Length > 0)
             {
-                _cachedProjectRoot = currentDir;
                 return currentDir;
             }
-            currentDir = Path.GetDirectoryName(currentDir);
+            var parent = Path.GetDirectoryName(currentDir);
+            if (parent == currentDir) break;
+            currentDir = parent;
         }
         return AppContext.BaseDirectory;
     }

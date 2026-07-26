@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Engram.Compression.Models;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram.Compression.Internal;
@@ -27,18 +28,18 @@ internal sealed class HierarchicalSummaryCompressionStrategy : IVKCompressionStr
         _options = VKGuard.NotNull(options?.Value);
     }
 
-    public async Task<VKResult<string>> CompressAsync(string content, CancellationToken cancellationToken = default)
+    public async Task<VKResult<string>> CompressAsync(VKCompressionContext context, CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNull(content);
+        VKGuard.NotNull(context);
 
-        if (string.IsNullOrWhiteSpace(content))
+        if (string.IsNullOrWhiteSpace(context.Content))
         {
             return VKResult.Success(string.Empty);
         }
 
         // Split input by newlines to get individual messages
-        var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-        if (lines.Length == 0)
+        var lines = VKTextTokenizer.SplitLines(context.Content);
+        if (lines.Count == 0)
         {
             return VKResult.Success(string.Empty);
         }

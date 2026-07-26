@@ -18,8 +18,8 @@ internal sealed partial class KnowledgeFeature
 
         services.TryAddSingleton<IVKKnowledgeStore, InMemoryKnowledgeStore>();
         services.TryAddSingleton<IVKKnowledgeRenderer, DefaultKnowledgeRenderer>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultKnowledgeStage>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultKnowledgeFinalizerStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultKnowledgeStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultKnowledgeFinalizerStage>());
 
         // Register non-generic extractor and formatter
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultKnowledgeFormatter>());

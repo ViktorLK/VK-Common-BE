@@ -4,25 +4,24 @@ using System.Threading.Tasks;
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Defines a middleware that can intercept and participate in an execution flow.
+/// Middleware contract for pipeline processing onion chain.
+/// Inherits from non-generic <see cref="IVKPipelineComponent"/>.
+/// Follows AP.01.
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
-public interface IVKMiddleware<in TContext> where TContext : class
+public interface IVKMiddleware<in TContext> : IVKPipelineComponent where TContext : class
 {
     /// <summary>
-    /// Gets the order in which the middleware is executed.
+    /// Gets the middleware execution order. Lower numbers execute earlier in the onion chain (outer layers).
     /// </summary>
-    int MiddlewareOrder { get; }
+    int MiddlewareOrder => 0;
 
     /// <summary>
-    /// Invokes the middleware logic.
+    /// Invokes the middleware.
     /// </summary>
     /// <param name="context">The context.</param>
-    /// <param name="next">The delegate to invoke the next middleware or terminal action.</param>
+    /// <param name="next">The delegate representing the next middleware or terminal action.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The response result.</returns>
-    Task<VKResult> InvokeAsync(
-        TContext context,
-        VKPipelineDelegate next,
-        CancellationToken cancellationToken);
+    /// <returns>A non-generic VKResult.</returns>
+    Task<VKResult> InvokeAsync(TContext context, VKPipelineDelegate next, CancellationToken cancellationToken = default);
 }

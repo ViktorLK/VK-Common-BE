@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using VK.Blocks.VectorIngest.Common.Models.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.VectorIngest.Common.Models.Internal;
 
 namespace VK.Blocks.VectorIngest.Pipeline.Internal; // [AP.03] Internal namespace
 

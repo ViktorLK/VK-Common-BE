@@ -1,0 +1,29 @@
+using VK.Blocks.VectorIngest.Pipeline.Internal;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
+
+namespace VK.Blocks.VectorIngest;
+
+/// <summary>
+/// Service registration and options validation for Pipeline feature.
+/// </summary>
+[VKFeature(typeof(VKVectorIngestBlock), OptionsType = typeof(VKPipelineOptions))]
+internal sealed partial class PipelineFeature
+{
+    // [SG Hook]
+    static partial void RegisterFeatureCustom(IServiceCollection services, VKPipelineOptions options)
+    {
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKIngestPipelineStage, DocumentLoadStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKIngestPipelineStage, DocumentWriteSinkStage>());
+        services.TryAddScoped<IngestPipelineExecutor>();
+        services.TryAddScoped<IVKIngestPipeline, DefaultIngestPipeline>();
+    }
+
+    // [SG Hook]
+    static partial void ValidateFeatureCustom(VKPipelineOptions options, System.Collections.Generic.List<string> failures)
+    {
+        _ = options;
+        _ = failures;
+    }
+}

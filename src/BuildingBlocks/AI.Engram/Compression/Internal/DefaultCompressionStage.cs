@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Engram.Compression.Diagnostics.Internal;
 using VK.Blocks.AI.Engram.Compression.Internal;
 using VK.Blocks.AI.Engram.Compression.Models;
 using VK.Blocks.AI.Psyche;
@@ -17,7 +18,7 @@ namespace VK.Blocks.AI.Engram.Compression;
 /// </summary>
 internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineStage
 {
-    private readonly IVKChatSessionStore _sessionStore;
+    private readonly IVKMemoryStore _memoryStore;
     private readonly CompressionJobQueue _jobQueue;
     private readonly IVKTokenCounter _tokenCounter;
     private readonly IVKGuidGenerator _guidGenerator;
@@ -26,7 +27,7 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
     private readonly ILogger<DefaultCompressionStage> _logger;
 
     public DefaultCompressionStage(
-        IVKChatSessionStore sessionStore,
+        IVKMemoryStore memoryStore,
         CompressionJobQueue jobQueue,
         IVKTokenCounter tokenCounter,
         IVKGuidGenerator guidGenerator,
@@ -34,7 +35,7 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
         IOptions<VKCompressionOptions> options,
         ILogger<DefaultCompressionStage> logger)
     {
-        _sessionStore = VKGuard.NotNull(sessionStore);
+        _memoryStore = VKGuard.NotNull(memoryStore);
         _jobQueue = VKGuard.NotNull(jobQueue);
         _tokenCounter = VKGuard.NotNull(tokenCounter);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
@@ -45,7 +46,6 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
 
     public bool IsActive => _options.Enabled;
     public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
-
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
@@ -61,63 +61,24 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
             .OrderBy(f => f.RenderOrder)
             .ToList();
 
-        var chatSessionId = new VKChatSessionId(context.Request.SessionId.Value);
+        var sessionId = context.Request.SessionId;
 
-        // 1. Fetch and inject the existing L2 memory if it exists
-        var existingSessionResult = await _sessionStore.GetAsync(chatSessionId, cancellationToken).ConfigureAwait(false);
-        if (existingSessionResult.IsSuccess && existingSessionResult.Value is not null)
+        // 1. Fetch and inject existing L2 MediumTerm memories for this session
+        var l2Result = await _memoryStore.QueryAsync(new VKMemoryQuery
         {
-            var session = existingSessionResult.Value;
+            Category = VKMemoryCategory.MediumTerm,
+            SessionId = sessionId,
+            TopK = 5
+        }, cancellationToken).ConfigureAwait(false);
+
+        if (l2Result.IsSuccess && l2Result.Value.Count > 0)
+        {
             var memoryContentBuilder = new System.Text.StringBuilder();
+            memoryContentBuilder.AppendLine("### Conversation Narrative Summary (L2)");
 
-            var narrative = session.NarrativeSummary ?? session.Summary;
-            if (!string.IsNullOrWhiteSpace(narrative))
+            foreach (var l2Entry in l2Result.Value)
             {
-                memoryContentBuilder.AppendLine("### Conversation Narrative Summary");
-                memoryContentBuilder.AppendLine(narrative);
-                memoryContentBuilder.AppendLine();
-            }
-
-            if (!string.IsNullOrWhiteSpace(session.StructuredFacts))
-            {
-                memoryContentBuilder.AppendLine("### Extracted Facts & Context");
-                memoryContentBuilder.AppendLine(session.StructuredFacts);
-                memoryContentBuilder.AppendLine();
-            }
-
-            if (!string.IsNullOrWhiteSpace(session.RelationGraph))
-            {
-                memoryContentBuilder.AppendLine("### Entity Relationships");
-                memoryContentBuilder.AppendLine(session.RelationGraph);
-                memoryContentBuilder.AppendLine();
-            }
-
-            if (_options.EnableTimelineExtraction && !string.IsNullOrWhiteSpace(session.Timeline))
-            {
-                memoryContentBuilder.AppendLine("### Event Timeline");
-                memoryContentBuilder.AppendLine(session.Timeline);
-                memoryContentBuilder.AppendLine();
-            }
-
-            if (_options.EnableContradictionDetection && !string.IsNullOrWhiteSpace(session.Contradictions))
-            {
-                memoryContentBuilder.AppendLine("### Identified Contradictions / Changed Minds (Pay Attention)");
-                memoryContentBuilder.AppendLine(session.Contradictions);
-                memoryContentBuilder.AppendLine();
-            }
-
-            if (_options.EnableActionItemExtraction && !string.IsNullOrWhiteSpace(session.ActionItems))
-            {
-                memoryContentBuilder.AppendLine("### Pending Action Items & Commitments");
-                memoryContentBuilder.AppendLine(session.ActionItems);
-                memoryContentBuilder.AppendLine();
-            }
-
-            if (_options.EnablePredictiveCue && !string.IsNullOrWhiteSpace(session.PredictiveCues))
-            {
-                memoryContentBuilder.AppendLine("### Predictive Cues for Current Context");
-                memoryContentBuilder.AppendLine(session.PredictiveCues);
-                memoryContentBuilder.AppendLine();
+                memoryContentBuilder.AppendLine(l2Entry.Content);
             }
 
             var fullMemoryContent = memoryContentBuilder.ToString().Trim();
@@ -161,10 +122,10 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
                     },
                     Metadata = new VKCompressionSummaryMetadata
                     {
-                        SessionId = chatSessionId,
-                        Summary = narrative ?? string.Empty,
+                        SessionId = sessionId,
+                        Summary = fullMemoryContent,
                         OriginalTokenCount = echoFragments.Count,
-                        CompressedTokenCount = fullMemoryContent.Length / 4,
+                        CompressedTokenCount = _tokenCounter.CountTokens(fullMemoryContent),
                         CompressedAt = _timeProvider.GetUtcNow()
                     }
                 };
@@ -202,22 +163,16 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
 
         if (tokenExceeded || turnExceeded)
         {
-            if (_jobQueue.TryEnqueue(chatSessionId))
+            if (_jobQueue.TryEnqueue(sessionId))
             {
-                LogJobEnqueued(_logger, chatSessionId.ToString(), totalTokens, _options.TokenBudget, turns.Count, _options.MaxTurnsFloor);
+                _logger.JobEnqueued(sessionId.ToString(), totalTokens, _options.TokenBudget, turns.Count, _options.MaxTurnsFloor);
             }
             else
             {
-                LogQueueFull(_logger, chatSessionId.ToString());
+                _logger.QueueFull(sessionId.ToString());
             }
         }
 
         return VKResult.Success();
     }
-
-    [LoggerMessage(EventId = 201, Level = LogLevel.Information, Message = "Enqueued compression job for session {SessionId} asynchronously (Tokens: {Tokens}/{Budget}, Turns: {Turns}/{MaxTurns}).")]
-    private static partial void LogJobEnqueued(ILogger logger, string sessionId, int tokens, int budget, int turns, int maxTurns);
-
-    [LoggerMessage(EventId = 202, Level = LogLevel.Warning, Message = "Failed to enqueue compression job for session {SessionId} (queue full).")]
-    private static partial void LogQueueFull(ILogger logger, string sessionId);
 }

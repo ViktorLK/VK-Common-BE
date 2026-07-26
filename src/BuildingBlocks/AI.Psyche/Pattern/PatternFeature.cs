@@ -18,7 +18,7 @@ internal sealed partial class PatternFeature
             return;
 
         services.TryAddSingleton<IVKPatternStore, InMemoryPatternStore>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultPatternStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPatternStage>());
     }
 
     // [SG Hook]

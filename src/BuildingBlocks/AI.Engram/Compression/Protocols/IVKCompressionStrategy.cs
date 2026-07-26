@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using VK.Blocks.AI.Engram.Compression.Models;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram;
@@ -10,7 +11,7 @@ namespace VK.Blocks.AI.Engram;
 public interface IVKCompressionStrategy
 {
     /// <summary>
-    /// Compresses the input content.
+    /// Compresses the input content given a compression context.
     /// </summary>
-    Task<VKResult<string>> CompressAsync(string content, CancellationToken cancellationToken = default);
+    Task<VKResult<string>> CompressAsync(VKCompressionContext context, CancellationToken cancellationToken = default);
 }

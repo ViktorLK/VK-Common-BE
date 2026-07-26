@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 /// Pipeline stage to fetch the Tenant Directive and prepend it to the weaving context's system instructions.
 /// Implements AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class DefaultDirectiveStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
 {
     private readonly IVKDirectiveStore _store;
     private readonly ILogger<DefaultDirectiveStage> _logger;
@@ -30,7 +30,7 @@ internal sealed class DefaultDirectiveStage : IVKPsycheBeforePipelineStage
     /// <summary>
     /// Executes early in the weaving pipeline (Order = 5) to guarantee Directive guardrails are loaded first.
     /// </summary>
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheDirective;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheDirective;
     public bool IsActive => true;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)

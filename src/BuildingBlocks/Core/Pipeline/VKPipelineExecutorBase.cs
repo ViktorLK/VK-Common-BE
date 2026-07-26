@@ -7,7 +7,8 @@ namespace VK.Blocks.Core;
 
 /// <summary>
 /// Abstract base class implementing the generic pipeline execution algorithm.
-/// Coordinates the execution flow of: Before stages -> Middleware onion chain -> After stages.
+/// Coordinates the execution flow of: Before components -> Middleware onion chain -> After components.
+/// Automatically filters components into Before (or unspecified None) and After phases based on component.Schedule.Phase.
 /// Follows AP.01 and CS.03.
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
@@ -15,30 +16,33 @@ namespace VK.Blocks.Core;
 public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineExecutor<TContext, TResponse>
     where TContext : class
 {
-    private readonly List<List<IVKBeforePipelineStage<TContext>>> _beforeChunks;
-    private readonly List<List<IVKAfterPipelineStage<TContext>>> _afterChunks;
+    private readonly List<List<IVKPipelineComponent<TContext>>> _beforeChunks;
+    private readonly List<List<IVKPipelineComponent<TContext>>> _afterChunks;
     private readonly List<IVKMiddleware<TContext>> _middlewares;
 
     /// <summary>
     /// Initializes a new instance of <see cref="VKPipelineExecutorBase{TContext, TResponse}"/>.
+    /// Components are automatically split into Before (None or Before) and After phases using component.Schedule.Phase.
     /// </summary>
     protected VKPipelineExecutorBase(
-        IEnumerable<IVKBeforePipelineStage<TContext>> beforeStages,
-        IEnumerable<IVKAfterPipelineStage<TContext>> afterStages,
+        IEnumerable<IVKPipelineComponent<TContext>> components,
         IEnumerable<IVKMiddleware<TContext>> middlewares)
     {
-        VKGuard.NotNull(beforeStages);
-        VKGuard.NotNull(afterStages);
+        VKGuard.NotNull(components);
 
+        var componentList = components.ToList();
+
+        // Components with Phase == Before or None (default) run before terminal action
         _beforeChunks = VKPipelineRunner.ChunkStages(
-            beforeStages.Where(s => s.IsActive),
-            s => s.Schedule.StageOrder,
-            s => s.Schedule.ParallelGroup);
+            componentList.Where(c => c.Schedule.Phase != VKPipelinePhase.After),
+            c => c.Schedule.Order,
+            c => c.Schedule.ParallelGroup);
 
+        // Components explicitly marked with Phase == After run after terminal action
         _afterChunks = VKPipelineRunner.ChunkStages(
-            afterStages.Where(s => s.IsActive),
-            s => s.Schedule.StageOrder,
-            s => s.Schedule.ParallelGroup);
+            componentList.Where(c => c.Schedule.Phase == VKPipelinePhase.After),
+            c => c.Schedule.Order,
+            c => c.Schedule.ParallelGroup);
 
         _middlewares = VKGuard.NotNull(middlewares)
             .OrderBy(m => m.MiddlewareOrder)
@@ -70,14 +74,14 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
     {
         VKGuard.NotNull(context);
 
-        // 1. Run BEFORE stages
+        // 1. Run BEFORE components (Phase == Before or None)
         var beforeResult = await VKPipelineRunner.ExecuteChunksAsync(
             _beforeChunks,
             context,
             CheckAborted,
             GetAbortResult,
-            s => s.Schedule.IsParallel,
-            (s, ctx, ct) => s.ExecuteAsync(ctx, ct),
+            c => c.Schedule.IsParallel,
+            (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
             cancellationToken).ConfigureAwait(false);
 
         if (beforeResult.IsFailure)
@@ -108,14 +112,14 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
             return VKResult.Failure<TResponse>(middlewareResult.Errors);
         }
 
-        // 3. Run AFTER stages
+        // 3. Run AFTER components (Phase == After)
         var afterResult = await VKPipelineRunner.ExecuteChunksAsync(
             _afterChunks,
             context,
             CheckAborted,
             GetAbortResult,
-            s => s.Schedule.IsParallel,
-            (s, ctx, ct) => s.ExecuteAsync(ctx, ct),
+            c => c.Schedule.IsParallel,
+            (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
             cancellationToken).ConfigureAwait(false);
 
         if (afterResult.IsFailure)

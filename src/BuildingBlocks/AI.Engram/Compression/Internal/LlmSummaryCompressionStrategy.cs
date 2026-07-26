@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Engram.Compression.Models;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram.Compression.Internal;
@@ -22,76 +25,98 @@ internal sealed class LlmSummaryCompressionStrategy : IVKCompressionStrategy
         _options = VKGuard.NotNull(options?.Value);
     }
 
-    public async Task<VKResult<string>> CompressAsync(string content, CancellationToken cancellationToken = default)
+    public async Task<VKResult<string>> CompressAsync(VKCompressionContext context, CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNull(content);
+        VKGuard.NotNull(context);
 
-        if (string.IsNullOrWhiteSpace(content))
+        if (string.IsNullOrWhiteSpace(context.Content))
         {
             return VKResult.Success(string.Empty);
         }
 
-        var sb = new System.Text.StringBuilder();
-        sb.AppendLine("You are an expert AI memory manager. Compress the following conversation history.");
-        sb.AppendLine("Your output must be formatted as independent blocks. Do NOT include markdown styling (like ```) for the blocks themselves.");
-        sb.AppendLine("Ensure you output the exactly requested sections and block headers.");
+        int targetTokens = _options.SummaryTargetTokens;
 
-        if (_options.EnableSalienceWeighting)
+        // 1. Build System Instruction (Role, format requirements, few-shot rules)
+        var systemSb = new StringBuilder();
+        systemSb.AppendLine("You are an expert AI engram and memory compression manager.");
+        systemSb.AppendLine("Your goal is to compress the conversation history into high-density structured memory blocks.");
+        systemSb.AppendLine($"Output token budget constraint: Keep the ===NARRATIVE=== block under ~{targetTokens} tokens.");
+        systemSb.AppendLine("Do NOT wrap the response in markdown code fences (like ```). Output raw block headers directly.");
+
+        if (_options.Enrichment.SalienceWeighting)
         {
-            sb.AppendLine("Apply Salience Weighting: Focus on and retain details for critical content (strong emotions, explicit decisions, repeat mentions, project specifications). Omit minor/trivial chit-chat.");
+            systemSb.AppendLine("Apply Salience Weighting: Retain critical details (strong emotions, explicit decisions, repeat mentions, project specs). Omit trivial chit-chat.");
         }
 
-        sb.AppendLine("Required blocks:");
-        sb.AppendLine("===NARRATIVE===");
-        sb.AppendLine("A clear natural language summary of what happened.");
+        systemSb.AppendLine("\nRequired output format headers:");
+        systemSb.AppendLine("===NARRATIVE===");
+        systemSb.AppendLine("Cohesive summary of conversation events.");
+        systemSb.AppendLine("===FACTS===");
+        systemSb.AppendLine("Key extracted facts, user preferences, and explicit constraints.");
+        systemSb.AppendLine("===GRAPH===");
+        systemSb.AppendLine("Key entity relationships as tuples (Entity A -> Relation -> Entity B).");
 
-        sb.AppendLine("===FACTS===");
-        sb.AppendLine("Extract facts, settings, entities, and constraints. Format as a flat list or JSON.");
-
-        sb.AppendLine("===GRAPH===");
-        sb.AppendLine("Extract entity relationships as simple tuples (Entity A -> Relation -> Entity B).");
-
-        if (_options.EnableTimelineExtraction)
+        if (_options.Enrichment.Timeline)
         {
-            sb.AppendLine("===TIMELINE===");
-            sb.AppendLine("A chronological timeline of decisions and major actions.");
+            systemSb.AppendLine("===TIMELINE===");
+            systemSb.AppendLine("Chronological sequence of major decisions.");
         }
-        if (_options.EnableContradictionDetection)
+        if (_options.Enrichment.Contradictions)
         {
-            sb.AppendLine("===CONTRADICTIONS===");
-            sb.AppendLine("Any logical contradictions, inconsistencies, or changed minds observed in this history.");
+            systemSb.AppendLine("===CONTRADICTIONS===");
+            systemSb.AppendLine("Inconsistencies or changed opinions observed.");
         }
-        if (_options.EnableActionItemExtraction)
+        if (_options.Enrichment.ActionItems)
         {
-            sb.AppendLine("===ACTION_ITEMS===");
-            sb.AppendLine("Explicit action items, tasks, and follow-ups promised by either participant.");
+            systemSb.AppendLine("===ACTION_ITEMS===");
+            systemSb.AppendLine("Action items or promised tasks.");
         }
-        if (_options.EnableConfidenceAnnotation)
+        if (_options.Enrichment.Confidence)
         {
-            sb.AppendLine("===CONFIDENCE===");
-            sb.AppendLine("Annotate the confidence of key extracted facts (e.g. [explicit_statement] or [inferred]).");
+            systemSb.AppendLine("===CONFIDENCE===");
+            systemSb.AppendLine("Confidence annotations for key facts.");
         }
-        if (_options.EnablePredictiveCue)
+        if (_options.Enrichment.PredictiveCue)
         {
-            sb.AppendLine("===CUES===");
-            sb.AppendLine("Predict what context or files the user is likely to reference or ask about next.");
+            systemSb.AppendLine("===CUES===");
+            systemSb.AppendLine("Predicted context or topic references for next user turn.");
         }
-        if (_options.EnableEmotionalTagging)
+        if (_options.Enrichment.EmotionalTagging)
         {
-            sb.AppendLine("===EMOTION===");
-            sb.AppendLine("Extract the dominant emotional valence and arousal of the conversation history. Valence must range from -1.0 (highly negative) to 1.0 (highly positive). Arousal must range from 0.0 (calm) to 1.0 (highly intense). Format exactly as: Valence: [value], Arousal: [value].");
+            systemSb.AppendLine("===EMOTION===");
+            systemSb.AppendLine("Dominant emotional state. Format exactly as: Valence: [value], Arousal: [value].");
         }
 
-        sb.AppendLine("\nCONVERSATION HISTORY:");
-        sb.AppendLine(content);
+        // 2. Build User Content
+        var userSb = new StringBuilder();
+        if (!string.IsNullOrWhiteSpace(context.ExistingL2Summary))
+        {
+            userSb.AppendLine("=== EXISTING SESSION SUMMARY ===");
+            userSb.AppendLine(context.ExistingL2Summary);
+            userSb.AppendLine();
+        }
 
-        string prompt = sb.ToString();
-        var messages = new[] { VKChatMessage.FromText(VKChatRole.User, prompt) };
+        userSb.AppendLine("=== CONVERSATION HISTORY TO COMPRESS ===");
+        userSb.AppendLine(context.Content);
+
+        var messages = new[]
+        {
+            VKChatMessage.FromText(VKChatRole.System, systemSb.ToString()),
+            VKChatMessage.FromText(VKChatRole.User, userSb.ToString())
+        };
 
         IVKAIArgs? chatArgs = null;
         if (!string.IsNullOrWhiteSpace(_options.ModelId))
         {
-            chatArgs = new VKChatArgs { ModelId = _options.ModelId };
+            chatArgs = new VKChatArgs 
+            { 
+                ModelId = _options.ModelId,
+                Temperature = 0.2f
+            };
+        }
+        else
+        {
+            chatArgs = new VKChatArgs { Temperature = 0.2f };
         }
 
         try
@@ -102,11 +127,22 @@ internal sealed class LlmSummaryCompressionStrategy : IVKCompressionStrategy
                 return VKResult.Failure<string>(result.FirstError);
             }
 
-            return VKResult.Success(result.Value.Message.Content ?? string.Empty);
+            string rawResponse = result.Value.Message.Content ?? string.Empty;
+            
+            // 3. Parse output into structured result and re-serialize to normalized format
+            var structuredResult = VKCompressionResult.Parse(rawResponse);
+            string formattedResult = structuredResult.ToFormattedSummary();
+
+            if (string.IsNullOrWhiteSpace(formattedResult))
+            {
+                formattedResult = rawResponse;
+            }
+
+            return VKResult.Success(formattedResult);
         }
         catch (Exception ex)
         {
-            return VKResult.Failure<string>(new VKError("AI.Engram.Compression.LlmSummaryError", ex.Message));
+            return VKResult.Failure<string>(new VKError(VKCompressionErrors.LlmSummaryError.Code, ex.Message));
         }
     }
 }

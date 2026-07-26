@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using VK.Blocks.AI.Engram.Compression.Models;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram.Compression.Internal;
@@ -22,11 +23,11 @@ internal sealed class KeyValueExtractionCompressionStrategy : IVKCompressionStra
         _options = VKGuard.NotNull(options?.Value);
     }
 
-    public async Task<VKResult<string>> CompressAsync(string content, CancellationToken cancellationToken = default)
+    public async Task<VKResult<string>> CompressAsync(VKCompressionContext context, CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNull(content);
+        VKGuard.NotNull(context);
 
-        if (string.IsNullOrWhiteSpace(content))
+        if (string.IsNullOrWhiteSpace(context.Content))
         {
             return VKResult.Success("[]");
         }
@@ -34,7 +35,7 @@ internal sealed class KeyValueExtractionCompressionStrategy : IVKCompressionStra
         string prompt = "Extract key facts, user preferences, and important context details from the following conversation history.\n" +
                         "Format the output strictly as a JSON array of objects containing 'topic' and 'fact' fields. " +
                         "Do not include any markdown formatting (like ```json), explanations, or intro/outro text. Just return the raw JSON.\n\n" +
-                        $"CONVERSATION HISTORY:\n{content}";
+                        $"CONVERSATION HISTORY:\n{context.Content}";
 
         var messages = new[] { VKChatMessage.FromText(VKChatRole.User, prompt) };
 
@@ -73,7 +74,7 @@ internal sealed class KeyValueExtractionCompressionStrategy : IVKCompressionStra
         }
         catch (Exception ex)
         {
-            return VKResult.Failure<string>(new VKError("AI.Engram.Compression.KeyValueExtractionError", ex.Message));
+            return VKResult.Failure<string>(new VKError(VKCompressionErrors.KeyValueExtractionError.Code, ex.Message));
         }
     }
 }

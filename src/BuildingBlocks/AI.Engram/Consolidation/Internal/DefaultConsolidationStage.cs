@@ -7,16 +7,16 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Engram.Consolidation.Internal;
 
 /// <summary>
-/// Pipeline stage for consolidating engrams.
+/// Pipeline stage for enqueuing engrams for long-term consolidation.
 /// </summary>
 internal sealed class DefaultConsolidationStage : IVKPsycheAfterPipelineStage
 {
-    private readonly IVKConsolidationService _consolidationService;
+    private readonly ConsolidationJobQueue _jobQueue;
     private readonly VKConsolidationOptions _options;
 
-    public DefaultConsolidationStage(IVKConsolidationService consolidationService, IOptions<VKConsolidationOptions> options)
+    public DefaultConsolidationStage(ConsolidationJobQueue jobQueue, IOptions<VKConsolidationOptions> options)
     {
-        _consolidationService = VKGuard.NotNull(consolidationService);
+        _jobQueue = VKGuard.NotNull(jobQueue);
         _options = VKGuard.NotNull(options?.Value);
     }
 
@@ -24,15 +24,21 @@ internal sealed class DefaultConsolidationStage : IVKPsycheAfterPipelineStage
 
     public VKPipelineStageSchedule Schedule => new VKPipelineStageSchedule(100, false);
 
-    public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
+    public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context);
 
         if (!IsActive)
         {
-            return VKResult.Success();
+            return Task.FromResult(VKResult.Success());
         }
 
-        return await _consolidationService.ConsolidateSessionMemoryAsync(context, cancellationToken).ConfigureAwait(false);
+        var sessionId = context.Request.SessionId;
+        if (!sessionId.IsEmpty)
+        {
+            _jobQueue.TryEnqueue(sessionId);
+        }
+
+        return Task.FromResult(VKResult.Success());
     }
 }

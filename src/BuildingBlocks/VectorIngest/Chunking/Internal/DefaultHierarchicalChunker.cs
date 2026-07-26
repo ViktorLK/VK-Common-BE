@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
-using VK.Blocks.VectorIngest;
-using VK.Blocks.VectorIngest.Chunking.Internal;
 
 namespace VK.Blocks.VectorIngest.Chunking.Internal; // [AP.03] Internal namespace
 

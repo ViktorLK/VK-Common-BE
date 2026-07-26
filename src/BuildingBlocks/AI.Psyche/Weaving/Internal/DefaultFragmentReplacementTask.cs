@@ -19,9 +19,7 @@ internal sealed class DefaultFragmentReplacementTask : IVKWeavingTask
         _options = VKGuard.NotNull(options).Value;
     }
 
-    public int TaskOrder => VKWeavingTaskOrder.Replacement;
-    public bool IsParallel => false;
-    public int? ParallelGroup => null;
+    public VKPipelineSchedule Schedule => new(VKWeavingTaskOrder.Replacement);
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
