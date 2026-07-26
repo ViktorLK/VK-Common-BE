@@ -1,13 +1,14 @@
+using VK.Blocks.VectorIngest.Chunking.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
-using VK.Blocks.VectorIngest;
 
-namespace VK.Blocks.VectorIngest.Chunking.Internal; // [AP.03] Internal namespace
+namespace VK.Blocks.VectorIngest; // [AP.03] Internal namespace
 
 /// <summary>
 /// Configures and registers dependencies for the Chunking feature.
 /// </summary>
+[VKFeature(typeof(VKVectorIngestBlock), OptionsType = typeof(VKChunkingOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class ChunkingFeature // [AP.01] sealed partial
 {
     // [SG Hook]

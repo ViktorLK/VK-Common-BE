@@ -1,12 +1,14 @@
+using VK.Blocks.VectorIngest.DocumentLoader.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.VectorIngest.DocumentLoader.Internal;
+namespace VK.Blocks.VectorIngest;
 
 /// <summary>
 /// Service registration and options validation for DocumentLoader feature.
 /// </summary>
+[VKFeature(typeof(VKVectorIngestBlock), OptionsType = typeof(VKDocumentLoaderOptions))]
 internal sealed partial class DocumentLoaderFeature
 {
     // [SG Hook]

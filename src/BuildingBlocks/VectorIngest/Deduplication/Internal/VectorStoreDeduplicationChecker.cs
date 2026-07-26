@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Core;
 using VK.Blocks.VectorIngest.Common.Models.Internal;
 using VK.Blocks.VectorStore;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.VectorIngest.Deduplication.Internal; // [AP.03] Internal namespace
 
@@ -15,17 +15,17 @@ namespace VK.Blocks.VectorIngest.Deduplication.Internal; // [AP.03] Internal nam
 internal sealed class VectorStoreDeduplicationChecker : IVKDeduplicationChecker // [AP.01] sealed default, [AP.03] internal scoping
 {
     private readonly IVKVectorStore _vectorStore;
-    private readonly VKVectorStoreDefaultsOptions _defaults;
+    private readonly VKVectorStoreOptions _defaults;
 
     /// <summary>
     /// Initializes a new instance of <see cref="VectorStoreDeduplicationChecker"/>.
     /// </summary>
     public VectorStoreDeduplicationChecker(
         IVKVectorStore vectorStore,
-        IOptions<VKVectorStoreDefaultsOptions> defaultsOptions)
+        IOptions<VKVectorStoreOptions> defaultsOptions)
     {
         _vectorStore = VKGuard.NotNull(vectorStore); // [AP.01] VKGuard boundary
-        _defaults = defaultsOptions?.Value ?? new VKVectorStoreDefaultsOptions();
+        _defaults = defaultsOptions?.Value ?? new VKVectorStoreOptions();
     }
 
     /// <inheritdoc />

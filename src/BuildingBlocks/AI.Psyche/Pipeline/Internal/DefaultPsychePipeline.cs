@@ -30,7 +30,7 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
         _services = VKGuard.NotNull(services);
     }
 
-    public async Task<VKResult<VKPsycheResponse>> RunAsync(
+    public async Task<VKResult<VKPsycheResponse>> ExecuteAsync(
         VKPsycheRequest request,
         CancellationToken cancellationToken = default)
     {

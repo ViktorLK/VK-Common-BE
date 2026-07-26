@@ -22,7 +22,7 @@ internal sealed partial class WeavingFeature
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultFragmentReplacementTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultCoordinateResolveTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingTask, DefaultTapestryWeavingTask>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultWeavingStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultWeavingStage>());
 
         // Register orchestration engine
         services.TryAddScoped<IVKWeavingTaskEngine, DefaultPromptWeavingEngine>();

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Helper to chunk and execute pipeline stages safely.
-/// Handles parallel group execution and fail-fast control.
+/// Universal execution engine for pipeline components (<see cref="IVKPipelineComponent{TContext, TResult}"/>).
+/// Supports ordered sequential execution, optional parallel group execution, short-circuiting, and fail-fast control.
 /// </summary>
 public static class VKPipelineRunner
 {
     /// <summary>
-    /// Chunks stages into execution groups based on ordering and parallel group selectors.
+    /// Chunks components into execution groups based on ordering and parallel group selectors.
     /// </summary>
     public static List<List<T>> ChunkStages<T>(
         IEnumerable<T> stages,
@@ -59,7 +59,7 @@ public static class VKPipelineRunner
     }
 
     /// <summary>
-    /// Executes chunked stages.
+    /// Legacy helper to execute chunked stages for backwards compatibility.
     /// </summary>
     public static async Task<VKResult> ExecuteChunksAsync<T, TContext>(
         List<List<T>> chunks,
@@ -88,7 +88,6 @@ public static class VKPipelineRunner
             var parallel = chunk.Where(isParallelSelector).ToList();
             var serial = chunk.Where(s => !isParallelSelector(s)).ToList();
 
-            // Run same-layer/same-order parallel stages concurrently
             if (parallel.Count > 0)
             {
                 var tasks = parallel.Select(s => executeFunc(s, context, cancellationToken)).ToList();
@@ -98,12 +97,11 @@ public static class VKPipelineRunner
                 {
                     if (result.IsFailure)
                     {
-                        return result; // Fail fast on any failure
+                        return result;
                     }
                 }
             }
 
-            // Run serial stages sequentially
             foreach (var stage in serial)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -115,11 +113,57 @@ public static class VKPipelineRunner
                 var result = await executeFunc(stage, context, cancellationToken).ConfigureAwait(false);
                 if (result.IsFailure)
                 {
-                    return result; // Fail fast on failure
+                    return result;
                 }
             }
         }
 
         return VKResult.Success();
+    }
+
+    /// <summary>
+    /// Universal component execution engine. Evaluates any collection of <see cref="IVKPipelineComponent{TContext, TResult}"/>.
+    /// Algorithm sorts by Schedule.Order and applies decoupled options (short-circuiting, aborting, parallelization).
+    /// </summary>
+    public static async Task<VKResult<TResult>> ExecuteComponentsAsync<TContext, TResult>(
+        IEnumerable<IVKPipelineComponent<TContext, TResult>> components,
+        TContext context,
+        VKPipelineComponentOptions<TContext, TResult>? options = null,
+        TResult defaultResult = default!,
+        CancellationToken cancellationToken = default) where TContext : class
+    {
+        VKGuard.NotNull(components);
+        VKGuard.NotNull(context);
+
+        var sortedComponents = components.OrderBy(c => c.Schedule.Order).ToList();
+        if (sortedComponents.Count == 0)
+        {
+            return VKResult.Success(defaultResult);
+        }
+
+        foreach (var component in sortedComponents)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (options?.AbortPredicate is not null && options.AbortPredicate(context))
+            {
+                return options.AbortResultFactory is not null
+                    ? options.AbortResultFactory(context)
+                    : VKResult.Failure<TResult>(VKError.Failure("Core.Pipeline.Aborted", "Pipeline execution was aborted."));
+            }
+
+            var result = await component.ExecuteAsync(context, cancellationToken).ConfigureAwait(false); // [CS.03]
+            if (result.IsFailure)
+            {
+                return result;
+            }
+
+            if (options?.ShortCircuitPredicate is not null && options.ShortCircuitPredicate(result.Value))
+            {
+                return result;
+            }
+        }
+
+        return VKResult.Success(defaultResult);
     }
 }

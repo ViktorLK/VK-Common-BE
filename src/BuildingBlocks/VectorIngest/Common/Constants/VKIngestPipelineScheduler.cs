@@ -10,15 +10,15 @@ public static class VKIngestPipelineScheduler
     /// <summary>
     /// Stage order for document loading and parsing.
     /// </summary>
-    public static readonly VKPipelineStageSchedule Load = new(100, false);
+    public static readonly VKPipelineSchedule Load = new(100, false);
 
     /// <summary>
     /// Stage order for generating vector embeddings.
     /// </summary>
-    public static readonly VKPipelineStageSchedule Embed = new(200, false);
+    public static readonly VKPipelineSchedule Embed = new(200, false);
 
     /// <summary>
     /// Stage order for writing/indexing documents and vectors to the sink.
     /// </summary>
-    public static readonly VKPipelineStageSchedule Write = new(300, false);
+    public static readonly VKPipelineSchedule Write = new(300, false);
 }

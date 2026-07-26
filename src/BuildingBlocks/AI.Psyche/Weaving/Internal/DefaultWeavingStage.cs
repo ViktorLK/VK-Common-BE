@@ -4,7 +4,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-internal sealed class DefaultWeavingStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
 {
     private readonly IVKWeavingTaskEngine _weavingEngine;
 
@@ -13,7 +13,7 @@ internal sealed class DefaultWeavingStage : IVKPsycheBeforePipelineStage
         _weavingEngine = VKGuard.NotNull(weavingEngine);
     }
 
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.Weaving;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.Weaving;
     public bool IsActive => true;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)

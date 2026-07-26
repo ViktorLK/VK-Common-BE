@@ -4,8 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
-using VK.Blocks.VectorIngest;
-using VK.Blocks.VectorIngest.Chunking.Internal;
 
 namespace VK.Blocks.VectorIngest.Chunking.Internal; // [AP.03] Internal namespace
 
@@ -52,10 +50,10 @@ internal sealed class DefaultRecursiveChunker(
         var finalChunks = new List<VKChunk>(chunks.Count);
         for (var i = 0; i < chunks.Count; i++)
         {
-            finalChunks.Add(chunks[i] with 
-            { 
+            finalChunks.Add(chunks[i] with
+            {
                 Id = _guidGenerator.Create().ToString(), // [CS.06] Use IVKGuidGenerator
-                ChunkIndex = i 
+                ChunkIndex = i
             });
         }
 
@@ -102,7 +100,8 @@ internal sealed class DefaultRecursiveChunker(
 
         foreach (var part in splits)
         {
-            if (part.Length == 0) continue;
+            if (part.Length == 0)
+                continue;
 
             var partIndex = text.IndexOf(part, currentOffset, StringComparison.Ordinal);
             if (partIndex == -1)
@@ -123,7 +122,8 @@ internal sealed class DefaultRecursiveChunker(
                     if (docText.Length > 0)
                     {
                         var docStart = text.IndexOf(docText, StringComparison.Ordinal);
-                        if (docStart == -1) docStart = 0;
+                        if (docStart == -1)
+                            docStart = 0;
                         result.Add(new VKChunk
                         {
                             Id = "", // Assigned during normalization
@@ -159,7 +159,8 @@ internal sealed class DefaultRecursiveChunker(
             if (remaining.Length > 0)
             {
                 var docStart = text.IndexOf(remaining, StringComparison.Ordinal);
-                if (docStart == -1) docStart = 0;
+                if (docStart == -1)
+                    docStart = 0;
                 result.Add(new VKChunk
                 {
                     Id = "", // Assigned during normalization
@@ -199,7 +200,8 @@ internal sealed class DefaultRecursiveChunker(
 
     private static string GetOverlapText(string docText, int overlap)
     {
-        if (docText.Length <= overlap) return docText;
+        if (docText.Length <= overlap)
+            return docText;
         return docText[^overlap..];
     }
 }

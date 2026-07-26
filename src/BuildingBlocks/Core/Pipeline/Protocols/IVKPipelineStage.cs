@@ -5,18 +5,19 @@ using System.Threading.Tasks;
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Level 1 (Composite Root): Defines the top-level pipeline component that orchestrates stages, jobs, or tasks with generic result return.
+/// Level 2 (Composite): Defines a pipeline stage component that orchestrates and executes child jobs or tasks.
 /// Follows Pipeline-Stage-Job-Task Composite Pattern with Type-Safe Role Constraints.
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
-/// <typeparam name="TResult">The pipeline output result type.</typeparam>
-public interface IVKPipeline<in TContext, TResult> : IVKPipelineComponent<TContext, TResult>
+/// <typeparam name="TResult">The stage output result type.</typeparam>
+public interface IVKPipelineStage<in TContext, TResult>
+    : IVKPipelineChild<TContext, TResult>
     where TContext : class
 {
     /// <summary>
-    /// Gets the collection of child components that are valid inside a Pipeline.
+    /// Gets the collection of child components that are valid inside a Stage.
     /// </summary>
-    IEnumerable<IVKPipelineChild<TContext, TResult>> Children => [];
+    IEnumerable<IVKStageChild<TContext, TResult>> Children => [];
 
     /// <summary>
     /// Default execution implementation: automatically evaluates child components using <see cref="VKPipelineRunner"/>.
@@ -26,16 +27,16 @@ public interface IVKPipeline<in TContext, TResult> : IVKPipelineComponent<TConte
 }
 
 /// <summary>
-/// Level 1 (Composite Root): Specialized top-level pipeline component with non-generic VKResult return.
+/// Level 2 (Composite): Specialized pipeline stage component with non-generic VKResult return.
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
-public interface IVKPipeline<in TContext> : IVKPipelineComponent<TContext>
+public interface IVKPipelineStage<in TContext> : IVKPipelineChild<TContext>
     where TContext : class
 {
     /// <summary>
-    /// Gets the collection of child components that are valid inside a Pipeline.
+    /// Gets the collection of child components that are valid inside a Stage.
     /// </summary>
-    IEnumerable<IVKPipelineChild<TContext>> Children => [];
+    IEnumerable<IVKStageChild<TContext>> Children => [];
 
     /// <summary>
     /// Default execution implementation: automatically evaluates child components using <see cref="VKPipelineRunner"/>.

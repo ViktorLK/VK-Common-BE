@@ -5,18 +5,19 @@ using System.Threading.Tasks;
 namespace VK.Blocks.Core;
 
 /// <summary>
-/// Level 1 (Composite Root): Defines the top-level pipeline component that orchestrates stages, jobs, or tasks with generic result return.
+/// Level 3 (Composite): Defines a pipeline job composite that orchestrates and executes child tasks.
 /// Follows Pipeline-Stage-Job-Task Composite Pattern with Type-Safe Role Constraints.
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
-/// <typeparam name="TResult">The pipeline output result type.</typeparam>
-public interface IVKPipeline<in TContext, TResult> : IVKPipelineComponent<TContext, TResult>
+/// <typeparam name="TResult">The job output result type.</typeparam>
+public interface IVKPipelineJob<in TContext, TResult>
+    : IVKPipelineChild<TContext, TResult>, IVKStageChild<TContext, TResult>
     where TContext : class
 {
     /// <summary>
-    /// Gets the collection of child components that are valid inside a Pipeline.
+    /// Gets the collection of child components that are valid inside a Job.
     /// </summary>
-    IEnumerable<IVKPipelineChild<TContext, TResult>> Children => [];
+    IEnumerable<IVKJobChild<TContext, TResult>> Children => [];
 
     /// <summary>
     /// Default execution implementation: automatically evaluates child components using <see cref="VKPipelineRunner"/>.
@@ -26,16 +27,17 @@ public interface IVKPipeline<in TContext, TResult> : IVKPipelineComponent<TConte
 }
 
 /// <summary>
-/// Level 1 (Composite Root): Specialized top-level pipeline component with non-generic VKResult return.
+/// Level 3 (Composite): Specialized pipeline job composite with non-generic VKResult return.
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
-public interface IVKPipeline<in TContext> : IVKPipelineComponent<TContext>
+public interface IVKPipelineJob<in TContext>
+    : IVKPipelineChild<TContext>, IVKStageChild<TContext>
     where TContext : class
 {
     /// <summary>
-    /// Gets the collection of child components that are valid inside a Pipeline.
+    /// Gets the collection of child components that are valid inside a Job.
     /// </summary>
-    IEnumerable<IVKPipelineChild<TContext>> Children => [];
+    IEnumerable<IVKJobChild<TContext>> Children => [];
 
     /// <summary>
     /// Default execution implementation: automatically evaluates child components using <see cref="VKPipelineRunner"/>.

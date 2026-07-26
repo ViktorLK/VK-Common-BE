@@ -15,7 +15,7 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// Pipeline stage for interacting with Echo store and applying dialogue history pruning.
 /// Implements AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultEchoStage : IVKPsychePipelineStage
 {
     private readonly IVKEchoStore _echoStore;
     private readonly IVKTokenCounter _tokenCounter;
@@ -40,7 +40,7 @@ internal sealed class DefaultEchoStage : IVKPsycheBeforePipelineStage
         _logger = VKGuard.NotNull(logger);
     }
 
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
     public bool IsActive => true;
 
     /// <summary>

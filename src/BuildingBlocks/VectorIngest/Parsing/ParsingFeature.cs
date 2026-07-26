@@ -1,12 +1,14 @@
+using VK.Blocks.VectorIngest.Parsing.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.VectorIngest.Parsing.Internal; // [AP.03] Internal namespace
+namespace VK.Blocks.VectorIngest; // [AP.03] Internal namespace
 
 /// <summary>
 /// Configures and registers dependencies for the Parsing feature.
 /// </summary>
+[VKFeature(typeof(VKVectorIngestBlock), OptionsType = typeof(VKParsingOptions))]
 internal sealed partial class ParsingFeature // [AP.01] sealed partial
 {
     // [SG Hook]

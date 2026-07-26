@@ -1,9 +1,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using VK.Blocks.Core;
 using VK.Blocks.VectorIngest.Common.Models.Internal;
 using VK.Blocks.VectorStore;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.VectorIngest.Pipeline.Internal; // [AP.03] Internal namespace
 
@@ -14,7 +14,7 @@ internal sealed class DocumentLoadStage : IVKIngestPipelineStage // [AP.01] seal
 {
     private readonly IVKDocumentLoader _documentLoader;
     private readonly IVKVectorStore _vectorStore;
-    private readonly VKVectorStoreDefaultsOptions _defaults;
+    private readonly VKVectorStoreOptions _defaults;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DocumentLoadStage"/>.
@@ -22,15 +22,15 @@ internal sealed class DocumentLoadStage : IVKIngestPipelineStage // [AP.01] seal
     public DocumentLoadStage(
         IVKDocumentLoader documentLoader,
         IVKVectorStore vectorStore,
-        Microsoft.Extensions.Options.IOptions<VKVectorStoreDefaultsOptions> defaultsOptions)
+        Microsoft.Extensions.Options.IOptions<VKVectorStoreOptions> defaultsOptions)
     {
         _documentLoader = VKGuard.NotNull(documentLoader); // [AP.01] VKGuard boundary
         _vectorStore = VKGuard.NotNull(vectorStore);
-        _defaults = defaultsOptions?.Value ?? new VKVectorStoreDefaultsOptions();
+        _defaults = defaultsOptions?.Value ?? new VKVectorStoreOptions();
     }
 
     /// <inheritdoc />
-    public VKPipelineStageSchedule Schedule => VKIngestPipelineScheduler.Load;
+    public VKPipelineSchedule Schedule => VKIngestPipelineScheduler.Load;
 
     /// <inheritdoc />
     public bool IsActive => true;

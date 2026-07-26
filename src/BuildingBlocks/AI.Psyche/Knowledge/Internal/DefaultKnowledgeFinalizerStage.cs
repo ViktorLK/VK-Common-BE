@@ -9,10 +9,10 @@ namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 /// Implements <see cref="IVKPsycheBeforePipelineStage"/>.
 /// Follows BB.01 / AP.03.
 /// </summary>
-internal sealed class DefaultKnowledgeFinalizerStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultKnowledgeFinalizerStage : IVKPsychePipelineStage
 {
     /// <inheritdoc />
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledgeFinalizer;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledgeFinalizer;
 
     /// <inheritdoc />
     public bool IsActive => true;

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Core;
 using VK.Blocks.VectorIngest.Common.Models.Internal;
 using VK.Blocks.VectorStore;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.VectorIngest.Indexing.Internal; // [AP.03] Internal namespace
 
@@ -17,7 +17,7 @@ internal sealed class DefaultIndexingService : IVKIndexingService // [AP.01] sea
 {
     private readonly IVKEmbeddingsEngine _embeddingsEngine;
     private readonly IVKVectorStore _vectorStore;
-    private readonly VKVectorStoreDefaultsOptions _defaults;
+    private readonly VKVectorStoreOptions _defaults;
 
     /// <summary>
     /// Initializes a new instance of <see cref="DefaultIndexingService"/>.
@@ -25,11 +25,11 @@ internal sealed class DefaultIndexingService : IVKIndexingService // [AP.01] sea
     public DefaultIndexingService(
         IVKEmbeddingsEngine embeddingsEngine,
         IVKVectorStore vectorStore,
-        IOptions<VKVectorStoreDefaultsOptions> defaultsOptions)
+        IOptions<VKVectorStoreOptions> defaultsOptions)
     {
         _embeddingsEngine = VKGuard.NotNull(embeddingsEngine); // [AP.01] VKGuard boundary
         _vectorStore = VKGuard.NotNull(vectorStore);
-        _defaults = defaultsOptions?.Value ?? new VKVectorStoreDefaultsOptions();
+        _defaults = defaultsOptions?.Value ?? new VKVectorStoreOptions();
     }
 
     /// <inheritdoc />

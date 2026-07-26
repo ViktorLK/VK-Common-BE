@@ -17,11 +17,10 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
     private readonly ILogger<DefaultPsychePipelineExecutor> _logger;
 
     public DefaultPsychePipelineExecutor(
-        IEnumerable<IVKPsycheBeforePipelineStage> beforeStages,
-        IEnumerable<IVKPsycheAfterPipelineStage> afterStages,
+        IEnumerable<IVKPsychePipelineStage> stages,
         IEnumerable<IVKPsycheMiddleware> middlewares,
         ILogger<DefaultPsychePipelineExecutor> logger)
-        : base(beforeStages, afterStages, middlewares)
+        : base(stages, middlewares)
     {
         _logger = VKGuard.NotNull(logger);
     }

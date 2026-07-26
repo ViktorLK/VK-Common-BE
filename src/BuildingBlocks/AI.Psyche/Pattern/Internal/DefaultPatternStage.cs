@@ -6,13 +6,13 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Pattern.Internal;
 
-internal sealed class DefaultPatternStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultPatternStage : IVKPsychePipelineStage
 {
     private readonly VKPatternOptions _options;
     private readonly IVKPatternStore _store;
     private readonly VKWeavingOptions _weavingOptions;
 
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePattern;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePattern;
 
     public bool IsActive => _options.Enabled;
 
