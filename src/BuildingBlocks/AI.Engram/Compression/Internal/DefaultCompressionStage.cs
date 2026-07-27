@@ -6,17 +6,16 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Engram.Compression.Diagnostics.Internal;
-using VK.Blocks.AI.Engram.Compression.Internal;
 using VK.Blocks.AI.Engram.Compression.Models;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Engram.Compression;
+namespace VK.Blocks.AI.Engram.Compression.Internal;
 
 /// <summary>
 /// Pipeline stage for compressing engrams.
 /// </summary>
-internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineStage
+internal sealed partial class DefaultCompressionStage : IVKPsychePipelineStage
 {
     private readonly IVKMemoryStore _memoryStore;
     private readonly CompressionJobQueue _jobQueue;
@@ -45,7 +44,7 @@ internal sealed partial class DefaultCompressionStage : IVKPsycheBeforePipelineS
     }
 
     public bool IsActive => _options.Enabled;
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {

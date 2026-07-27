@@ -17,6 +17,7 @@ internal sealed partial class ConsolidationFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKConsolidationOptions options)
     {
+        services.TryAddSingleton<IVKConsolidationStrategy, NullConsolidationStrategy>();
         services.TryAddSingleton<IVKMemoryExtractor, DefaultMemoryExtractor>();
         services.TryAddSingleton<IVKContentSanitizer, DefaultContentSanitizer>();
         services.TryAddSingleton<IVKSchemaMerger, DefaultSchemaMerger>();
@@ -28,8 +29,7 @@ internal sealed partial class ConsolidationFeature
         services.TryAddSingleton<ConsolidationJobQueue>();
         services.AddHostedService<DefaultConsolidationBackgroundService>();
 
-        services.TryAddScoped<DefaultConsolidationStage>();
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheAfterPipelineStage, DefaultConsolidationStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultConsolidationStage>());
     }
 
     // [SG Hook]
