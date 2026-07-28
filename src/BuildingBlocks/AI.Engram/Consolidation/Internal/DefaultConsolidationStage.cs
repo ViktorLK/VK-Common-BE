@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Engram.Consolidation.Internal;
 /// <summary>
 /// Pipeline stage for enqueuing engrams for long-term consolidation.
 /// </summary>
-internal sealed class DefaultConsolidationStage : IVKPsycheAfterPipelineStage
+internal sealed class DefaultConsolidationStage : IVKPsychePipelineStage
 {
     private readonly ConsolidationJobQueue _jobQueue;
     private readonly VKConsolidationOptions _options;
@@ -22,7 +22,7 @@ internal sealed class DefaultConsolidationStage : IVKPsycheAfterPipelineStage
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => new VKPipelineStageSchedule(100, false);
+    public VKPipelineSchedule Schedule => new(100, false, null, VKPipelinePhase.After);
 
     public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {

@@ -1,10 +1,10 @@
-using VK.Blocks.AI.Engram.Compression;
-using VK.Blocks.AI.Engram.Compression.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
+using VK.Blocks.AI.Psyche;
+using VK.Blocks.AI.Engram.Compression.Internal;
 
 namespace VK.Blocks.AI.Engram;
 
@@ -17,6 +17,8 @@ internal sealed partial class CompressionFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKCompressionOptions options)
     {
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultCompressionStage>());
+
         services.TryAddScoped<IVKCompressionService, DefaultCompressionService>();
         services.TryAddSingleton<IVKSessionCompressionLock, InMemorySessionCompressionLock>();
 
