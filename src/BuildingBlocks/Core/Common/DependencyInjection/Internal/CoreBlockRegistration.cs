@@ -32,6 +32,7 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton<IVKUserContext, NullUserContext>();
         services.TryAddSingleton<IVKSyncStateStore, VKNoOpSyncStateStore>();
         services.TryAddSingleton<IVKDistributedLockProvider, InProcessMemoryLockProvider>();
+        services.TryAddSingleton<IVKActiveTenantProvider, Tenancy.Internal.DefaultSingleTenantActiveTenantProvider>();
 
         // 3. Mark-Self (Success Commit)
         // AP.02: Register marker immediately to enable dependency resolution.

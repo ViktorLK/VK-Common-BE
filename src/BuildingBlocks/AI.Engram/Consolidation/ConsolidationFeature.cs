@@ -20,8 +20,8 @@ internal sealed partial class ConsolidationFeature
         services.TryAddSingleton<IVKConsolidationStrategy, NullConsolidationStrategy>();
         services.TryAddSingleton<IVKMemoryExtractor, DefaultMemoryExtractor>();
         services.TryAddSingleton<IVKContentSanitizer, DefaultContentSanitizer>();
-        services.TryAddSingleton<IVKSchemaMerger, DefaultSchemaMerger>();
-        services.TryAddSingleton<SimilarityDeduplicator>();
+        services.TryAddScoped<IVKSchemaMerger, DefaultSchemaMerger>();
+        services.TryAddScoped<SimilarityDeduplicator>();
         services.TryAddScoped<IVKConsolidationPersistenceManager, DefaultConsolidationPersistenceManager>();
         services.TryAddScoped<IVKConsolidationService, DefaultConsolidationService>();
 
