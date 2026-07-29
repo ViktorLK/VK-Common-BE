@@ -7,4 +7,10 @@ namespace VK.Blocks.AI.Engram;
 /// Follows BB.02.
 /// </summary>
 [VKBlockMarker(Dependencies = [typeof(VKAIBlock)])]
-public sealed partial class VKAIEngramBlock;
+public sealed partial class VKAIEngramBlock
+{
+    static partial void RegisterBlockCustom(IVKAIEngramBuilder builder)
+    {
+        _ = builder;
+    }
+}
