@@ -16,6 +16,9 @@ internal sealed partial class MemoryFeature
     {
         services.TryAddScoped<IVKMemoryStore, InMemoryMemoryStore>();
         services.TryAddScoped<IVKMemorySearchService, DefaultMemorySearchService>();
+        services.TryAddSingleton<IVKPrefetchGatingPolicy, VK.Blocks.AI.Engram.Retrieval.Internal.AlwaysTriggerGatingPolicy>();
+        services.TryAddScoped<IVKPredictiveMemoryPrefetcher, VK.Blocks.AI.Engram.Retrieval.Internal.DefaultPredictiveMemoryPrefetcher>();
+        services.TryAddScoped<IVKAccessTracker, VK.Blocks.AI.Engram.Retrieval.Internal.DefaultAccessTracker>();
     }
 
     // [SG Hook]

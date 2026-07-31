@@ -24,6 +24,8 @@ internal sealed partial class ConsolidationFeature
         services.TryAddScoped<SimilarityDeduplicator>();
         services.TryAddScoped<IVKConsolidationPersistenceManager, DefaultConsolidationPersistenceManager>();
         services.TryAddScoped<IVKConsolidationService, DefaultConsolidationService>();
+        services.TryAddScoped<IVKCrossSessionConsolidationStrategy, CrossSessionConsolidationStrategy>();
+        services.TryAddScoped<IVKPredictiveMemoryPrefetcher, Retrieval.Internal.DefaultPredictiveMemoryPrefetcher>();
 
         // Register consolidation job queue & background hosted service
         services.TryAddSingleton<ConsolidationJobQueue>();

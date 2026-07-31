@@ -54,6 +54,18 @@ public sealed partial record VKCompressionOptions : IVKToggleableBlockOptions
     public string? ModelId { get; init; }
 
     /// <summary>
+    /// Gets or sets the optional model ID override for high-quality summary generation.
+    /// Defaults to <see cref="ModelId"/> if null.
+    /// </summary>
+    public string? SummaryModelId { get; init; }
+
+    /// <summary>
+    /// Gets or sets the optional model ID override for lightweight topic segmentation.
+    /// Defaults to <see cref="ModelId"/> if null.
+    /// </summary>
+    public string? SegmentationModelId { get; init; }
+
+    /// <summary>
     /// Gets or sets the enrichment options for compression.
     /// </summary>
     public VKCompressionEnrichmentOptions Enrichment { get; init; } = new();

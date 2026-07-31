@@ -66,4 +66,27 @@ public sealed partial record VKConsolidationOptions : IVKToggleableBlockOptions
     /// Gets or sets the TopK count when querying existing candidates for contradiction arbitration.
     /// </summary>
     public int ArbitrationTopK { get; init; } = 100;
+
+    /// <summary>
+    /// Gets or sets the optional model ID override for general consolidation.
+    /// </summary>
+    public string? ModelId { get; init; }
+
+    /// <summary>
+    /// Gets or sets the optional model ID override for fact extraction.
+    /// Defaults to <see cref="ModelId"/> if null.
+    /// </summary>
+    public string? FactExtractionModelId { get; init; }
+
+    /// <summary>
+    /// Gets or sets the optional model ID override for memory redundancy merging.
+    /// Defaults to <see cref="ModelId"/> if null.
+    /// </summary>
+    public string? MergeModelId { get; init; }
+
+    /// <summary>
+    /// Gets or sets the optional model ID override for contradiction arbitration.
+    /// Defaults to <see cref="ModelId"/> if null.
+    /// </summary>
+    public string? ArbitrationModelId { get; init; }
 }

@@ -100,4 +100,19 @@ public sealed record VKKnowledgeLifecycle
     /// Gets the allowed user segment (e.g. Free, Premium) constraint.
     /// </summary>
     public string? UserSegment { get; init; }
+
+    /// <summary>
+    /// Gets the origin or provenance of this knowledge entry.
+    /// </summary>
+    public VKKnowledgeProvenance Provenance { get; init; } = VKKnowledgeProvenance.Manual;
+
+    /// <summary>
+    /// Gets the target language culture code (e.g. "zh-CN", "en-US") constraint for multi-language matching.
+    /// </summary>
+    public string? Language { get; init; }
+
+    /// <summary>
+    /// Gets the approval workflow status for this knowledge entry. Default is <see cref="VKKnowledgeApprovalStatus.Approved"/>.
+    /// </summary>
+    public VKKnowledgeApprovalStatus ApprovalStatus { get; init; } = VKKnowledgeApprovalStatus.Approved;
 }
