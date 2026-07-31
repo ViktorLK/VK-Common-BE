@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram;
@@ -31,4 +32,27 @@ public sealed partial record VKMemoryOptions : IVKToggleableBlockOptions
     /// </summary>
     [VKRequestOverride]
     public int? MaxMemoryEntriesToInject { get; init; } = 5;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether Tiered Gating prefetching is enabled.
+    /// Defaults to true.
+    /// </summary>
+    public bool EnableTieredGating { get; init; } = true;
+
+    /// <summary>
+    /// Gets or sets the character count threshold for considering an input a "short input" requiring intent extraction.
+    /// Defaults to 15.
+    /// </summary>
+    public int GatingShortLengthThreshold { get; init; } = 15;
+
+    /// <summary>
+    /// Gets or sets the list of pronoun/continuation trigger words that trip the gating threshold for Cue extraction.
+    /// </summary>
+    public IReadOnlyList<string> GatingKeywords { get; init; } = ["那", "这个", "那个", "它", "还记得", "继续", "然后再", "刚才", "之前"];
+
+    /// <summary>
+    /// Gets or sets the speculative timeout in milliseconds for LLM intent Cue extraction before falling back strictly to raw input.
+    /// Defaults to 150ms.
+    /// </summary>
+    public int IntentExtractionTimeoutMs { get; init; } = 150;
 }

@@ -32,6 +32,10 @@ internal static class DiagnosticsConstants
         // Tracking
         public const string TrackingInjectionCount = "vk.corpus.tracking.injections";
         public const string TrackingDuration = "vk.corpus.tracking.duration";
+
+        // Ingesting
+        public const string IngestionTotalCount = "vk.corpus.ingestion.total";
+        public const string IngestionDuration = "vk.corpus.ingestion.duration";
     }
 
     // ── Activities ──

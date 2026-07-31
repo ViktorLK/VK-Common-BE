@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using VK.Blocks.AI.Psyche;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Engram;
 
@@ -107,6 +109,41 @@ public sealed record VKCompressionResult
             PredictiveCue = ExtractBlock(cleaned, "===CUES==="),
             EmotionalTagging = ExtractBlock(cleaned, "===EMOTION===")
         };
+    }
+
+    /// <summary>
+    /// Parses the raw <see cref="Graph"/> block into a list of structured <see cref="VKKnowledgeTriple"/> objects.
+    /// Expected line format: "Entity A -> Relation -> Entity B" or "(Entity A -> Relation -> Entity B)".
+    /// </summary>
+    public IReadOnlyList<VKKnowledgeTriple> ParseGraphTriples(VKTenantId? tenantId = null, VKSessionId? sessionId = null, string? userId = null)
+    {
+        if (string.IsNullOrWhiteSpace(Graph))
+        {
+            return [];
+        }
+
+        var triples = new List<VKKnowledgeTriple>();
+        var lines = Graph.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var line in lines)
+        {
+            string cleanLine = line.Trim('(', ')', '[', ']', ' ', '-');
+            var parts = cleanLine.Split("->", StringSplitOptions.TrimEntries);
+            if (parts.Length >= 3)
+            {
+                triples.Add(new VKKnowledgeTriple
+                {
+                    TenantId = tenantId,
+                    SessionId = sessionId,
+                    UserId = userId,
+                    Subject = parts[0],
+                    Relation = parts[1],
+                    Object = string.Join("->", parts[2..])
+                });
+            }
+        }
+
+        return triples;
     }
 
     private static string CleanMarkdownWrappers(string text)

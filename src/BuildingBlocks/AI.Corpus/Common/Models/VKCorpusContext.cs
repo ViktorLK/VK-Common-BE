@@ -57,4 +57,9 @@ public sealed record VKCorpusContext
     /// Gets the list of dialogue history and input texts to scan for keyword matching.
     /// </summary>
     public IReadOnlyList<string> ScanTexts { get; init; } = [];
+
+    /// <summary>
+    /// Gets the active language culture code (e.g. "zh-CN", "en-US") for multi-language matching.
+    /// </summary>
+    public string? Language { get; init; }
 }

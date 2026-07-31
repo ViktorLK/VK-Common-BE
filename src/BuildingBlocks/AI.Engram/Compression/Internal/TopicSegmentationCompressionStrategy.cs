@@ -65,9 +65,10 @@ internal sealed class TopicSegmentationCompressionStrategy : IVKCompressionStrat
 
         var messages = new[] { VKChatMessage.FromText(VKChatRole.User, segmentationPrompt) };
         IVKAIArgs? chatArgs = null;
-        if (!string.IsNullOrWhiteSpace(_options.ModelId))
+        string? targetModel = _options.SegmentationModelId ?? _options.ModelId;
+        if (!string.IsNullOrWhiteSpace(targetModel))
         {
-            chatArgs = new VKChatArgs { ModelId = _options.ModelId };
+            chatArgs = new VKChatArgs { ModelId = targetModel };
         }
 
         // 2. Query LLM to detect boundaries

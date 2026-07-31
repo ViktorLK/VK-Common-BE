@@ -106,11 +106,12 @@ internal sealed class LlmSummaryCompressionStrategy : IVKCompressionStrategy
         };
 
         IVKAIArgs? chatArgs = null;
-        if (!string.IsNullOrWhiteSpace(_options.ModelId))
+        string? targetModel = _options.SummaryModelId ?? _options.ModelId;
+        if (!string.IsNullOrWhiteSpace(targetModel))
         {
             chatArgs = new VKChatArgs 
             { 
-                ModelId = _options.ModelId,
+                ModelId = targetModel,
                 Temperature = 0.2f
             };
         }

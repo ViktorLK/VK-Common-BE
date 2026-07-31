@@ -68,6 +68,12 @@ public sealed record VKMemoryEntry
     public DateTimeOffset? LastAccessedAt { get; init; }
 
     /// <summary>
+    /// Gets the number of times this memory entry has been accessed or retrieved.
+    /// Used as input to the FrequencyBonus calculation.
+    /// </summary>
+    public int AccessCount { get; init; }
+
+    /// <summary>
     /// Gets the emotional tagging information of the memory, if any.
     /// </summary>
     public VKEmotionalSignal? Emotion { get; init; }

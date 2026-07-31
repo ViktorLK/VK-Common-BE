@@ -227,6 +227,46 @@ internal sealed partial class DefaultCompressionService : IVKCompressionService
                 // PHASE 1: Write L2 MediumTerm MemoryEntry to Source of Truth + Vector Store FIRST
                 var compressedIdsSnapshot = string.Join(",", compressableEntries.Select(e => e.Id.Value.ToString()));
                 var l2EntryId = new VKMemoryId(_guidGenerator.Create());
+                var parsedResult = VKCompressionResult.Parse(summary);
+                var l2Metadata = new Dictionary<string, string>
+                {
+                    ["CompressedFromCount"] = compressableEntries.Count.ToString(),
+                    ["CompressedEntryIds"] = compressedIdsSnapshot,
+                    ["SessionId"] = sessionId.ToString(),
+                    ["IsConsolidatedToL3"] = "false"
+                };
+
+                // Enrich Emotion Arousal metadata for decay strategy
+                if (!string.IsNullOrWhiteSpace(parsedResult.EmotionalTagging))
+                {
+                    l2Metadata["Emotion"] = parsedResult.EmotionalTagging;
+                    if (parsedResult.EmotionalTagging.Contains("Arousal:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var parts = parsedResult.EmotionalTagging.Split(',');
+                        foreach (var part in parts)
+                        {
+                            var kv = part.Split(':', StringSplitOptions.TrimEntries);
+                            if (kv.Length == 2 && kv[0].Equals("Arousal", StringComparison.OrdinalIgnoreCase))
+                            {
+                                l2Metadata["Arousal"] = kv[1];
+                            }
+                        }
+                    }
+                }
+
+                // Enrich Predictive Cue if extracted
+                if (!string.IsNullOrWhiteSpace(parsedResult.PredictiveCue))
+                {
+                    l2Metadata["PredictiveCue"] = parsedResult.PredictiveCue;
+                }
+
+                // Enrich parsed Knowledge Triples count/summary
+                var triples = parsedResult.ParseGraphTriples(compressableEntries.FirstOrDefault()?.TenantId, sessionId);
+                if (triples.Count > 0)
+                {
+                    l2Metadata["GraphTriplesCount"] = triples.Count.ToString();
+                }
+
                 var l2Entry = new VKMemoryEntry
                 {
                     Id = l2EntryId,
@@ -236,13 +276,7 @@ internal sealed partial class DefaultCompressionService : IVKCompressionService
                     CreatedAt = _timeProvider.GetUtcNow(),
                     TenantId = compressableEntries.FirstOrDefault()?.TenantId,
                     SessionId = sessionId,
-                    Metadata = new Dictionary<string, string>
-                    {
-                        ["CompressedFromCount"] = compressableEntries.Count.ToString(),
-                        ["CompressedEntryIds"] = compressedIdsSnapshot,
-                        ["SessionId"] = sessionId.ToString(),
-                        ["IsConsolidatedToL3"] = "false"
-                    }
+                    Metadata = l2Metadata
                 };
 
                 // Mark L1 entries before write for idempotency safety

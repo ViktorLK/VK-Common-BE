@@ -22,6 +22,9 @@ internal static partial class CorpusDiagnostics
     private static readonly Counter<long> TrackingInjections;
     private static readonly Histogram<double> TrackingDuration;
 
+    private static readonly Counter<long> IngestionTotal;
+    private static readonly Histogram<double> IngestionDuration;
+
     static CorpusDiagnostics()
     {
         GatheringCandidates = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.GatheringCandidateCount);
@@ -32,6 +35,8 @@ internal static partial class CorpusDiagnostics
         FilterEvaluations = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.FilterEvaluationCount);
         TrackingInjections = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.TrackingInjectionCount);
         TrackingDuration = Meter.CreateHistogram<double>(DiagnosticsConstants.Metrics.TrackingDuration, "ms");
+        IngestionTotal = Meter.CreateCounter<long>(DiagnosticsConstants.Metrics.IngestionTotalCount);
+        IngestionDuration = Meter.CreateHistogram<double>(DiagnosticsConstants.Metrics.IngestionDuration, "ms");
     }
 
     public static void RecordGathering(string sessionId, int candidateCount, double durationMs)
@@ -80,5 +85,17 @@ internal static partial class CorpusDiagnostics
 
         TrackingInjections.Add(injectionCount, tags);
         TrackingDuration.Record(durationMs, tags);
+    }
+
+    public static void RecordIngestion(string collectionName, bool success, double durationMs)
+    {
+        TagList tags = new()
+        {
+            { "vk.corpus.collection_name", collectionName },
+            { DiagnosticsConstants.Tags.Success, success }
+        };
+
+        IngestionTotal.Add(1, tags);
+        IngestionDuration.Record(durationMs, tags);
     }
 }
