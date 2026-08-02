@@ -5,8 +5,8 @@ namespace VK.Blocks.AI.Corpus;
 /// <summary>
 /// Options for the Tracking feature of AI.Corpus.
 /// </summary>
-[VKFeature(typeof(VKAICorpusBlock))]
-public sealed partial record VKTrackingOptions : IVKTrackingOptions
+
+public sealed partial record VKTrackingOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets a value indicating whether tracking of knowledge usage is enabled.

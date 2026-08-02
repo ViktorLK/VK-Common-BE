@@ -67,15 +67,26 @@ internal sealed class DefaultRevisionService : IVKRevisionService
             return VKResult.Success();
         }
 
-        // [CS.03] Async I/O operations
-        var allMemoriesResult = await _store.QueryAsync(new VKMemoryQuery { TopK = int.MaxValue }, cancellationToken).ConfigureAwait(false);
-        if (allMemoriesResult.IsFailure)
+        // [CS.03] Async I/O operations - retrieve specific recalled memories by Id
+        var memoryIds = recalledKnowledgeIds
+            .Select(idStr => Guid.TryParse(idStr, out var g) ? new VKMemoryId(g) : (VKMemoryId?)null)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToList();
+
+        if (memoryIds.Count == 0)
         {
-            return VKResult.Failure(allMemoriesResult.Errors); // [CS.01]
+            return VKResult.Success();
         }
 
-        var recalledFragments = allMemoriesResult.Value
-            .Where(m => m.Category == VKMemoryCategory.LongTerm && recalledKnowledgeIds.Contains(m.Id.ToString()))
+        var getMemoriesResult = await _store.GetByIdsAsync(memoryIds, cancellationToken).ConfigureAwait(false);
+        if (getMemoriesResult.IsFailure)
+        {
+            return VKResult.Failure(getMemoriesResult.Errors); // [CS.01]
+        }
+
+        var recalledFragments = getMemoriesResult.Value
+            .Where(m => m.Category == VKMemoryCategory.LongTerm)
             .ToList();
 
         if (recalledFragments.Count == 0)
@@ -298,7 +309,13 @@ internal sealed class DefaultRevisionService : IVKRevisionService
 
     private async Task InvalidateDependentSynopsesAsync(VKMemoryId targetId, CancellationToken cancellationToken)
     {
-        var allMemoriesResult = await _store.QueryAsync(new VKMemoryQuery { TopK = int.MaxValue }, cancellationToken).ConfigureAwait(false);
+        var allMemoriesResult = await _store.QueryAsync(
+            new VKMemoryQuery
+            {
+                Category = VKMemoryCategory.MediumTerm,
+                TopK = 500
+            },
+            cancellationToken).ConfigureAwait(false);
         if (allMemoriesResult.IsFailure || allMemoriesResult.Value == null)
         {
             return;
@@ -334,7 +351,7 @@ internal sealed class DefaultRevisionService : IVKRevisionService
 
     private bool IsRateLimited(string entryId)
     {
-        var now = DateTime.UtcNow;
+        var now = _timeProvider.GetUtcNow().UtcDateTime;
         var limitInfo = _rateLimiter.GetOrAdd(entryId, _ => (0, now));
         if ((now - limitInfo.HourStart).TotalHours >= 1)
         {

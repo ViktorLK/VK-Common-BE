@@ -74,4 +74,28 @@ public interface IVKCorpusIngestingService
     Task<VKResult<VKIngestingJobStatus>> GetIngestingStatusAsync(
         string jobId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the historical versions list for the specified document.
+    /// </summary>
+    /// <param name="documentId">The unique document ID.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A result containing the list of document versions.</returns>
+    Task<VKResult<System.Collections.Generic.IReadOnlyList<VKKnowledgeVersion>>> GetDocumentVersionsAsync(
+        string documentId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Rolls back a document in the vector store to a specified target historical version.
+    /// </summary>
+    /// <param name="documentId">The unique document ID.</param>
+    /// <param name="collectionName">The collection name for isolation.</param>
+    /// <param name="targetVersion">The target version number to restore.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A result indicating success or failure of the rollback.</returns>
+    Task<VKResult> RollbackDocumentVersionAsync(
+        string documentId,
+        string collectionName,
+        int targetVersion,
+        CancellationToken cancellationToken = default);
 }

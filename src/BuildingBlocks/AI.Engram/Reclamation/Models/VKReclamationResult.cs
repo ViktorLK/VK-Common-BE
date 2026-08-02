@@ -24,4 +24,14 @@ public sealed record VKReclamationResult
     /// Gets the number of vector embeddings cascade-deleted from VectorStore.
     /// </summary>
     public int VectorStoreCleanedCount { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether this cycle was executed in DryRun mode.
+    /// </summary>
+    public bool IsDryRun { get; init; }
+
+    /// <summary>
+    /// Gets the list of detailed audit entries for pruned memories during this cycle.
+    /// </summary>
+    public System.Collections.Generic.IReadOnlyList<VKPruneAuditEntry> PruneDetails { get; init; } = [];
 }

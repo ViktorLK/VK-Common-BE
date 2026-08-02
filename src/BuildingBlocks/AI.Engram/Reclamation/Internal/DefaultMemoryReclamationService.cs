@@ -37,8 +37,15 @@ internal sealed class DefaultMemoryReclamationService : IVKMemoryReclamationServ
         _logger = VKGuard.NotNull(logger);
     }
 
-    public async Task<VKResult<VKReclamationResult>> RunReclamationCycleAsync(CancellationToken cancellationToken = default)
+    public Task<VKResult<VKReclamationResult>> RunReclamationCycleAsync(CancellationToken cancellationToken = default)
     {
+        return RunReclamationCycleAsync(new VKReclamationRunOptions(), cancellationToken);
+    }
+
+    public async Task<VKResult<VKReclamationResult>> RunReclamationCycleAsync(VKReclamationRunOptions runOptions, CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(runOptions);
+
         if (!_options.Enabled)
         {
             return VKResult.Success(new VKReclamationResult());
@@ -48,13 +55,14 @@ internal sealed class DefaultMemoryReclamationService : IVKMemoryReclamationServ
 
         try
         {
+            int batchSize = runOptions.BatchSizeOverride ?? _options.ReclamationBatchSize;
             var queryResult = await _memoryStore.QueryAsync(
-                new VKMemoryQuery { TopK = _options.ReclamationBatchSize },
+                new VKMemoryQuery { TopK = batchSize },
                 cancellationToken).ConfigureAwait(false);
 
             if (queryResult.IsFailure || queryResult.Value == null || queryResult.Value.Count == 0)
             {
-                var emptyResult = new VKReclamationResult();
+                var emptyResult = new VKReclamationResult { IsDryRun = runOptions.DryRun };
                 _logger.ReclamationCycleCompleted(0, 0, 0, 0);
                 return VKResult.Success(emptyResult);
             }
@@ -70,7 +78,10 @@ internal sealed class DefaultMemoryReclamationService : IVKMemoryReclamationServ
             }
 
             var decayedEntries = decayResult.Value;
-            await _memoryStore.UpsertBatchAsync(decayedEntries, cancellationToken).ConfigureAwait(false);
+            if (!runOptions.DryRun)
+            {
+                await _memoryStore.UpsertBatchAsync(decayedEntries, cancellationToken).ConfigureAwait(false);
+            }
             _logger.ReclamationDecayEvaluated(decayedEntries.Count);
 
             // 2. Evaluate Pruning Actions
@@ -83,38 +94,82 @@ internal sealed class DefaultMemoryReclamationService : IVKMemoryReclamationServ
             var pruneMap = pruneEvalResult.Value;
             int prunedCount = 0;
             int vectorStoreCleanedTotal = 0;
+            var pruneAuditList = new List<VKPruneAuditEntry>();
 
-            foreach (var (memoryId, action) in pruneMap)
+            // Process pruned items in batches for backpressure control
+            foreach (var chunk in pruneMap.Chunk(100))
             {
-                if (action == VKPruneAction.Delete)
-                {
-                    // Cascading delete from VectorStore
-                    int vectorCleaned = await CleanVectorStoreEntriesAsync(memoryId, cancellationToken).ConfigureAwait(false);
-                    vectorStoreCleanedTotal += vectorCleaned;
-                    if (vectorCleaned > 0)
-                    {
-                        _logger.ReclamationVectorStoreCleaned(vectorCleaned, memoryId);
-                    }
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    // Physical delete from MemoryStore
-                    await _memoryStore.DeleteAsync(memoryId, null, cancellationToken).ConfigureAwait(false);
-                    prunedCount++;
-                    _logger.ReclamationPruneExecuted(memoryId, action);
-                }
-                else if (action == VKPruneAction.Archive)
+                foreach (var (memoryId, action) in chunk)
                 {
                     var targetEntry = decayedEntries.FirstOrDefault(e => e.Id == memoryId);
-                    if (targetEntry != null)
+                    float score = targetEntry?.Importance ?? 0f;
+                    if (targetEntry != null && targetEntry.Metadata.TryGetValue("RetentionScore", out var scoreStr) &&
+                        float.TryParse(scoreStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var parsedScore))
                     {
-                        var meta = new Dictionary<string, string>(targetEntry.Metadata)
+                        score = parsedScore;
+                    }
+
+                    string? summary = targetEntry?.Content != null && targetEntry.Content.Length > 50
+                        ? string.Concat(targetEntry.Content.AsSpan(0, 50), "...")
+                        : targetEntry?.Content;
+
+                    pruneAuditList.Add(new VKPruneAuditEntry
+                    {
+                        MemoryId = memoryId,
+                        Action = action,
+                        RetentionScore = score,
+                        Threshold = 0f,
+                        Category = targetEntry?.Category ?? VKMemoryCategory.ShortTerm,
+                        ContentSummary = summary
+                    });
+
+                    if (action == VKPruneAction.Delete)
+                    {
+                        if (!runOptions.DryRun)
                         {
-                            ["IsArchived"] = "true"
-                        };
-                        await _memoryStore.UpsertAsync(targetEntry with { Metadata = meta }, cancellationToken).ConfigureAwait(false);
+                            int vectorCleaned = await CleanVectorStoreEntriesAsync(memoryId, cancellationToken).ConfigureAwait(false);
+                            vectorStoreCleanedTotal += vectorCleaned;
+                            if (vectorCleaned > 0)
+                            {
+                                _logger.ReclamationVectorStoreCleaned(vectorCleaned, memoryId);
+                            }
+
+                            await _memoryStore.DeleteAsync(memoryId, null, cancellationToken).ConfigureAwait(false);
+                        }
+                        prunedCount++;
+                        _logger.ReclamationPruneExecuted(memoryId, action);
+                    }
+                    else if (action == VKPruneAction.Archive)
+                    {
+                        if (!runOptions.DryRun && targetEntry != null)
+                        {
+                            var meta = new Dictionary<string, string>(targetEntry.Metadata)
+                            {
+                                ["IsArchived"] = "true"
+                            };
+                            await _memoryStore.UpsertAsync(targetEntry with { Metadata = meta }, cancellationToken).ConfigureAwait(false);
+                        }
+                        prunedCount++;
+                        _logger.ReclamationPruneExecuted(memoryId, action);
+                    }
+                    else if (action == VKPruneAction.Flag)
+                    {
+                        if (!runOptions.DryRun && targetEntry != null)
+                        {
+                            var meta = new Dictionary<string, string>(targetEntry.Metadata)
+                            {
+                                ["IsFlaggedForReview"] = "true"
+                            };
+                            await _memoryStore.UpsertAsync(targetEntry with { Metadata = meta }, cancellationToken).ConfigureAwait(false);
+                        }
                         prunedCount++;
                         _logger.ReclamationPruneExecuted(memoryId, action);
                     }
                 }
+
+                await Task.Yield();
             }
 
             var finalResult = new VKReclamationResult
@@ -122,7 +177,9 @@ internal sealed class DefaultMemoryReclamationService : IVKMemoryReclamationServ
                 EvaluatedCount = evaluatedCount,
                 DecayedCount = decayedEntries.Count,
                 PrunedCount = prunedCount,
-                VectorStoreCleanedCount = vectorStoreCleanedTotal
+                VectorStoreCleanedCount = vectorStoreCleanedTotal,
+                IsDryRun = runOptions.DryRun,
+                PruneDetails = pruneAuditList
             };
 
             _logger.ReclamationCycleCompleted(evaluatedCount, decayedEntries.Count, prunedCount, vectorStoreCleanedTotal);

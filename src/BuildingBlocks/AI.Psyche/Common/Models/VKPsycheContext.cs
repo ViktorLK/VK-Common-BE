@@ -19,6 +19,12 @@ public sealed class VKPsycheContext
     public required VKPsycheRequest Request { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether the current execution is running under Sandbox trial mode.
+    /// Downstream consumers (Efferent state mutations, Corpus usage tracking, Engram memory consolidation) MUST inspect this to strictly skip permanent DB side-effects.
+    /// </summary>
+    public bool IsSandbox => Request.SessionMode == VKSessionMode.Sandbox;
+
+    /// <summary>
     /// Gets the mutable response builder for accumulating execution results.
     /// </summary>
     public VKPsycheResponseBuilder Response { get; } = new();

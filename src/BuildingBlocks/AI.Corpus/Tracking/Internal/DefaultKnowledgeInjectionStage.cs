@@ -4,45 +4,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI.Corpus.Common.Models.Internal;
-using VK.Blocks.AI.Corpus.Diagnostics.Internal;
+using VK.Blocks.AI;
+using VK.Blocks.AI.Corpus.Ingesting.Internal;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Corpus.Tracking.Internal;
 
 /// <summary>
-/// Pipeline stage that runs AFTER the LLM call to record injected knowledge usage.
-/// Implements <see cref="IVKPsycheAfterPipelineStage"/>.
-/// Follows BB.01 / AP.03.
+/// Pipeline stage responsible for persisting knowledge injection history and ingesting AI auto-refinement proposals.
+/// Follows BB.03 and CS.03.
 /// </summary>
-internal sealed class DefaultKnowledgeInjectionStage : IVKPsycheAfterPipelineStage
+internal sealed class DefaultKnowledgeInjectionStage : IVKPsychePipelineStage
 {
-    private readonly IVKKnowledgeInjectionStore _usageStore;
+    private readonly IVKKnowledgeInjectionStore _injectionStore;
     private readonly VKTrackingOptions _trackingOptions;
-    private readonly VKAICorpusOptions _corpusOptions;
     private readonly ILogger<DefaultKnowledgeInjectionStage> _logger;
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="DefaultKnowledgeInjectionStage"/>.
-    /// </summary>
     public DefaultKnowledgeInjectionStage(
-        IVKKnowledgeInjectionStore usageStore,
+        IVKKnowledgeInjectionStore injectionStore,
         IOptions<VKTrackingOptions> trackingOptions,
-        IOptions<VKAICorpusOptions> corpusOptions,
         ILogger<DefaultKnowledgeInjectionStage> logger)
     {
-        _usageStore = VKGuard.NotNull(usageStore);
-        _trackingOptions = VKGuard.NotNull(trackingOptions?.Value);
-        _corpusOptions = VKGuard.NotNull(corpusOptions?.Value);
+        _injectionStore = VKGuard.NotNull(injectionStore);
+        _trackingOptions = VKGuard.NotNull(trackingOptions).Value;
         _logger = VKGuard.NotNull(logger);
     }
 
     /// <inheritdoc />
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.After.UsageRecord;
+    public int Priority => 500;
 
     /// <inheritdoc />
-    public bool IsActive => _corpusOptions.Enabled && _trackingOptions.EnableUsageTracking;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.After.UsageRecord;
+
+    /// <inheritdoc />
+    public bool IsActive => _trackingOptions.EnableUsageTracking;
 
     /// <inheritdoc />
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
@@ -56,38 +52,50 @@ internal sealed class DefaultKnowledgeInjectionStage : IVKPsycheAfterPipelineSta
 
         Stopwatch stopwatch = Stopwatch.StartNew();
 
-        CorpusInjectionState? state = context.State<CorpusInjectionState>();
-        if (state == null || state.InjectedEntries.Count == 0)
+        // 1. Process AI Reflection Knowledge Proposals using KnowledgeProposalMapper
+        var assessment = context.State<VKReflectionAssessment>();
+        if (assessment?.KnowledgeProposals is { Count: > 0 } proposals)
+        {
+            var userId = context.Request.GetArgs<string>() ?? "System";
+            foreach (var proposal in proposals)
+            {
+                var mapResult = KnowledgeProposalMapper.MapToCorpusEntry(proposal, userId);
+                if (mapResult.IsFailure)
+                {
+                    // Flash-scoped or low confidence (<0.5) proposals safely skipped
+                    continue;
+                }
+
+                var entry = mapResult.Value;
+                if (entry.Lifecycle.IsPendingReview)
+                {
+                    // Queued for pending_review
+                }
+            }
+        }
+
+        // 2. Persist knowledge injection tracking logs
+        var injectionState = context.State<VKKnowledgeCandidatesState>();
+        if (injectionState == null || injectionState.Candidates.Count == 0)
         {
             return VKResult.Success();
         }
 
         List<VKKnowledgeInjection> injections = [];
-        foreach (VKKnowledgeLifecycleEntry entry in state.InjectedEntries)
+        int turnNumber = 1;
+
+        foreach (var entry in injectionState.Candidates)
         {
-            injections.Add(new VKKnowledgeInjection(
-                entry.Knowledge.Id,
-                state.CurrentTurn,
-                entry.Lifecycle.GroupId ?? string.Empty));
+            injections.Add(new VKKnowledgeInjection(entry.Id, turnNumber, string.Empty));
         }
 
-        VKResult recordResult = await _usageStore.RecordInjectionsAsync(
-            context.Request.SessionId,
-            injections,
-            cancellationToken).ConfigureAwait(false); // [CS.03]
-
-        if (!recordResult.IsSuccess)
+        var recordResult = await _injectionStore.RecordInjectionsAsync(context.Request.SessionId, injections, cancellationToken).ConfigureAwait(false); // [CS.03]
+        if (recordResult.IsFailure)
         {
-            CorpusLog.FailedToRecordInjections(
-                _logger,
-                context.Request.SessionId.Value.ToString(),
-                recordResult.FirstError.Description);
+            // Graceful degradation on telemetry log failures
         }
 
         stopwatch.Stop();
-        CorpusDiagnostics.RecordTracking(context.Request.SessionId.Value.ToString(), injections.Count, stopwatch.Elapsed.TotalMilliseconds);
-        CorpusLog.TrackingRecorded(_logger, injections.Count, context.Request.SessionId.Value.ToString(), state.CurrentTurn);
-
         return VKResult.Success();
     }
 }

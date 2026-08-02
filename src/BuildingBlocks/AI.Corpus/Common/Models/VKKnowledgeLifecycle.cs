@@ -17,9 +17,15 @@ public sealed record VKKnowledgeLifecycle
     public int? StickyTurns { get; init; }
 
     /// <summary>
-    /// Gets the cooldown duration in turns before this entry can trigger again.
+    /// Gets the cooldown duration in turns before this knowledge entry can be actively triggered again.
+    /// Prevents repetitive knowledge injection.
     /// </summary>
-    public int? CooldownTurns { get; init; }
+    public int? KnowledgeCooldownTurns { get; init; }
+
+    /// <summary>
+    /// Backing compatibility property mapping KnowledgeCooldownTurns to CooldownTurns.
+    /// </summary>
+    public int? CooldownTurns => KnowledgeCooldownTurns;
 
     /// <summary>
     /// Gets the number of turns to delay activation after being triggered.
@@ -35,6 +41,11 @@ public sealed record VKKnowledgeLifecycle
     /// Gets the group identifier for coordinating parent limits or mutually exclusive matches.
     /// </summary>
     public string? GroupId { get; init; }
+
+    /// <summary>
+    /// Gets the category tag classifying the nature of knowledge (e.g. Preference, Fact, EmotionalTrigger).
+    /// </summary>
+    public string? CategoryTag { get; init; }
 
     /// <summary>
     /// Gets the max number of session-wide usage limits for this entry.
@@ -92,6 +103,11 @@ public sealed record VKKnowledgeLifecycle
     public string? TargetPersonaId { get; init; }
 
     /// <summary>
+    /// Gets the target User ID constraint. If set, this entry is isolated only to this user.
+    /// </summary>
+    public string? TargetUserId { get; init; }
+
+    /// <summary>
     /// Gets the expiration timestamp for the entry.
     /// </summary>
     public System.DateTimeOffset? ExpiresAt { get; init; }
@@ -110,6 +126,17 @@ public sealed record VKKnowledgeLifecycle
     /// Gets the target language culture code (e.g. "zh-CN", "en-US") constraint for multi-language matching.
     /// </summary>
     public string? Language { get; init; }
+
+    /// <summary>
+    /// Gets whether this knowledge entry is pending human or system review before activation.
+    /// Set to true when confidence score is below 0.85 during AI reflection ingestion.
+    /// </summary>
+    public bool IsPendingReview { get; init; }
+
+    /// <summary>
+    /// Gets the long-term retention score (0.0 to 1.0) passed to Engram memory decay.
+    /// </summary>
+    public double BaseRetentionScore { get; init; } = 0.5;
 
     /// <summary>
     /// Gets the approval workflow status for this knowledge entry. Default is <see cref="VKKnowledgeApprovalStatus.Approved"/>.

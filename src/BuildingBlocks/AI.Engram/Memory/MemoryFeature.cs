@@ -19,6 +19,9 @@ internal sealed partial class MemoryFeature
         services.TryAddSingleton<IVKPrefetchGatingPolicy, VK.Blocks.AI.Engram.Retrieval.Internal.AlwaysTriggerGatingPolicy>();
         services.TryAddScoped<IVKPredictiveMemoryPrefetcher, VK.Blocks.AI.Engram.Retrieval.Internal.DefaultPredictiveMemoryPrefetcher>();
         services.TryAddScoped<IVKAccessTracker, VK.Blocks.AI.Engram.Retrieval.Internal.DefaultAccessTracker>();
+
+        // Dynamically replace default IVKEchoStore with EngramEchoStoreBridge for zero physical data redundancy
+        services.Replace(ServiceDescriptor.Singleton<VK.Blocks.AI.Psyche.IVKEchoStore, EngramEchoStoreBridge>());
     }
 
     // [SG Hook]

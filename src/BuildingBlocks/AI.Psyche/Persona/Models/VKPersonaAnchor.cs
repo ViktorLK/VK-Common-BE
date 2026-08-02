@@ -1,12 +1,19 @@
 using System.Collections.Generic;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Represents an AI persona anchor.
+/// Represents an AI persona anchor. Implements <see cref="IVKTenantScoped"/>.
+/// Order follows TenantId -> Id hierarchy.
 /// </summary>
-public sealed record VKPersonaAnchor : IVKFragmentMetadata
+public sealed record VKPersonaAnchor : IVKFragmentMetadata, IVKTenantScoped
 {
+    /// <summary>
+    /// Gets the tenant identifier for multi-tenant SaaS isolation. Defaults to <see cref="VKTenantId.Default"/>.
+    /// </summary>
+    public VKTenantId TenantId { get; init; } = VKTenantId.Default;
+
     /// <summary>
     /// Gets the unique identifier for the persona.
     /// </summary>

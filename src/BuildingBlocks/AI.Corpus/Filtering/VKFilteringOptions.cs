@@ -5,8 +5,8 @@ namespace VK.Blocks.AI.Corpus;
 /// <summary>
 /// Options for the Filtering feature of AI.Corpus.
 /// </summary>
-[VKFeature(typeof(VKAICorpusBlock), GenerateArgs = true)]
-public sealed partial record VKFilteringOptions : IVKFilteringOptions
+
+public sealed partial record VKFilteringOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets the default cooldown turns for entries.
@@ -26,6 +26,7 @@ public sealed partial record VKFilteringOptions : IVKFilteringOptions
     /// <summary>
     /// Gets the maximum number of entries allowed to be injected per turn.
     /// </summary>
+    [VKRequestOverride]
     public int? MaxEntriesPerTurn { get; init; }
 
     /// <summary>
@@ -36,6 +37,7 @@ public sealed partial record VKFilteringOptions : IVKFilteringOptions
     /// <summary>
     /// Gets the maximum number of sticky entries allowed simultaneously.
     /// </summary>
+    [VKRequestOverride]
     public int? MaxStickyEntries { get; init; }
 
     // --- Filter Toggles ---
@@ -129,4 +131,14 @@ public sealed partial record VKFilteringOptions : IVKFilteringOptions
     /// Gets a value indicating whether to enable the group top N filter.
     /// </summary>
     public bool EnableGroupTopNFilter { get; init; } = true;
+
+    /// <summary>
+    /// Gets a value indicating whether to enable the language culture matching filter.
+    /// </summary>
+    public bool EnableLanguageFilter { get; init; } = true;
+
+    /// <summary>
+    /// Gets a value indicating whether to enable the approval status workflow filter.
+    /// </summary>
+    public bool EnableApprovalStatusFilter { get; init; } = true;
 }

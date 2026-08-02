@@ -15,4 +15,12 @@ public interface IVKMemoryReclamationService
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A result containing statistics of the reclamation cycle.</returns>
     Task<VKResult<VKReclamationResult>> RunReclamationCycleAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Executes a memory reclamation cycle with specific run options (e.g., DryRun, batch size overrides).
+    /// </summary>
+    /// <param name="runOptions">Execution options for this specific run.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A result containing statistics and detailed prune audit details.</returns>
+    Task<VKResult<VKReclamationResult>> RunReclamationCycleAsync(VKReclamationRunOptions runOptions, CancellationToken cancellationToken = default);
 }
