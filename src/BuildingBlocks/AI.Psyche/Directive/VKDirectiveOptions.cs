@@ -6,7 +6,6 @@ namespace VK.Blocks.AI.Psyche;
 /// Options for the Tenant Directive feature.
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
-
 public sealed partial record VKDirectiveOptions : IVKToggleableBlockOptions
 {
     /// <summary>

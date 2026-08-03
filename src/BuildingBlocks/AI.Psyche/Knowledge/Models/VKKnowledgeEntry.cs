@@ -1,17 +1,34 @@
 using System.Collections.Generic;
 using VK.Blocks.AI.Psyche.Common.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Represents an entry in a knowledge/worldbook.
+/// Represents an entry in a knowledge/worldbook. Implements <see cref="IVKTenantScoped"/>.
+/// Order follows TenantId -> Id hierarchy with default sentinel VKTenantId.Default.
 /// </summary>
-public sealed record VKKnowledgeEntry : IVKFragmentMetadata
+public sealed record VKKnowledgeEntry : IVKFragmentMetadata, IVKTenantScoped
 {
+    /// <summary>
+    /// Gets the tenant identifier for multi-tenant SaaS isolation. Defaults to <see cref="VKTenantId.Default"/>.
+    /// </summary>
+    public required VKTenantId TenantId { get; init; }
+
     /// <summary>
     /// Gets the unique identifier for the entry.
     /// </summary>
     public required VKKnowledgeId Id { get; init; }
+
+    /// <summary>
+    /// Gets the trigger activation strategy for this entry (e.g. Constant, Keyword, Regex).
+    /// </summary>
+    public VKKnowledgeTriggerType TriggerType { get; init; } = VKKnowledgeTriggerType.Constant;
+
+    /// <summary>
+    /// Gets the matching boolean evaluation logic when multiple keys are present (e.g. AndAny, AndAll).
+    /// </summary>
+    public VKKnowledgeFilterLogic FilterLogic { get; init; } = VKKnowledgeFilterLogic.AndAny;
 
     /// <summary>
     /// Gets the XML wrapper tag used when this entry is woven into the prompt.
@@ -26,23 +43,34 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     public IReadOnlyList<VKKnowledgeKey> Keys { get; init; } = [];
 
     /// <summary>
-    /// Gets the layout segment coordinates of the entry.
+    /// Gets the segment text for this knowledge entry.
     /// </summary>
     public required VKPromptSegment Segment { get; init; }
 
     /// <summary>
-    /// Gets the trigger type.
+    /// Factory method to create a new <see cref="VKKnowledgeEntry"/> with automatic <see cref="IVKIdentityContext"/> resolution.
     /// </summary>
-    public VKKnowledgeTriggerType TriggerType { get; init; } = VKKnowledgeTriggerType.Keyword;
+    public static VKKnowledgeEntry Create(
+        IVKIdentityContext identityContext,
+        VKKnowledgeId id,
+        VKPromptSegment segment,
+        VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
+        VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
+        string? xmlTag = null,
+        IReadOnlyList<VKKnowledgeKey>? keys = null)
+    {
+        VKGuard.NotNull(identityContext);
+        VKGuard.NotNull(segment);
 
-    /// <summary>
-    /// Gets the logical combination rules used when matching multiple trigger keys.
-    /// Defaults to <see cref="VKKnowledgeFilterLogic.AndAny"/>.
-    /// </summary>
-    public VKKnowledgeFilterLogic FilterLogic { get; init; } = VKKnowledgeFilterLogic.AndAny;
-
-    /// <summary>
-    /// Gets the generic payload for engine-specific extensions (e.g. JSON conditions, metadata).
-    /// </summary>
-    public string? Payload { get; init; }
+        return new VKKnowledgeEntry
+        {
+            TenantId = identityContext.TenantId,
+            Id = id,
+            Segment = segment,
+            TriggerType = triggerType,
+            FilterLogic = filterLogic,
+            XmlTag = xmlTag ?? PsycheConstants.XmlTags.Knowledge,
+            Keys = keys ?? []
+        };
+    }
 }

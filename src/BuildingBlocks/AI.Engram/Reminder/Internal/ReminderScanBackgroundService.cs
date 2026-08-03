@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Engram.Reminder.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -19,7 +18,6 @@ internal sealed class ReminderScanBackgroundService : BackgroundService
     private readonly TimeProvider _timeProvider;
     private readonly IVKGuidGenerator _guidGenerator;
     private readonly IVKDistributedLockProvider _lockProvider;
-    private readonly IVKActiveTenantProvider _activeTenantProvider;
     private readonly VKReminderOptions _options;
     private readonly ILogger<ReminderScanBackgroundService> _logger;
 
@@ -28,8 +26,7 @@ internal sealed class ReminderScanBackgroundService : BackgroundService
         TimeProvider timeProvider,
         IVKGuidGenerator guidGenerator,
         IVKDistributedLockProvider lockProvider,
-        IVKActiveTenantProvider activeTenantProvider,
-        IOptions<VKReminderOptions> options,
+        VKReminderOptions options,
         ILogger<ReminderScanBackgroundService> logger)
     {
         // // [AP.01] Fluent guard assignment
@@ -37,8 +34,7 @@ internal sealed class ReminderScanBackgroundService : BackgroundService
         _timeProvider = VKGuard.NotNull(timeProvider);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
         _lockProvider = VKGuard.NotNull(lockProvider);
-        _activeTenantProvider = VKGuard.NotNull(activeTenantProvider);
-        _options = VKGuard.NotNull(options?.Value);
+        _options = VKGuard.NotNull(options);
         _logger = VKGuard.NotNull(logger);
     }
 
@@ -90,30 +86,7 @@ internal sealed class ReminderScanBackgroundService : BackgroundService
     {
         _logger.MissedCompensationStarted(_options.MissedPolicy.ToString());
 
-        var tenantsResult = await _activeTenantProvider.GetActiveTenantsAsync(cancellationToken).ConfigureAwait(false);
-        if (tenantsResult.IsFailure)
-        {
-            _logger.FetchFailed(string.Join("; ", tenantsResult.Errors.Select(e => e.Description)));
-            return;
-        }
-
-        foreach (var tenantId in tenantsResult.Value)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                break;
-            }
-
-            await CompensateMissedRemindersForTenantAsync(tenantId, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private async Task CompensateMissedRemindersForTenantAsync(VKTenantId tenantId, CancellationToken cancellationToken)
-    {
         await using var scope = _scopeFactory.CreateAsyncScope();
-        var tenantSetter = scope.ServiceProvider.GetService<IVKTenantSetter>();
-        tenantSetter?.SetCurrentTenantId(tenantId);
-
         var reminderStore = scope.ServiceProvider.GetRequiredService<IVKReminderStore>();
         var memoryStore = scope.ServiceProvider.GetRequiredService<IVKMemoryStore>();
 
@@ -201,30 +174,7 @@ internal sealed class ReminderScanBackgroundService : BackgroundService
 
     private async Task ScanAndFireRemindersAsync(CancellationToken cancellationToken)
     {
-        var tenantsResult = await _activeTenantProvider.GetActiveTenantsAsync(cancellationToken).ConfigureAwait(false);
-        if (tenantsResult.IsFailure)
-        {
-            _logger.FetchFailed(string.Join("; ", tenantsResult.Errors.Select(e => e.Description)));
-            return;
-        }
-
-        foreach (var tenantId in tenantsResult.Value)
-        {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                break;
-            }
-
-            await ScanAndFireRemindersForTenantAsync(tenantId, cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    private async Task ScanAndFireRemindersForTenantAsync(VKTenantId tenantId, CancellationToken cancellationToken)
-    {
         await using var scope = _scopeFactory.CreateAsyncScope();
-        var tenantSetter = scope.ServiceProvider.GetService<IVKTenantSetter>();
-        tenantSetter?.SetCurrentTenantId(tenantId);
-
         var reminderStore = scope.ServiceProvider.GetRequiredService<IVKReminderStore>();
         var memoryStore = scope.ServiceProvider.GetRequiredService<IVKMemoryStore>();
 

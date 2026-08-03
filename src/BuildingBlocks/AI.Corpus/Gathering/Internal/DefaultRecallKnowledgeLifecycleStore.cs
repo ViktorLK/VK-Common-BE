@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Corpus.Diagnostics.Internal;
 using VK.Blocks.AI.Psyche;
-using VK.Blocks.VectorSearch;
 using VK.Blocks.Core;
+using VK.Blocks.VectorSearch;
 
 namespace VK.Blocks.AI.Corpus.Gathering.Internal;
 
 /// <summary>
-/// A store that recalls corpus entries dynamically by querying AI.Recall.
+/// A store that recalls corpus entries dynamically by querying VectorSearch.
 /// Follows BB.01 / AP.03.
 /// </summary>
 internal sealed class DefaultRecallKnowledgeLifecycleStore : IVKRecallKnowledgeLifecycleStore

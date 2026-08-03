@@ -17,14 +17,14 @@ AI.Psyche パイプラインの `Before` / `After` ステージとして統合�
 
 ### 設計原則
 
-| カテゴリ | 適用パターン |
-|:---------|:-------------|
-| **Design Principles** | SOLID（特に SRP / OCP / DIP）、KISS、DRY |
-| **Design Patterns** | Strategy、Pipeline、Builder、Repository、State Object |
-| **Architectural Principles** | 関注点分離、カプセル化、高凝集・低結合 |
-| **Architectural Styles** | Vertical Slice Architecture、Clean Architecture |
-| **Architectural Patterns** | Psyche Pipeline Integration、VKFeature Source Generator |
-| **Enterprise Patterns** | 冪等 DI 登録、Feature Toggle、Observability (OpenTelemetry) |
+| カテゴリ                     | 適用パターン                                                |
+| :--------------------------- | :---------------------------------------------------------- |
+| **Design Principles**        | SOLID（特に SRP / OCP / DIP）、KISS、DRY                    |
+| **Design Patterns**          | Strategy、Pipeline、Builder、Repository、State Object       |
+| **Architectural Principles** | 関注点分離、カプセル化、高凝集・低結合                      |
+| **Architectural Styles**     | Vertical Slice Architecture、Clean Architecture             |
+| **Architectural Patterns**   | Psyche Pipeline Integration、VKFeature Source Generator     |
+| **Enterprise Patterns**      | 冪等 DI 登録、Feature Toggle、Observability (OpenTelemetry) |
 
 ### パイプライン全体像
 
@@ -87,26 +87,26 @@ graph TD
 
 17種の独立したフィルターを Options トグルで個別に有効/無効化可能:
 
-| フィルター | 機能 |
-|:-----------|:-----|
-| `StickinessFilter` | トリガー後の指定ターン数間、エントリを強制維持 |
-| `CooldownFilter` | 再トリガー抑制（クールダウン期間） |
-| `ProbabilityFilter` | 確率ベースのランダム選択 |
-| `PersonaFilter` | ペルソナ ID による制約 |
-| `UserSegmentFilter` | ユーザーセグメント（Free/Premium）制約 |
-| `FreshnessFilter` | 有効期限ベースのフィルタリング |
-| `ScheduleFilter` | ターン範囲制約（StartTurn / EndTurn） |
-| `DelayFilter` | トリガー後の遅延注入 |
-| `DependencyFilter` | 親エントリの注入を前提条件とする依存関係チェック |
-| `EmotionGatedFilter` | 感情パラメータ（affection / anger）ゲーティング |
-| `RevealFilter` | シークレットキー解放条件 |
-| `EntryMaxCountFilter` | セッション内使用回数上限 |
-| `GroupMaxCountFilter` | グループ単位のターン内注入数上限 |
-| `GlobalExclusionFilter` | 排他タグによるグローバル排除 |
-| `ConflictResolutionFilter` | 競合グループ内の優先度ベース排他 |
-| `GroupTopNFilter` | グループ内 Top-N 選択 |
-| `TokenBudgetFilter` | トークン予算制約 |
-| `RecencyBiasFilter` | 使用頻度に基づく減衰バイアス |
+| フィルター                 | 機能                                             |
+| :------------------------- | :----------------------------------------------- |
+| `StickinessFilter`         | トリガー後の指定ターン数間、エントリを強制維持   |
+| `CooldownFilter`           | 再トリガー抑制（クールダウン期間）               |
+| `ProbabilityFilter`        | 確率ベースのランダム選択                         |
+| `PersonaFilter`            | ペルソナ ID による制約                           |
+| `UserSegmentFilter`        | ユーザーセグメント（Free/Premium）制約           |
+| `FreshnessFilter`          | 有効期限ベースのフィルタリング                   |
+| `ScheduleFilter`           | ターン範囲制約（StartTurn / EndTurn）            |
+| `DelayFilter`              | トリガー後の遅延注入                             |
+| `DependencyFilter`         | 親エントリの注入を前提条件とする依存関係チェック |
+| `EmotionGatedFilter`       | 感情パラメータ（affection / anger）ゲーティング  |
+| `RevealFilter`             | シークレットキー解放条件                         |
+| `EntryMaxCountFilter`      | セッション内使用回数上限                         |
+| `GroupMaxCountFilter`      | グループ単位のターン内注入数上限                 |
+| `GlobalExclusionFilter`    | 排他タグによるグローバル排除                     |
+| `ConflictResolutionFilter` | 競合グループ内の優先度ベース排他                 |
+| `GroupTopNFilter`          | グループ内 Top-N 選択                            |
+| `TokenBudgetFilter`        | トークン予算制約                                 |
+| `RecencyBiasFilter`        | 使用頻度に基づく減衰バイアス                     |
 
 ### 📊 Tracking（使用追跡）
 
@@ -144,14 +144,14 @@ VKKnowledgeLifecyclePresets.Cooldown.Once;   // -1: セッション内1回限り
 
 ## 採用技術
 
-| 技術 | 用途 |
-|:-----|:-----|
-| **.NET 10** | ランタイム基盤 |
-| **VK.Blocks.Core** | Result パターン、VKGuard、DI 拡張 |
-| **VK.Blocks.AI.Psyche** | Pipeline Stage 統合、VKPsycheContext |
-| **VK.Blocks.AI.Recall** | Vector Store 検索 (IVKSearchStrategy) |
-| **Source Generator** | `[VKFeature]` / `[VKBlockMarker]` / `[VKBlockDiagnostics]` 自動生成 |
-| **OpenTelemetry** | Diagnostics / Metrics / Tracing |
+| 技術                       | 用途                                                                |
+| :------------------------- | :------------------------------------------------------------------ |
+| **.NET 10**                | ランタイム基盤                                                      |
+| **VK.Blocks.Core**         | Result パターン、VKGuard、DI 拡張                                   |
+| **VK.Blocks.AI.Psyche**    | Pipeline Stage 統合、VKPsycheContext                                |
+| **VK.Blocks.VectorSearch** | Vector Store 検索 (IVKSearchStrategy)                               |
+| **Source Generator**       | `[VKFeature]` / `[VKBlockMarker]` / `[VKBlockDiagnostics]` 自動生成 |
+| **OpenTelemetry**          | Diagnostics / Metrics / Tracing                                     |
 
 ---
 
@@ -160,7 +160,7 @@ VKKnowledgeLifecyclePresets.Cooldown.Once;   // -1: セッション内1回限り
 ### 前提条件
 
 - .NET 10 SDK
-- VK.Blocks.Core / AI.Psyche / AI.Recall の依存解決済み
+- VK.Blocks.Core / AI.Psyche / VectorSearch の依存解決済み
 
 ### DI 登録
 
@@ -230,7 +230,6 @@ if (queueResult.IsSuccess)
     var statusResult = await corpusIngestingService.GetIngestingStatusAsync(jobId);
 }
 ```
-
 
 ---
 

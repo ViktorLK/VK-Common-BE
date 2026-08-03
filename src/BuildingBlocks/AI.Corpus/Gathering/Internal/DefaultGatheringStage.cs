@@ -15,7 +15,7 @@ namespace VK.Blocks.AI.Corpus.Gathering.Internal;
 /// Implements <see cref="IVKPsycheBeforePipelineStage"/>.
 /// Follows BB.01 / AP.03.
 /// </summary>
-internal sealed class DefaultGatheringStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultGatheringStage : IVKPsychePipelineStage
 {
     private readonly IVKRecallKnowledgeLifecycleStore _recallStore;
     private readonly VKAICorpusOptions _corpusOptions;
@@ -35,7 +35,7 @@ internal sealed class DefaultGatheringStage : IVKPsycheBeforePipelineStage
     }
 
     /// <inheritdoc />
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusGathering;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusGathering;
 
     /// <inheritdoc />
     public bool IsActive => _corpusOptions.Enabled;

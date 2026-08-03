@@ -39,6 +39,7 @@
 - [x] [AI-014: Clean up or integrate unused memory schemas (VKMemoryFragment, VKMemorySynapse, VKMemorySynopsis)](<./.Archive/AI/014-clean-up-or-integrate-unused-memory-schemas-(vkmemoryfragment,-vkmemorysynapse,-vkmemorysynopsis).md>)
 
 - [ ] [AI-016: Implement VK.Blocks.AI.RAG Enterprise Search and Retrieval Package](./AI/016-implement-vkblocksairag-enterprise-search-and-retrieval-package.md)
+- [ ] [AI-017: Decouple Hardcoded AI Dependencies from DI Source Generator](./AI/017-decouple-hardcoded-ai-dependencies-from-di-source-generator.md)
 ## 🔐 Authorization Tasks
 
 - [ ] [AUTHORIZATION-001: Authorization DI Normalization](./Authorization/001-di-normalization.md)
@@ -50,6 +51,10 @@
 
 - [ ] [AUTHORIZATION-007: Standardize Authorization Options with IVKToggleableBlockOptions](./Authorization/007-standardize-authorization-options-with-ivktoggleableblockoptions.md)
 
+- [ ] [AUTHORIZATION-008: Implement Resource-Level Authorization](./Authorization/008-implement-resource-level-authorization.md)
+- [ ] [AUTHORIZATION-009: Implement Runtime Dynamic Permissions Modification](./Authorization/009-implement-runtime-dynamic-permissions-modification.md)
+- [ ] [AUTHORIZATION-010: Implement Delegation and Impersonation Authorization](./Authorization/010-implement-delegation-and-impersonation-authorization.md)
+- [ ] [AUTHORIZATION-011: Integrate Authorization Request Approval Flow](./Authorization/011-integrate-authorization-request-approval-flow.md)
 ## 💾 MultiTenancy Tasks
 
 - [ ] [MULTITENANCY-001: Distributed Tenant Store](./MultiTenancy/001-distributed-tenant-store.md)
@@ -149,3 +154,6 @@
 - [ ] [AI.VECTORSTORE-001: [Retrieval] Advanced RAG Strategies (Hybrid/ReRank/Query Transform)](./AI.VectorStore/001-[retrieval]-advanced-rag-strategies-(hybrid-rerank-query-transform).md)
 - [ ] [AI.VECTORSTORE-002: [Data] Metadata Filtering and Advanced Pipeline Management](./AI.VectorStore/002-[data]-metadata-filtering-and-advanced-pipeline-management.md)
 - [ ] [AI.VECTORSTORE-003: [Performance] Bulk Operations and Semantic Cache Integration](./AI.VectorStore/003-[performance]-bulk-operations-and-semantic-cache-integration.md)
+
+## 📋 VectorSearch Tasks
+- [ ] [VECTORSEARCH-001: AI.MemoryGraph / GraphRAG Relationship Graph Module](./VectorSearch/001-aimemorygraph---graphrag-relationship-graph-module.md)

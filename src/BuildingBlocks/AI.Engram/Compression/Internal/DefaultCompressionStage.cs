@@ -55,12 +55,23 @@ internal sealed partial class DefaultCompressionStage : IVKPsychePipelineStage
             return VKResult.Success();
         }
 
+        // Sandbox mode bypass: strictly skip L2 summary distillation & L3 fact consolidation
+        if (context.Request.SessionMode == VKSessionMode.Sandbox)
+        {
+            return VKResult.Success();
+        }
+
         var echoFragments = context.Fragments
             .Where(f => f.TierType == VKPromptTierType.Echo && f.Metadata is VKEchoTrace)
             .OrderBy(f => f.RenderOrder)
             .ToList();
 
         var sessionId = context.Request.SessionId;
+
+        // Read PFC assessment from Cognitive via zero-coupling context.State<T>()
+        var assessment = context.State<VKReflectionAssessment>();
+        double importanceScore = assessment?.ImportanceScore ?? 0.5;
+        bool isHighImportance = importanceScore >= 0.7; // Deterministic threshold comparison (No LLM in Engram!)
 
         // 1. Fetch and inject existing L2 MediumTerm memories for this session
         var l2Result = await _memoryStore.QueryAsync(new VKMemoryQuery

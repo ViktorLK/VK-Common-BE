@@ -18,7 +18,7 @@ namespace VK.Blocks.AI.Corpus.Filtering.Internal;
 /// Implements <see cref="IVKPsycheBeforePipelineStage"/>.
 /// Follows BB.01 / AP.03.
 /// </summary>
-internal sealed class DefaultFilteringStage : IVKPsycheBeforePipelineStage
+internal sealed class DefaultFilteringStage : IVKPsychePipelineStage
 {
     private readonly IVKStaticKnowledgeLifecycleStore _staticKnowledgeLifecycleStore;
     private readonly IReadOnlyList<IVKKnowledgeLifecycleFilter> _knowledgeLifecyclefilters;
@@ -53,7 +53,7 @@ internal sealed class DefaultFilteringStage : IVKPsycheBeforePipelineStage
     }
 
     /// <inheritdoc />
-    public VKPipelineStageSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.CorpusFiltering;
 
     /// <inheritdoc />
     public bool IsActive => _corpusOptions.Enabled;

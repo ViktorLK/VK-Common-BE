@@ -13,9 +13,10 @@ public static class VKPsychePipelineScheduler
     public static class Before
     {
         // Extraction Layer (parallel group 1)
-        public static readonly VKPipelineSchedule PsycheEcho = new(0, true, 1, VKPipelinePhase.Before);
-        public static readonly VKPipelineSchedule PsychePersona = new(0, true, 1, VKPipelinePhase.Before);
-        public static readonly VKPipelineSchedule PsycheDirective = new(0, true, 1, VKPipelinePhase.Before);
+        public static readonly VKPipelineSchedule PsycheSession = new(0, false, null, VKPipelinePhase.Before);
+        public static readonly VKPipelineSchedule PsycheEcho = new(100, true, 1, VKPipelinePhase.Before);
+        public static readonly VKPipelineSchedule PsychePersona = new(100, true, 1, VKPipelinePhase.Before);
+        public static readonly VKPipelineSchedule PsycheDirective = new(100, true, 1, VKPipelinePhase.Before);
         public static readonly VKPipelineSchedule PsycheKnowledge = new(500, true, 2, VKPipelinePhase.Before);
 
         public static readonly VKPipelineSchedule CorpusGathering = new(540, false, null, VKPipelinePhase.Before);

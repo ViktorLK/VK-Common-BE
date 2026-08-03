@@ -5,9 +5,10 @@ using VK.Blocks.Core.Guids.Internal;
 using VK.Blocks.Core.Identity.Internal;
 using VK.Blocks.Core.Serialization.Internal;
 using VK.Blocks.Core.Synchronization.Internal;
+using VK.Blocks.Core.Tenancy.Internal;
 using VK.Blocks.Core.Utilities;
 
-namespace VK.Blocks.Core.DependencyInjection.Internal;
+namespace VK.Blocks.Core.Common.DependencyInjection.Internal;
 
 /// <summary>
 /// Principal registration logic for the Core building block.
@@ -29,10 +30,11 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton<IVKGuidGenerator, SequentialGuidGenerator>();
         services.TryAddSingleton<IVKJsonSerializer, SystemTextJsonSerializer>();
         services.TryAddSingleton<IVKEnvironmentProvider, VKDefaultEnvironmentProvider>();
-        services.TryAddSingleton<IVKUserContext, NullUserContext>();
+        services.TryAddSingleton<IVKIdentityContext>(DefaultIdentityContext.Instance);
+        services.TryAddSingleton<IVKSecurityContext>(DefaultSecurityContext.Instance);
         services.TryAddSingleton<IVKSyncStateStore, VKNoOpSyncStateStore>();
         services.TryAddSingleton<IVKDistributedLockProvider, InProcessMemoryLockProvider>();
-        services.TryAddSingleton<IVKActiveTenantProvider, Tenancy.Internal.DefaultSingleTenantActiveTenantProvider>();
+        services.TryAddSingleton<IVKActiveTenantProvider, DefaultSingleTenantActiveTenantProvider>();
 
         // 3. Mark-Self (Success Commit)
         // AP.02: Register marker immediately to enable dependency resolution.

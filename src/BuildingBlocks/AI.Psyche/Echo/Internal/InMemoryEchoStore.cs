@@ -9,11 +9,18 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// <summary>
 /// Basic concrete implementation of <see cref="IVKEchoStore"/>.
 /// Provides a high-performance in-memory backing store for short-term conversation history.
+/// Injects <see cref="IVKIdentityContext"/> for ambient multi-tenant/user isolation.
 /// Follows AP.01 and CS.03.
 /// </summary>
 internal sealed class InMemoryEchoStore : IVKEchoStore
 {
     private readonly ConcurrentDictionary<VKSessionId, List<VKEchoTrace>> _store = new();
+    private readonly IVKIdentityContext _identityContext;
+
+    public InMemoryEchoStore(IVKIdentityContext identityContext)
+    {
+        _identityContext = VKGuard.NotNull(identityContext);
+    }
 
     public Task<VKResult<IReadOnlyCollection<VKEchoTrace>>> GetHistoryAsync(
         VKSessionId sessionId,
@@ -29,7 +36,8 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
 
         lock (traces)
         {
-            IReadOnlyCollection<VKEchoTrace> copy = [.. traces];
+            var filtered = traces.FindAll(t => t.TenantId == _identityContext.TenantId);
+            IReadOnlyCollection<VKEchoTrace> copy = [.. filtered];
             return Task.FromResult(VKResult.Success(copy));
         }
     }

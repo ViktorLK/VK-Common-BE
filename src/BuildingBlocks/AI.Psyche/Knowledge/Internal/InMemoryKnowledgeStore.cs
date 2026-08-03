@@ -10,12 +10,17 @@ namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
 /// <summary>
 /// Basic concrete implementation of <see cref="IVKKnowledgeStore"/>.
-/// Provides a high-performance in-memory backing store, multi-hop regex/keyword triggers,
-/// and recursive matching engine.
+/// Injects <see cref="IVKIdentityContext"/> for ambient multi-tenant isolation.
 /// </summary>
 internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
 {
     private readonly ConcurrentDictionary<string, List<VKKnowledgeEntry>> _store = new(StringComparer.OrdinalIgnoreCase);
+    private readonly IVKIdentityContext _identityContext;
+
+    public InMemoryKnowledgeStore(IVKIdentityContext identityContext)
+    {
+        _identityContext = VKGuard.NotNull(identityContext);
+    }
 
     public Task<VKResult<IEnumerable<VKKnowledgeEntry>>> GetRelevantEntriesAsync(
         VKPersonaId personaId,
@@ -29,7 +34,8 @@ internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
             return Task.FromResult(VKResult.Failure<IEnumerable<VKKnowledgeEntry>>(VKKnowledgeErrors.NotFound));
         }
 
-        return Task.FromResult(VKResult.Success<IEnumerable<VKKnowledgeEntry>>(entries));
+        var filtered = entries.Where(e => e.TenantId == _identityContext.TenantId);
+        return Task.FromResult(VKResult.Success<IEnumerable<VKKnowledgeEntry>>(filtered));
     }
 
     public InMemoryKnowledgeStore Seed(VKKnowledgeEntry knowledgeEntry)

@@ -1,24 +1,31 @@
+using VK.Blocks.AI.Corpus.Filtering.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.AI.Psyche;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Corpus.Filtering.Internal;
+namespace VK.Blocks.AI.Corpus;
 
 /// <summary>
 /// Hook class for registering Filtering filters and stages.
 /// Hooks into the source-generated [VKFeature] system.
 /// </summary>
+[VKFeature(typeof(VKAICorpusBlock), OptionsType = typeof(VKFilteringOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class FilteringFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKFilteringOptions options)
     {
-        // Register the filtering stage
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsycheBeforePipelineStage, DefaultFilteringStage>());
+        // Register the filtering stage and compressor
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultFilteringStage>());
+        services.TryAddScoped<IVKContextCompressor, DefaultContextCompressor>();
 
         // 0. Stickiness Bypass (Evaluated first to force keep sticky entries)
         if (options.EnableStickinessFilter)
             services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, StickinessFilter>());
+
+        if (options.EnableApprovalStatusFilter)
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, ApprovalStatusFilter>());
 
         // 1. Static Metadata Filters (Cheap)
         if (options.EnablePersonaFilter)
@@ -26,6 +33,9 @@ internal sealed partial class FilteringFeature
 
         if (options.EnableUserSegmentFilter)
             services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, UserSegmentFilter>());
+
+        if (options.EnableLanguageFilter)
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, LanguageFilter>());
 
         if (options.EnableFreshnessFilter)
             services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKKnowledgeLifecycleFilter, FreshnessFilter>());

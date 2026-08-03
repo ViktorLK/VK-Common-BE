@@ -8,11 +8,18 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 
 /// <summary>
 /// Basic concrete implementation of <see cref="IVKPersonaStore"/>.
-/// Offers thread-safe in-memory backing storage for persona cards.
+/// Injects <see cref="IVKIdentityContext"/> for ambient multi-tenant isolation.
+/// Follows AP.01 and CS.03.
 /// </summary>
 internal sealed class InMemoryPersonaStore : IVKPersonaStore
 {
     private readonly ConcurrentDictionary<VKPersonaId, VKPersonaAnchor> _store = new();
+    private readonly IVKIdentityContext _identityContext;
+
+    public InMemoryPersonaStore(IVKIdentityContext identityContext)
+    {
+        _identityContext = VKGuard.NotNull(identityContext);
+    }
 
     public Task<VKResult<VKPersonaAnchor>> GetPersonaAsync(
         VKPersonaId personaId,
@@ -22,6 +29,11 @@ internal sealed class InMemoryPersonaStore : IVKPersonaStore
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!_store.TryGetValue(personaId, out var anchor))
+        {
+            return Task.FromResult(VKResult.Failure<VKPersonaAnchor>(VKPersonaErrors.NotFound));
+        }
+
+        if (anchor.TenantId != _identityContext.TenantId)
         {
             return Task.FromResult(VKResult.Failure<VKPersonaAnchor>(VKPersonaErrors.NotFound));
         }

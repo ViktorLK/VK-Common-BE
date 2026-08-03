@@ -11,6 +11,16 @@ namespace VK.Blocks.AI.Psyche;
 public sealed record VKPsycheRequest
 {
     /// <summary>
+    /// <summary>
+    /// Gets the optional tenant identifier override. If null, ambient <see cref="IVKIdentityContext.TenantId"/> is inherited.
+    /// </summary>
+    public VKTenantId? TenantId { get; init; }
+
+    /// <summary>
+    /// Gets the optional user identifier override. If null, ambient <see cref="IVKIdentityContext.UserId"/> is inherited.
+    /// </summary>
+    public VKUserId? UserId { get; init; }
+
     /// Gets the target Persona identifier that this context uses to retrieve prompt configurations.
     /// </summary>
     public required VKPersonaId PersonaId { get; init; }
@@ -19,6 +29,16 @@ public sealed record VKPsycheRequest
     /// Gets the unique session identifier to track dialogue history.
     /// </summary>
     public required VKSessionId SessionId { get; init; }
+
+    /// <summary>
+    /// Gets the operational mode for this session (Isolated, Continuous, Sandbox). Default is <see cref="VKSessionMode.Isolated"/>.
+    /// </summary>
+    public VKSessionMode SessionMode { get; init; } = VKSessionMode.Isolated;
+
+    /// <summary>
+    /// Gets the optional parent session identifier for continuous history inheritance.
+    /// </summary>
+    public VKSessionId? ParentSessionId { get; init; }
 
     /// <summary>
     /// Gets the fresh input message provided by the user in this turn.

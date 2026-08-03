@@ -39,6 +39,11 @@ public sealed partial record VKReclamationOptions : IVKToggleableBlockOptions
     public double L3HalfLifeHours { get; init; } = 720.0; // 30 days
 
     /// <summary>
+    /// Gets or sets the coefficient multiplier applied to log2(1 + AccessCount) for FrequencyBonus calculation.
+    /// </summary>
+    public double FrequencyBonusCoefficient { get; init; } = 0.05;
+
+    /// <summary>
     /// Gets or sets the pruning score threshold for L1 ShortTerm memories.
     /// </summary>
     public float L1Threshold { get; init; } = 0.1f;
@@ -69,7 +74,12 @@ public sealed partial record VKReclamationOptions : IVKToggleableBlockOptions
     public VKPruneAction L3Action { get; init; } = VKPruneAction.Archive;
 
     /// <summary>
-    /// Gets or sets persona-specific threshold overrides.
+    /// Gets or sets the decay formula mode.
     /// </summary>
-    public IReadOnlyList<VKPersonaPruningOverride> PersonaOverrides { get; init; } = [];
+    public VKDecayMode DecayMode { get; init; } = VKDecayMode.Exponential;
+
+    /// <summary>
+    /// Gets or sets persona-specific threshold and half-life overrides.
+    /// </summary>
+    public IReadOnlyList<VKPersonaReclamationOverride> PersonaOverrides { get; init; } = [];
 }

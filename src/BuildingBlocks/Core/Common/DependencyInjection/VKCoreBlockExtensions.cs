@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using VK.Blocks.Core.DependencyInjection.Internal;
+using VK.Blocks.Core.Common.DependencyInjection.Internal;
 
 namespace VK.Blocks.Core;
 

@@ -57,6 +57,16 @@ internal sealed class DefaultStructuredInjectionStage : IVKPsychePipelineStage
         var sb = new StringBuilder();
         sb.AppendLine("[Structured Memory Facts]");
 
+        // Append FactExtractions evaluated by Cognitive via zero-coupling context.State<T>()
+        var assessment = context.State<VKReflectionAssessment>();
+        if (assessment?.FactExtractions is { Count: > 0 } facts)
+        {
+            foreach (var fact in facts)
+            {
+                sb.AppendLine($"- {fact}");
+            }
+        }
+
         int count = 0;
         foreach (var key in keys)
         {
