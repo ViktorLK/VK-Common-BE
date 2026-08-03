@@ -5,22 +5,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Echo.Diagnostics.Internal;
-using VK.Blocks.AI.Psyche.Echo.Internal;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche;
+namespace VK.Blocks.AI.Psyche.Echo.Internal;
 
 /// <summary>
-/// Execution pipeline stage responsible for trimming, assembling, and weaving dialogue history (Echo).
-/// Supports <see cref="VKSessionMode.Continuous"/> multi-level ParentSessionId ancestry tracing until budget/root.
-/// Follows AP.01, BB.01 and OR.01.
+/// Default implementation of the dialogue echo stage.
+/// Retains and sliding-window trims short-term dialogue history.
+/// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
 internal sealed class DefaultEchoStage : IVKPsychePipelineStage
 {
     private readonly IVKEchoStore _echoStore;
+    private readonly IVKSessionStore _sessionStore;
     private readonly IVKTokenCounter _tokenCounter;
     private readonly VKEchoOptions _echoOptions;
     private readonly VKWeavingOptions _weavingOptions;
@@ -28,12 +27,14 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
 
     public DefaultEchoStage(
         IVKEchoStore echoStore,
+        IVKSessionStore sessionStore,
         IVKTokenCounter tokenCounter,
         IOptions<VKEchoOptions> echoOptions,
         IOptions<VKWeavingOptions> weavingOptions,
         ILogger<DefaultEchoStage> logger)
     {
         _echoStore = VKGuard.NotNull(echoStore);
+        _sessionStore = VKGuard.NotNull(sessionStore);
         _tokenCounter = VKGuard.NotNull(tokenCounter);
         _echoOptions = VKGuard.NotNull(echoOptions?.Value);
         _weavingOptions = VKGuard.NotNull(weavingOptions?.Value);
@@ -43,10 +44,6 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
     public bool IsActive => true;
 
-    /// <summary>
-    /// Resolves active session memories, prunes the history (oldest first) using dynamic budgets,
-    /// and caches back to weaving context.
-    /// </summary>
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
@@ -76,8 +73,8 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
             // Only trace parent dynamically if mode is Continuous
             if (mode == VKSessionMode.Continuous)
             {
-                var parentResult = await _echoStore.GetParentSessionIdAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
-                currentSessionId = parentResult.IsSuccess ? parentResult.Value : null;
+                var sessionResult = await _sessionStore.GetSessionAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
+                currentSessionId = sessionResult.IsSuccess ? sessionResult.Value?.ParentSessionId : null;
             }
             else
             {
@@ -85,12 +82,12 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
             }
         }
 
-        var tierType = VKPromptTierType.Echo;
-        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-            ? idx * PsycheConstants.Layout.TierCoordinateGap
-            : PromptLayout.DefaultRenderOrders[tierType];
+        if (allEchoes.Count == 0)
+        {
+            return VKResult.Success();
+        }
 
-        // Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
+        // 1. Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
         var maxWindowSize = context.Args<VKEchoArgs>()?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
         if (maxWindowSize.HasValue && maxWindowSize.Value > 0 && allEchoes.Count > maxWindowSize.Value)
         {
@@ -101,6 +98,11 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
         if (!_echoOptions.IncludeSystemMessages)
         {
             allEchoes = [.. allEchoes.Where(e => e.Role != VKChatRole.System)];
+        }
+
+        if (allEchoes.Count == 0)
+        {
+            return VKResult.Success();
         }
 
         // 3. Resolve Effective Token Budget
@@ -171,17 +173,24 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
             }
         }
 
-        // 5. Output pruned history -> map retained VKEchoTrace list to VKEchoCollectionMetadata
-        for (int i = 0; i < retained.Count; i++)
+        var tierType = VKPromptTierType.Echo;
+        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
+            ? idx * PsycheConstants.Layout.TierCoordinateGap
+            : PromptLayout.DefaultRenderOrders[tierType];
+
+        for (var i = 0; i < retained.Count; i++)
         {
-            context.AddFragment(new VKPromptFragment
+            var echo = retained[i];
+            context.AddFragment(new VKPromptFragment()
             {
                 TierType = tierType,
                 RenderOrder = baseRenderOrder + i,
-                Metadata = retained[i],
-                Segment = new VKPromptSegment
+                Metadata = echo,
+                Segment = new VKPromptSegment()
                 {
-                    Role = retained[i].Role
+                    Content = echo.Content,
+                    Role = echo.Role,
+                    RelativeDepth = VKPromptRelativeDepth.AfterEcho
                 }
             });
         }

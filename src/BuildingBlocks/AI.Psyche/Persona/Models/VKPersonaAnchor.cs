@@ -5,14 +5,14 @@ namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Represents an AI persona anchor. Implements <see cref="IVKTenantScoped"/>.
-/// Order follows TenantId -> Id hierarchy.
+/// Order follows TenantId -> Id hierarchy with required TenantId.
 /// </summary>
 public sealed record VKPersonaAnchor : IVKFragmentMetadata, IVKTenantScoped
 {
     /// <summary>
-    /// Gets the tenant identifier for multi-tenant SaaS isolation. Defaults to <see cref="VKTenantId.Default"/>.
+    /// Gets the tenant identifier for multi-tenant SaaS isolation.
     /// </summary>
-    public VKTenantId TenantId { get; init; } = VKTenantId.Default;
+    public required VKTenantId TenantId { get; init; }
 
     /// <summary>
     /// Gets the unique identifier for the persona.
@@ -45,4 +45,32 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata, IVKTenantScoped
     /// Gets custom unstructured properties allowing downstream extensions (e.g. for PWP).
     /// </summary>
     public IReadOnlyDictionary<string, object> Extensions { get; init; } = new Dictionary<string, object>();
+
+    /// <summary>
+    /// Factory method to create a new <see cref="VKPersonaAnchor"/> with automatic <see cref="IVKIdentityContext"/> resolution.
+    /// </summary>
+    public static VKPersonaAnchor Create(
+        IVKIdentityContext identityContext,
+        VKPersonaId id,
+        string name,
+        string description,
+        IReadOnlyDictionary<string, string>? traits = null,
+        string? directiveId = null,
+        IReadOnlyDictionary<string, object>? extensions = null)
+    {
+        VKGuard.NotNull(identityContext);
+        VKGuard.NotNull(name);
+        VKGuard.NotNull(description);
+
+        return new VKPersonaAnchor
+        {
+            TenantId = identityContext.TenantId,
+            Id = id,
+            Name = name,
+            Description = description,
+            Traits = traits ?? new Dictionary<string, string>(),
+            DirectiveId = directiveId,
+            Extensions = extensions ?? new Dictionary<string, object>()
+        };
+    }
 }

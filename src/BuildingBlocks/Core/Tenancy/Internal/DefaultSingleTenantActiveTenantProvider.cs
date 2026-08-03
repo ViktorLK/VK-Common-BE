@@ -10,7 +10,7 @@ namespace VK.Blocks.Core.Tenancy.Internal;
 /// </summary>
 internal sealed class DefaultSingleTenantActiveTenantProvider : IVKActiveTenantProvider
 {
-    private static readonly IReadOnlyList<VKTenantId> DefaultTenantList = [VKTenantId.Parse("default", null)];
+    private static readonly IReadOnlyList<VKTenantId> DefaultTenantList = [VKTenantId.Default];
 
     public Task<VKResult<IReadOnlyList<VKTenantId>>> GetActiveTenantsAsync(CancellationToken cancellationToken = default)
     {

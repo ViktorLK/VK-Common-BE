@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -12,6 +11,16 @@ namespace VK.Blocks.AI.Psyche;
 public sealed record VKPsycheRequest
 {
     /// <summary>
+    /// <summary>
+    /// Gets the optional tenant identifier override. If null, ambient <see cref="IVKIdentityContext.TenantId"/> is inherited.
+    /// </summary>
+    public VKTenantId? TenantId { get; init; }
+
+    /// <summary>
+    /// Gets the optional user identifier override. If null, ambient <see cref="IVKIdentityContext.UserId"/> is inherited.
+    /// </summary>
+    public VKUserId? UserId { get; init; }
+
     /// Gets the target Persona identifier that this context uses to retrieve prompt configurations.
     /// </summary>
     public required VKPersonaId PersonaId { get; init; }

@@ -6,20 +6,20 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Domain model representing a conversation session thread, lineage, and lifecycle.
 /// Follows AP.01 (sealed record) and BB.01. Implements <see cref="IVKTenantScoped"/> and <see cref="IVKUserScoped"/>.
-/// Order follows TenantId -> UserId -> Id hierarchy.
+/// Order follows TenantId -> UserId -> Id hierarchy with required TenantId.
 /// Symmetry with VKEchoTrace, VKPersonaAnchor, and VKDirectiveCharter.
 /// </summary>
 public sealed record VKSessionThread : IVKTenantScoped, IVKUserScoped
 {
     /// <summary>
-    /// Gets the tenant identifier for multi-tenant SaaS isolation. Defaults to <see cref="VKTenantId.Default"/>.
+    /// Gets the tenant identifier for multi-tenant SaaS isolation.
     /// </summary>
-    public VKTenantId TenantId { get; init; } = VKTenantId.Default;
+    public required VKTenantId TenantId { get; init; }
 
     /// <summary>
     /// Gets the user identifier for user-level session security boundary. Defaults to <see cref="VKUserId.Anonymous"/>.
     /// </summary>
-    public VKUserId UserId { get; init; } = VKUserId.Anonymous;
+    public required VKUserId UserId { get; init; }
 
     /// <summary>
     /// Gets the unique session identifier.
@@ -75,4 +75,35 @@ public sealed record VKSessionThread : IVKTenantScoped, IVKUserScoped
     /// Gets the timestamp when this session thread was last active (updated on each turn).
     /// </summary>
     public DateTimeOffset LastActivityAt { get; init; }
+
+    /// <summary>
+    /// Factory method to create a new <see cref="VKSessionThread"/> with automatic <see cref="IVKIdentityContext"/> resolution.
+    /// </summary>
+    public static VKSessionThread Create(
+        IVKIdentityContext identityContext,
+        VKSessionId id,
+        VKPersonaId personaId,
+        VKSessionMode mode = VKSessionMode.Isolated,
+        VKSessionId? parentSessionId = null,
+        TimeProvider? timeProvider = null)
+    {
+        VKGuard.NotNull(identityContext);
+
+        var provider = timeProvider ?? TimeProvider.System;
+        var now = provider.GetUtcNow();
+
+        return new VKSessionThread
+        {
+            TenantId = identityContext.TenantId,
+            UserId = identityContext.UserId,
+            Id = id,
+            PersonaId = personaId,
+            Mode = mode,
+            ParentSessionId = parentSessionId,
+            Status = VKSessionStatus.Active,
+            CreatedAt = now,
+            UpdatedAt = now,
+            LastActivityAt = now
+        };
+    }
 }

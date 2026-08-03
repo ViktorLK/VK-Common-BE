@@ -17,6 +17,7 @@ internal sealed partial class SessionFeature
     static partial void RegisterFeatureCustom(IServiceCollection services, VKSessionOptions options)
     {
         services.TryAddScoped<IVKSessionStore, InMemorySessionStore>();
+        services.AddScoped<IVKPsychePipelineStage, DefaultSessionStage>();
     }
 
     // [SG Hook]

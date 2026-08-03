@@ -10,15 +10,18 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 
 /// <summary>
 /// Default implementation of the Tenant Directive resolver.
+/// Injects <see cref="IVKIdentityContext"/> for ambient multi-tenant isolation.
 /// Implements AP.01 (sealed class default) and CS.03.
 /// </summary>
 internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
 {
     private readonly ConcurrentDictionary<VKDirectiveId, VKDirectiveCharter> _store = new();
+    private readonly IVKIdentityContext _identityContext;
     private readonly ILogger<InMemoryDirectiveStore> _logger;
 
-    public InMemoryDirectiveStore(ILogger<InMemoryDirectiveStore> logger)
+    public InMemoryDirectiveStore(IVKIdentityContext identityContext, ILogger<InMemoryDirectiveStore> logger)
     {
+        _identityContext = VKGuard.NotNull(identityContext);
         _logger = VKGuard.NotNull(logger);
 
         _logger.DirectiveInitialized();
@@ -32,6 +35,11 @@ internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!_store.TryGetValue(directiveId, out var directive))
+        {
+            return Task.FromResult(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
+        }
+
+        if (directive.TenantId != _identityContext.TenantId)
         {
             return Task.FromResult(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
         }

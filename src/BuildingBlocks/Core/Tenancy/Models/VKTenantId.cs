@@ -10,10 +10,10 @@ namespace VK.Blocks.Core;
 public partial record struct VKTenantId
 {
     /// <summary>
-    /// Represents the default tenant sentinel value for single-tenant or default contexts.
-    /// Replaces nullable <see cref="VKTenantId"/> to prevent null pointer ambiguity.
+    /// Represents the default tenant sentinel value (00000000-0000-0000-0000-000000000001) for single-tenant or default contexts.
+    /// Replaces <see cref="Guid.Empty"/> to distinguish uninitialized IDs from the default tenant identity.
     /// </summary>
-    public static readonly VKTenantId Default = new(Guid.Empty);
+    public static readonly VKTenantId Default = new(Guid.Parse("00000000-0000-0000-0000-000000000001"));
 
     /// <summary>
     /// Attempts to create a <see cref="VKTenantId"/> from a nullable string.

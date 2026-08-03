@@ -6,14 +6,14 @@ namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Represents an entry in a knowledge/worldbook. Implements <see cref="IVKTenantScoped"/>.
-/// Order follows TenantId -> Id hierarchy.
+/// Order follows TenantId -> Id hierarchy with default sentinel VKTenantId.Default.
 /// </summary>
 public sealed record VKKnowledgeEntry : IVKFragmentMetadata, IVKTenantScoped
 {
     /// <summary>
     /// Gets the tenant identifier for multi-tenant SaaS isolation. Defaults to <see cref="VKTenantId.Default"/>.
     /// </summary>
-    public VKTenantId TenantId { get; init; } = VKTenantId.Default;
+    public required VKTenantId TenantId { get; init; }
 
     /// <summary>
     /// Gets the unique identifier for the entry.
@@ -46,4 +46,31 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata, IVKTenantScoped
     /// Gets the segment text for this knowledge entry.
     /// </summary>
     public required VKPromptSegment Segment { get; init; }
+
+    /// <summary>
+    /// Factory method to create a new <see cref="VKKnowledgeEntry"/> with automatic <see cref="IVKIdentityContext"/> resolution.
+    /// </summary>
+    public static VKKnowledgeEntry Create(
+        IVKIdentityContext identityContext,
+        VKKnowledgeId id,
+        VKPromptSegment segment,
+        VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
+        VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
+        string? xmlTag = null,
+        IReadOnlyList<VKKnowledgeKey>? keys = null)
+    {
+        VKGuard.NotNull(identityContext);
+        VKGuard.NotNull(segment);
+
+        return new VKKnowledgeEntry
+        {
+            TenantId = identityContext.TenantId,
+            Id = id,
+            Segment = segment,
+            TriggerType = triggerType,
+            FilterLogic = filterLogic,
+            XmlTag = xmlTag ?? PsycheConstants.XmlTags.Knowledge,
+            Keys = keys ?? []
+        };
+    }
 }
