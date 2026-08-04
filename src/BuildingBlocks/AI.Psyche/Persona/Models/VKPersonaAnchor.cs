@@ -45,32 +45,4 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata, IVKTenantScoped
     /// Gets custom unstructured properties allowing downstream extensions (e.g. for PWP).
     /// </summary>
     public IReadOnlyDictionary<string, object> Extensions { get; init; } = new Dictionary<string, object>();
-
-    /// <summary>
-    /// Factory method to create a new <see cref="VKPersonaAnchor"/> with automatic <see cref="IVKIdentityContext"/> resolution.
-    /// </summary>
-    public static VKPersonaAnchor Create(
-        IVKIdentityContext identityContext,
-        VKPersonaId id,
-        string name,
-        string description,
-        IReadOnlyDictionary<string, string>? traits = null,
-        string? directiveId = null,
-        IReadOnlyDictionary<string, object>? extensions = null)
-    {
-        VKGuard.NotNull(identityContext);
-        VKGuard.NotNull(name);
-        VKGuard.NotNull(description);
-
-        return new VKPersonaAnchor
-        {
-            TenantId = identityContext.TenantId,
-            Id = id,
-            Name = name,
-            Description = description,
-            Traits = traits ?? new Dictionary<string, string>(),
-            DirectiveId = directiveId,
-            Extensions = extensions ?? new Dictionary<string, object>()
-        };
-    }
 }

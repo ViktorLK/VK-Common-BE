@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
@@ -13,25 +12,28 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 /// </summary>
 internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
 {
+    private readonly VKDirectiveOptions _options;
     private readonly IVKDirectiveStore _store;
     private readonly ILogger<DefaultDirectiveStage> _logger;
     private readonly VKWeavingOptions _weavingOptions;
 
     public DefaultDirectiveStage(
+        VKDirectiveOptions options,
         IVKDirectiveStore store,
         ILogger<DefaultDirectiveStage> logger,
-        IOptions<VKWeavingOptions> weavingOptions)
+        VKWeavingOptions weavingOptions)
     {
+        _options = VKGuard.NotNull(options);
         _store = VKGuard.NotNull(store);
         _logger = VKGuard.NotNull(logger);
-        _weavingOptions = VKGuard.NotNull(weavingOptions?.Value);
+        _weavingOptions = VKGuard.NotNull(weavingOptions);
     }
 
     /// <summary>
     /// Executes early in the weaving pipeline (Order = 5) to guarantee Directive guardrails are loaded first.
     /// </summary>
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheDirective;
-    public bool IsActive => true;
+    public bool IsActive => _options.Enabled;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {

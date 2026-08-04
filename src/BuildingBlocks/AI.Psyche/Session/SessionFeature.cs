@@ -16,14 +16,18 @@ internal sealed partial class SessionFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKSessionOptions options)
     {
+        if (!options.Enabled)
+            return;
+
         services.TryAddScoped<IVKSessionStore, InMemorySessionStore>();
         services.AddScoped<IVKPsychePipelineStage, DefaultSessionStage>();
+        services.AddScoped<IVKPsychePipelineStage, DefaultSessionUpdateStage>();
     }
 
     // [SG Hook]
     static partial void ValidateFeatureCustom(VKSessionOptions options, List<string> failures)
     {
-        VKGuard.NotNull(options);
-        VKGuard.NotNull(failures);
+        _ = options;
+        _ = failures;
     }
 }

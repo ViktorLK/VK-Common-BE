@@ -88,9 +88,10 @@ public static class VKPipelineRunner
             var parallel = chunk.Where(isParallelSelector).ToList();
             var serial = chunk.Where(s => !isParallelSelector(s)).ToList();
 
-            if (parallel.Count > 0)
+            var activeParallel = parallel.Where(s => s is not IVKPipelineComponent { IsActive: false }).ToList();
+            if (activeParallel.Count > 0)
             {
-                var tasks = parallel.Select(s => executeFunc(s, context, cancellationToken)).ToList();
+                var tasks = activeParallel.Select(s => executeFunc(s, context, cancellationToken)).ToList();
                 var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 foreach (var result in results)
@@ -108,6 +109,11 @@ public static class VKPipelineRunner
                 if (checkAbortedFunc(context))
                 {
                     return abortResultFunc(context);
+                }
+
+                if (stage is IVKPipelineComponent { IsActive: false })
+                {
+                    continue;
                 }
 
                 var result = await executeFunc(stage, context, cancellationToken).ConfigureAwait(false);
@@ -144,6 +150,11 @@ public static class VKPipelineRunner
         foreach (var component in sortedComponents)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (!component.IsActive)
+            {
+                continue;
+            }
 
             if (options?.AbortPredicate is not null && options.AbortPredicate(context))
             {

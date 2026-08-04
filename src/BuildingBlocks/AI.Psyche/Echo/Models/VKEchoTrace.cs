@@ -44,31 +44,4 @@ public sealed record VKEchoTrace : IVKFragmentMetadata, IVKTenantScoped
     /// </summary>
     public DateTimeOffset Timestamp { get; init; }
 
-    /// <summary>
-    /// Factory method to create a new <see cref="VKEchoTrace"/> with automatic <see cref="IVKIdentityContext"/> resolution.
-    /// </summary>
-    public static VKEchoTrace Create(
-        IVKIdentityContext identityContext,
-        VKSessionId sessionId,
-        VKEchoId id,
-        VKChatRole role,
-        string content,
-        int tokenCount = 0,
-        TimeProvider? timeProvider = null)
-    {
-        VKGuard.NotNull(identityContext);
-        VKGuard.NotNull(content);
-
-        var provider = timeProvider ?? TimeProvider.System;
-        return new VKEchoTrace
-        {
-            TenantId = identityContext.TenantId,
-            SessionId = sessionId,
-            Id = id,
-            Role = role,
-            Content = content,
-            TokenCount = tokenCount,
-            Timestamp = provider.GetUtcNow()
-        };
-    }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
+
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
@@ -11,12 +11,10 @@ internal sealed class DefaultFragmentReplacementTask : IVKWeavingTask
     private readonly IVKPromptTemplateEngine _templateEngine;
     private readonly VKWeavingOptions _options;
 
-    public DefaultFragmentReplacementTask(
-        IVKPromptTemplateEngine templateEngine,
-        IOptions<VKWeavingOptions> options)
+    public DefaultFragmentReplacementTask(IVKPromptTemplateEngine templateEngine, VKWeavingOptions options)
     {
         _templateEngine = VKGuard.NotNull(templateEngine);
-        _options = VKGuard.NotNull(options).Value;
+        _options = VKGuard.NotNull(options);
     }
 
     public VKPipelineSchedule Schedule => new(VKWeavingTaskOrder.Replacement);

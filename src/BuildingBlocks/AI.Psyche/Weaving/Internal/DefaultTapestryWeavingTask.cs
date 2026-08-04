@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Weaving.Diagnostics.Internal;
 using VK.Blocks.Core;
@@ -14,14 +14,17 @@ namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
 internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 {
+    private readonly IVKTokenCounter _tokenCounter;
     private readonly VKWeavingOptions _options;
     private readonly ILogger<DefaultTapestryWeavingTask> _logger;
 
     public DefaultTapestryWeavingTask(
-        IOptions<VKWeavingOptions> options,
+        IVKTokenCounter tokenCounter,
+        VKWeavingOptions options,
         ILogger<DefaultTapestryWeavingTask> logger)
     {
-        _options = VKGuard.NotNull(options).Value;
+        _tokenCounter = VKGuard.NotNull(tokenCounter);
+        _options = VKGuard.NotNull(options);
         _logger = VKGuard.NotNull(logger);
     }
 

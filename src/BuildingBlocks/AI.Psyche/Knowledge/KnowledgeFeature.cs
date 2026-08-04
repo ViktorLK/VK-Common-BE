@@ -1,7 +1,7 @@
-using VK.Blocks.AI.Psyche.Knowledge.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Psyche.Knowledge.Internal;
 using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche;
 
@@ -28,9 +28,6 @@ internal sealed partial class KnowledgeFeature
     // [SG Hook]
     static partial void ValidateFeatureCustom(VKKnowledgeOptions options, List<string> failures)
     {
-        VKGuard.NotNull(options);
-        VKGuard.NotNull(failures);
-
         if (options.MaxEntriesToInject < 0)
         {
             failures.Add("MaxEntriesToInject must be non-negative.");

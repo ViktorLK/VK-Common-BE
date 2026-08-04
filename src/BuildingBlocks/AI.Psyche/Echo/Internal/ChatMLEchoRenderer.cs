@@ -5,9 +5,11 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 
 internal sealed class ChatMLEchoRenderer : IVKEchoRenderer
 {
-    public string Render(VKEchoTrace trace)
+    public string Render(VKEchoTrace trace, VKPsycheContext context)
     {
         VKGuard.NotNull(trace);
+        VKGuard.NotNull(context);
+
         string role = trace.Role.ToString().ToLowerInvariant();
         return $"{PsycheConstants.ChatML.ImStart}{role}\n{trace.Content}{PsycheConstants.ChatML.ImEnd}";
     }

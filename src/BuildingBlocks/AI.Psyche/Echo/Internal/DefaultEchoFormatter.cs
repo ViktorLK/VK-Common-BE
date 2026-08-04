@@ -29,7 +29,7 @@ internal sealed class DefaultEchoFormatter : IVKPromptFormatter
 
         try
         {
-            string formatted = _renderer.Render(trace);
+            string formatted = _renderer.Render(trace, context);
             return VKResult.Success(formatted);
         }
         catch (Exception)

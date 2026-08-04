@@ -1,7 +1,7 @@
-using VK.Blocks.AI.Psyche.Directive.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Psyche.Directive.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -14,7 +14,9 @@ internal sealed partial class DirectiveFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKDirectiveOptions options)
     {
-        _ = options;
+        if (!options.Enabled)
+            return;
+
         services.TryAddScoped<IVKDirectiveStore, InMemoryDirectiveStore>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultDirectiveStage>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultDirectiveFormatter>());

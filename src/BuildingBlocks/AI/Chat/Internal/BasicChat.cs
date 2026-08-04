@@ -20,20 +20,20 @@ internal sealed partial class BasicChat : IVKChat
     private readonly IVKChatEngine _engine;
     private readonly VKChatOptions _options;
     private readonly VKAIOptions _globalOptions;
-    private readonly IVKUserContext _userContext;
+    private readonly IVKIdentityContext _identityContext;
     private readonly ILogger<BasicChat> _logger;
 
     public BasicChat(
         IVKChatEngine engine,
         IOptions<VKChatOptions> options,
         IOptions<VKAIOptions> globalOptions,
-        IVKUserContext userContext,
+        IVKIdentityContext identityContext,
         ILogger<BasicChat> logger)
     {
         _engine = VKGuard.NotNull(engine);
         _options = VKGuard.NotNull(options?.Value);
         _globalOptions = VKGuard.NotNull(globalOptions?.Value);
-        _userContext = VKGuard.NotNull(userContext);
+        _identityContext = VKGuard.NotNull(identityContext);
         _logger = VKGuard.NotNull(logger);
     }
 
@@ -48,7 +48,7 @@ internal sealed partial class BasicChat : IVKChat
 
         using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.ChatRequest);
         var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
-        var tenantId = _userContext.TenantId?.ToString() ?? "default";
+        var tenantId = _identityContext.TenantId.ToString();
 
         var sw = Stopwatch.StartNew();
         bool isSuccess = false;
@@ -131,7 +131,7 @@ internal sealed partial class BasicChat : IVKChat
 
         using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.ChatRequest);
         var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
-        var tenantId = _userContext.TenantId?.ToString() ?? "default";
+        var tenantId = _identityContext.TenantId.ToString();
 
         // Audit Start for Streaming
         bool enableAudit = (args is IVKAIAuditOptions a ? a.EnableAudit : null) ?? _options.EnableAudit ?? _globalOptions.EnableAudit;

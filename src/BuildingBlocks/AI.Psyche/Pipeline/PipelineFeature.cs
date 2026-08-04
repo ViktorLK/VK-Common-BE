@@ -1,6 +1,6 @@
-using VK.Blocks.AI.Psyche.Pipeline.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Psyche.Pipeline.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;

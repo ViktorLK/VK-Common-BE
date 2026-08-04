@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
+
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
@@ -17,13 +17,13 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
     public bool IsActive => _options.Enabled;
 
     public DefaultKnowledgeStage(
-        IOptions<VKKnowledgeOptions> options,
+        VKKnowledgeOptions options,
         IVKKnowledgeStore store,
-        IOptions<VKWeavingOptions> weavingOptions)
+        VKWeavingOptions weavingOptions)
     {
-        _options = VKGuard.NotNull(options).Value;
+        _options = VKGuard.NotNull(options);
         _store = VKGuard.NotNull(store);
-        _weavingOptions = VKGuard.NotNull(weavingOptions?.Value);
+        _weavingOptions = VKGuard.NotNull(weavingOptions);
     }
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken ct)

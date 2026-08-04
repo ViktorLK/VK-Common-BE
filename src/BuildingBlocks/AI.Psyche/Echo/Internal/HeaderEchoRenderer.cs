@@ -3,7 +3,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Echo.Internal;
 
-internal sealed class BracketEchoRenderer : IVKEchoRenderer
+internal sealed class HeaderEchoRenderer : IVKEchoRenderer
 {
     public string Render(VKEchoTrace trace, VKPsycheContext context)
     {
@@ -17,6 +17,6 @@ internal sealed class BracketEchoRenderer : IVKEchoRenderer
             _ => trace.Role.ToString()
         };
 
-        return $"[{label}]{PsycheConstants.Separators.DefaultRoleHeader}{trace.Content}";
+        return $"{label}{PsycheConstants.Separators.DefaultRoleHeader}{trace.Content}";
     }
 }

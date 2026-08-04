@@ -7,8 +7,14 @@ namespace VK.Blocks.AI.Psyche;
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
 
-public sealed partial record VKEchoOptions : IVKBlockOptions
+public sealed partial record VKEchoOptions : IVKToggleableBlockOptions
 {
+    /// <summary>
+    /// Gets or sets a value indicating whether Echo feature is enabled.
+    /// Defaults to true.
+    /// </summary>
+    public bool Enabled { get; init; } = true;
+
     /// <summary>
     /// Gets or sets the ratio of the total context token limit allocated to short-term memory history.
     /// Mapped as a value between 0.0 and 1.0. Default is 0.3 (30%).
@@ -47,4 +53,10 @@ public sealed partial record VKEchoOptions : IVKBlockOptions
     /// Default is false to prevent prompt-bloat.
     /// </summary>
     public bool IncludeSystemMessages { get; init; } = false;
+
+    /// <summary>
+    /// Gets or sets the formatting style for rendering dialogue history into prompt text.
+    /// Default is <see cref="VKEchoRenderStyle.Header"/>.
+    /// </summary>
+    public VKEchoRenderStyle RenderStyle { get; init; } = VKEchoRenderStyle.Header;
 }

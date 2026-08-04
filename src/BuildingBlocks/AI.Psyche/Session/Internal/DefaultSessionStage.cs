@@ -1,7 +1,5 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Session.Internal;
@@ -12,15 +10,19 @@ namespace VK.Blocks.AI.Psyche.Session.Internal;
 /// </summary>
 internal sealed class DefaultSessionStage : IVKPsychePipelineStage
 {
+    private readonly VKSessionOptions _options;
     private readonly IVKSessionStore _sessionStore;
 
-    public DefaultSessionStage(IVKSessionStore sessionStore)
+    public DefaultSessionStage(
+        VKSessionOptions options,
+        IVKSessionStore sessionStore)
     {
+        _options = VKGuard.NotNull(options);
         _sessionStore = VKGuard.NotNull(sessionStore);
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheSession;
-    public bool IsActive => true;
+    public bool IsActive => _options.Enabled;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
@@ -32,7 +34,13 @@ internal sealed class DefaultSessionStage : IVKPsychePipelineStage
             var resolveResult = await _sessionStore.GetSessionAsync(context.Request.SessionId, cancellationToken).ConfigureAwait(false);
             if (resolveResult.IsSuccess && resolveResult.Value is not null)
             {
-                context.SetState(resolveResult.Value);
+                var session = resolveResult.Value;
+                if (session.Status != VKSessionStatus.Active)
+                {
+                    return VKResult.Failure(VKSessionErrors.SessionNotActive);
+                }
+
+                context.SetState(session);
             }
         }
 

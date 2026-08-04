@@ -47,30 +47,4 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata, IVKTenantScoped
     /// </summary>
     public required VKPromptSegment Segment { get; init; }
 
-    /// <summary>
-    /// Factory method to create a new <see cref="VKKnowledgeEntry"/> with automatic <see cref="IVKIdentityContext"/> resolution.
-    /// </summary>
-    public static VKKnowledgeEntry Create(
-        IVKIdentityContext identityContext,
-        VKKnowledgeId id,
-        VKPromptSegment segment,
-        VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
-        VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        string? xmlTag = null,
-        IReadOnlyList<VKKnowledgeKey>? keys = null)
-    {
-        VKGuard.NotNull(identityContext);
-        VKGuard.NotNull(segment);
-
-        return new VKKnowledgeEntry
-        {
-            TenantId = identityContext.TenantId,
-            Id = id,
-            Segment = segment,
-            TriggerType = triggerType,
-            FilterLogic = filterLogic,
-            XmlTag = xmlTag ?? PsycheConstants.XmlTags.Knowledge,
-            Keys = keys ?? []
-        };
-    }
 }

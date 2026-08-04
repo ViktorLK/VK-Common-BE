@@ -1,8 +1,9 @@
-using VK.Blocks.AI.Psyche.Persona.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Psyche.Persona.Internal;
 using VK.Blocks.Core;
+
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
@@ -13,7 +14,9 @@ internal sealed partial class PersonaFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPersonaOptions options)
     {
-        _ = options;
+        if (!options.Enabled)
+            return;
+
         services.TryAddSingleton<IVKPersonaStore, InMemoryPersonaStore>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPersonaStage>());
 
