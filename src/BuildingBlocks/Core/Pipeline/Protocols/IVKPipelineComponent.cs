@@ -16,6 +16,12 @@ public interface IVKPipelineComponent
     VKPipelineSchedule Schedule => new(0);
 
     /// <summary>
+    /// Gets a value indicating whether this pipeline component is currently active and should be executed.
+    /// Defaults to true.
+    /// </summary>
+    bool IsActive => true;
+
+    /// <summary>
     /// Gets the element display name.
     /// </summary>
     string Name => GetType().Name;

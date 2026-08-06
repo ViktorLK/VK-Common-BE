@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
 using VK.Blocks.AI.Psyche.Weaving.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -21,11 +21,11 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
 
     public DefaultPromptTruncateTask(
         IVKTokenCounter tokenCounter,
-        IOptions<VKWeavingOptions> options,
+        VKWeavingOptions options,
         ILogger<DefaultPromptTruncateTask> logger)
     {
         _tokenCounter = VKGuard.NotNull(tokenCounter);
-        _options = VKGuard.NotNull(options).Value;
+        _options = VKGuard.NotNull(options);
         _logger = VKGuard.NotNull(logger);
     }
 

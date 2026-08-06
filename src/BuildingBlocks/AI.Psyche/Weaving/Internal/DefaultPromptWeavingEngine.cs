@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
+
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
@@ -17,10 +17,10 @@ internal sealed class DefaultPromptWeavingEngine : IVKWeavingTaskEngine
 
     public DefaultPromptWeavingEngine(
         IEnumerable<IVKWeavingTask> tasks,
-        IOptions<VKWeavingOptions> options)
+        VKWeavingOptions options)
     {
         _tasks = VKGuard.NotNull(tasks);
-        _options = VKGuard.NotNull(options).Value;
+        _options = VKGuard.NotNull(options);
     }
 
     public async Task<VKResult> WeavePromptAsync(

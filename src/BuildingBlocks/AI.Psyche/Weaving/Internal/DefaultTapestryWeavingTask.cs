@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Weaving.Diagnostics.Internal;
 using VK.Blocks.Core;
@@ -14,15 +14,21 @@ namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
 internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 {
+    private readonly IVKTokenCounter _tokenCounter;
     private readonly VKWeavingOptions _options;
+    private readonly IReadOnlyList<IVKPromptFormatter> _formatters;
     private readonly ILogger<DefaultTapestryWeavingTask> _logger;
 
     public DefaultTapestryWeavingTask(
-        IOptions<VKWeavingOptions> options,
-        ILogger<DefaultTapestryWeavingTask> logger)
+        IVKTokenCounter tokenCounter,
+        VKWeavingOptions options,
+        ILogger<DefaultTapestryWeavingTask> logger,
+        IEnumerable<IVKPromptFormatter>? formatters = null)
     {
-        _options = VKGuard.NotNull(options).Value;
+        _tokenCounter = VKGuard.NotNull(tokenCounter);
+        _options = VKGuard.NotNull(options);
         _logger = VKGuard.NotNull(logger);
+        _formatters = formatters is not null ? [.. formatters] : [];
     }
 
     public VKPipelineSchedule Schedule => new(VKWeavingTaskOrder.Weaving);
@@ -75,9 +81,13 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
             else
             {
                 string content = frag.Segment.Content!;
-                if (frag.TierType == VKPromptTierType.Echo && frag.Metadata is VKEchoTrace trace)
+                if (_formatters.FirstOrDefault(f => f.CanFormat(frag)) is { } formatter)
                 {
-                    content = trace.Content;
+                    var formatResult = formatter.Format(frag, context);
+                    if (formatResult.IsSuccess && !string.IsNullOrEmpty(formatResult.Value))
+                    {
+                        content = formatResult.Value;
+                    }
                 }
 
                 finalMessages.Add(new VKChatMessage

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Echo.Diagnostics.Internal;
 using VK.Blocks.Core;
@@ -29,20 +29,20 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
         IVKEchoStore echoStore,
         IVKSessionStore sessionStore,
         IVKTokenCounter tokenCounter,
-        IOptions<VKEchoOptions> echoOptions,
-        IOptions<VKWeavingOptions> weavingOptions,
+        VKEchoOptions echoOptions,
+        VKWeavingOptions weavingOptions,
         ILogger<DefaultEchoStage> logger)
     {
         _echoStore = VKGuard.NotNull(echoStore);
         _sessionStore = VKGuard.NotNull(sessionStore);
         _tokenCounter = VKGuard.NotNull(tokenCounter);
-        _echoOptions = VKGuard.NotNull(echoOptions?.Value);
-        _weavingOptions = VKGuard.NotNull(weavingOptions?.Value);
+        _echoOptions = VKGuard.NotNull(echoOptions);
+        _weavingOptions = VKGuard.NotNull(weavingOptions);
         _logger = VKGuard.NotNull(logger);
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
-    public bool IsActive => true;
+    public bool IsActive => _echoOptions.Enabled;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
@@ -73,8 +73,16 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
             // Only trace parent dynamically if mode is Continuous
             if (mode == VKSessionMode.Continuous)
             {
-                var sessionResult = await _sessionStore.GetSessionAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
-                currentSessionId = sessionResult.IsSuccess ? sessionResult.Value?.ParentSessionId : null;
+                var cachedSession = context.State<VKSessionThread>();
+                if (cachedSession is not null && cachedSession.Id == currentSessionId.Value)
+                {
+                    currentSessionId = cachedSession.ParentSessionId;
+                }
+                else
+                {
+                    var sessionResult = await _sessionStore.GetSessionAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
+                    currentSessionId = sessionResult.IsSuccess ? sessionResult.Value?.ParentSessionId : null;
+                }
             }
             else
             {
@@ -128,7 +136,7 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
 
             foreach (var turn in turns)
             {
-                int turnTokens = turn.Sum(e => _tokenCounter.CountTokens(e.Content));
+                int turnTokens = turn.Sum(GetEchoTokens);
 
                 var maxTurns = context.Args<VKEchoArgs>()?.MaxTurns ?? _echoOptions.MaxTurns;
                 if (maxTurns.HasValue && retainedTurnsCount >= maxTurns.Value)
@@ -159,7 +167,7 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
             for (int i = allEchoes.Count - 1; i >= 0; i--)
             {
                 var item = allEchoes[i];
-                int itemTokens = _tokenCounter.CountTokens(item.Content);
+                int itemTokens = GetEchoTokens(item);
 
                 if (currentTokensSum + itemTokens <= effectiveBudget)
                 {
@@ -233,5 +241,10 @@ internal sealed class DefaultEchoStage : IVKPsychePipelineStage
         }
 
         return turns;
+    }
+
+    private int GetEchoTokens(VKEchoTrace echo)
+    {
+        return echo.TokenCount > 0 ? echo.TokenCount : _tokenCounter.CountTokens(echo.Content);
     }
 }

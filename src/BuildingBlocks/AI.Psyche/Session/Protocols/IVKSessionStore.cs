@@ -16,4 +16,11 @@ public interface IVKSessionStore
     Task<VKResult<VKSessionThread?>> GetSessionAsync(
         VKSessionId sessionId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Saves or updates a session thread in the store.
+    /// </summary>
+    Task<VKResult> SaveSessionAsync(
+        VKSessionThread session,
+        CancellationToken cancellationToken = default);
 }

@@ -15,5 +15,5 @@ internal sealed class DefaultIdentityContext : IVKIdentityContext
     public VKTenantId TenantId { get; init; } = VKTenantId.Default;
 
     /// <inheritdoc />
-    public VKUserId UserId { get; init; } = VKUserId.Anonymous;
+    public VKUserId UserId { get; init; } = VKUserId.System;
 }

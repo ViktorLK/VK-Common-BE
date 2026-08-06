@@ -26,19 +26,14 @@ public sealed record VKPsycheRequest
     public required VKPersonaId PersonaId { get; init; }
 
     /// <summary>
-    /// Gets the unique session identifier to track dialogue history.
+    /// Gets the unique session identifier to track dialogue history. Default is <see cref="VKSessionId.Empty"/>.
     /// </summary>
-    public required VKSessionId SessionId { get; init; }
+    public VKSessionId SessionId { get; init; } = VKSessionId.Empty;
 
     /// <summary>
     /// Gets the operational mode for this session (Isolated, Continuous, Sandbox). Default is <see cref="VKSessionMode.Isolated"/>.
     /// </summary>
     public VKSessionMode SessionMode { get; init; } = VKSessionMode.Isolated;
-
-    /// <summary>
-    /// Gets the optional parent session identifier for continuous history inheritance.
-    /// </summary>
-    public VKSessionId? ParentSessionId { get; init; }
 
     /// <summary>
     /// Gets the fresh input message provided by the user in this turn.

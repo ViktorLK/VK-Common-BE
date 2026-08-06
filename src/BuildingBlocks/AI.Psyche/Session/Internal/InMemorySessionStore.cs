@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
@@ -39,6 +38,15 @@ internal sealed class InMemorySessionStore : IVKSessionStore
         }
 
         return Task.FromResult(VKResult.Success<VKSessionThread?>(session));
+    }
+
+    public Task<VKResult> SaveSessionAsync(
+        VKSessionThread session,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(session);
+        _sessions[session.Id] = session;
+        return Task.FromResult(VKResult.Success());
     }
 
     /// <summary>

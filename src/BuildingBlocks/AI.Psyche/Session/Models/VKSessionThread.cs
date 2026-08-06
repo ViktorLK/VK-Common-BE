@@ -74,36 +74,5 @@ public sealed record VKSessionThread : IVKTenantScoped, IVKUserScoped
     /// <summary>
     /// Gets the timestamp when this session thread was last active (updated on each turn).
     /// </summary>
-    public DateTimeOffset LastActivityAt { get; init; }
-
-    /// <summary>
-    /// Factory method to create a new <see cref="VKSessionThread"/> with automatic <see cref="IVKIdentityContext"/> resolution.
-    /// </summary>
-    public static VKSessionThread Create(
-        IVKIdentityContext identityContext,
-        VKSessionId id,
-        VKPersonaId personaId,
-        VKSessionMode mode = VKSessionMode.Isolated,
-        VKSessionId? parentSessionId = null,
-        TimeProvider? timeProvider = null)
-    {
-        VKGuard.NotNull(identityContext);
-
-        var provider = timeProvider ?? TimeProvider.System;
-        var now = provider.GetUtcNow();
-
-        return new VKSessionThread
-        {
-            TenantId = identityContext.TenantId,
-            UserId = identityContext.UserId,
-            Id = id,
-            PersonaId = personaId,
-            Mode = mode,
-            ParentSessionId = parentSessionId,
-            Status = VKSessionStatus.Active,
-            CreatedAt = now,
-            UpdatedAt = now,
-            LastActivityAt = now
-        };
-    }
+    public DateTimeOffset? LastActivityAt { get; init; }
 }

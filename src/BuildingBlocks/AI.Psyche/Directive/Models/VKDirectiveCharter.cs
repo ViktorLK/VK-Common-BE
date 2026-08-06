@@ -39,27 +39,4 @@ public sealed record VKDirectiveCharter : IVKFragmentMetadata, IVKTenantScoped
     /// </summary>
     public string? OutputConstraints { get; init; }
 
-    /// <summary>
-    /// Factory method to create a new <see cref="VKDirectiveCharter"/> with automatic <see cref="IVKIdentityContext"/> resolution.
-    /// </summary>
-    public static VKDirectiveCharter Create(
-        IVKIdentityContext identityContext,
-        VKDirectiveId id,
-        string? overview = null,
-        string? behaviorRules = null,
-        string? safetyRules = null,
-        string? outputConstraints = null)
-    {
-        VKGuard.NotNull(identityContext);
-
-        return new VKDirectiveCharter
-        {
-            TenantId = identityContext.TenantId,
-            Id = id,
-            Overview = overview,
-            BehaviorRules = behaviorRules,
-            SafetyRules = safetyRules,
-            OutputConstraints = outputConstraints
-        };
-    }
 }

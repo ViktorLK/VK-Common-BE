@@ -1,6 +1,6 @@
-using VK.Blocks.AI.Psyche.Echo.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Psyche.Echo.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -13,9 +13,31 @@ internal sealed partial class EchoFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKEchoOptions options)
     {
-        _ = options;
-        services.TryAddSingleton<IVKEchoStore, InMemoryEchoStore>();
-        services.TryAddSingleton<IVKEchoRenderer, DefaultEchoRenderer>();
+        if (!options.Enabled)
+            return;
+
+        services.TryAddScoped<IVKEchoStore, InMemoryEchoStore>();
+
+        switch (options.RenderStyle)
+        {
+            case VKEchoRenderStyle.Raw:
+                services.TryAddSingleton<IVKEchoRenderer, RawEchoRenderer>();
+                break;
+            case VKEchoRenderStyle.Xml:
+                services.TryAddSingleton<IVKEchoRenderer, XmlEchoRenderer>();
+                break;
+            case VKEchoRenderStyle.ChatML:
+                services.TryAddSingleton<IVKEchoRenderer, ChatMLEchoRenderer>();
+                break;
+            case VKEchoRenderStyle.Header:
+                services.TryAddSingleton<IVKEchoRenderer, HeaderEchoRenderer>();
+                break;
+            default:
+            case VKEchoRenderStyle.Bracket:
+                services.TryAddSingleton<IVKEchoRenderer, BracketEchoRenderer>();
+                break;
+        }
+
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultEchoStage>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultEchoFormatter>());
     }

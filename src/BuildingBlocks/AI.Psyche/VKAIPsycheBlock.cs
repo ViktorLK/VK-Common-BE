@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -7,4 +9,10 @@ namespace VK.Blocks.AI.Psyche;
 /// Follows BB.02.
 /// </summary>
 [VKBlockMarker(Dependencies = [typeof(VKAIBlock)], Toggleable = false)]
-public sealed partial class VKAIPsycheBlock;
+public sealed partial class VKAIPsycheBlock
+{
+    static partial void RegisterBlockCustom(IVKAIPsycheBuilder builder)
+    {
+        builder.Services.TryAddScoped<IVKPsycheModelFactory, DefaultPsycheModelFactory>();
+    }
+}

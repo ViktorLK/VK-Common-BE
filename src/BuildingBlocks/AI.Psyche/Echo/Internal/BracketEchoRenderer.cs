@@ -5,9 +5,18 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 
 internal sealed class BracketEchoRenderer : IVKEchoRenderer
 {
-    public string Render(VKEchoTrace trace)
+    public string Render(VKEchoTrace trace, VKPsycheContext context)
     {
         VKGuard.NotNull(trace);
-        return $"[{trace.Role}]{PsycheConstants.Separators.DefaultRoleHeader}{trace.Content}";
+        VKGuard.NotNull(context);
+
+        string label = trace.Role switch
+        {
+            VKChatRole.User => context.State<VKProfilePresence>()?.DisplayName ?? trace.Role.ToString(),
+            VKChatRole.Assistant => context.State<VKPersonaAnchor>()?.Name ?? trace.Role.ToString(),
+            _ => trace.Role.ToString()
+        };
+
+        return $"[{label}]{PsycheConstants.Separators.DefaultRoleHeader}{trace.Content}";
     }
 }

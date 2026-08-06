@@ -1,7 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Persona.Diagnostics.Internal;
 using VK.Blocks.Core;
@@ -13,22 +12,25 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 /// </summary>
 internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
 {
+    private readonly VKPersonaOptions _options;
     private readonly IVKPersonaStore _store;
     private readonly VKWeavingOptions _weavingOptions;
     private readonly ILogger<DefaultPersonaStage> _logger;
 
     public DefaultPersonaStage(
+        VKPersonaOptions options,
         IVKPersonaStore store,
-        IOptions<VKWeavingOptions> weavingOptions,
+        VKWeavingOptions weavingOptions,
         ILogger<DefaultPersonaStage> logger)
     {
+        _options = VKGuard.NotNull(options);
         _store = VKGuard.NotNull(store);
-        _weavingOptions = VKGuard.NotNull(weavingOptions?.Value);
+        _weavingOptions = VKGuard.NotNull(weavingOptions);
         _logger = VKGuard.NotNull(logger);
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePersona;
-    public bool IsActive => true;
+    public bool IsActive => _options.Enabled;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
@@ -45,6 +47,8 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
         {
             return VKResult.Failure(personaResult.Errors); // [CS.01]
         }
+
+        context.SetState(personaResult.Value);
 
         _logger.PersonaResolved(context.Request.PersonaId, personaResult.Value.Name);
 

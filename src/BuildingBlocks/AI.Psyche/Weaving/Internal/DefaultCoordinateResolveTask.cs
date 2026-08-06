@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
+
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
@@ -11,9 +11,9 @@ internal sealed class DefaultCoordinateResolveTask : IVKWeavingTask
 {
     private readonly VKWeavingOptions _options;
 
-    public DefaultCoordinateResolveTask(IOptions<VKWeavingOptions> options)
+    public DefaultCoordinateResolveTask(VKWeavingOptions options)
     {
-        _options = VKGuard.NotNull(options).Value;
+        _options = VKGuard.NotNull(options);
     }
 
     public VKPipelineSchedule Schedule => new(VKWeavingTaskOrder.CoordinateResolve);
