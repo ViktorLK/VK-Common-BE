@@ -16,16 +16,19 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
 {
     private readonly IVKTokenCounter _tokenCounter;
     private readonly VKWeavingOptions _options;
+    private readonly IReadOnlyList<IVKPromptFormatter> _formatters;
     private readonly ILogger<DefaultTapestryWeavingTask> _logger;
 
     public DefaultTapestryWeavingTask(
         IVKTokenCounter tokenCounter,
         VKWeavingOptions options,
-        ILogger<DefaultTapestryWeavingTask> logger)
+        ILogger<DefaultTapestryWeavingTask> logger,
+        IEnumerable<IVKPromptFormatter>? formatters = null)
     {
         _tokenCounter = VKGuard.NotNull(tokenCounter);
         _options = VKGuard.NotNull(options);
         _logger = VKGuard.NotNull(logger);
+        _formatters = formatters is not null ? [.. formatters] : [];
     }
 
     public VKPipelineSchedule Schedule => new(VKWeavingTaskOrder.Weaving);
@@ -78,9 +81,13 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
             else
             {
                 string content = frag.Segment.Content!;
-                if (frag.TierType == VKPromptTierType.Echo && frag.Metadata is VKEchoTrace trace)
+                if (_formatters.FirstOrDefault(f => f.CanFormat(frag)) is { } formatter)
                 {
-                    content = trace.Content;
+                    var formatResult = formatter.Format(frag, context);
+                    if (formatResult.IsSuccess && !string.IsNullOrEmpty(formatResult.Value))
+                    {
+                        content = formatResult.Value;
+                    }
                 }
 
                 finalMessages.Add(new VKChatMessage

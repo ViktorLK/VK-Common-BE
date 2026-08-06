@@ -48,6 +48,8 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
             return VKResult.Failure(personaResult.Errors); // [CS.01]
         }
 
+        context.SetState(personaResult.Value);
+
         _logger.PersonaResolved(context.Request.PersonaId, personaResult.Value.Name);
 
         var tierType = VKPromptTierType.Persona;

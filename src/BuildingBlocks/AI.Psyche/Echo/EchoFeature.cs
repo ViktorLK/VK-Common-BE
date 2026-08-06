@@ -29,12 +29,12 @@ internal sealed partial class EchoFeature
             case VKEchoRenderStyle.ChatML:
                 services.TryAddSingleton<IVKEchoRenderer, ChatMLEchoRenderer>();
                 break;
+            case VKEchoRenderStyle.Header:
+                services.TryAddSingleton<IVKEchoRenderer, HeaderEchoRenderer>();
+                break;
+            default:
             case VKEchoRenderStyle.Bracket:
                 services.TryAddSingleton<IVKEchoRenderer, BracketEchoRenderer>();
-                break;
-            case VKEchoRenderStyle.Header:
-            default:
-                services.TryAddSingleton<IVKEchoRenderer, HeaderEchoRenderer>();
                 break;
         }
 

@@ -4,20 +4,20 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Lightweight cognitive presence representing the user in Psyche's execution pipeline.
+/// Lightweight cognitive presence representing the profile in Psyche's execution pipeline.
 /// Follows AP.01 (sealed record) and BB.01.
 /// </summary>
 /// <remarks>
 /// Architectural Note on Scope:
-/// - Keep Psyche's UserPresence ultra-lightweight (DisplayName, Language, TimeZone).
-/// - Complex user cognitive aspects MUST NOT be stored in Psyche to prevent pipeline bloat:
+/// - Keep Psyche's ProfilePresence ultra-lightweight (DisplayName, Language, TimeZone).
+/// - Complex profile cognitive aspects MUST NOT be stored in Psyche to prevent pipeline bloat:
 ///   1. Long-term / Interaction Preferences -> Managed by <c>AI.Engram</c> (Semantic Memory Consolidation).
 ///   2. Personal Knowledge Base -> Managed by <c>AI.Corpus</c> (RAG Vector Indexing).
-///   3. User Skill & Capability Profiles -> Managed by <c>AI.Engram</c> (Episodic/Semantic Profile Graph).
-///   4. User Goals & Intentions -> Managed by <c>AI.Engram</c> (Working Memory / Goal Tracking).
+///   3. Skill & Capability Profiles -> Managed by <c>AI.Engram</c> (Episodic/Semantic Profile Graph).
+///   4. Goals & Intentions -> Managed by <c>AI.Engram</c> (Working Memory / Goal Tracking).
 ///   5. Work Context & Tasks -> Managed by <c>AI.Engram</c> (Contextual Reminder/Task Memory).
 /// </remarks>
-public sealed record VKUserPresence : IVKFragmentMetadata, IVKTenantScoped, IVKUserScoped
+public sealed record VKProfilePresence : IVKFragmentMetadata, IVKTenantScoped, IVKUserScoped
 {
     /// <summary>
     /// Gets the tenant identifier for multi-tenant SaaS isolation.
@@ -32,7 +32,7 @@ public sealed record VKUserPresence : IVKFragmentMetadata, IVKTenantScoped, IVKU
     /// <summary>
     /// Gets the preferred display name / roleplay alias in dialogue (e.g. "Hero" or "Alice").
     /// Used by Echo renderers (e.g. [DisplayName]: Hello) and prompt weaving.
-    /// Defaults to null, falling back to real name or "User".
+    /// Defaults to null, falling back to real name or default speaker.
     /// </summary>
     public string? DisplayName { get; init; }
 
@@ -42,7 +42,7 @@ public sealed record VKUserPresence : IVKFragmentMetadata, IVKTenantScoped, IVKU
     public string? PreferredLanguage { get; init; }
 
     /// <summary>
-    /// Gets the user's timezone identifier (e.g. "Asia/Shanghai", "UTC+8").
+    /// Gets the profile's timezone identifier (e.g. "Asia/Shanghai", "UTC+8").
     /// Used for relative time resolution (e.g. "today", "tomorrow").
     /// </summary>
     public string? TimeZone { get; init; }

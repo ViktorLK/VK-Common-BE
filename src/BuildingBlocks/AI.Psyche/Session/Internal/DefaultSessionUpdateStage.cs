@@ -32,6 +32,11 @@ internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
+        if (context.IsWeaveOnly || context.IsSandbox || context.Request.SessionId.IsNullOrEmpty())
+        {
+            return VKResult.Success();
+        }
+
         // Retrieve existing session thread resolved in the Before phase
         var session = context.State<VKSessionThread>();
         if (session is null)

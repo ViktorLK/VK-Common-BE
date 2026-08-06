@@ -3,41 +3,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche.User.Internal;
+namespace VK.Blocks.AI.Psyche.Profile.Internal;
 
 /// <summary>
-/// Thread-safe in-memory implementation of <see cref="IVKUserStore"/> for local development and testing.
+/// Thread-safe in-memory implementation of <see cref="IVKProfileStore"/> for local development and testing.
 /// Follows AP.01 and CS.03.
 /// </summary>
-internal sealed class InMemoryUserStore : IVKUserStore
+internal sealed class InMemoryProfileStore : IVKProfileStore
 {
-    private readonly ConcurrentDictionary<VKUserId, VKUserPresence> _presences = new();
+    private readonly ConcurrentDictionary<VKUserId, VKProfilePresence> _presences = new();
     private readonly IVKIdentityContext _identityContext;
 
-    public InMemoryUserStore(IVKIdentityContext identityContext)
+    public InMemoryProfileStore(IVKIdentityContext identityContext)
     {
         _identityContext = VKGuard.NotNull(identityContext);
     }
 
-    public Task<VKResult<VKUserPresence?>> GetPresenceAsync(
+    public Task<VKResult<VKProfilePresence?>> GetProfileAsync(
         VKUserId userId,
         CancellationToken cancellationToken = default)
     {
         if (!_presences.TryGetValue(userId, out var presence))
         {
-            return Task.FromResult(VKResult.Success<VKUserPresence?>(null));
+            return Task.FromResult(VKResult.Success<VKProfilePresence?>(null));
         }
 
         if (presence.TenantId != _identityContext.TenantId)
         {
-            return Task.FromResult(VKResult.Success<VKUserPresence?>(null));
+            return Task.FromResult(VKResult.Success<VKProfilePresence?>(null));
         }
 
-        return Task.FromResult(VKResult.Success<VKUserPresence?>(presence));
+        return Task.FromResult(VKResult.Success<VKProfilePresence?>(presence));
     }
 
-    public Task<VKResult> SavePresenceAsync(
-        VKUserPresence presence,
+    public Task<VKResult> SaveProfileAsync(
+        VKProfilePresence presence,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(presence);
@@ -46,9 +46,9 @@ internal sealed class InMemoryUserStore : IVKUserStore
     }
 
     /// <summary>
-    /// Seeds a user presence into the in-memory store for local testing.
+    /// Seeds a profile presence into the in-memory store for local testing.
     /// </summary>
-    public InMemoryUserStore Seed(VKUserPresence presence)
+    public InMemoryProfileStore Seed(VKProfilePresence presence)
     {
         VKGuard.NotNull(presence);
         _presences[presence.UserId] = presence;

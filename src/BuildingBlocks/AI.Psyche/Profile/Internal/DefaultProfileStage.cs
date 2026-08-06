@@ -4,77 +4,77 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Psyche.User.Internal;
+namespace VK.Blocks.AI.Psyche.Profile.Internal;
 
 /// <summary>
-/// Pipeline stage responsible for resolving and attaching <see cref="VKUserPresence"/> metadata before prompt weaving.
+/// Pipeline stage responsible for resolving and attaching <see cref="VKProfilePresence"/> metadata before prompt weaving.
 /// Follows AP.01 (sealed class default), CS.01, and CS.03.
 /// </summary>
-internal sealed class DefaultUserStage : IVKPsychePipelineStage
+internal sealed class DefaultProfileStage : IVKPsychePipelineStage
 {
-    private readonly VKUserOptions _options;
-    private readonly IVKUserStore _userStore;
+    private readonly VKProfileOptions _options;
+    private readonly IVKProfileStore _profileStore;
     private readonly IVKIdentityContext _identityContext;
     private readonly TimeProvider _timeProvider;
 
-    public DefaultUserStage(
-        VKUserOptions options,
-        IVKUserStore userStore,
+    public DefaultProfileStage(
+        VKProfileOptions options,
+        IVKProfileStore profileStore,
         IVKIdentityContext identityContext,
         TimeProvider? timeProvider = null)
     {
         _options = VKGuard.NotNull(options);
-        _userStore = VKGuard.NotNull(userStore);
+        _profileStore = VKGuard.NotNull(profileStore);
         _identityContext = VKGuard.NotNull(identityContext);
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheUser;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheProfile;
     public bool IsActive => _options.Enabled;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
 
-        // 1. Resolve UserId from IdentityContext
-        var userId = _identityContext.UserId;
+        // 1. Resolve UserId from Request or IdentityContext
+        var userId = context.Request.UserId ?? _identityContext.UserId;
         if (!userId.IsEmpty)
         {
-            var presenceResult = await _userStore.GetPresenceAsync(userId, cancellationToken).ConfigureAwait(false);
-            if (presenceResult.IsSuccess && presenceResult.Value is not null)
+            var profileResult = await _profileStore.GetProfileAsync(userId, cancellationToken).ConfigureAwait(false);
+            if (profileResult.IsSuccess && profileResult.Value is not null)
             {
-                var presence = presenceResult.Value;
-                context.SetState(presence);
+                var profile = profileResult.Value;
+                context.SetState(profile);
 
                 // 2. Inject PreferredLanguage directive if defined (only if non-null/non-empty)
-                if (!string.IsNullOrWhiteSpace(presence.PreferredLanguage))
+                if (!string.IsNullOrWhiteSpace(profile.PreferredLanguage))
                 {
                     context.AddFragment(new VKPromptFragment
                     {
                         TierType = VKPromptTierType.Directive,
                         RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 10,
-                        Metadata = presence,
+                        Metadata = profile,
                         Segment = new VKPromptSegment
                         {
                             Role = VKChatRole.System,
-                            Content = $"[Language Requirement]: Please respond using the user's preferred language ({presence.PreferredLanguage})."
+                            Content = $"[Language Requirement]: Please respond using the user's preferred language ({profile.PreferredLanguage})."
                         }
                     });
                 }
 
                 // 3. Inject TimeZone & Local Time directive if defined (only if non-null/non-empty)
-                if (!string.IsNullOrWhiteSpace(presence.TimeZone))
+                if (!string.IsNullOrWhiteSpace(profile.TimeZone))
                 {
                     var nowUtc = _timeProvider.GetUtcNow();
-                    var timeStr = TryFormatUserLocalTime(nowUtc, presence.TimeZone, out var formattedLocalTime)
-                        ? $"{formattedLocalTime} ({presence.TimeZone})"
-                        : $"{nowUtc:yyyy-MM-dd HH:mm:ss} UTC ({presence.TimeZone})";
+                    var timeStr = TryFormatUserLocalTime(nowUtc, profile.TimeZone, out var formattedLocalTime)
+                        ? $"{formattedLocalTime} ({profile.TimeZone})"
+                        : $"{nowUtc:yyyy-MM-dd HH:mm:ss} UTC ({profile.TimeZone})";
 
                     context.AddFragment(new VKPromptFragment
                     {
                         TierType = VKPromptTierType.Directive,
                         RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 5,
-                        Metadata = presence,
+                        Metadata = profile,
                         Segment = new VKPromptSegment
                         {
                             Role = VKChatRole.System,
@@ -84,14 +84,14 @@ internal sealed class DefaultUserStage : IVKPsychePipelineStage
                 }
 
                 // 4. Inject Preferences directive if defined (only if non-empty dictionary)
-                if (presence.Preferences.Count > 0)
+                if (profile.Preferences.Count > 0)
                 {
-                    var prefsStr = string.Join("; ", presence.Preferences.Select(kv => $"{kv.Key}: {kv.Value}"));
+                    var prefsStr = string.Join("; ", profile.Preferences.Select(kv => $"{kv.Key}: {kv.Value}"));
                     context.AddFragment(new VKPromptFragment
                     {
                         TierType = VKPromptTierType.Directive,
                         RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 15,
-                        Metadata = presence,
+                        Metadata = profile,
                         Segment = new VKPromptSegment
                         {
                             Role = VKChatRole.System,

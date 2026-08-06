@@ -14,10 +14,10 @@ public static class VKPsychePipelineScheduler
     {
         // Extraction Layer (parallel group 1)
         public static readonly VKPipelineSchedule PsycheSession = new(0, false, null, VKPipelinePhase.Before);
-        public static readonly VKPipelineSchedule PsycheUser = new(50, false, null, VKPipelinePhase.Before);
+        public static readonly VKPipelineSchedule PsycheProfile = new(100, false, null, VKPipelinePhase.Before);
         public static readonly VKPipelineSchedule PsychePersona = new(100, true, 1, VKPipelinePhase.Before);
         public static readonly VKPipelineSchedule PsycheDirective = new(100, true, 1, VKPipelinePhase.Before);
-        public static readonly VKPipelineSchedule PsycheEcho = new(200, true, 1, VKPipelinePhase.Before);
+        public static readonly VKPipelineSchedule PsycheEcho = new(200, false, null, VKPipelinePhase.Before);
         public static readonly VKPipelineSchedule PsycheKnowledge = new(500, true, 2, VKPipelinePhase.Before);
 
         public static readonly VKPipelineSchedule CorpusGathering = new(540, false, null, VKPipelinePhase.Before);
@@ -34,8 +34,10 @@ public static class VKPsychePipelineScheduler
     /// </summary>
     public static class Middleware
     {
+        public const int EidosContract = 500;
         public const int ContentSafety = 800;
     }
+
 
     /// <summary>
     /// Stages running AFTER the LLM call.

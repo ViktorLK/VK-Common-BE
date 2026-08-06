@@ -12,7 +12,7 @@ internal sealed class HeaderEchoRenderer : IVKEchoRenderer
 
         string label = trace.Role switch
         {
-            VKChatRole.User => context.State<VKUserPresence>()?.DisplayName ?? trace.Role.ToString(),
+            VKChatRole.User => context.State<VKProfilePresence>()?.DisplayName ?? trace.Role.ToString(),
             VKChatRole.Assistant => context.State<VKPersonaAnchor>()?.Name ?? trace.Role.ToString(),
             _ => trace.Role.ToString()
         };

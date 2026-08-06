@@ -172,3 +172,4 @@ public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIPro
     [VKNoRequestOverride]
     public int MaxAutoToolCallRounds { get; init; } = 10;
 }
+

@@ -58,5 +58,5 @@ public sealed partial record VKEchoOptions : IVKToggleableBlockOptions
     /// Gets or sets the formatting style for rendering dialogue history into prompt text.
     /// Default is <see cref="VKEchoRenderStyle.Header"/>.
     /// </summary>
-    public VKEchoRenderStyle RenderStyle { get; init; } = VKEchoRenderStyle.Header;
+    public VKEchoRenderStyle RenderStyle { get; init; } = VKEchoRenderStyle.Bracket;
 }
