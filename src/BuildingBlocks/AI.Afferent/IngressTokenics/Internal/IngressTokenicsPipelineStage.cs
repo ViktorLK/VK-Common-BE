@@ -3,13 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent.IngressTokenics.Internal;
 
-internal sealed class IngressTokenicsPipelineStage : IVKPsycheBeforePipelineStage
+internal sealed class IngressTokenicsPipelineStage : IVKPsychePipelineStage
 {
     private readonly IVKTokenCounter _tokenCounter;
     private readonly VKIngressTokenicsOptions _options;
@@ -17,7 +16,7 @@ internal sealed class IngressTokenicsPipelineStage : IVKPsycheBeforePipelineStag
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => new(600, false);
+    public VKPipelineSchedule Schedule => new(600, false, null, VKPipelinePhase.Before);
 
     public IngressTokenicsPipelineStage(
         IVKTokenCounter tokenCounter,

@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -7,13 +6,13 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent.IngressTokenics.Internal;
 
-internal sealed class IngressRateLimitPipelineStage : IVKPsycheBeforePipelineStage
+internal sealed class IngressRateLimitPipelineStage : IVKPsychePipelineStage
 {
     private readonly ILogger<IngressRateLimitPipelineStage> _logger;
 
     public bool IsActive => true;
 
-    public VKPipelineStageSchedule Schedule => new(700, false);
+    public VKPipelineSchedule Schedule => new(700, false, null, VKPipelinePhase.Before);
 
     public IngressRateLimitPipelineStage(ILogger<IngressRateLimitPipelineStage> logger)
     {

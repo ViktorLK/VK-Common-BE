@@ -2,8 +2,8 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent;
 
-[VKFeature(typeof(VKAIAfferentBlock), Namespace = "VK.Blocks.AI.Afferent.IngressGuardrails")]
-public sealed partial record VKIngressGuardrailsOptions : IVKIngressGuardrailsOptions
+
+public sealed partial record VKIngressGuardrailsOptions : IVKToggleableBlockOptions
 {
     public bool Enabled { get; init; } = true;
     public bool EnableContentModeration { get; init; } = true;

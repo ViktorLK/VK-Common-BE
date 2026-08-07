@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +8,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent.IngressText.Internal;
 
-internal sealed class IngressTextPipelineStage : IVKPsycheBeforePipelineStage
+internal sealed class IngressTextPipelineStage : IVKPsychePipelineStage
 {
     private readonly IVKTextSplitter _textSplitter;
     private readonly VKIngressTextOptions _options;
@@ -17,7 +16,7 @@ internal sealed class IngressTextPipelineStage : IVKPsycheBeforePipelineStage
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => new(300, false);
+    public VKPipelineSchedule Schedule => new(300, false, null, VKPipelinePhase.Before);
 
     public IngressTextPipelineStage(
         IVKTextSplitter textSplitter,

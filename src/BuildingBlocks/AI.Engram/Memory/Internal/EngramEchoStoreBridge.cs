@@ -44,85 +44,20 @@ internal sealed class EngramEchoStoreBridge : IVKEchoStore
             return VKResult.Failure<IReadOnlyCollection<VKEchoTrace>>(queryResult.Errors);
         }
 
-        var currentEntries = queryResult.Value.ToList();
-
-        var echoes = currentEntries.Select(e => new VKEchoTrace
-        {
-            Role = e.Metadata.TryGetValue("Role", out var role) && role == "User"
-                ? VKChatRole.User
-                : VKChatRole.Assistant,
-            Content = e.Content,
-            Timestamp = e.CreatedAt
-        }).ToList();
+        // 2. Convert L1 VKMemoryEntry to VKEchoTrace
+        var echoes = queryResult.Value
+            .OrderBy(m => m.CreatedAt)
+            .Select(m => new VKEchoTrace
+            {
+                TenantId = m.TenantId ?? VKTenantId.Default,
+                SessionId = m.SessionId ?? sessionId,
+                Id = new VKEchoId(m.Id.Value),
+                Role = m.Metadata.TryGetValue("Role", out var roleStr) && Enum.TryParse<VKChatRole>(roleStr, out var r) ? r : VKChatRole.User,
+                Content = m.Content,
+                Timestamp = m.CreatedAt
+            })
+            .ToList();
 
         return VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(echoes);
-    }
-
-    public async Task<VKResult<VKSessionId?>> GetParentSessionIdAsync(
-        VKSessionId sessionId,
-        CancellationToken cancellationToken = default)
-    {
-        var queryResult = await _memoryStore.QueryAsync(new VKMemoryQuery
-        {
-            SessionId = sessionId,
-            Category = VKMemoryCategory.ShortTerm,
-            TopK = 1
-        }, cancellationToken).ConfigureAwait(false);
-
-        if (queryResult.IsSuccess && queryResult.Value.Count > 0)
-        {
-            var firstEntry = queryResult.Value[0];
-            if (firstEntry.Metadata.TryGetValue("ParentSessionId", out var parentStr) && Guid.TryParse(parentStr, out var parentGuid))
-            {
-                return VKResult.Success<VKSessionId?>(new VKSessionId(parentGuid));
-            }
-        }
-
-        return VKResult.Success<VKSessionId?>(null);
-    }
-
-    public async Task<VKResult> AppendHistoryAsync(
-        VKSessionId sessionId,
-        IEnumerable<VKEchoTrace> traces,
-        CancellationToken cancellationToken = default)
-    {
-        var entries = traces.Select(t => new VKMemoryEntry
-        {
-            Id = VKMemoryId.New(_guidGenerator),
-            SessionId = sessionId,
-            Category = VKMemoryCategory.ShortTerm,
-            Content = t.Content,
-            CreatedAt = t.Timestamp,
-            Metadata = new Dictionary<string, string>
-            {
-                ["Role"] = t.Role.ToString()
-            }.ToFrozenDictionary()
-        });
-
-        return await _memoryStore.UpsertBatchAsync(entries, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task<VKResult> ClearHistoryAsync(
-        VKSessionId sessionId,
-        CancellationToken cancellationToken = default)
-    {
-        var historyResult = await _memoryStore.QueryAsync(new VKMemoryQuery
-        {
-            SessionId = sessionId,
-            Category = VKMemoryCategory.ShortTerm,
-            TopK = 1000
-        }, cancellationToken).ConfigureAwait(false);
-
-        if (historyResult.IsFailure)
-        {
-            return VKResult.Success();
-        }
-
-        foreach (var entry in historyResult.Value)
-        {
-            await _memoryStore.DeleteAsync(entry.Id, entry.TenantId, cancellationToken).ConfigureAwait(false);
-        }
-
-        return VKResult.Success();
     }
 }

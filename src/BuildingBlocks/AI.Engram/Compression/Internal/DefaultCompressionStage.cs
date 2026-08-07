@@ -98,6 +98,7 @@ internal sealed partial class DefaultCompressionStage : IVKPsychePipelineStage
                 // Inject the updated memory fragment into context
                 var knowledgeEntry = new VKKnowledgeEntry
                 {
+                    TenantId = VKTenantId.Default,
                     Id = VKKnowledgeId.New(_guidGenerator),
                     TriggerType = VKKnowledgeTriggerType.Constant,
                     Segment = new VKPromptSegment

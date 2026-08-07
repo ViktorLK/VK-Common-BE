@@ -18,17 +18,17 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
 {
     private readonly ConcurrentDictionary<VKMemoryId, VKMemoryEntry> _store = new();
     private readonly IVKTokenCounter _tokenCounter;
-    private readonly IVKUserContext? _userContext;
+    private readonly IVKIdentityContext _identityContext;
     private readonly ILogger<InMemoryMemoryStore> _logger;
 
     public InMemoryMemoryStore(
         IVKTokenCounter tokenCounter,
         ILogger<InMemoryMemoryStore> logger,
-        IVKUserContext? userContext = null)
+        IVKIdentityContext identityContext)
     {
         _tokenCounter = VKGuard.NotNull(tokenCounter);
         _logger = VKGuard.NotNull(logger);
-        _userContext = userContext;
+        _identityContext = VKGuard.NotNull(identityContext);
     }
 
     public Task<VKResult> UpsertAsync(
@@ -38,9 +38,9 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
         cancellationToken.ThrowIfCancellationRequested();
         VKGuard.NotNull(entry);
 
-        if (entry.TenantId is null && _userContext?.TenantId is not null)
+        if (entry.TenantId is null)
         {
-            entry = entry with { TenantId = _userContext.TenantId };
+            entry = entry with { TenantId = _identityContext.TenantId };
         }
 
         if (entry.Category == VKMemoryCategory.ShortTerm && !entry.Metadata.ContainsKey("TokenCount"))
@@ -86,8 +86,8 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
 
         if (_store.TryGetValue(id, out var entry))
         {
-            var currentTenantId = _userContext?.TenantId;
-            if (currentTenantId != null && entry.TenantId != null && entry.TenantId != currentTenantId)
+            var currentTenantId = _identityContext.TenantId;
+            if (entry.TenantId != null && entry.TenantId != currentTenantId)
             {
                 return Task.FromResult(VKResult.Success<VKMemoryEntry?>(null));
             }
@@ -104,12 +104,12 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
         cancellationToken.ThrowIfCancellationRequested();
         VKGuard.NotNull(ids);
 
-        var currentTenantId = _userContext?.TenantId;
+        var currentTenantId = _identityContext.TenantId;
         var idSet = ids.ToHashSet();
 
         var result = _store.Values
             .Where(m => idSet.Contains(m.Id))
-            .Where(m => currentTenantId is null || m.TenantId is null || m.TenantId == currentTenantId)
+            .Where(m => m.TenantId is null || m.TenantId == currentTenantId)
             .ToList();
 
         return Task.FromResult(VKResult.Success<IReadOnlyList<VKMemoryEntry>>(result));
@@ -122,10 +122,10 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
         cancellationToken.ThrowIfCancellationRequested();
         VKGuard.NotNull(query);
 
-        var targetTenantId = query.TenantId ?? _userContext?.TenantId;
+        var targetTenantId = query.TenantId ?? _identityContext.TenantId;
 
         var entries = _store.Values
-            .Where(m => targetTenantId is null || m.TenantId is null || m.TenantId == targetTenantId)
+            .Where(m => m.TenantId is null || m.TenantId == targetTenantId)
             .Where(m => !query.SessionId.HasValue || m.SessionId == query.SessionId.Value)
             .Where(m => !query.Category.HasValue || m.Category == query.Category.Value)
             .Where(m => MatchesScope(m.ExtendedScope, query.ExtendedScope))
@@ -143,7 +143,7 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var targetTenant = tenantId ?? _userContext?.TenantId;
+        var targetTenant = tenantId ?? _identityContext?.TenantId;
 
         if (_store.TryGetValue(id, out var entry))
         {

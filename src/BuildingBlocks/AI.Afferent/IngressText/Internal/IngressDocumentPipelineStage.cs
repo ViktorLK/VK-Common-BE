@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -7,13 +6,13 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent.IngressText.Internal;
 
-internal sealed class IngressDocumentPipelineStage : IVKPsycheBeforePipelineStage
+internal sealed class IngressDocumentPipelineStage : IVKPsychePipelineStage
 {
     private readonly ILogger<IngressDocumentPipelineStage> _logger;
 
     public bool IsActive => true;
 
-    public VKPipelineStageSchedule Schedule => new(350, false);
+    public VKPipelineSchedule Schedule => new(350, false, null, VKPipelinePhase.Before);
 
     public IngressDocumentPipelineStage(ILogger<IngressDocumentPipelineStage> logger)
     {

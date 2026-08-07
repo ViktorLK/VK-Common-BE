@@ -19,7 +19,7 @@ namespace VK.Blocks.AI.Engram.Memory.Internal;
 internal sealed class DefaultMemorySearchService : IVKMemorySearchService
 {
     private readonly IVKMemoryStore _memoryStore;
-    private readonly IVKUserContext _userContext;
+    private readonly IVKIdentityContext _identityContext;
     private readonly VKMemoryOptions _options;
     private readonly ILogger<DefaultMemorySearchService> _logger;
     private readonly IVKRetrievalStore? _retrievalStore;
@@ -27,14 +27,14 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
 
     public DefaultMemorySearchService(
         IVKMemoryStore memoryStore,
-        IVKUserContext userContext,
+        IVKIdentityContext identityContext,
         Microsoft.Extensions.Options.IOptions<VKMemoryOptions> options,
         ILogger<DefaultMemorySearchService> logger,
         IVKRetrievalStore? retrievalStore = null,
         IVKEmbeddingsEngine? embeddingsEngine = null)
     {
         _memoryStore = VKGuard.NotNull(memoryStore);
-        _userContext = VKGuard.NotNull(userContext);
+        _identityContext = VKGuard.NotNull(identityContext);
         _options = VKGuard.NotNull(options?.Value);
         _logger = VKGuard.NotNull(logger);
         _retrievalStore = retrievalStore;
@@ -55,13 +55,12 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
 
         var effectiveTopK = query.TopK > 0 ? query.TopK : (_options.DefaultTopK ?? 5);
         var effectiveMinScore = query.MinScore > 0f ? query.MinScore : (_options.DefaultMinScore ?? 0.7f);
-        var targetTenantId = query.TenantId ?? _userContext.TenantId;
+        var targetTenantId = query.TenantId ?? _identityContext.TenantId;
 
         // If a semantic query is present and vector search capabilities are registered, perform real embedding + vector search
         if (!string.IsNullOrWhiteSpace(query.SemanticQuery) &&
             _retrievalStore is not null &&
-            _embeddingsEngine is not null &&
-            targetTenantId is not null)
+            _embeddingsEngine is not null)
         {
             // 1. Generate real mathematical query vector via IVKEmbeddingsEngine
             var embeddingResult = await _embeddingsEngine.GenerateAsync(query.SemanticQuery, cancellationToken).ConfigureAwait(false);

@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -7,13 +6,13 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent.IngressGuardrails.Internal;
 
-internal sealed class IngressVisionPipelineStage : IVKPsycheBeforePipelineStage
+internal sealed class IngressVisionPipelineStage : IVKPsychePipelineStage
 {
     private readonly ILogger<IngressVisionPipelineStage> _logger;
 
     public bool IsActive => true;
 
-    public VKPipelineStageSchedule Schedule => new(150, false); // Executes after text Guardrails, before IngressText
+    public VKPipelineSchedule Schedule => new(150, false, null, VKPipelinePhase.Before); // Executes after text Guardrails, before IngressText
 
     public IngressVisionPipelineStage(ILogger<IngressVisionPipelineStage> logger)
     {

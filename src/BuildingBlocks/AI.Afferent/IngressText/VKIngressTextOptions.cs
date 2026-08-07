@@ -2,8 +2,8 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent;
 
-[VKFeature(typeof(VKAIAfferentBlock), Namespace = "VK.Blocks.AI.Afferent.IngressText")]
-public sealed partial record VKIngressTextOptions : IVKIngressTextOptions
+
+public sealed partial record VKIngressTextOptions : IVKToggleableBlockOptions
 {
     public bool Enabled { get; init; } = true;
     public bool EnableUnicodeNormalization { get; init; } = true;

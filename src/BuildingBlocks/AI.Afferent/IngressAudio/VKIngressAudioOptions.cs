@@ -2,8 +2,8 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent;
 
-[VKFeature(typeof(VKAIAfferentBlock), Namespace = "VK.Blocks.AI.Afferent.IngressAudio")]
-public sealed partial record VKIngressAudioOptions : IVKIngressAudioOptions
+
+public sealed partial record VKIngressAudioOptions : IVKToggleableBlockOptions
 {
     public bool Enabled { get; init; } = true;
     public string DefaultLanguage { get; init; } = "ja";
