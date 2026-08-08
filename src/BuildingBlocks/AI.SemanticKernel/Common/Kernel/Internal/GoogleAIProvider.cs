@@ -2,15 +2,13 @@ using System;
 using System.Net.Http;
 using Microsoft.SemanticKernel;
 
-using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
-
 namespace VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 
-internal static partial class AISKProviderRegistrar
+internal static partial class AISemanticKernelProviderRegistrar
 {
     internal static void RegisterGoogleAIChat(
         this IKernelBuilder builder,
-        VKAISKDefaultsOptions aiskOptions,
+        VKAISemanticKernelOptions AISemanticKernelOptions,
         IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient,
         string? serviceId = null)
@@ -22,7 +20,7 @@ internal static partial class AISKProviderRegistrar
 
     internal static void RegisterGoogleAIEmbedding(
         this IKernelBuilder builder,
-        VKAISKDefaultsOptions aiskOptions,
+        VKAISemanticKernelOptions AISemanticKernelOptions,
         IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
@@ -31,5 +29,3 @@ internal static partial class AISKProviderRegistrar
         builder.AddGoogleAIEmbeddingGenerator(cleanModelId, connectionSettings.ApiKey?.Reveal() ?? string.Empty, httpClient: httpClient);
     }
 }
-
-

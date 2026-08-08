@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using Microsoft.ML.Tokenizers;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Common.Governance;
 

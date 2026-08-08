@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -9,10 +10,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Polly;
 using Polly.CircuitBreaker;
-using Polly.Fallback;
 using Polly.Retry;
-using VK.Blocks.AI.SemanticKernel.Common.Diagnostics.Internal;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Chat.Internal;
@@ -24,22 +22,25 @@ namespace VK.Blocks.AI.SemanticKernel.Chat.Internal;
 internal sealed class CompositeChatCompletionService : IChatCompletionService
 {
     private readonly Microsoft.SemanticKernel.Kernel _kernel;
+    private readonly VKChatOptions? _chatOptions;
     private readonly IReadOnlyList<VKChatFallbackConfig> _fallbacks;
+    private readonly IVKAIProviderTracker _tracker;
     private readonly ILogger<CompositeChatCompletionService> _logger;
     private readonly ResiliencePipeline<IReadOnlyList<ChatMessageContent>> _pipeline;
-    private readonly ResiliencePipeline<IAsyncEnumerable<StreamingChatMessageContent>> _streamingPipeline;
 
     public CompositeChatCompletionService(
         Microsoft.SemanticKernel.Kernel kernel,
         IOptions<VKChatOptions> chatOptions,
+        IVKAIProviderTracker tracker,
         ILogger<CompositeChatCompletionService> logger)
     {
         _kernel = VKGuard.NotNull(kernel);
+        _chatOptions = chatOptions?.Value;
         _fallbacks = chatOptions?.Value?.ChatFallbacks ?? [];
+        _tracker = VKGuard.NotNull(tracker);
         _logger = VKGuard.NotNull(logger);
 
         _pipeline = BuildPipeline();
-        _streamingPipeline = BuildStreamingPipeline();
     }
 
     public IReadOnlyDictionary<string, object?> Attributes => new Dictionary<string, object?>();
@@ -60,24 +61,61 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
             return _pipeline.ExecuteAsync(
                 async (ctx) =>
                 {
-                    // The "state" tells us which service index to use: -1 is primary, 0+ are fallbacks
                     int attemptIndex = 0;
                     ctx.Properties.TryGetValue(new ResiliencePropertyKey<int>("AttemptIndex"), out attemptIndex);
 
-                    string serviceId = attemptIndex == 0 ? "primary" : $"fallback_{attemptIndex - 1}";
+                    // Find the next available provider starting from current attempt sequence
+                    int targetIndex = attemptIndex;
+                    while (targetIndex <= _fallbacks.Count)
+                    {
+                        var config = GetProviderConfig(targetIndex);
+                        if (config != null && _tracker.IsAvailable(config))
+                        {
+                            break;
+                        }
+                        targetIndex++;
+                    }
 
+                    if (targetIndex > _fallbacks.Count)
+                    {
+                        targetIndex = attemptIndex; // fallback to original attempt index as last resort
+                    }
+
+                    string serviceId = targetIndex == 0 ? "primary" : $"fallback_{targetIndex - 1}";
                     var service = _kernel.GetRequiredService<IChatCompletionService>(serviceId);
 
                     var currentSettings = ctx.Properties.GetValue(new ResiliencePropertyKey<PromptExecutionSettings?>("Settings"), null);
 
-                    // Mutate ModelId if this is a fallback attempt
-                    if (attemptIndex > 0 && currentSettings is not null)
+                    var activeConfig = GetProviderConfig(targetIndex);
+                    if (targetIndex > 0 && currentSettings is not null && activeConfig is not null)
                     {
-                        var fallbackConfig = _fallbacks[attemptIndex - 1];
-                        currentSettings.ModelId = fallbackConfig.ModelId;
+                        currentSettings.ModelId = activeConfig.ModelId;
                     }
 
-                    return await service.GetChatMessageContentsAsync(chatHistory, currentSettings, kernel ?? _kernel, ctx.CancellationToken).ConfigureAwait(false);
+                    var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+                    try
+                    {
+                        if (activeConfig != null)
+                        {
+                            _tracker.RecordRequest(activeConfig);
+                        }
+                        var result = await service.GetChatMessageContentsAsync(chatHistory, currentSettings, kernel ?? _kernel, ctx.CancellationToken).ConfigureAwait(false);
+
+                        if (activeConfig != null)
+                        {
+                            int tokens = GetTokenCount(result);
+                            _tracker.RecordMetrics(activeConfig, tokens, stopwatch.Elapsed);
+                        }
+                        return result;
+                    }
+                    catch (Exception ex) when (IsTransientOrRateLimitError(ex))
+                    {
+                        if (activeConfig != null)
+                        {
+                            _tracker.MarkFailure(activeConfig, ex);
+                        }
+                        throw;
+                    }
                 },
                 context).AsTask();
         }
@@ -87,47 +125,179 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
         }
     }
 
-    public IAsyncEnumerable<StreamingChatMessageContent> GetStreamingChatMessageContentsAsync(
+    public async IAsyncEnumerable<StreamingChatMessageContent> GetStreamingChatMessageContentsAsync(
         ChatHistory chatHistory,
         PromptExecutionSettings? executionSettings = null,
         Microsoft.SemanticKernel.Kernel? kernel = null,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // Polly v8 streaming fallback is complex because we must return an IAsyncEnumerable.
-        // For streaming, we will build a dedicated pipeline or manually handle the iteration fallback.
-        // To keep it simple and robust, we use a custom enumerator wrapper or execute it within the pipeline.
+        int attemptIndex = 0;
+        int maxAttempts = _fallbacks.Count + 1;
 
-        var context = ResilienceContextPool.Shared.Get(cancellationToken);
-        context.Properties.Set(new ResiliencePropertyKey<PromptExecutionSettings?>("Settings"), executionSettings);
-
-        try
+        while (attemptIndex < maxAttempts)
         {
-            var result = _streamingPipeline.Execute(
-                (ctx) =>
+            int targetIndex = attemptIndex;
+            while (targetIndex <= _fallbacks.Count)
+            {
+                var config = GetProviderConfig(targetIndex);
+                if (config != null && _tracker.IsAvailable(config))
                 {
-                    int attemptIndex = 0;
-                    ctx.Properties.TryGetValue(new ResiliencePropertyKey<int>("AttemptIndex"), out attemptIndex);
+                    break;
+                }
+                targetIndex++;
+            }
 
-                    string serviceId = attemptIndex == 0 ? "primary" : $"fallback_{attemptIndex - 1}";
-                    var service = _kernel.GetRequiredService<IChatCompletionService>(serviceId);
-                    var currentSettings = ctx.Properties.GetValue(new ResiliencePropertyKey<PromptExecutionSettings?>("Settings"), null);
+            if (targetIndex > _fallbacks.Count)
+            {
+                targetIndex = attemptIndex;
+            }
 
-                    if (attemptIndex > 0 && currentSettings is not null)
+            string serviceId = targetIndex == 0 ? "primary" : $"fallback_{targetIndex - 1}";
+            IChatCompletionService service;
+            try
+            {
+                service = _kernel.GetRequiredService<IChatCompletionService>(serviceId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to resolve chat service '{ServiceId}'.", serviceId);
+                attemptIndex++;
+                continue;
+            }
+
+            var currentSettings = executionSettings;
+            var activeConfig = GetProviderConfig(targetIndex);
+            if (targetIndex > 0 && currentSettings is not null && activeConfig is not null)
+            {
+                currentSettings.ModelId = activeConfig.ModelId;
+            }
+
+            IAsyncEnumerator<StreamingChatMessageContent>? enumerator = null;
+            bool iterateSuccessful = false;
+            bool yieldedAny = false;
+            int totalTokens = 0;
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                if (activeConfig != null)
+                {
+                    _tracker.RecordRequest(activeConfig);
+                }
+
+                var stream = service.GetStreamingChatMessageContentsAsync(chatHistory, currentSettings, kernel ?? _kernel, cancellationToken);
+                enumerator = stream.GetAsyncEnumerator(cancellationToken);
+            }
+            catch (Exception ex) when (IsTransientOrRateLimitError(ex))
+            {
+                if (activeConfig != null)
+                {
+                    _tracker.MarkFailure(activeConfig, ex);
+                }
+                _logger.LogWarning(ex, "Streaming chat service attempt {Attempt} failed during initialization. Falling back.", attemptIndex + 1);
+                attemptIndex++;
+                continue;
+            }
+
+            try
+            {
+                while (true)
+                {
+                    bool hasNext = false;
+                    try
                     {
-                        var fallbackConfig = _fallbacks[attemptIndex - 1];
-                        currentSettings.ModelId = fallbackConfig.ModelId;
+                        hasNext = await enumerator.MoveNextAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception ex) when (IsTransientOrRateLimitError(ex))
+                    {
+                        if (activeConfig != null)
+                        {
+                            _tracker.MarkFailure(activeConfig, ex);
+                        }
+
+                        if (yieldedAny)
+                        {
+                            _logger.LogError(ex, "Streaming failed after yielding content. Cannot fallback safely without duplicate content.");
+                            throw;
+                        }
+                        _logger.LogWarning(ex, "Streaming chat service attempt {Attempt} failed during iteration. Falling back.", attemptIndex + 1);
+                        attemptIndex++;
+                        break;
                     }
 
-                    return service.GetStreamingChatMessageContentsAsync(chatHistory, currentSettings, kernel ?? _kernel, ctx.CancellationToken);
-                },
-                context);
+                    if (!hasNext)
+                    {
+                        iterateSuccessful = true;
+                        break;
+                    }
 
-            return result;
+                    var chunk = enumerator.Current;
+                    if (chunk.Metadata != null && chunk.Metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
+                    {
+                        try
+                        {
+                            dynamic usage = usageObj;
+                            int prompt = usage.InputTokens ?? 0;
+                            int completion = usage.OutputTokens ?? 0;
+                            totalTokens = prompt + completion;
+                        }
+                        catch { }
+                    }
+                    else if (!string.IsNullOrEmpty(chunk.Content))
+                    {
+                        totalTokens += (chunk.Content.Length + 3) / 4;
+                    }
+
+                    yield return chunk;
+                    yieldedAny = true;
+                }
+            }
+            finally
+            {
+                if (enumerator is not null)
+                {
+                    await enumerator.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+
+            if (iterateSuccessful)
+            {
+                if (activeConfig != null)
+                {
+                    _tracker.RecordMetrics(activeConfig, totalTokens, stopwatch.Elapsed);
+                }
+                break;
+            }
         }
-        finally
+    }
+
+    private IVKAIProviderOptions? GetProviderConfig(int attemptIndex)
+    {
+        if (attemptIndex == 0)
         {
-            ResilienceContextPool.Shared.Return(context);
+            return _chatOptions;
         }
+        if (attemptIndex - 1 < _fallbacks.Count)
+        {
+            return _fallbacks[attemptIndex - 1];
+        }
+        return null;
+    }
+
+    private int GetTokenCount(IReadOnlyList<ChatMessageContent> results)
+    {
+        var msg = results?.FirstOrDefault();
+        if (msg?.Metadata != null && msg.Metadata.TryGetValue("Usage", out var usageObj) && usageObj is not null)
+        {
+            try
+            {
+                dynamic usage = usageObj;
+                int prompt = usage.InputTokens ?? 0;
+                int completion = usage.OutputTokens ?? 0;
+                return prompt + completion;
+            }
+            catch { }
+        }
+        return 0;
     }
 
     private ResiliencePipeline<IReadOnlyList<ChatMessageContent>> BuildPipeline()
@@ -144,32 +314,10 @@ internal sealed class CompositeChatCompletionService : IChatCompletionService
                     .Handle<Exception>(IsTransientOrRateLimitError),
                 OnRetry = args =>
                 {
-                    _logger.LogWarning(args.Outcome.Exception, "Chat service attempt {Attempt} failed. Falling back to next service.", args.AttemptNumber);
-                    args.Context.Properties.Set(new ResiliencePropertyKey<int>("AttemptIndex"), args.AttemptNumber + 1);
-                    return default;
-                }
-            });
-        }
-
-        return builder.Build();
-    }
-
-    private ResiliencePipeline<IAsyncEnumerable<StreamingChatMessageContent>> BuildStreamingPipeline()
-    {
-        var builder = new ResiliencePipelineBuilder<IAsyncEnumerable<StreamingChatMessageContent>>();
-
-        if (_fallbacks.Count > 0)
-        {
-            builder.AddRetry(new RetryStrategyOptions<IAsyncEnumerable<StreamingChatMessageContent>>
-            {
-                MaxRetryAttempts = _fallbacks.Count,
-                Delay = TimeSpan.Zero,
-                ShouldHandle = new PredicateBuilder<IAsyncEnumerable<StreamingChatMessageContent>>()
-                    .Handle<Exception>(IsTransientOrRateLimitError),
-                OnRetry = args =>
-                {
-                    _logger.LogWarning(args.Outcome.Exception, "Streaming chat service attempt {Attempt} failed. Falling back to next service.", args.AttemptNumber);
-                    args.Context.Properties.Set(new ResiliencePropertyKey<int>("AttemptIndex"), args.AttemptNumber + 1);
+                    int currentAttempt = 0;
+                    args.Context.Properties.TryGetValue(new ResiliencePropertyKey<int>("AttemptIndex"), out currentAttempt);
+                    _logger.LogWarning(args.Outcome.Exception, "Chat service attempt {Attempt} failed. Falling back to next service.", currentAttempt + 1);
+                    args.Context.Properties.Set(new ResiliencePropertyKey<int>("AttemptIndex"), currentAttempt + 1);
                     return default;
                 }
             });

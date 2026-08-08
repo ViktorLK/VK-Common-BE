@@ -2,15 +2,13 @@ using System;
 using System.Net.Http;
 using Microsoft.SemanticKernel;
 
-using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
-
 namespace VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 
-internal static partial class AISKProviderRegistrar
+internal static partial class AISemanticKernelProviderRegistrar
 {
     internal static void RegisterAzureOpenAIChat(
         this IKernelBuilder builder,
-        VKAISKDefaultsOptions aiskOptions,
+        VKAISemanticKernelOptions AISemanticKernelOptions,
         IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient,
         string? serviceId = null)
@@ -21,7 +19,7 @@ internal static partial class AISKProviderRegistrar
         var modelId = connectionSettings.ModelId ?? string.Empty;
 
         builder.AddAzureOpenAIChatCompletion(
-            deploymentName: aiskOptions.DeploymentName ?? modelId,
+            deploymentName: AISemanticKernelOptions.DeploymentName ?? modelId,
             endpoint: connectionSettings.Endpoint,
             apiKey: connectionSettings.ApiKey?.Reveal() ?? string.Empty,
             serviceId: serviceId,
@@ -30,7 +28,7 @@ internal static partial class AISKProviderRegistrar
 
     internal static void RegisterAzureOpenAIEmbedding(
         this IKernelBuilder builder,
-        VKAISKDefaultsOptions aiskOptions,
+        VKAISemanticKernelOptions AISemanticKernelOptions,
         IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
@@ -40,11 +38,9 @@ internal static partial class AISKProviderRegistrar
         var modelId = connectionSettings.ModelId ?? string.Empty;
 
         builder.AddAzureOpenAIEmbeddingGenerator(
-            deploymentName: aiskOptions.DeploymentName ?? modelId,
+            deploymentName: AISemanticKernelOptions.DeploymentName ?? modelId,
             endpoint: connectionSettings.Endpoint,
             apiKey: connectionSettings.ApiKey?.Reveal() ?? string.Empty,
             httpClient: httpClient);
     }
 }
-
-
