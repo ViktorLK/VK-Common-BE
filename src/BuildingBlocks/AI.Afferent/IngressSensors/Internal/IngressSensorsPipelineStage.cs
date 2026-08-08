@@ -8,7 +8,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent.IngressSensors.Internal;
 
-internal sealed class IngressSensorsPipelineStage : IVKPsycheBeforePipelineStage
+internal sealed class IngressSensorsPipelineStage : IVKPsychePipelineStage
 {
     private readonly IVKSystemEventDispatcher _eventDispatcher;
     private readonly VKIngressSensorsOptions _options;
@@ -16,7 +16,7 @@ internal sealed class IngressSensorsPipelineStage : IVKPsycheBeforePipelineStage
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => new(250, false);
+    public VKPipelineSchedule Schedule => new(250, false, null, VKPipelinePhase.Before);
 
     public IngressSensorsPipelineStage(
         IVKSystemEventDispatcher eventDispatcher,

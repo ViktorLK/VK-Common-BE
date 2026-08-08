@@ -1,15 +1,13 @@
 using System;
 using Microsoft.SemanticKernel;
 
-using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
-
 namespace VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 
-internal static partial class AISKProviderRegistrar
+internal static partial class AISemanticKernelProviderRegistrar
 {
     internal static void RegisterOllamaChat(
         this IKernelBuilder builder,
-        VKAISKDefaultsOptions aiskOptions,
+        VKAISemanticKernelOptions AISemanticKernelOptions,
         IVKAIProviderOptions connectionSettings,
         string? serviceId = null)
     {
@@ -20,7 +18,7 @@ internal static partial class AISKProviderRegistrar
 
     internal static void RegisterOllamaEmbedding(
         this IKernelBuilder builder,
-        VKAISKDefaultsOptions aiskOptions,
+        VKAISemanticKernelOptions AISemanticKernelOptions,
         IVKAIProviderOptions connectionSettings)
     {
         var endpoint = new Uri(connectionSettings.Endpoint ?? "http://localhost:11434");
@@ -28,5 +26,3 @@ internal static partial class AISKProviderRegistrar
         builder.AddOllamaEmbeddingGenerator(modelId: modelId, endpoint: endpoint);
     }
 }
-
-

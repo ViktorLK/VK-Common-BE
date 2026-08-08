@@ -302,6 +302,7 @@ internal sealed class DefaultReminderService : IVKReminderService
 
             var knowledgeEntry = new VKKnowledgeEntry
             {
+                TenantId = VKTenantId.Default,
                 Id = new VKKnowledgeId(parsedId),
                 Segment = new VKPromptSegment
                 {

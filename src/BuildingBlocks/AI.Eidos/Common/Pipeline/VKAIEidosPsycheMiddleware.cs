@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ using Microsoft.Extensions.Options;
 using VK.Blocks.AI;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
+
+using System.Text.Unicode;
 
 namespace VK.Blocks.AI.Eidos;
 
@@ -25,6 +28,7 @@ public sealed class VKAIEidosPsycheMiddleware(
     IVKContractRepairService repairService,
     IVKContractFallbackPolicy fallbackPolicy,
     IVKProviderCapabilityDetector capabilityDetector,
+    IVKJsonSerializer jsonSerializer,
     IOptions<VKParsingOptions>? parsingOptions = null) : IVKPsycheMiddleware
 {
     private readonly IVKContractResolver _resolver = VKGuard.NotNull(resolver);
@@ -36,6 +40,7 @@ public sealed class VKAIEidosPsycheMiddleware(
     private readonly IVKContractRepairService _repairService = VKGuard.NotNull(repairService);
     private readonly IVKContractFallbackPolicy _fallbackPolicy = VKGuard.NotNull(fallbackPolicy);
     private readonly IVKProviderCapabilityDetector _capabilityDetector = VKGuard.NotNull(capabilityDetector);
+    private readonly IVKJsonSerializer _jsonSerializer = VKGuard.NotNull(jsonSerializer);
     private readonly VKParsingOptions _parsingOptions = parsingOptions?.Value ?? new VKParsingOptions();
 
     public int MiddlewareOrder => VKPsychePipelineScheduler.Middleware.EidosContract;
@@ -63,16 +68,18 @@ public sealed class VKAIEidosPsycheMiddleware(
             chatArgs.Provider?.ToString() ?? "Default",
             chatArgs.ModelId ?? "Default");
 
+        var eidosArgs = context.Args<VKAIEidosRequestArgs>();
         var negotiationRes = _negotiator.Negotiate(contract, capabilities);
-        var currentMode = negotiationRes.SelectedMode;
-
-        ProjectForMode(context, contract, currentMode, chatArgs);
+        var currentMode = eidosArgs?.PreferredMode ?? negotiationRes.SelectedMode;
 
         int repairAttempt = 0;
         List<string> accumulatedIssues = [];
 
         while (true)
         {
+            var currentChatArgs = context.Args<VKChatArgs>() ?? new VKChatArgs();
+            ProjectForMode(context, contract, currentMode, currentChatArgs);
+
             // 3. Execute LLM Call in Pipeline Inner Ring
             var pipelineResult = await next().ConfigureAwait(false);
             if (pipelineResult.IsFailure)
@@ -81,7 +88,7 @@ public sealed class VKAIEidosPsycheMiddleware(
             }
 
             // 4. Extract raw JSON from response
-            string? rawJson = ExtractRawJson(context);
+            string? rawJson = ExtractRawJson(context, contract);
             if (string.IsNullOrWhiteSpace(rawJson))
             {
                 SetEnvelope(context, null, null, currentMode, contract, ["No JSON content extracted from response."]);
@@ -121,8 +128,6 @@ public sealed class VKAIEidosPsycheMiddleware(
                 accumulatedIssues.Add($"[Fallback] Mode downgraded from {currentMode} to {fallbackMode}.");
                 currentMode = fallbackMode;
                 repairAttempt = 0;
-
-                ProjectForMode(context, contract, currentMode, chatArgs);
                 continue;
             }
 
@@ -140,23 +145,47 @@ public sealed class VKAIEidosPsycheMiddleware(
         var args = context.Args<VKAIEidosRequestArgs>();
         if (args is null) return null;
 
-        if (args.ExplicitContract is not null) return args.ExplicitContract;
+        VKAIEidosResponseContract? resolvedContract = args.ExplicitContract;
 
-        if (!string.IsNullOrWhiteSpace(args.Scenario))
+        if (resolvedContract is null && !string.IsNullOrWhiteSpace(args.Scenario))
         {
             var tenantId = context.Request.TenantId?.Value.ToString();
             var personaId = context.Request.PersonaId.Value.ToString();
 
             var contractRes = await _resolver.ResolveForContextAsync(args.Scenario, tenantId, personaId, cancellationToken).ConfigureAwait(false);
-            if (contractRes.IsSuccess) return contractRes.Value;
+            if (contractRes.IsSuccess)
+            {
+                resolvedContract = contractRes.Value;
+            }
         }
 
-        return null;
+        if (resolvedContract is null && args.TargetType is not null)
+        {
+            return VKAIEidosSchemaFactory.CreateContract(args.TargetType, args.Scenario ?? args.TargetType.Name);
+        }
+
+        if (resolvedContract is not null && args.TargetType is not null)
+        {
+            var baseSchema = VKAIEidosSchemaFactory.FromType(args.TargetType, resolvedContract.Schema.SchemaName);
+            var mergedRawSchema = VKAIEidosSchemaFactory.MergeSchemas(baseSchema.RawJsonSchema, resolvedContract.Schema.RawJsonSchema);
+
+            resolvedContract = resolvedContract with
+            {
+                Schema = resolvedContract.Schema with
+                {
+                    RawJsonSchema = mergedRawSchema
+                }
+            };
+        }
+
+        return resolvedContract;
     }
 
     private void ProjectForMode(VKPsycheContext context, VKAIEidosResponseContract contract, VKAIEidosExpressionMode mode, VKChatArgs chatArgs)
     {
-        var injectNarrative = context.Args<VKAIEidosRequestArgs>()?.InjectNarrativeField ?? false;
+        var eidosArgs = context.Args<VKAIEidosRequestArgs>();
+        var isNarrativeTarget = eidosArgs?.TargetType is not null && typeof(IVKNarrativeResponse).IsAssignableFrom(eidosArgs.TargetType);
+        var injectNarrative = (eidosArgs?.InjectNarrativeField ?? false) || isNarrativeTarget;
 
         switch (mode)
         {
@@ -207,12 +236,19 @@ public sealed class VKAIEidosPsycheMiddleware(
         public string Version => "1.0";
     }
 
-    private string? ExtractRawJson(VKPsycheContext context)
+    private string? ExtractRawJson(VKPsycheContext context, VKAIEidosResponseContract contract)
     {
-        var toolCall = context.Response.ChatResponse?.Message.ToolCalls?.FirstOrDefault();
-        if (toolCall is not null)
+        var toolCalls = context.Response.ChatResponse?.Message.ToolCalls;
+        if (toolCalls is not null && toolCalls.Count > 0)
         {
-            return JsonSerializer.Serialize(toolCall.Arguments);
+            var targetToolCall = toolCalls.FirstOrDefault(t =>
+                string.Equals(t.Name, contract.Schema.SchemaName, StringComparison.OrdinalIgnoreCase))
+                ?? toolCalls.FirstOrDefault();
+
+            if (targetToolCall is not null && targetToolCall.Arguments is not null)
+            {
+                return _jsonSerializer.Serialize(targetToolCall.Arguments);
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(context.Response.ChatResponse?.Message.Content))
@@ -254,6 +290,7 @@ public sealed class VKAIEidosPsycheMiddleware(
             Issues = issues
         };
 
-        context.Response.ModelResult = envelope;
+        context.Response.ModelResult = model ?? envelope;
+        context.Response.Metadata["VKAIEidosEnvelope"] = envelope;
     }
 }

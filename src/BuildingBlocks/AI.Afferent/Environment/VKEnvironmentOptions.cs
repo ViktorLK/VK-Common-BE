@@ -6,8 +6,8 @@ namespace VK.Blocks.AI.Afferent;
 /// Configuration options for the Environment feature.
 /// Follows AP.01, AP.03, and BB.07.
 /// </summary>
-[VKFeature(typeof(VKAIAfferentBlock), Namespace = "VK.Blocks.AI.Afferent.Environment")]
-public sealed partial record VKEnvironmentOptions : IVKEnvironmentOptions
+
+public sealed partial record VKEnvironmentOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Environment is enabled.

@@ -2,8 +2,8 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent;
 
-[VKFeature(typeof(VKAIAfferentBlock), Namespace = "VK.Blocks.AI.Afferent.IngressTokenics")]
-public sealed partial record VKIngressTokenicsOptions : IVKIngressTokenicsOptions
+
+public sealed partial record VKIngressTokenicsOptions : IVKToggleableBlockOptions
 {
     public bool Enabled { get; init; } = true;
     public int MaxInputTokens { get; init; } = 32768;

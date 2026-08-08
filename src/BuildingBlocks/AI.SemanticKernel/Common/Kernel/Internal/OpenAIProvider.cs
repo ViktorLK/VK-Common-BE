@@ -2,15 +2,13 @@ using System;
 using System.Net.Http;
 using Microsoft.SemanticKernel;
 
-using VK.Blocks.AI.SemanticKernel.Common.DependencyInjection;
-
 namespace VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 
-internal static partial class AISKProviderRegistrar
+internal static partial class AISemanticKernelProviderRegistrar
 {
     internal static void RegisterOpenAIChat(
         this IKernelBuilder builder,
-        VKAISKDefaultsOptions aiskOptions,
+        VKAISemanticKernelOptions AISemanticKernelOptions,
         IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient,
         string? serviceId = null)
@@ -20,14 +18,14 @@ internal static partial class AISKProviderRegistrar
         builder.AddOpenAIChatCompletion(
             modelId: modelId,
             apiKey: connectionSettings.ApiKey?.Reveal() ?? string.Empty,
-            orgId: aiskOptions.OrgId,
+            orgId: AISemanticKernelOptions.OrgId,
             serviceId: serviceId,
             httpClient: httpClient);
     }
 
     internal static void RegisterOpenAIEmbedding(
         this IKernelBuilder builder,
-        VKAISKDefaultsOptions aiskOptions,
+        VKAISemanticKernelOptions AISemanticKernelOptions,
         IVKAIProviderOptions connectionSettings,
         HttpClient? httpClient)
     {
@@ -36,9 +34,7 @@ internal static partial class AISKProviderRegistrar
         builder.AddOpenAIEmbeddingGenerator(
             modelId,
             connectionSettings.ApiKey?.Reveal() ?? throw new InvalidOperationException("ApiKey is required for OpenAI"),
-            orgId: aiskOptions.OrgId,
+            orgId: AISemanticKernelOptions.OrgId,
             httpClient: httpClient);
     }
 }
-
-

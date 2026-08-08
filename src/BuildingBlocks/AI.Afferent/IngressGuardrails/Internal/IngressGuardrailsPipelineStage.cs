@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -8,7 +7,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent.IngressGuardrails.Internal;
 
-internal sealed class IngressGuardrailsPipelineStage : IVKPsycheBeforePipelineStage
+internal sealed class IngressGuardrailsPipelineStage : IVKPsychePipelineStage
 {
     private readonly IVKIngressGuardrail _guardrail;
     private readonly VKIngressGuardrailsOptions _options;
@@ -16,7 +15,7 @@ internal sealed class IngressGuardrailsPipelineStage : IVKPsycheBeforePipelineSt
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => new(100, false); // Executes first for safety
+    public VKPipelineSchedule Schedule => new(100, false, null, VKPipelinePhase.Before); // Executes first for safety
 
     public IngressGuardrailsPipelineStage(
         IVKIngressGuardrail guardrail,

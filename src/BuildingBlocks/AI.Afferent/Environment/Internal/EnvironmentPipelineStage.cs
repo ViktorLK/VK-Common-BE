@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Afferent.Environment.Internal;
 /// <summary>
 /// Pipeline stage for environment and screen perception.
 /// </summary>
-internal sealed class EnvironmentPipelineStage : IVKPsycheBeforePipelineStage
+internal sealed class EnvironmentPipelineStage : IVKPsychePipelineStage
 {
     private readonly IVKEnvironmentPerceptionProvider _perceptionProvider;
     private readonly VKEnvironmentOptions _options;
@@ -18,7 +18,7 @@ internal sealed class EnvironmentPipelineStage : IVKPsycheBeforePipelineStage
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => new(200, false); // Runs after safety, before text/tokenics
+    public VKPipelineSchedule Schedule => new(200, false, null, VKPipelinePhase.Before);
 
     public EnvironmentPipelineStage(
         IVKEnvironmentPerceptionProvider perceptionProvider,

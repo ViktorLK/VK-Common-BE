@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json.Serialization;
@@ -23,7 +23,7 @@ internal sealed class WebSearchTool : IVKAtomicTool
         VKGuard.NotNull(httpClientFactory);
         _jsonSerializer = VKGuard.NotNull(jsonSerializer);
 
-        _httpClient = httpClientFactory.CreateClient(AISKConstants.HttpClientName);
+        _httpClient = httpClientFactory.CreateClient(AISemanticKernelConstants.HttpClientName);
     }
 
     /// <inheritdoc />
