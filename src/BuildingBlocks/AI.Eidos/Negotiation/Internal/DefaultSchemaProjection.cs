@@ -6,7 +6,7 @@ namespace VK.Blocks.AI.Eidos.Negotiation.Internal;
 
 internal sealed class DefaultSchemaProjection : IVKSchemaProjection
 {
-    public string ProjectToSchema(VKAIEidosResponseContract contract, bool injectNarrativeField = false)
+    public string ProjectToSchema(VKAIEidosResponseContract contract, bool injectNarrativeField = false, bool allowSegmentation = true)
     {
         VKGuard.NotNull(contract);
 
@@ -15,10 +15,10 @@ internal sealed class DefaultSchemaProjection : IVKSchemaProjection
             return contract.Schema.RawJsonSchema;
         }
 
-        return InjectNarrativeFieldToSchema(contract.Schema.RawJsonSchema);
+        return InjectNarrativeFieldToSchema(contract.Schema.RawJsonSchema, allowSegmentation);
     }
 
-    internal static string InjectNarrativeFieldToSchema(string rawJsonSchema)
+    internal static string InjectNarrativeFieldToSchema(string rawJsonSchema, bool allowSegmentation = true)
     {
         try
         {
@@ -31,12 +31,17 @@ internal sealed class DefaultSchemaProjection : IVKSchemaProjection
                     obj["properties"] = properties;
                 }
 
-                if (!properties.ContainsKey("narrativeText"))
+                var descriptionText = allowSegmentation
+                    ? "Natural language response segments for user display. Split into multiple array elements if natural conversational pauses or spoken phrase breaks exist; otherwise, return a single-element array."
+                    : "Natural language response text for user display. MUST return a single-element array containing the entire un-segmented response.";
+
+                if (!properties.ContainsKey("narrativeSegments"))
                 {
-                    properties["narrativeText"] = new JsonObject
+                    properties["narrativeSegments"] = new JsonObject
                     {
-                        ["type"] = "string",
-                        ["description"] = "Natural language response/narrative text for user display. REQUIRED: You MUST insert '§' as a natural speech pause delimiter between spoken phrases or conversational breaks (e.g., '好的§我想想§其实是这样的')."
+                        ["type"] = "array",
+                        ["items"] = new JsonObject { ["type"] = "string" },
+                        ["description"] = descriptionText
                     };
                 }
 
@@ -49,7 +54,7 @@ internal sealed class DefaultSchemaProjection : IVKSchemaProjection
                 bool containsNarrative = false;
                 foreach (var item in requiredArray)
                 {
-                    if (item?.GetValue<string>() == "narrativeText")
+                    if (item?.GetValue<string>() == "narrativeSegments")
                     {
                         containsNarrative = true;
                         break;
@@ -58,7 +63,7 @@ internal sealed class DefaultSchemaProjection : IVKSchemaProjection
 
                 if (!containsNarrative)
                 {
-                    requiredArray.Add("narrativeText");
+                    requiredArray.Add("narrativeSegments");
                 }
 
                 return obj.ToJsonString();

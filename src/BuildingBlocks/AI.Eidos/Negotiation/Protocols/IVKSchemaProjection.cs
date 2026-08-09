@@ -4,5 +4,5 @@ namespace VK.Blocks.AI.Eidos;
 
 public interface IVKSchemaProjection
 {
-    string ProjectToSchema(VKAIEidosResponseContract contract, bool injectNarrativeField = false);
+    string ProjectToSchema(VKAIEidosResponseContract contract, bool injectNarrativeField = false, bool allowSegmentation = true);
 }

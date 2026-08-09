@@ -18,4 +18,11 @@ public interface IVKEchoStore
     Task<VKResult<IReadOnlyCollection<VKEchoTrace>>> GetHistoryAsync(
         VKSessionId sessionId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Appends a new conversation echo trace to short-term memory.
+    /// </summary>
+    Task<VKResult> SaveTraceAsync(
+        VKEchoTrace trace,
+        CancellationToken cancellationToken = default);
 }

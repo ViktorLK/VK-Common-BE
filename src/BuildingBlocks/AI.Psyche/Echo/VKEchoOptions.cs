@@ -59,4 +59,10 @@ public sealed partial record VKEchoOptions : IVKToggleableBlockOptions
     /// Default is <see cref="VKEchoRenderStyle.Header"/>.
     /// </summary>
     public VKEchoRenderStyle RenderStyle { get; init; } = VKEchoRenderStyle.Bracket;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether conversation history (user prompt and assistant response) is automatically saved into IVKEchoStore upon pipeline completion.
+    /// Default is true.
+    /// </summary>
+    public bool AutoSaveHistory { get; init; } = true;
 }

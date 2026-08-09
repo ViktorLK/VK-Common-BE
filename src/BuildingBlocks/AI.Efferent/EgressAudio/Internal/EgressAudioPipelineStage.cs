@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +8,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Efferent.EgressAudio.Internal;
 
-internal sealed class EgressAudioPipelineStage : IVKPsycheAfterPipelineStage
+internal sealed class EgressAudioPipelineStage : IVKPsychePipelineStage
 {
     private readonly IVKEgressAudioService _audioService;
     private readonly VKEgressAudioOptions _options;
@@ -17,7 +16,7 @@ internal sealed class EgressAudioPipelineStage : IVKPsycheAfterPipelineStage
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => new(500, false);
+    public VKPipelineSchedule Schedule => new(500, false, null, VKPipelinePhase.After);
 
     public EgressAudioPipelineStage(
         IVKEgressAudioService audioService,

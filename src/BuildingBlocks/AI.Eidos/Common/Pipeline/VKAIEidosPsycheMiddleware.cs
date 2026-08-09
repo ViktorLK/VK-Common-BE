@@ -186,18 +186,19 @@ public sealed class VKAIEidosPsycheMiddleware(
         var eidosArgs = context.Args<VKAIEidosRequestArgs>();
         var isNarrativeTarget = eidosArgs?.TargetType is not null && typeof(IVKNarrativeResponse).IsAssignableFrom(eidosArgs.TargetType);
         var injectNarrative = (eidosArgs?.InjectNarrativeField ?? false) || isNarrativeTarget;
+        var allowSegmentation = eidosArgs?.AllowNarrativeSegmentation ?? true;
 
         switch (mode)
         {
             case VKAIEidosExpressionMode.StructuredOutput:
-                if (_projector.ProjectToIntermediateRepresentation(contract, mode, injectNarrative) is string schemaStr)
+                if (_projector.ProjectToIntermediateRepresentation(contract, mode, injectNarrative, allowSegmentation) is string schemaStr)
                 {
                     context.Request.WithArgs(chatArgs with { ResponseSchema = schemaStr });
                 }
                 break;
 
             case VKAIEidosExpressionMode.ToolCall:
-                if (_projector.ProjectToIntermediateRepresentation(contract, mode, injectNarrative) is IVKAtomicTool atomicTool)
+                if (_projector.ProjectToIntermediateRepresentation(contract, mode, injectNarrative, allowSegmentation) is IVKAtomicTool atomicTool)
                 {
                     var existingTools = chatArgs.Tools ?? [];
                     var combinedTools = existingTools.Where(t => t.Manifest.Metadata.Name != atomicTool.Manifest.Metadata.Name)
@@ -212,7 +213,7 @@ public sealed class VKAIEidosPsycheMiddleware(
                 break;
 
             case VKAIEidosExpressionMode.PromptJson:
-                if (_projector.ProjectToIntermediateRepresentation(contract, mode, injectNarrative) is string promptInstruction)
+                if (_projector.ProjectToIntermediateRepresentation(contract, mode, injectNarrative, allowSegmentation) is string promptInstruction)
                 {
                     context.AddFragment(new VKPromptFragment
                     {
