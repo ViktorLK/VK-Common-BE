@@ -63,11 +63,6 @@ internal sealed class DefaultFilteringStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (!IsActive)
-        {
-            return VKResult.Success();
-        }
-
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         // Calculate the current turn by counting user messages in the dialogue history

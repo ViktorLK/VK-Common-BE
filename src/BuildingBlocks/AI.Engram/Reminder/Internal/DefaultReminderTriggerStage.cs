@@ -30,11 +30,6 @@ internal sealed class DefaultReminderTriggerStage : IVKPsychePipelineStage
         // // [AP.01] Boundary guard check
         VKGuard.NotNull(context);
 
-        if (!IsActive)
-        {
-            return VKResult.Success();
-        }
-
         // // [CS.03] Async call with ConfigureAwait(false)
         return await _reminderService.EvaluateRemindersAsync(context, cancellationToken).ConfigureAwait(false);
     }

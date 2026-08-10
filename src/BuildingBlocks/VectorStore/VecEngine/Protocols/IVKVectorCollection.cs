@@ -76,4 +76,3 @@ public interface IVKVectorCollection<T> where T : class
         VKMetadataFilter filter,
         CancellationToken cancellationToken = default);
 }
-

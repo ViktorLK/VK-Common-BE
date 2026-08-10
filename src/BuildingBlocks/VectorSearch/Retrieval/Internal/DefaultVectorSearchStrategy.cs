@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
 using VK.Blocks.VectorStore;
 
@@ -14,20 +16,26 @@ internal sealed class DefaultVectorSearchStrategy : IVKSearchStrategy
     private readonly IVKRetrievalStore _retrievalStore;
     private readonly IVKEmbeddingsEngine _embeddingsEngine;
     private readonly IVKVectorStore _vectorStore;
-    private readonly IVKUserContext _userContext;
+    private readonly IVKIdentityContext _identityContext;
+    private readonly VKRetrievalOptions _options;
+    private readonly VKVectorStoreOptions _vectorStoreDefaults;
     private readonly IVKJsonSerializer _jsonSerializer;
 
     public DefaultVectorSearchStrategy(
         IVKRetrievalStore retrievalStore,
         IVKEmbeddingsEngine embeddingsEngine,
         IVKVectorStore vectorStore,
-        IVKUserContext userContext,
+        IVKIdentityContext identityContext,
+        IOptions<VKRetrievalOptions> options,
+        IOptions<VKVectorStoreOptions> vectorStoreDefaults,
         IVKJsonSerializer jsonSerializer)
     {
         _retrievalStore = VKGuard.NotNull(retrievalStore);
         _embeddingsEngine = VKGuard.NotNull(embeddingsEngine);
         _vectorStore = VKGuard.NotNull(vectorStore);
-        _userContext = VKGuard.NotNull(userContext);
+        _identityContext = VKGuard.NotNull(identityContext);
+        _options = options.Value;
+        _vectorStoreDefaults = vectorStoreDefaults.Value;
         _jsonSerializer = VKGuard.NotNull(jsonSerializer);
     }
 
@@ -45,7 +53,7 @@ internal sealed class DefaultVectorSearchStrategy : IVKSearchStrategy
         var embeddingVector = embeddingResult.Value;
         var args = new VKVectorSearchArgs
         {
-            TenantId = _userContext.TenantId ?? VKTenantId.Empty, // TODO
+            TenantId = _identityContext.TenantId,
             Limit = query.TopK,
             MinScore = query.Threshold.HasValue ? (float)query.Threshold.Value : 0.0f,
             CollectionName = query.CollectionName

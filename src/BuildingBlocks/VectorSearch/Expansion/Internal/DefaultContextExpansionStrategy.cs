@@ -16,7 +16,7 @@ internal sealed class DefaultContextExpansionStrategy : IVKContextExpansionStrat
 {
     private readonly IVKVectorStore _vectorStore;
     private readonly IVKJsonSerializer _jsonSerializer;
-    private readonly VKVectorStoreDefaultsOptions _defaults;
+    private readonly VKVectorStoreOptions _defaults;
     private readonly VKContextExpansionOptions _expansionOptions;
 
     // Local model matching VectorStoreDocument from DefaultRetrievalStore
@@ -28,12 +28,12 @@ internal sealed class DefaultContextExpansionStrategy : IVKContextExpansionStrat
     public DefaultContextExpansionStrategy(
         IVKVectorStore vectorStore,
         IVKJsonSerializer jsonSerializer,
-        IOptions<VKVectorStoreDefaultsOptions> defaultsOptions,
+        IOptions<VKVectorStoreOptions> defaultsOptions,
         IOptions<VKContextExpansionOptions> expansionOptions)
     {
         _vectorStore = VKGuard.NotNull(vectorStore); // [AP.01] VKGuard boundary
         _jsonSerializer = VKGuard.NotNull(jsonSerializer);
-        _defaults = defaultsOptions?.Value ?? new VKVectorStoreDefaultsOptions();
+        _defaults = defaultsOptions?.Value ?? new VKVectorStoreOptions();
         _expansionOptions = expansionOptions?.Value ?? new VKContextExpansionOptions();
     }
 
@@ -55,9 +55,9 @@ internal sealed class DefaultContextExpansionStrategy : IVKContextExpansionStrat
             try
             {
                 var metadata = _jsonSerializer.Deserialize<VKVectorMetadata>(result.Document.Metadata);
-                if (metadata is null || 
-                    !metadata.Properties.TryGetValue("document_id", out var documentId) || 
-                    !metadata.Properties.TryGetValue("chunk_index", out var chunkIndexStr) || 
+                if (metadata is null ||
+                    !metadata.Properties.TryGetValue("document_id", out var documentId) ||
+                    !metadata.Properties.TryGetValue("chunk_index", out var chunkIndexStr) ||
                     !int.TryParse(chunkIndexStr, out var chunkIndex))
                 {
                     // Fallback to original result if metadata is missing/corrupted
@@ -83,7 +83,7 @@ internal sealed class DefaultContextExpansionStrategy : IVKContextExpansionStrat
                 // Filter and sort adjacent chunks based on sliding window [chunkIndex - N, chunkIndex + N]
                 var windowSize = _expansionOptions.WindowSize;
                 var adjacentChunks = queryResult.Value
-                    .Select(r => new 
+                    .Select(r => new
                     {
                         Record = r,
                         Index = r.Document.Metadata.Properties.TryGetValue("chunk_index", out var idxStr) && int.TryParse(idxStr, out var idx) ? idx : -1

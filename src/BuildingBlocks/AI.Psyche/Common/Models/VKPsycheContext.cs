@@ -117,7 +117,7 @@ public sealed class VKPsycheContext
     /// <summary>
     /// Gets a value indicating whether to only run the prompt weaving stages, bypassing the LLM call.
     /// </summary>
-    public bool IsWeaveOnly => Args<VKWeavingArgs>()?.WeaveOnly == true;
+    public bool IsWeaveOnly => Request.WeaveOnly;
 
     // ==========================================
     // 7. Execution Context & Abort (Physical Pipeline)

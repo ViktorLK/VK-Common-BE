@@ -6,8 +6,8 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Options for the Search Guard middleware feature.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock))]
-public sealed partial record VKSearchGuardOptions : IVKBlockOptions
+
+public sealed partial record VKSearchGuardOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Search Guard is enabled.

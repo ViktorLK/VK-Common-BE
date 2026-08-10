@@ -16,7 +16,7 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
     private readonly IVKVectorStore _vectorStore;
     private readonly IVKEmbeddingsEngine _embeddingsEngine;
     private readonly IVKGuidGenerator _guidGenerator;
-    private readonly IVKUserContext _userContext;
+    private readonly IVKIdentityContext _identityContext;
     private readonly VKSemanticCacheOptions _options;
     private readonly TimeProvider _timeProvider;
 
@@ -24,14 +24,14 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
         IVKVectorStore vectorStore,
         IVKEmbeddingsEngine embeddingsEngine,
         IVKGuidGenerator guidGenerator,
-        IVKUserContext userContext,
+        IVKIdentityContext identityContext,
         IOptions<VKSemanticCacheOptions> options,
         TimeProvider? timeProvider = null)
     {
         _vectorStore = VKGuard.NotNull(vectorStore);
         _embeddingsEngine = VKGuard.NotNull(embeddingsEngine);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
-        _userContext = VKGuard.NotNull(userContext);
+        _identityContext = VKGuard.NotNull(identityContext);
         _options = VKGuard.NotNull(options?.Value);
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
@@ -57,7 +57,7 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
 
         var searchArgs = new VKVectorSearchArgs
         {
-            TenantId = _userContext.TenantId ?? VKTenantId.Empty,
+            TenantId = _identityContext.TenantId,
             Limit = 1,
             MinScore = (float)_options.ScoreThreshold
         };

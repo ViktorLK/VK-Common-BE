@@ -50,11 +50,6 @@ internal sealed partial class DefaultCompressionStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (!IsActive)
-        {
-            return VKResult.Success();
-        }
-
         // Sandbox mode bypass: strictly skip L2 summary distillation & L3 fact consolidation
         if (context.Request.SessionMode == VKSessionMode.Sandbox)
         {

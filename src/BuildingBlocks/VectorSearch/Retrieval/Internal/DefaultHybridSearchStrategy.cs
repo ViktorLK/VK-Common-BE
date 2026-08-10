@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
-using VK.Blocks.VectorStore;
 using VK.Blocks.VectorSearch.Fusion.Internal;
+using VK.Blocks.VectorStore;
 
 namespace VK.Blocks.VectorSearch.Retrieval.Internal;
 
@@ -18,9 +17,9 @@ internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
     private readonly IVKSparseSearchEngine _sparseSearchEngine;
     private readonly IVKEmbeddingsEngine _embeddingsEngine;
     private readonly IVKVectorStore _vectorStore;
-    private readonly IVKUserContext _userContext;
+    private readonly IVKIdentityContext _identityContext;
     private readonly VKRetrievalOptions _options;
-    private readonly VKVectorStoreDefaultsOptions _vectorStoreDefaults;
+    private readonly VKVectorStoreOptions _vectorStoreDefaults;
     private readonly IVKScoreFusion _rrfFusion = new ReciprocalRankFusion();
 
     public DefaultHybridSearchStrategy(
@@ -28,15 +27,15 @@ internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
         IVKSparseSearchEngine sparseSearchEngine,
         IVKEmbeddingsEngine embeddingsEngine,
         IVKVectorStore vectorStore,
-        IVKUserContext userContext,
+        IVKIdentityContext identityContext,
         IOptions<VKRetrievalOptions> options,
-        IOptions<VKVectorStoreDefaultsOptions> vectorStoreDefaults)
+        IOptions<VKVectorStoreOptions> vectorStoreDefaults)
     {
         _retrievalStore = VKGuard.NotNull(retrievalStore);
         _sparseSearchEngine = VKGuard.NotNull(sparseSearchEngine);
         _embeddingsEngine = VKGuard.NotNull(embeddingsEngine);
         _vectorStore = VKGuard.NotNull(vectorStore);
-        _userContext = VKGuard.NotNull(userContext);
+        _identityContext = VKGuard.NotNull(identityContext);
         _options = VKGuard.NotNull(options?.Value);
         _vectorStoreDefaults = VKGuard.NotNull(vectorStoreDefaults?.Value);
     }
@@ -55,7 +54,7 @@ internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
         var embeddingVector = embeddingResult.Value;
         var searchArgs = new VKVectorSearchArgs
         {
-            TenantId = _userContext.TenantId ?? VKTenantId.Empty,
+            TenantId = _identityContext.TenantId,
             Limit = query.TopK,
             MinScore = query.Threshold.HasValue ? (float)query.Threshold.Value : 0.0f,
             CollectionName = query.CollectionName

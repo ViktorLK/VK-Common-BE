@@ -45,6 +45,11 @@ public sealed record VKPsycheRequest
     /// </summary>
     public string? CorrelationId { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether to only assemble the prompt tapestry without triggering downstream LLM invocation. Default is false.
+    /// </summary>
+    public bool WeaveOnly { get; init; } = false;
+
     private readonly Dictionary<Type, object> _args = [];
 
     public VKPsycheRequest WithArgs<T>(T args) where T : class

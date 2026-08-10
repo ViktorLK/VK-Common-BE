@@ -6,7 +6,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-internal sealed class DefaultPromptFormatterTask : IVKWeavingTask
+internal sealed class DefaultPromptFormatterTask : IVKWeavingPipelineTask
 {
     private readonly IEnumerable<IVKPromptFormatter> _formatters;
 
@@ -20,7 +20,6 @@ internal sealed class DefaultPromptFormatterTask : IVKWeavingTask
     public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
-        cancellationToken.ThrowIfCancellationRequested();
 
         var formattedFragments = new List<VKPromptFragment>();
 

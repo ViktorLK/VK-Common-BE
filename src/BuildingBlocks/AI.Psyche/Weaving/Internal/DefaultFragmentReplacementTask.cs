@@ -6,7 +6,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-internal sealed class DefaultFragmentReplacementTask : IVKWeavingTask
+internal sealed class DefaultFragmentReplacementTask : IVKWeavingPipelineTask
 {
     private readonly IVKPromptTemplateEngine _templateEngine;
     private readonly VKWeavingOptions _options;
@@ -22,9 +22,8 @@ internal sealed class DefaultFragmentReplacementTask : IVKWeavingTask
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
-        cancellationToken.ThrowIfCancellationRequested();
 
-        var variables = context.Args<VKWeavingArgs>()?.Variables ?? _options.Variables;
+        var variables = context.Args<VKWeavingArgs>()?.Variables;
         if (variables is null || variables.Count == 0)
         {
             return VKResult.Success();

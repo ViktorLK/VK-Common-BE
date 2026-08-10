@@ -9,7 +9,7 @@ namespace VK.Blocks.VectorSearch.Expansion.Internal;
 /// <summary>
 /// Pipeline stage for expanding the context of search results.
 /// </summary>
-internal sealed class DefaultContextExpansionStage : IVKVectorSearchAfterPipelineStage
+internal sealed class DefaultContextExpansionStage : IVKVectorSearchPipelineStage
 {
     private readonly IVKContextExpansionStrategy _strategy;
     private readonly VKContextExpansionOptions _options;
@@ -22,7 +22,7 @@ internal sealed class DefaultContextExpansionStage : IVKVectorSearchAfterPipelin
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => VKVectorSearchPipelineScheduler.After.ContextExpansion;
+    public VKPipelineSchedule Schedule => VKVectorSearchPipelineScheduler.After.ContextExpansion;
 
     public async Task<VKResult> ExecuteAsync(VKVectorSearchContext context, CancellationToken cancellationToken)
     {

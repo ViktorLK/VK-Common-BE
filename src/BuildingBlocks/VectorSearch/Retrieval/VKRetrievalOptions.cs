@@ -5,8 +5,8 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Options for the Search stage.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock))]
-public sealed partial record VKRetrievalOptions : IVKBlockOptions
+
+public sealed partial record VKRetrievalOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the Search stage is enabled.

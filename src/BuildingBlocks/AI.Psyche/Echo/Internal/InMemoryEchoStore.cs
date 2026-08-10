@@ -42,6 +42,17 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
         }
     }
 
+    public Task<VKResult> SaveTraceAsync(
+        VKEchoTrace trace,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        VKGuard.NotNull(trace);
+
+        Seed(trace.SessionId, trace);
+        return Task.FromResult(VKResult.Success());
+    }
+
     public InMemoryEchoStore Seed(VKSessionId sessionId, VKEchoTrace trace)
     {
         VKGuard.NotEmptyGuid(sessionId.Value);

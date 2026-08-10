@@ -7,7 +7,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-internal sealed class DefaultCoordinateResolveTask : IVKWeavingTask
+internal sealed class DefaultCoordinateResolveTask : IVKWeavingPipelineTask
 {
     private readonly VKWeavingOptions _options;
 
@@ -21,7 +21,6 @@ internal sealed class DefaultCoordinateResolveTask : IVKWeavingTask
     public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
-        cancellationToken.ThrowIfCancellationRequested();
 
         var tierOrderOverrides = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides ?? _options.TierRenderOrderOverrides;
 

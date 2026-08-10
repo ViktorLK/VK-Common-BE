@@ -1,27 +1,26 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using VK.Blocks.VectorStore;
 using VK.Blocks.Core;
+using VK.Blocks.VectorStore;
 
 namespace VK.Blocks.VectorSearch.Retrieval.Internal;
 
 internal sealed class DefaultRetrievalStore : IVKRetrievalStore
 {
     private readonly IVKVectorStore _vectorStore;
-    private readonly IVKUserContext _userContext;
-    private readonly VKVectorStoreDefaultsOptions _defaults;
+    private readonly IVKIdentityContext _identityContext;
+    private readonly VKVectorStoreOptions _defaults;
 
     public DefaultRetrievalStore(
         IVKVectorStore vectorStore,
-        IVKUserContext userContext,
-        Microsoft.Extensions.Options.IOptions<VKVectorStoreDefaultsOptions> defaultsOptions)
+        IVKIdentityContext identityContext,
+        Microsoft.Extensions.Options.IOptions<VKVectorStoreOptions> defaultsOptions)
     {
         _vectorStore = VKGuard.NotNull(vectorStore);
-        _userContext = VKGuard.NotNull(userContext);
-        _defaults = defaultsOptions?.Value ?? new VKVectorStoreDefaultsOptions();
+        _identityContext = VKGuard.NotNull(identityContext);
+        _defaults = defaultsOptions?.Value ?? new VKVectorStoreOptions();
     }
 
     public async Task<VKResult> UpsertAsync(
@@ -64,7 +63,7 @@ internal sealed class DefaultRetrievalStore : IVKRetrievalStore
 
         var searchArgs = args ?? new VKVectorSearchArgs
         {
-            TenantId = _userContext.TenantId ?? VKTenantId.Empty, // TODO
+            TenantId = _identityContext.TenantId,
             Limit = _defaults.DefaultLimit,
             MinScore = (float)_defaults.DefaultMinScore
         };

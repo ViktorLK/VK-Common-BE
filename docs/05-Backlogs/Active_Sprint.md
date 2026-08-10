@@ -20,6 +20,7 @@
 - [ ] [CORE-015: Refactor Configuration Section Naming to Namespace-Underscore Pattern](./Core/015-refactor-configuration-section-naming-to-namespace-underscore-pattern.md)
 - [ ] [CORE-016: Optimize configuration path resolution in VKFeatureGenerator](./Core/016-optimize-configuration-path-resolution-in-vkfeaturegenerator.md)
 
+- [ ] [CORE-017: Migrate all BuildingBlock Options to VKOptionsAttribute](./Core/017-migrate-all-buildingblock-options-to-vkoptionsattribute.md)
 ## 🧠 AI Tasks
 
 - [x] [AI-001: Deep Recall Mechanism](./.Archive/AI/001-deep-recall-mechanism.md)
@@ -38,7 +39,7 @@
 - [x] [AI-013: Support Prompt-as-a-Tool implementation](./.Archive/AI/013-support-prompt-as-a-tool-implementation.md)
 - [x] [AI-014: Clean up or integrate unused memory schemas (VKMemoryFragment, VKMemorySynapse, VKMemorySynopsis)](<./.Archive/AI/014-clean-up-or-integrate-unused-memory-schemas-(vkmemoryfragment,-vkmemorysynapse,-vkmemorysynopsis).md>)
 
-- [ ] [AI-016: Implement VK.Blocks.AI.RAG Enterprise Search and Retrieval Package](./AI/016-implement-vkblocksairag-enterprise-search-and-retrieval-package.md)
+- [x] [AI-016: Implement VK.Blocks.AI.RAG Enterprise Search and Retrieval Package](./.Archive/AI/016-implement-vkblocksairag-enterprise-search-and-retrieval-package.md)
 - [ ] [AI-017: Decouple Hardcoded AI Dependencies from DI Source Generator](./AI/017-decouple-hardcoded-ai-dependencies-from-di-source-generator.md)
 ## 🔐 Authorization Tasks
 
@@ -113,7 +114,7 @@
 
 ## 📋 AI.Core Tasks
 
-- [ ] [AI.CORE-001: Implement Metadata dictionary in IVKAIProviderOptions for provider-specific connection parameters](./AI.Core/001-implement-metadata-dictionary-in-ivkaiprovidersettings-for-provider-specific-connection-parameters.md)
+- [x] [AI.CORE-001: Implement Metadata dictionary in IVKAIProviderOptions for provider-specific connection parameters](./.Archive/AI.Core/001-implement-metadata-dictionary-in-ivkaiprovidersettings-for-provider-specific-connection-parameters.md)
 
 - [ ] [AI.CORE-002: Industrialize Token Counter Implementation](./AI.Core/002-industrialize-token-counter-implementation.md)
 
@@ -138,7 +139,7 @@
 - [ ] [AI.COGNITIVE-001: Implement Narrative Session Clock Ticking (AdvanceTurnAsync)](<./AI.Cognitive/001-implement-narrative-session-clock-ticking-(advanceturnasync).md>)
 - [ ] [AI.COGNITIVE-002: Implement Dynamic Knowledge Weaver (IVKKnowledgeWeaver)](<./AI.Cognitive/002-implement-dynamic-knowledge-weaver-(ivkknowledgeweaver).md>)
 
-- [ ] [AI.COGNITIVE-001: Promote IVKPersonaExampleStore to AI.Cognitive](./AI.Cognitive/001-promote-ivkpersonaexamplestore-to-aicognitive.md)
+- [x] [AI.COGNITIVE-001: Promote IVKPersonaExampleStore to AI.Cognitive (DEPRECATED)](./.Archive/AI.Cognitive/001-promote-ivkpersonaexamplestore-to-aicognitive.md)
 - [ ] [AI.COGNITIVE-002: Integrate real intent routing in DefaultReasoningPipelineStage](./AI.Cognitive/002-integrate-real-intent-routing-in-defaultreasoningpipelinestage.md)
 ## 🔐 Auth Tasks
 

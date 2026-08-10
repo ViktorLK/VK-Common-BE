@@ -7,5 +7,6 @@ public interface IVKContractProjector
     object ProjectToIntermediateRepresentation(
         VKAIEidosResponseContract contract,
         VKAIEidosExpressionMode mode,
-        bool injectNarrativeField = false);
+        bool injectNarrativeField = false,
+        bool allowSegmentation = true);
 }

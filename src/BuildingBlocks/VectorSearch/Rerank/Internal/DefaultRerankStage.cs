@@ -10,7 +10,7 @@ namespace VK.Blocks.VectorSearch.Rerank.Internal;
 /// <summary>
 /// Pipeline stage for reranking search results using standard core contracts.
 /// </summary>
-internal sealed class DefaultRerankStage : IVKVectorSearchAfterPipelineStage
+internal sealed class DefaultRerankStage : IVKVectorSearchPipelineStage
 {
     private readonly IVKVectorReranker _reRanker;
     private readonly VKVectorRerankingOptions _options;
@@ -23,7 +23,7 @@ internal sealed class DefaultRerankStage : IVKVectorSearchAfterPipelineStage
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => VKVectorSearchPipelineScheduler.After.Rerank;
+    public VKPipelineSchedule Schedule => VKVectorSearchPipelineScheduler.After.Rerank;
 
     public async Task<VKResult> ExecuteAsync(VKVectorSearchContext context, CancellationToken cancellationToken)
     {

@@ -25,14 +25,15 @@ internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
         _timeProvider = VKGuard.NotNull(timeProvider);
     }
 
-    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.After.SessionUpdate;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.After.PsycheSessionUpdate;
+
     public bool IsActive => _options.Enabled;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
 
-        if (context.IsWeaveOnly || context.IsSandbox || context.Request.SessionId.IsNullOrEmpty())
+        if (context.IsWeaveOnly || context.IsSandbox)
         {
             return VKResult.Success();
         }

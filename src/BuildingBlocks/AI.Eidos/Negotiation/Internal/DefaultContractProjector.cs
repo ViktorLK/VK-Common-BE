@@ -14,15 +14,16 @@ internal sealed class DefaultContractProjector(
     public object ProjectToIntermediateRepresentation(
         VKAIEidosResponseContract contract,
         VKAIEidosExpressionMode mode,
-        bool injectNarrativeField = false)
+        bool injectNarrativeField = false,
+        bool allowSegmentation = true)
     {
         VKGuard.NotNull(contract);
 
         return mode switch
         {
-            VKAIEidosExpressionMode.ToolCall => _toolProjection.ProjectToTool(contract, injectNarrativeField),
-            VKAIEidosExpressionMode.PromptJson => _promptProjection.ProjectToPrompt(contract, injectNarrativeField),
-            _ => _schemaProjection.ProjectToSchema(contract, injectNarrativeField)
+            VKAIEidosExpressionMode.ToolCall => _toolProjection.ProjectToTool(contract, injectNarrativeField, allowSegmentation),
+            VKAIEidosExpressionMode.PromptJson => _promptProjection.ProjectToPrompt(contract, injectNarrativeField, allowSegmentation),
+            _ => _schemaProjection.ProjectToSchema(contract, injectNarrativeField, allowSegmentation)
         };
     }
 }

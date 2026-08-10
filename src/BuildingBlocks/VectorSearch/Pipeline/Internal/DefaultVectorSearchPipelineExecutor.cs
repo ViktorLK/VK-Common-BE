@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -18,11 +17,10 @@ internal sealed class DefaultVectorSearchPipelineExecutor : VKPipelineExecutorBa
     private readonly ILogger<DefaultVectorSearchPipelineExecutor> _logger;
 
     public DefaultVectorSearchPipelineExecutor(
-        IEnumerable<IVKVectorSearchBeforePipelineStage> beforeStages,
-        IEnumerable<IVKVectorSearchAfterPipelineStage> afterStages,
+        IEnumerable<IVKVectorSearchPipelineStage> stages,
         IEnumerable<IVKVectorSearchMiddleware> middlewares,
         ILogger<DefaultVectorSearchPipelineExecutor> logger)
-        : base(beforeStages, afterStages, middlewares)
+        : base(stages, middlewares)
     {
         _logger = VKGuard.NotNull(logger);
     }

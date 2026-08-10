@@ -14,12 +14,7 @@ trigger: manual
 - **Null Handling**: Prefer `??` / `??=` / `?.` over explicit null checks. Use `is null` / `is not null` over `== null` to avoid operator overload side-effects and ensure pattern consistency.
 - **Defensive Programming (VKGuard)**:
     - **Mandatory Boundary Checks**: ALL method and constructor boundaries MUST use `VKGuard` to enforce preconditions. Manual `if (x == null) throw` patterns are STRICTLY PROHIBITED.
-    - **Specific Guard Selection**:
-        - Use `VKGuard.NotNull(x)` for reference types.
-        - Use `VKGuard.NotNullOrWhiteSpace(s)` for strings.
-        - Use `VKGuard.NotEmpty(list)` for collections.
-        - Use `VKGuard.NotEmptyGuid(id)` for unique identifiers.
-        - Use `VKGuard.EnumDefined(e)` for enum parameters.
+    - **Guard Selection**: Use appropriate `VKGuard` methods (`NotNull`, `NotNullOrWhiteSpace`, `NotEmpty`, `NotEmptyGuid`, `EnumDefined`).
     - **Fluent Assignment**: Leverage the return value of `VKGuard` for single-line field initialization (e.g., `_service = VKGuard.NotNull(service);`) or expression-bodied members.
 - **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
 
@@ -56,15 +51,13 @@ trigger: manual
 
 #### Implementation Naming Taxonomy
 
-For concrete implementation classes, strictly adhere to the following semantic prefixes to clearly communicate their capability, performance baseline, and engineering intent:
-
-| Prefix | Visibility | Performance & Technical Baseline | Engineering Intent & Context |
-| :--- | :--- | :--- | :--- |
-| **`Default`** | `internal sealed` | Production-grade, high-performance (e.g., `FrozenDictionary`, `ExpressionCompiler`). | **The Official Recommendation**. Use this for the standard, production-ready implementation. |
-| **`Basic`** | `internal sealed` | In-Memory / Single-node / No distributed protection mechanisms. | **Foundational / Lightweight**. Not designed to withstand high concurrency or distributed scale. |
-| **`NoOp`** | `internal sealed` | Zero-allocation, immediately returns `Result.Failure`. | **Graceful Disablement**. The feature is toggled off, but ensures the DI container remains stable. |
-| **`Composite`** | `internal sealed` | Aggregation of multiple implementations. | **Mediator / Aggregator**. Acts as a coordinator or conflict resolver across multiple providers. |
-| **`{Vendor}`** (e.g., `SK`, `Ef`) | `internal sealed` | Carries breaking-change risks aligned with vendor SDK upgrades. Focuses on the Anti-Corruption Layer. | **External Coupling**. Deeply coupled to an external dependency. Must be swappable via interfaces. |
+| Prefix | Visibility | Intent & Context |
+| :--- | :--- | :--- |
+| **`Default`** | `internal sealed` | **Official Recommendation**. Production-grade, high-performance implementation (e.g., `FrozenDictionary`, `ExpressionCompiler`). |
+| **`Basic`** | `internal sealed` | **Foundational / Lightweight**. In-Memory / Single-node, not designed for distributed scale. |
+| **`NoOp`** | `internal sealed` | **Graceful Disablement**. Zero-allocation, immediately returns `Result.Failure`. DI container remains stable. |
+| **`Composite`** | `internal sealed` | **Mediator / Aggregator**. Coordinates or resolves conflicts across multiple providers. |
+| **`{Vendor}`** (e.g., `SK`, `Ef`) | `internal sealed` | **External Coupling**. Anti-Corruption Layer coupled to vendor SDKs. Must be swappable via interfaces. |
 
 #### Interface Versioning (Public API)
 
@@ -100,15 +93,11 @@ For concrete implementation classes, strictly adhere to the following semantic p
 - **Pattern**: Behavioral settings that change per-request MUST follow a **Source-Generator-driven Args pattern** to prevent accidental exposure of system-level configurations while keeping boilerplate minimal.
 - **ArgsGenerationMode** (configured on `[VKFeature]` attribute):
     - **`None` (0, default)**: No Args record is generated. Use when the feature has no request-level overrides.
-    - **`Explicit` (1)**: Only properties decorated with `[VKRequestOverride]` are included in the generated Args. **Recommended** for security-sensitive features where opt-in control is critical.
-    - **`Implicit` (2)**: All public non-static, non-readonly properties are included UNLESS decorated with `[VKNoRequestOverride]`. Suitable for features where most settings are safely overridable.
-- **SG-Generated Outputs** (when `ArgsGenerationMode != None`):
-    - **`{BaseName}Args` record**: A `public partial record` implementing `IVKArgs<{BaseName}Args>`. All properties are nullable to support null-coalescing merge. Nested `Options` types are automatically converted to their corresponding `Args` types.
-    - **`{BaseName}ArgsExtensions` class**: Contains a `Merge(this {BaseName}Args? args, VK{FeatureName}Options options)` extension method.
-    - **AI Blocks**: For modules under the `.AI` namespace, the Args record additionally implements `IVKAIArgs` and includes `Context`, `UserId`, and `Timeout` properties.
-- **Merge Strategy**: The generated `Merge` method uses `options with { ... }` expression with **null-coalescing per property**: `Property = args.Property ?? options.Property`. Nested Args types use recursive `args.Nested.Merge(options.Nested)`.
-- **Naming**: Args records MUST use the **`Args` suffix** derived from the Options class name (e.g., `VKChatOptions` → `VKChatArgs`). The `VK` prefix is preserved.
-- **Static Empty**: Every generated Args record includes a `public static {ArgsName} Empty { get; } = new();` for default/no-override scenarios.
+    - **`Explicit` (1)**: Only properties decorated with `[VKRequestOverride]` are included. **Recommended** for security-sensitive features.
+    - **`Implicit` (2)**: All public non-static, non-readonly properties are included UNLESS decorated with `[VKNoRequestOverride]`.
+- **Convention**: Generated `{BaseName}Args` record implements `IVKArgs<TArgs>` with nullable properties for null-coalescing merge. AI modules additionally implement `IVKAIArgs`.
+- **Naming**: Args records MUST use the **`Args` suffix** (e.g., `VKChatOptions` → `VKChatArgs`). The `VK` prefix is preserved.
+- **Static Empty**: Every generated Args record includes a `public static {ArgsName} Empty { get; } = new();`.
 
 ### AP.06 — Explicit API & Override Pattern (Anti-Overprotection)
 
@@ -117,4 +106,7 @@ For concrete implementation classes, strictly adhere to the following semantic p
 - **Explicit Builder Overrides**: If a block supports custom implementation overrides, they MUST be exposed via explicit chain methods on the builder (e.g., `builder.OverrideAuditProvider<T>()`).
 - **Deterministic Replacement**: Inside `builder.OverrideXxx<T>()` extension methods, using `services.Replace()` is explicitly permitted and recommended. This guarantees deterministic behavior and completely eliminates DI registration order sensitivity.
 
+### AP.07 — Non-Intrusive Capability Boundary
 
+- **No Implicit Side-Effects**: Core BuildingBlocks MUST NOT implicitly create or persist domain entities (e.g., `SessionThread`) when request context lacks explicit identifiers.
+- **App Ownership & Fallback**: Business entity lifecycles belong exclusively to the App layer. Omitted optional identifiers MUST fallback smoothly to stateless execution.

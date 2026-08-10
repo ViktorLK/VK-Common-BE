@@ -31,6 +31,11 @@ public sealed record VKAIEidosRequestArgs
     public bool InjectNarrativeField { get; internal init; } = false;
 
     /// <summary>
+    /// Gets a value indicating whether narrative responses can be split into multiple segment array elements. Default is true.
+    /// </summary>
+    public bool AllowNarrativeSegmentation { get; internal init; } = true;
+
+    /// <summary>
     /// Gets an optional explicit preferred expression mode (e.g. ToolCall, StructuredOutput, PromptJson).
     /// </summary>
     public VKAIEidosExpressionMode? PreferredMode { get; internal init; }

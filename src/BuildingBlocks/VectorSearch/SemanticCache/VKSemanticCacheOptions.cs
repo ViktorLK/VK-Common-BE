@@ -6,7 +6,7 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Options for the Semantic Cache.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock))]
+
 public sealed partial record VKSemanticCacheOptions : IVKToggleableBlockOptions
 {
     /// <summary>

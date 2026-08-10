@@ -47,7 +47,8 @@ internal sealed class ReciprocalRankFusion : IVKScoreFusion
             for (var i = 0; i < limit; i++)
             {
                 var candidate = singleRun[i];
-                if (candidate?.Chunk is null) continue;
+                if (candidate?.Chunk is null)
+                    continue;
 
                 var rank = candidate.Rank > 0 ? candidate.Rank : i + 1;
                 fastResults.Add(new VKSearchResult
@@ -69,12 +70,14 @@ internal sealed class ReciprocalRankFusion : IVKScoreFusion
         for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
             var run = runs[runIndex];
-            if (run is null) continue;
+            if (run is null)
+                continue;
 
             for (var i = 0; i < run.Count; i++)
             {
                 var candidate = run[i];
-                if (candidate?.Chunk is null) continue;
+                if (candidate?.Chunk is null)
+                    continue;
 
                 var rank = candidate.Rank > 0 ? candidate.Rank : i + 1;
                 var scoreContribution = 1.0f / (K + rank);

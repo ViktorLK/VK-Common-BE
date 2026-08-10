@@ -9,11 +9,11 @@ namespace VK.Blocks.AI.Eidos.Negotiation.Internal;
 
 internal sealed class DefaultToolProjection : IVKToolProjection
 {
-    public IVKAtomicTool ProjectToTool(VKAIEidosResponseContract contract, bool injectNarrativeField = false)
+    public IVKAtomicTool ProjectToTool(VKAIEidosResponseContract contract, bool injectNarrativeField = false, bool allowSegmentation = true)
     {
         VKGuard.NotNull(contract);
         var schema = injectNarrativeField
-            ? DefaultSchemaProjection.InjectNarrativeFieldToSchema(contract.Schema.RawJsonSchema)
+            ? DefaultSchemaProjection.InjectNarrativeFieldToSchema(contract.Schema.RawJsonSchema, allowSegmentation)
             : contract.Schema.RawJsonSchema;
         return new EidosDynamicContractTool(contract, schema);
     }

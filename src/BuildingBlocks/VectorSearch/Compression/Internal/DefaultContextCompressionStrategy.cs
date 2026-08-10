@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -162,7 +161,8 @@ internal sealed class DefaultContextCompressionStrategy : IVKContextCompressionS
     {
         var va = a.Values.Span;
         var vb = b.Values.Span;
-        if (va.Length != vb.Length) return 0f;
+        if (va.Length != vb.Length)
+            return 0f;
 
         double dotProduct = 0;
         double normA = 0;
@@ -175,7 +175,8 @@ internal sealed class DefaultContextCompressionStrategy : IVKContextCompressionS
             normB += vb[i] * vb[i];
         }
 
-        if (normA == 0 || normB == 0) return 0f;
+        if (normA == 0 || normB == 0)
+            return 0f;
         return (float)(dotProduct / (Math.Sqrt(normA) * Math.Sqrt(normB)));
     }
 
