@@ -28,11 +28,6 @@ internal sealed class DefaultRevisionStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (!IsActive)
-        {
-            return VKResult.Success();
-        }
-
         return await _revisionService.ReviseSessionMemoriesAsync(context, cancellationToken).ConfigureAwait(false);
     }
 }

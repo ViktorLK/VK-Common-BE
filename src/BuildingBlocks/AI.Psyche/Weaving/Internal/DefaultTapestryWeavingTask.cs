@@ -12,7 +12,7 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
+internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
 {
     private readonly IVKTokenCounter _tokenCounter;
     private readonly VKWeavingOptions _options;
@@ -37,7 +37,6 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingTask
     {
         // // [AP.01] Defensive boundary checks via VKGuard
         VKGuard.NotNull(context);
-        cancellationToken.ThrowIfCancellationRequested();
 
         var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _options.DisabledTiers;
 

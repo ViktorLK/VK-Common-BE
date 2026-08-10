@@ -28,7 +28,8 @@ internal sealed class WeightedScoreFusion : IVKScoreFusion
         for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
             var run = runs[runIndex];
-            if (run is null || run.Count == 0) continue;
+            if (run is null || run.Count == 0)
+                continue;
 
             var weight = runIndex < _weights.Length ? _weights[runIndex] : 1.0f;
 
@@ -38,10 +39,11 @@ internal sealed class WeightedScoreFusion : IVKScoreFusion
 
             foreach (var candidate in run)
             {
-                if (candidate?.Chunk is null) continue;
+                if (candidate?.Chunk is null)
+                    continue;
 
-                var normalizedScore = range > 1e-6f 
-                    ? (candidate.Score - minScore) / range 
+                var normalizedScore = range > 1e-6f
+                    ? (candidate.Score - minScore) / range
                     : 1.0f;
 
                 var weightedContribution = normalizedScore * weight;

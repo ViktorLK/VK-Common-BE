@@ -6,4 +6,4 @@ namespace VK.Blocks.AI.Psyche;
 /// Represents an individual task in the prompt weaving pipeline.
 /// Inherits from <see cref="IVKPipelineTask{TContext}"/>.
 /// </summary>
-public interface IVKWeavingTask : IVKPipelineTask<VKPsycheContext>;
+public interface IVKWeavingPipelineTask : IVKPipelineTask<VKPsycheContext>;

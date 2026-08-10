@@ -5,8 +5,8 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Options for the Context Expansion stage.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock), GenerateArgs = true)]
-public sealed partial record VKContextExpansionOptions : IVKBlockOptions
+
+public sealed partial record VKContextExpansionOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the Context Expansion stage is enabled.

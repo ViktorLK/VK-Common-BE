@@ -1,12 +1,14 @@
+using VK.Blocks.VectorSearch.Retrieval.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.VectorSearch.Retrieval.Internal;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.VectorSearch.Retrieval.Internal;
+namespace VK.Blocks.VectorSearch;
 
 /// <summary>
 /// Feature registration for the Retrieval (Search) capability.
 /// </summary>
+[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKRetrievalOptions))]
 internal sealed partial class RetrievalFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKRetrievalOptions options)

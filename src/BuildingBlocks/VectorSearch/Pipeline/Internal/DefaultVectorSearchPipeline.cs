@@ -30,7 +30,7 @@ internal sealed class DefaultVectorSearchPipeline : IVKVectorSearchPipeline
         _services = VKGuard.NotNull(services);
     }
 
-    public async Task<VKResult<VKSearchResult[]>> RunAsync(
+    public async Task<VKResult<VKSearchResult[]>> ExecuteAsync(
         VKSearchQuery request,
         CancellationToken cancellationToken = default)
     {

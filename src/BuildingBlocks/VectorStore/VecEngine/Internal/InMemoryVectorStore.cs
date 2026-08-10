@@ -5,8 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using VK.Blocks.VectorStore.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
+using VK.Blocks.VectorStore.Common.Diagnostics.Internal;
 
 namespace VK.Blocks.VectorStore.VecEngine.Internal;
 
@@ -17,15 +17,15 @@ namespace VK.Blocks.VectorStore.VecEngine.Internal;
 internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
 {
     private readonly IVKJsonSerializer _jsonSerializer;
-    private readonly VKVectorStoreDefaultsOptions _options;
+    private readonly VKVectorStoreOptions _options;
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, (VKVector Vector, string DataJson)>> _collections = new();
 
     public InMemoryVectorStore(
         IVKJsonSerializer jsonSerializer,
-        Microsoft.Extensions.Options.IOptions<VKVectorStoreDefaultsOptions> options)
+        Microsoft.Extensions.Options.IOptions<VKVectorStoreOptions> options)
     {
         _jsonSerializer = VKGuard.NotNull(jsonSerializer);
-        _options = options?.Value ?? new VKVectorStoreDefaultsOptions();
+        _options = options?.Value ?? new VKVectorStoreOptions();
     }
 
     public IVKVectorCollection<T> Collection<T>(string name) where T : class
@@ -161,7 +161,8 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
         foreach (var entry in collection.Values)
         {
             var document = _jsonSerializer.Deserialize<T>(entry.DataJson);
-            if (document is null) continue;
+            if (document is null)
+                continue;
 
             if (MatchFilter(document, filter))
             {
@@ -174,19 +175,24 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
 
     private static bool MatchFilter<T>(T document, VKMetadataFilter filter) where T : class
     {
-        if (document is null || filter is null) return false;
+        if (document is null || filter is null)
+            return false;
 
         var prop = typeof(T).GetProperty("Metadata");
-        if (prop is null) return false;
+        if (prop is null)
+            return false;
 
         var metadata = prop.GetValue(document);
-        if (metadata is null) return false;
+        if (metadata is null)
+            return false;
 
         var propertiesProp = metadata.GetType().GetProperty("Properties");
-        if (propertiesProp is null) return false;
+        if (propertiesProp is null)
+            return false;
 
         var properties = propertiesProp.GetValue(metadata) as IDictionary<string, string>;
-        if (properties is null) return false;
+        if (properties is null)
+            return false;
 
         foreach (var kvp in filter.EqualityFilters)
         {
@@ -212,7 +218,8 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
         foreach (var entry in collection)
         {
             var document = _jsonSerializer.Deserialize<T>(entry.Value.DataJson);
-            if (document is null) continue;
+            if (document is null)
+                continue;
 
             if (MatchFilter(document, filter))
             {

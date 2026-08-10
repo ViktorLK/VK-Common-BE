@@ -20,7 +20,7 @@ internal sealed partial class SessionFeature
             return;
 
         services.TryAddScoped<IVKSessionStore, InMemorySessionStore>();
-        services.AddScoped<IVKPsychePipelineStage, DefaultSessionStage>();
+        services.AddScoped<IVKPsychePipelineStage, DefaultSessionResolveStage>();
         services.AddScoped<IVKPsychePipelineStage, DefaultSessionUpdateStage>();
     }
 

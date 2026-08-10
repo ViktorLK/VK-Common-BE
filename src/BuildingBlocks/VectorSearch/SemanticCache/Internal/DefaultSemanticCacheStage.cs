@@ -3,15 +3,15 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
-using VK.Blocks.VectorSearch.Pipeline.Internal;
 using VK.Blocks.VectorSearch.Common.Diagnostics.Internal;
+using VK.Blocks.VectorSearch.Pipeline.Internal;
 
 namespace VK.Blocks.VectorSearch.SemanticCache.Internal;
 
 /// <summary>
 /// Pipeline stage for querying the semantic cache before executing backend search.
 /// </summary>
-internal sealed class DefaultSemanticCacheStage : IVKVectorSearchBeforePipelineStage
+internal sealed class DefaultSemanticCacheStage : IVKVectorSearchPipelineStage
 {
     private readonly IVKSemanticCacheService _cacheService;
     private readonly IVKJsonSerializer _jsonSerializer;
@@ -32,7 +32,7 @@ internal sealed class DefaultSemanticCacheStage : IVKVectorSearchBeforePipelineS
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => VKVectorSearchPipelineScheduler.Before.SemanticCache;
+    public VKPipelineSchedule Schedule => VKVectorSearchPipelineScheduler.Before.SemanticCache;
 
     public async Task<VKResult> ExecuteAsync(VKVectorSearchContext context, CancellationToken cancellationToken)
     {

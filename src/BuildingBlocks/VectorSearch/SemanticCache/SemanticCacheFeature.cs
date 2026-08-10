@@ -1,21 +1,24 @@
+using VK.Blocks.VectorSearch.SemanticCache.Internal;
 using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.VectorSearch.SemanticCache.Internal;
+namespace VK.Blocks.VectorSearch;
 
 /// <summary>
 /// Semantic Cache feature marker and registration hub.
 /// </summary>
+[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKSemanticCacheOptions))]
 internal sealed partial class SemanticCacheFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKSemanticCacheOptions options)
     {
         _ = options;
         services.TryAddScoped<IVKSemanticCacheService, DefaultSemanticCacheService>();
-        services.TryAddScoped<IVKVectorSearchBeforePipelineStage, DefaultSemanticCacheStage>();
-        services.TryAddScoped<IVKVectorSearchAfterPipelineStage, SemanticCacheWriteStage>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKVectorSearchPipelineStage, DefaultSemanticCacheStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKVectorSearchPipelineStage, SemanticCacheWriteStage>());
     }
 
     static partial void ValidateFeatureCustom(VKSemanticCacheOptions options, List<string> failures)

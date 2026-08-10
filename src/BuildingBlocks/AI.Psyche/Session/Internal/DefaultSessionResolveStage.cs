@@ -8,12 +8,12 @@ namespace VK.Blocks.AI.Psyche.Session.Internal;
 /// Pipeline stage responsible for resolving and attaching <see cref="VKSessionThread"/> metadata before prompt weaving.
 /// Follows AP.01 (sealed class default), CS.01, and CS.03.
 /// </summary>
-internal sealed class DefaultSessionStage : IVKPsychePipelineStage
+internal sealed class DefaultSessionResolveStage : IVKPsychePipelineStage
 {
     private readonly VKSessionOptions _options;
     private readonly IVKSessionStore _sessionStore;
 
-    public DefaultSessionStage(
+    public DefaultSessionResolveStage(
         VKSessionOptions options,
         IVKSessionStore sessionStore)
     {
@@ -21,7 +21,8 @@ internal sealed class DefaultSessionStage : IVKPsychePipelineStage
         _sessionStore = VKGuard.NotNull(sessionStore);
     }
 
-    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheSession;
+    public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheSessionResolve;
+
     public bool IsActive => _options.Enabled;
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)

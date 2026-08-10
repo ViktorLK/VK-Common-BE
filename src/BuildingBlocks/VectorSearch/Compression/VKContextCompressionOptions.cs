@@ -5,8 +5,8 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Options for the Context Compression stage.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock), GenerateArgs = true)]
-public sealed partial record VKContextCompressionOptions : IVKBlockOptions
+
+public sealed partial record VKContextCompressionOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the Context Compression stage is enabled.

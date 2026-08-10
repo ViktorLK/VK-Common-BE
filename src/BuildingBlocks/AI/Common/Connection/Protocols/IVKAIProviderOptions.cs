@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -28,4 +29,9 @@ public interface IVKAIProviderOptions
     /// Gets the service endpoint.
     /// </summary>
     string? Endpoint { get; init; }
+
+    /// <summary>
+    /// Gets provider-specific connection parameters (e.g. Azure DeploymentName, OpenAI OrgId).
+    /// </summary>
+    IReadOnlyDictionary<string, string> Metadata => new Dictionary<string, string>();
 }

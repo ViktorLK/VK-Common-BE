@@ -9,7 +9,7 @@ namespace VK.Blocks.VectorSearch.Compression.Internal;
 /// <summary>
 /// Pipeline stage for compressing search results.
 /// </summary>
-internal sealed class DefaultContextCompressionStage : IVKVectorSearchAfterPipelineStage
+internal sealed class DefaultContextCompressionStage : IVKVectorSearchPipelineStage
 {
     private readonly IVKContextCompressionStrategy _strategy;
     private readonly VKContextCompressionOptions _options;
@@ -22,7 +22,7 @@ internal sealed class DefaultContextCompressionStage : IVKVectorSearchAfterPipel
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => VKVectorSearchPipelineScheduler.After.ContextCompression;
+    public VKPipelineSchedule Schedule => VKVectorSearchPipelineScheduler.After.ContextCompression;
 
     public async Task<VKResult> ExecuteAsync(VKVectorSearchContext context, CancellationToken cancellationToken)
     {

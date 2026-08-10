@@ -60,4 +60,27 @@ internal sealed class EngramEchoStoreBridge : IVKEchoStore
 
         return VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(echoes);
     }
+
+    public async Task<VKResult> SaveTraceAsync(
+        VKEchoTrace trace,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNull(trace);
+
+        var memoryEntry = new VKMemoryEntry
+        {
+            Id = new VKMemoryId(trace.Id.Value),
+            TenantId = trace.TenantId,
+            SessionId = trace.SessionId,
+            Category = VKMemoryCategory.ShortTerm,
+            Content = trace.Content,
+            CreatedAt = trace.Timestamp,
+            Metadata = FrozenDictionary.ToFrozenDictionary(new Dictionary<string, string>
+            {
+                ["Role"] = trace.Role.ToString()
+            })
+        };
+
+        return await _memoryStore.UpsertAsync(memoryEntry, cancellationToken).ConfigureAwait(false);
+    }
 }

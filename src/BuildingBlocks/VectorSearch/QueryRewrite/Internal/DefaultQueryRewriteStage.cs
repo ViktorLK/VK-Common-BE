@@ -9,7 +9,7 @@ namespace VK.Blocks.VectorSearch.QueryRewrite.Internal;
 /// <summary>
 /// Pipeline stage for rewriting queries.
 /// </summary>
-internal sealed class DefaultQueryRewriteStage : IVKVectorSearchBeforePipelineStage
+internal sealed class DefaultQueryRewriteStage : IVKVectorSearchPipelineStage
 {
     private readonly IVKQueryRewriter _strategy;
     private readonly VKQueryRewriteOptions _options;
@@ -22,7 +22,7 @@ internal sealed class DefaultQueryRewriteStage : IVKVectorSearchBeforePipelineSt
 
     public bool IsActive => _options.Enabled;
 
-    public VKPipelineStageSchedule Schedule => VKVectorSearchPipelineScheduler.Before.QueryRewrite;
+    public VKPipelineSchedule Schedule => VKVectorSearchPipelineScheduler.Before.QueryRewrite;
 
     public async Task<VKResult> ExecuteAsync(VKVectorSearchContext context, CancellationToken cancellationToken)
     {

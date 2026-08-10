@@ -37,11 +37,6 @@ internal sealed class DefaultStructuredInjectionStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (!IsActive)
-        {
-            return VKResult.Success();
-        }
-
         var keysResult = await _structuredStore.ListKeysAsync(prefix: null, cancellationToken).ConfigureAwait(false);
         if (keysResult.IsFailure)
         {

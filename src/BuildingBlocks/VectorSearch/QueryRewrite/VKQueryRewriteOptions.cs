@@ -5,8 +5,8 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Options for the Query Rewrite stage.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock), GenerateArgs = true)]
-public sealed partial record VKQueryRewriteOptions : IVKBlockOptions
+
+public sealed partial record VKQueryRewriteOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the Query Rewrite stage is enabled.

@@ -28,11 +28,6 @@ internal sealed class DefaultConsolidationStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (!IsActive)
-        {
-            return Task.FromResult(VKResult.Success());
-        }
-
         var sessionId = context.Request.SessionId;
         if (!sessionId.IsEmpty)
         {

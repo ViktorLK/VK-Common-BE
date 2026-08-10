@@ -13,7 +13,7 @@ public static class VKPsychePipelineScheduler
     public static class Before
     {
         // Extraction Layer (parallel group 1)
-        public static readonly VKPipelineSchedule PsycheSession = new(0, false, null, VKPipelinePhase.Before);
+        public static readonly VKPipelineSchedule PsycheSessionResolve = new(0, false, null, VKPipelinePhase.Before);
         public static readonly VKPipelineSchedule PsycheProfile = new(100, false, null, VKPipelinePhase.Before);
         public static readonly VKPipelineSchedule PsychePersona = new(100, true, 1, VKPipelinePhase.Before);
         public static readonly VKPipelineSchedule PsycheDirective = new(100, true, 1, VKPipelinePhase.Before);
@@ -26,7 +26,7 @@ public static class VKPsychePipelineScheduler
 
         // Weaving Layer (sequential)
         public static readonly VKPipelineSchedule PsycheKnowledgeFinalizer = new(990, false, null, VKPipelinePhase.Before);
-        public static readonly VKPipelineSchedule Weaving = new(1000, false, null, VKPipelinePhase.Before);
+        public static readonly VKPipelineSchedule PsycheWeaving = new(1000, false, null, VKPipelinePhase.Before);
     }
 
     /// <summary>
@@ -44,7 +44,8 @@ public static class VKPsychePipelineScheduler
     /// </summary>
     public static class After
     {
-        public static readonly VKPipelineSchedule SessionUpdate = new(900, false, null, VKPipelinePhase.After);
+        public static readonly VKPipelineSchedule PsycheEchoSave = new(900, false, null, VKPipelinePhase.After);
+        public static readonly VKPipelineSchedule PsycheSessionUpdate = new(900, false, null, VKPipelinePhase.After);
         public static readonly VKPipelineSchedule UsageRecord = new(int.MaxValue, false, null, VKPipelinePhase.After);
     }
 }

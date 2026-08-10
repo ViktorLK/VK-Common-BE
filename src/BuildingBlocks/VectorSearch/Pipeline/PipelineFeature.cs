@@ -1,12 +1,14 @@
+using VK.Blocks.VectorSearch.Pipeline.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.VectorSearch.Pipeline.Internal;
+using VK.Blocks.Core;
 
-namespace VK.Blocks.VectorSearch.Pipeline.Internal;
+namespace VK.Blocks.VectorSearch;
 
 /// <summary>
 /// Feature registration for the Search Pipeline.
 /// </summary>
+[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKPipelineOptions))]
 internal sealed partial class PipelineFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPipelineOptions options)

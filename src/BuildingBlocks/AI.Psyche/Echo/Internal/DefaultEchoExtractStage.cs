@@ -16,22 +16,22 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// Retains and sliding-window trims short-term dialogue history.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class DefaultEchoStage : IVKPsychePipelineStage
+internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
 {
     private readonly IVKEchoStore _echoStore;
     private readonly IVKSessionStore _sessionStore;
     private readonly IVKTokenCounter _tokenCounter;
     private readonly VKEchoOptions _echoOptions;
     private readonly VKWeavingOptions _weavingOptions;
-    private readonly ILogger<DefaultEchoStage> _logger;
+    private readonly ILogger<DefaultEchoExtractStage> _logger;
 
-    public DefaultEchoStage(
+    public DefaultEchoExtractStage(
         IVKEchoStore echoStore,
         IVKSessionStore sessionStore,
         IVKTokenCounter tokenCounter,
         VKEchoOptions echoOptions,
         VKWeavingOptions weavingOptions,
-        ILogger<DefaultEchoStage> logger)
+        ILogger<DefaultEchoExtractStage> logger)
     {
         _echoStore = VKGuard.NotNull(echoStore);
         _sessionStore = VKGuard.NotNull(sessionStore);

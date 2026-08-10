@@ -11,7 +11,7 @@ using VK.Blocks.Core;
 // // [AP.03] Internal implementation inside Internal/ folder without VK prefix
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
-internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
+internal sealed class DefaultPromptTruncateTask : IVKWeavingPipelineTask
 {
     private readonly IVKTokenCounter _tokenCounter;
     private readonly VKWeavingOptions _options;
@@ -29,10 +29,9 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
         _logger = VKGuard.NotNull(logger);
     }
 
-    public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken ct = default)
+    public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context);
-        ct.ThrowIfCancellationRequested();
 
         var allowedBudget = context.Args<VKWeavingArgs>()?.AvailableHistoryLimit ?? _options.AvailableHistoryLimit;
         var maxTokenLimit = context.Args<VKWeavingArgs>()?.MaxTokenLimit ?? _options.MaxTokenLimit;
@@ -53,7 +52,7 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
         int nonHistoryTokens = 0;
         foreach (var f in nonHistoryFragments)
         {
-            ct.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
             if (f.Segment.Content is not null)
             {
                 nonHistoryTokens += _tokenCounter.CountTokens(f.Segment.Content);
@@ -80,7 +79,7 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingTask
         // 5. Retain most recent history messages up to the remaining budget
         for (int i = 0; i < historySorted.Count; i++)
         {
-            ct.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
             var hf = historySorted[i];
 
             // Only count if content is rendered

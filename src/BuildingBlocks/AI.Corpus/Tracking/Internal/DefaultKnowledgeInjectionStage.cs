@@ -45,11 +45,6 @@ internal sealed class DefaultKnowledgeInjectionStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (!IsActive)
-        {
-            return VKResult.Success();
-        }
-
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         // 1. Process AI Reflection Knowledge Proposals using KnowledgeProposalMapper

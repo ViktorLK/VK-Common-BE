@@ -5,7 +5,7 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Options for the Vector Reranking stage.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock), GenerateArgs = true)]
+
 public sealed partial record VKVectorRerankingOptions : IVKToggleableBlockOptions
 {
     /// <summary>
