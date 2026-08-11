@@ -53,10 +53,12 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
             Request = requestWithTrace,
             Services = _services
         };
+        context.Response.CorrelationId = traceId;
 
         var result = await _executor.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
 
-        stopwatch.Stop();
+        var elapsedMs = stopwatch.Elapsed.TotalMilliseconds;
+        PipelineDiagnostics.PipelineDuration?.Record(elapsedMs);
 
         if (result.IsFailure)
         {
@@ -68,7 +70,7 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
             return result;
         }
 
-        _logger.PipelineCompleted(traceId, stopwatch.Elapsed.TotalMilliseconds);
+        _logger.PipelineCompleted(traceId, elapsedMs);
 
         return result;
     }

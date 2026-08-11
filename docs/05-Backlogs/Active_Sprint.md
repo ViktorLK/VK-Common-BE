@@ -2,25 +2,26 @@
 
 ## 🏗️ Core Tasks
 
-- [ ] [CORE-001: Seal VKBlockBuilder](./Core/001-seal-vkblockbuilder.md)
-- [ ] [CORE-002: Error Alignment](./Core/002-vkerortype-alignment.md)
+- [x] [CORE-001: Seal VKBlockBuilder (REJECTED)](./.Archive/Core/001-seal-vkblockbuilder.md)
+- [x] [CORE-002: Error Alignment](./.Archive/Core/002-vkerrortype-alignment.md)
 - [ ] [CORE-003: Unify Configure Parameter](./Core/003-unify-configure-parameter.md)
-- [ ] [CORE-004: VKResult.FirstError Documentation](./Core/004-vkresult-firsterror-docs.md)
-- [ ] [CORE-005: Architecture: Folder Consistency](./Core/005-folder-consistency.md)
-- [ ] [CORE-006: Optimization: Frozen Collections](./Core/006-frozen-collections-metadata.md)
+- [x] [CORE-004: VKResult.FirstError Documentation](./.Archive/Core/004-vkresult-firsterror-docs.md)
+- [x] [CORE-005: Architecture: Folder Consistency](./.Archive/Core/005-folder-consistency.md)
+- [x] [CORE-006: Optimization: Frozen Collections](./.Archive/Core/006-frozen-collections-metadata.md)
 
 - [ ] [CORE-007: Systematize Architectural Rule Numbers (Logical Aliasing)](<./Core/007-systematize-architectural-rule-numbers-(logical-aliasing).md>)
 - [ ] [CORE-008: Implement Architectural Rule Retrieval Tool in MCP Server](./Core/008-implement-architectural-rule-retrieval-tool-in-mcp-server.md)
 - [ ] [CORE-009: Validate .agents/rules Effectiveness (Model Decision Pattern)](./Core/009-validate-model-decision-rule-effectiveness.md)
 - [ ] [CORE-010: Implement VKGuard Source Generator for CallerInfo](./Core/010-implement-vkguard-source-generator-for-callerinfo.md)
 - [ ] [CORE-011: Refactor IVKBlockMarker.Dependencies using Covariant Return Types](./Core/011-refactor-ivkblockmarkerdependencies-using-covariant-return-types.md)
-- [ ] [CORE-012: Provide VKBaseExceptionExtensions for Unified Error Mapping](./Core/012-provide-vkbaseexceptionextensions-for-unified-error-mapping.md)
+- [x] [CORE-012: Provide VKBaseExceptionExtensions for Unified Error Mapping](./.Archive/Core/012-provide-vkbaseexceptionextensions-for-unified-error-mapping.md)
 - [ ] [CORE-013: Implement standard IOptions Bridge Wrapper for ADR-016](./Core/013-implement-standard-ioptions-bridge-wrapper-for-adr-016.md)
 - [ ] [CORE-014: Refactor Legacy Exception Throw Sites in Core Library](./Core/014-refactor-legacy-exception-throw-sites-in-core-library.md)
 - [ ] [CORE-015: Refactor Configuration Section Naming to Namespace-Underscore Pattern](./Core/015-refactor-configuration-section-naming-to-namespace-underscore-pattern.md)
 - [ ] [CORE-016: Optimize configuration path resolution in VKFeatureGenerator](./Core/016-optimize-configuration-path-resolution-in-vkfeaturegenerator.md)
 
 - [ ] [CORE-017: Migrate all BuildingBlock Options to VKOptionsAttribute](./Core/017-migrate-all-buildingblock-options-to-vkoptionsattribute.md)
+- [x] [CORE-018: Migrate StringBuilder usages across BuildingBlocks to VKValueStringBuilder](./.Archive/Core/018-migrate-stringbuilder-usages-across-buildingblocks-to-vkvaluestringbuilder.md)
 ## 🧠 AI Tasks
 
 - [x] [AI-001: Deep Recall Mechanism](./.Archive/AI/001-deep-recall-mechanism.md)
@@ -41,6 +42,7 @@
 
 - [x] [AI-016: Implement VK.Blocks.AI.RAG Enterprise Search and Retrieval Package](./.Archive/AI/016-implement-vkblocksairag-enterprise-search-and-retrieval-package.md)
 - [ ] [AI-017: Decouple Hardcoded AI Dependencies from DI Source Generator](./AI/017-decouple-hardcoded-ai-dependencies-from-di-source-generator.md)
+- [ ] [AI-018: Extension Libraries VKPsycheResponse ModelResult Strongly-Typed Extension Methods (DX)](./AI/018-extension-libraries-vkpsycheresponse-modelresult-strongly-typed-extension-methods-(dx).md)
 ## 🔐 Authorization Tasks
 
 - [ ] [AUTHORIZATION-001: Authorization DI Normalization](./Authorization/001-di-normalization.md)

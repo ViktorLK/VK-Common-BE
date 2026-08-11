@@ -64,7 +64,8 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
 
         // 4. Build Base Timeline (Order-based, oldest first)
         var finalMessages = new List<VKChatMessage>();
-        var systemBuilder = new StringBuilder();
+        Span<char> initialBuffer = stackalloc char[512];
+        using var systemBuilder = new VKValueStringBuilder(initialBuffer);
 
         foreach (var frag in baseFragments)
         {
@@ -130,9 +131,17 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
             });
         }
 
+        int estimatedTokens = 0;
+        foreach (var msg in finalMessages)
+        {
+            if (!string.IsNullOrWhiteSpace(msg.Content))
+            {
+                estimatedTokens += _tokenCounter.CountTokens(msg.Content);
+            }
+        }
+
         context.Response.Messages.AddRange(finalMessages);
-        context.Response.SystemInstructions = systemBuilder.ToString().Trim();
-        context.Response.TotalEstimatedTokens = 0;
+        context.Response.TotalEstimatedTokens = estimatedTokens;
 
         _logger.WeavingAssembled(context.Request.SessionId, finalMessages.Count);
 

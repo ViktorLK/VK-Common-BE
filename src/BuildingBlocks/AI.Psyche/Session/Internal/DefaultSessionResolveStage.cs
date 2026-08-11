@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
@@ -29,22 +30,31 @@ internal sealed class DefaultSessionResolveStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        // Resolve existing session thread metadata if SessionId is provided in request
-        if (!context.Request.SessionId.IsNullOrEmpty())
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
-            var resolveResult = await _sessionStore.GetSessionAsync(context.Request.SessionId, cancellationToken).ConfigureAwait(false);
-            if (resolveResult.IsSuccess && resolveResult.Value is not null)
+            // Resolve existing session thread metadata if SessionId is provided in request
+            if (!context.Request.SessionId.IsNullOrEmpty())
             {
-                var session = resolveResult.Value;
-                if (session.Status != VKSessionStatus.Active)
+                var resolveResult = await _sessionStore.GetSessionAsync(context.Request.SessionId, cancellationToken).ConfigureAwait(false);
+                if (resolveResult.IsSuccess && resolveResult.Value is not null)
                 {
-                    return VKResult.Failure(VKSessionErrors.SessionNotActive);
+                    var session = resolveResult.Value;
+                    if (session.Status != VKSessionStatus.Active)
+                    {
+                        return VKResult.Failure(VKSessionErrors.SessionNotActive);
+                    }
+
+                    context.SetState(session);
                 }
-
-                context.SetState(session);
             }
-        }
 
-        return VKResult.Success();
+            return VKResult.Success();
+        }
+        finally
+        {
+            stopwatch.Stop();
+            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.SessionResolveStage] = stopwatch.Elapsed.TotalMilliseconds;
+        }
     }
 }

@@ -1,8 +1,7 @@
-using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Echo.Internal;
@@ -38,35 +37,44 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (context.IsWeaveOnly || context.IsSandbox)
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
+            if (context.IsWeaveOnly || context.IsSandbox)
+            {
+                return VKResult.Success();
+            }
+
+            var session = context.State<VKSessionThread>();
+            if (session is null)
+            {
+                return VKResult.Success();
+            }
+
+            var sessionId = session.Id;
+
+            // 1. Auto-save User Input trace (from context.Request.UserInput)
+            var userInput = context.Request.UserInput;
+            if (!string.IsNullOrWhiteSpace(userInput))
+            {
+                var userTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.User, userInput);
+                await _echoStore.SaveTraceAsync(userTrace, cancellationToken).ConfigureAwait(false);
+            }
+
+            // 2. Auto-save Assistant Response trace (from context.Response.ChatResponse.Message.Content)
+            var assistantMsgContent = context.Response.ChatResponse?.Message?.Content;
+            if (!string.IsNullOrWhiteSpace(assistantMsgContent))
+            {
+                var assistantTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.Assistant, assistantMsgContent);
+                await _echoStore.SaveTraceAsync(assistantTrace, cancellationToken).ConfigureAwait(false);
+            }
+
             return VKResult.Success();
         }
-
-        var session = context.State<VKSessionThread>();
-        if (session is null)
+        finally
         {
-            return VKResult.Success();
+            stopwatch.Stop();
+            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.EchoSaveStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
-
-        var sessionId = session.Id;
-
-        // 1. Auto-save User Input trace (from context.Request.UserInput)
-        var userInput = context.Request.UserInput;
-        if (!string.IsNullOrWhiteSpace(userInput))
-        {
-            var userTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.User, userInput);
-            await _echoStore.SaveTraceAsync(userTrace, cancellationToken).ConfigureAwait(false);
-        }
-
-        // 2. Auto-save Assistant Response trace (from context.Response.ChatResponse.Message.Content)
-        var assistantMsgContent = context.Response.ChatResponse?.Message?.Content;
-        if (!string.IsNullOrWhiteSpace(assistantMsgContent))
-        {
-            var assistantTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.Assistant, assistantMsgContent);
-            await _echoStore.SaveTraceAsync(assistantTrace, cancellationToken).ConfigureAwait(false);
-        }
-
-        return VKResult.Success();
     }
 }

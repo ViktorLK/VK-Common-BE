@@ -15,11 +15,6 @@ public sealed record VKPsycheResponse
     public required IReadOnlyList<VKChatMessage> Messages { get; init; }
 
     /// <summary>
-    /// Gets the compiled system instructions or metaprompt, if any.
-    /// </summary>
-    public string? SystemInstructions { get; init; }
-
-    /// <summary>
     /// Gets the estimated total number of tokens consumed by this tapestry.
     /// </summary>
     public int TotalEstimatedTokens { get; init; }
@@ -33,6 +28,16 @@ public sealed record VKPsycheResponse
     /// Gets the structured/parsed output processed by the after stages.
     /// </summary>
     public object? ModelResult { get; init; }
+
+    /// <summary>
+    /// Safely casts and retrieves the structured model result as the specified target type <typeparamref name="TResult"/>.
+    /// </summary>
+    /// <typeparam name="TResult">The expected type of the parsed model result.</typeparam>
+    /// <returns>The casted result instance if matching; otherwise, <c>null</c>.</returns>
+    public TResult? GetModelResult<TResult>() where TResult : class
+    {
+        return ModelResult as TResult;
+    }
 
     /// <summary>
     /// Gets all active prompt fragments that were successfully woven into the tapestry.

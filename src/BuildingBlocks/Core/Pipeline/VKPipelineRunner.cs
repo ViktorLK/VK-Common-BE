@@ -177,4 +177,39 @@ public static class VKPipelineRunner
 
         return VKResult.Success(defaultResult);
     }
+
+    /// <summary>
+    /// Universal component execution engine for non-generic void components (<see cref="IVKPipelineComponent{TContext}"/>).
+    /// Evaluates any collection of components with ordering, parallel grouping, and chunking.
+    /// </summary>
+    public static Task<VKResult> ExecuteComponentsAsync<TContext>(
+        IEnumerable<IVKPipelineComponent<TContext>> components,
+        TContext context,
+        Func<TContext, bool>? checkAbortedFunc = null,
+        Func<TContext, VKResult>? abortResultFunc = null,
+        CancellationToken cancellationToken = default) where TContext : class
+    {
+        VKGuard.NotNull(components);
+        VKGuard.NotNull(context);
+
+        var sorted = components.OrderBy(c => c.Schedule.Order).ToList();
+        if (sorted.Count == 0)
+        {
+            return Task.FromResult(VKResult.Success());
+        }
+
+        var chunks = ChunkStages(
+            sorted,
+            c => c.Schedule.Order,
+            c => c.Schedule.ParallelGroup);
+
+        return ExecuteChunksAsync(
+            chunks,
+            context,
+            checkAbortedFunc: checkAbortedFunc ?? (_ => false),
+            abortResultFunc: abortResultFunc ?? (_ => VKResult.Success()),
+            isParallelSelector: c => c.Schedule.IsParallel,
+            executeFunc: (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
+            cancellationToken: cancellationToken);
+    }
 }

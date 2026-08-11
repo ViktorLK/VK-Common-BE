@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -9,6 +10,7 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Pattern feature marker and registration hub.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
 [VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPatternOptions))]
 internal sealed partial class PatternFeature
 {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -12,11 +13,6 @@ public sealed class VKPsycheResponseBuilder
     /// Gets the list of woven chat messages to be sent to the AI model.
     /// </summary>
     public List<VKChatMessage> Messages { get; } = [];
-
-    /// <summary>
-    /// Gets or sets the compiled system instructions or metaprompt, if any.
-    /// </summary>
-    public string? SystemInstructions { get; set; }
 
     /// <summary>
     /// Gets or sets the estimated total number of tokens consumed by this tapestry.
@@ -32,16 +28,6 @@ public sealed class VKPsycheResponseBuilder
     /// Gets or sets the structured/parsed output processed by the after stages.
     /// </summary>
     public object? ModelResult { get; set; }
-
-    /// <summary>
-    /// Gets the list of active prompt fragments successfully woven into the tapestry.
-    /// </summary>
-    public List<VKPromptFragment> ActiveFragments { get; } = [];
-
-    /// <summary>
-    /// Gets the list of prompt fragments evicted or truncated during token management.
-    /// </summary>
-    public List<VKPromptFragment> EvictedFragments { get; } = [];
 
     /// <summary>
     /// Gets the execution duration profiling metrics in milliseconds per pipeline stage or task.
@@ -64,19 +50,23 @@ public sealed class VKPsycheResponseBuilder
     public string? CorrelationId { get; set; }
 
     /// <summary>
-    /// Builds the final immutable VKPsycheResponse from the accumulated state.
+    /// Builds the final immutable VKPsycheResponse from the accumulated state and context.
     /// </summary>
-    public VKPsycheResponse Build()
+    /// <param name="context">The execution payload context.</param>
+    public VKPsycheResponse Build(VKPsycheContext context)
     {
+        VKGuard.NotNull(context);
+
+        var evictedState = context.State<VKPsycheEvictedState>();
+
         return new VKPsycheResponse
         {
             Messages = [.. Messages],
-            SystemInstructions = SystemInstructions,
             TotalEstimatedTokens = TotalEstimatedTokens,
             ChatResponse = ChatResponse,
             ModelResult = ModelResult,
-            ActiveFragments = [.. ActiveFragments],
-            EvictedFragments = [.. EvictedFragments],
+            ActiveFragments = context.Fragments,
+            EvictedFragments = evictedState?.Evicted ?? [],
             ProfilingMetrics = new Dictionary<string, double>(ProfilingMetrics),
             Metadata = new Dictionary<string, object>(Metadata),
             Usage = Usage,

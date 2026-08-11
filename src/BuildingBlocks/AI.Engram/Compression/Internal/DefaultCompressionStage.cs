@@ -78,7 +78,8 @@ internal sealed partial class DefaultCompressionStage : IVKPsychePipelineStage
 
         if (l2Result.IsSuccess && l2Result.Value.Count > 0)
         {
-            var memoryContentBuilder = new System.Text.StringBuilder();
+            Span<char> initialBuffer = stackalloc char[512];
+            using var memoryContentBuilder = new VKValueStringBuilder(initialBuffer);
             memoryContentBuilder.AppendLine("### Conversation Narrative Summary (L2)");
 
             foreach (var l2Entry in l2Result.Value)

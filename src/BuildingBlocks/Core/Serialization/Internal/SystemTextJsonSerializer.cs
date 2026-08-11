@@ -1,6 +1,8 @@
 using System;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 
 namespace VK.Blocks.Core.Serialization.Internal;
 
@@ -11,6 +13,7 @@ internal sealed class SystemTextJsonSerializer : IVKJsonSerializer
 {
     private static readonly JsonSerializerOptions _defaultOptions = new()
     {
+        Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
         PropertyNameCaseInsensitive = true,

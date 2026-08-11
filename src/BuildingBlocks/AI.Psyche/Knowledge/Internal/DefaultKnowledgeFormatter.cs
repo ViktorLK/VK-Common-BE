@@ -69,7 +69,8 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
 
         try
         {
-            var sb = new System.Text.StringBuilder();
+            Span<char> initialBuffer = stackalloc char[512];
+            using var sb = new VKValueStringBuilder(initialBuffer);
             var firstEntry = (VKKnowledgeEntry)firstFragment.Metadata!;
             string tag = firstEntry.XmlTag;
 

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Corpus;
 
@@ -29,7 +31,8 @@ public sealed record VKKnowledgeSchema
     /// <returns>A formatted markdown/text representation of the schema.</returns>
     public string ToSystemPromptDescription()
     {
-        var builder = new StringBuilder();
+        Span<char> initialBuffer = stackalloc char[256];
+        using var builder = new VKValueStringBuilder(initialBuffer);
         builder.AppendLine($"### Category: {Category}");
         if (!string.IsNullOrWhiteSpace(Description))
         {

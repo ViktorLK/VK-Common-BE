@@ -1,6 +1,6 @@
 # Task: VKErrorType Alignment
 **ID**: CORE-002
-**Status**: 🔴 High | #Debt
+**Status**: ✅ Completed | #Debt
 **Target**: `VK.Blocks.Core` -> `VKErrorType.cs`
 **Ref**: Rule-1
 
@@ -8,6 +8,6 @@
 Reorder the `VKErrorType` enum members to match HTTP status code logic (4xx -> 5xx) to improve developer cognitive load.
 
 ## ✅ DoD (Definition of Done)
-- [ ] Reorder enum members
-- [ ] Verify existing usages
-- [ ] Run tests
+- [x] Reorder enum members
+- [x] Verify existing usages
+- [x] Run tests
