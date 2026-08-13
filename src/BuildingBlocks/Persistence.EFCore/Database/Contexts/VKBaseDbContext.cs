@@ -18,10 +18,17 @@ public abstract class VKBaseDbContext : DbContext
     public VKTenantId? CurrentTenantId { get; }
 
     /// <summary>
-    /// Evaluated by EF Core Global Query Filters during query execution. Throws if the tenant is missing.
+    /// Evaluated by EF Core Global Query Filters during query execution.
+    /// Returns the current tenant identifier or <c>null</c> if unassigned.
+    /// <para>
+    /// <b>Defense-in-Depth Note:</b> When <see cref="IsMultiTenancyEnabled"/> is <c>true</c> and <see cref="CurrentTenantId"/> is <c>null</c>,
+    /// EF Core queries on <see cref="IVKMultiTenant"/> entities will evaluate <c>e.TenantId == null</c> resulting in 0 rows returned.
+    /// This DB-level zero-row degradation is a Fail-Closed defense-in-depth safety net to prevent cross-tenant data leakage.
+    /// It is <b>NOT</b> the primary detection point for tenant resolution failures. Upstream ASP.NET Core middleware 
+    /// or authorization handlers MUST intercept and reject unauthenticated/unresolved tenant requests before reaching the persistence layer.
+    /// </para>
     /// </summary>
-    public VKTenantId CurrentTenantIdForQueryFilter => CurrentTenantId
-        ?? throw new System.InvalidOperationException("Cannot query IVKMultiTenant entity: TenantId is missing from context. If you intend to query across all tenants, use .IgnoreQueryFilters().");
+    public VKTenantId? CurrentTenantIdForQueryFilter => CurrentTenantId;
 
     /// <summary>
     /// Indicates whether MultiTenancy is enabled for this DB Context.
@@ -52,6 +59,7 @@ public abstract class VKBaseDbContext : DbContext
     {
         base.ConfigureConventions(configurationBuilder);
         configurationBuilder.Properties<VKTenantId>().HaveConversion<VKTenantIdConverter>();
+        configurationBuilder.Properties<VKUserId>().HaveConversion<VKUserIdConverter>();
     }
 
     /// <inheritdoc />
@@ -68,6 +76,15 @@ public abstract class VKBaseDbContext : DbContext
         public VKTenantIdConverter() : base(
             id => id.Value,
             value => new VKTenantId(value))
+        {
+        }
+    }
+
+    private sealed class VKUserIdConverter : ValueConverter<VKUserId, Guid>
+    {
+        public VKUserIdConverter() : base(
+            id => id.Value,
+            value => new VKUserId(value))
         {
         }
     }

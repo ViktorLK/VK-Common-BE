@@ -39,10 +39,24 @@ public static class VKPersistenceErrors
         public static readonly VKError EntityNotFound = VKError.NotFound(
             "Persistence.Repository.EntityNotFound",
             "The requested entity was not found.");
+
+        /// <summary>
+        /// Error when entity already exists.
+        /// </summary>
+        public static readonly VKError EntityAlreadyExists = VKError.Conflict(
+            "Persistence.Repository.EntityAlreadyExists",
+            "The entity already exists in the data store.");
+
+        /// <summary>
+        /// Error when repository operation fails.
+        /// </summary>
+        public static readonly VKError OperationFailed = VKError.Failure(
+            "Persistence.Repository.OperationFailed",
+            "An error occurred while performing repository operation.");
     }
 
     /// <summary>
-    /// Errors relating to database connectivity and constraints.
+    /// Errors relating to database connectivity, execution, and timeouts.
     /// </summary>
     public static class Database
     {
@@ -54,11 +68,52 @@ public static class VKPersistenceErrors
             "Unable to establish connection to the database.");
 
         /// <summary>
+        /// Error when execution of a database operation fails.
+        /// </summary>
+        public static readonly VKError ExecutionFailed = VKError.Failure(
+            "Persistence.Database.ExecutionFailed",
+            "An error occurred while executing the database operation.");
+
+        /// <summary>
+        /// Error when database operation times out.
+        /// </summary>
+        public static readonly VKError Timeout = VKError.Failure(
+            "Persistence.Database.Timeout",
+            "Database operation timed out.");
+
+        /// <summary>
+        /// Error when database deadlock occurs.
+        /// </summary>
+        public static readonly VKError Deadlock = VKError.Conflict(
+            "Persistence.Database.Deadlock",
+            "A database deadlock was detected.");
+
+        /// <summary>
         /// Error for database constraint violations.
         /// </summary>
         public static readonly VKError ConstraintViolation = VKError.Conflict(
             "Persistence.Database.ConstraintViolation",
             "A database constraint was violated.");
+    }
+
+    /// <summary>
+    /// Errors relating to database constraint violations.
+    /// </summary>
+    public static class Constraint
+    {
+        /// <summary>
+        /// Error when a unique constraint is violated.
+        /// </summary>
+        public static readonly VKError UniqueViolation = VKError.Conflict(
+            "Persistence.Constraint.UniqueViolation",
+            "A unique constraint violation occurred in the data store.");
+
+        /// <summary>
+        /// Error when a foreign key constraint is violated.
+        /// </summary>
+        public static readonly VKError ForeignKeyViolation = VKError.Conflict(
+            "Persistence.Constraint.ForeignKeyViolation",
+            "A foreign key constraint violation occurred in the data store.");
     }
 
     /// <summary>

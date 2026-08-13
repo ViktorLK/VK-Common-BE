@@ -20,7 +20,7 @@ public interface IVKSessionStore
     /// <summary>
     /// Saves or updates a session thread in the store.
     /// </summary>
-    Task<VKResult> SaveSessionAsync(
+    Task<VKResult> UpdateSessionAsync(
         VKSessionThread session,
         CancellationToken cancellationToken = default);
 }

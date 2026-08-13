@@ -42,6 +42,6 @@ public sealed record VKEchoTrace : IVKFragmentMetadata, IVKTenantScoped
     /// <summary>
     /// Gets the timestamp when this echo message was recorded.
     /// </summary>
-    public DateTimeOffset Timestamp { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
 
 }

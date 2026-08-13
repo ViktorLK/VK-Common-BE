@@ -121,7 +121,7 @@ internal sealed class DefaultFilteringStage : IVKPsychePipelineStage
         if (historyResult.IsSuccess && historyResult.Value.Count > 0 && scanDepth != 0)
         {
             var echoes = historyResult.Value
-                .OrderBy(e => e.Timestamp)
+                .OrderBy(e => e.CreatedAt)
                 .ToList();
 
             IEnumerable<VKEchoTrace> targetEchoes;

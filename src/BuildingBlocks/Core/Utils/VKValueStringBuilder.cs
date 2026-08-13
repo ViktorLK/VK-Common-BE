@@ -43,7 +43,30 @@ public ref struct VKValueStringBuilder
     public readonly int Length => _pos;
 
     /// <summary>
-    /// Appends multiple elements joined by a separator.
+    /// Resets the builder length to zero without deallocating memory.
+    /// </summary>
+    public void Clear()
+    {
+        _pos = 0;
+    }
+
+    /// <summary>
+    /// Appends multiple elements joined by a separator string/span.
+    /// </summary>
+    public void AppendJoin<T>(ReadOnlySpan<char> separator, IEnumerable<T> values)
+    {
+        bool first = true;
+        foreach (var val in values)
+        {
+            if (!first)
+                Append(separator);
+            Append(val?.ToString());
+            first = false;
+        }
+    }
+
+    /// <summary>
+    /// Appends multiple elements joined by a separator character.
     /// </summary>
     public void AppendJoin<T>(char separator, IEnumerable<T> values)
     {

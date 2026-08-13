@@ -58,7 +58,7 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage
             if (!string.IsNullOrWhiteSpace(userInput))
             {
                 var userTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.User, userInput);
-                await _echoStore.SaveTraceAsync(userTrace, cancellationToken).ConfigureAwait(false);
+                await _echoStore.SaveHistoryAsync(userTrace, cancellationToken).ConfigureAwait(false);
             }
 
             // 2. Auto-save Assistant Response trace (from context.Response.ChatResponse.Message.Content)
@@ -66,7 +66,7 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage
             if (!string.IsNullOrWhiteSpace(assistantMsgContent))
             {
                 var assistantTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.Assistant, assistantMsgContent);
-                await _echoStore.SaveTraceAsync(assistantTrace, cancellationToken).ConfigureAwait(false);
+                await _echoStore.SaveHistoryAsync(assistantTrace, cancellationToken).ConfigureAwait(false);
             }
 
             return VKResult.Success();

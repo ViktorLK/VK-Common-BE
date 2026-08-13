@@ -56,6 +56,12 @@ public sealed class VKTenantInterceptor(
         if (context is null)
             return;
 
+        // Alignment (Rule 2): If MultiTenancy is disabled on this DbContext, skip tenant ID injection validation entirely.
+        if (context is VKBaseDbContext vkContext && !vkContext.IsMultiTenancyEnabled)
+        {
+            return;
+        }
+
         foreach (var entry in context.ChangeTracker.Entries())
         {
             if (entry.State != EntityState.Added)

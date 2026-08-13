@@ -36,15 +36,6 @@ internal sealed class InMemoryProfileStore : IVKProfileStore
         return Task.FromResult(VKResult.Success<VKProfilePresence?>(presence));
     }
 
-    public Task<VKResult> SaveProfileAsync(
-        VKProfilePresence presence,
-        CancellationToken cancellationToken = default)
-    {
-        VKGuard.NotNull(presence);
-        _presences[presence.UserId] = presence;
-        return Task.FromResult(VKResult.Success());
-    }
-
     /// <summary>
     /// Seeds a profile presence into the in-memory store for local testing.
     /// </summary>

@@ -14,7 +14,7 @@ internal sealed class DefaultEntityLifecycleProcessor(IVKAuditProvider auditProv
     /// <inheritdoc />
     public void ProcessAuditing(DbContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        VKGuard.NotNull(context);
 
         foreach (var entry in context.ChangeTracker.Entries())
         {
@@ -45,7 +45,7 @@ internal sealed class DefaultEntityLifecycleProcessor(IVKAuditProvider auditProv
     /// <inheritdoc />
     public void ProcessSoftDelete(DbContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        VKGuard.NotNull(context);
 
         foreach (var entry in context.ChangeTracker.Entries())
         {

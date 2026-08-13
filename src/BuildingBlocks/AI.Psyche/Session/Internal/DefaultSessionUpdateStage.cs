@@ -57,7 +57,7 @@ internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
                 UpdatedAt = now
             };
 
-            var saveResult = await _sessionStore.SaveSessionAsync(updatedSession, cancellationToken).ConfigureAwait(false);
+            var saveResult = await _sessionStore.UpdateSessionAsync(updatedSession, cancellationToken).ConfigureAwait(false);
             if (saveResult.IsSuccess)
             {
                 context.SetState(updatedSession);

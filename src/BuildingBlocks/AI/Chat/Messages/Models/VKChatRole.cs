@@ -8,20 +8,20 @@ public enum VKChatRole
     /// <summary>
     /// System role for instructions.
     /// </summary>
-    System,
+    System = 0,
 
     /// <summary>
     /// User role for user input.
     /// </summary>
-    User,
+    User = 1,
 
     /// <summary>
     /// Assistant role for AI responses.
     /// </summary>
-    Assistant,
+    Assistant = 2,
 
     /// <summary>
     /// Tool role for tool/function output.
     /// </summary>
-    Tool
+    Tool = 3
 }
