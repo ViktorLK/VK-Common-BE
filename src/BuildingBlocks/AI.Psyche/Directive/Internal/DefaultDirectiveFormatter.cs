@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
@@ -21,7 +22,8 @@ internal sealed class DefaultDirectiveFormatter : IVKPromptFormatter
             return VKResult.Failure<string>(VKDirectiveErrors.InvalidMetadataType); // [CS.01]
         }
 
-        var sb = new StringBuilder(512);
+        Span<char> initialBuffer = stackalloc char[512];
+        using var sb = new VKValueStringBuilder(initialBuffer);
         sb.AppendLine($"<{PsycheConstants.XmlTags.SystemDirectives}>");
 
         if (!string.IsNullOrWhiteSpace(directive.BehaviorRules))

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -22,7 +23,7 @@ public interface IVKPsycheModelFactory
         IReadOnlyDictionary<string, object>? extensions = null);
 
     /// <summary>
-    /// Creates a new <see cref="VKPersonaAnchor"/> with a explicitly specified ID.
+    /// Creates a new <see cref="VKPersonaAnchor"/> with an explicitly specified ID.
     /// </summary>
     VKPersonaAnchor CreatePersona(
         VKPersonaId id,
@@ -30,7 +31,8 @@ public interface IVKPsycheModelFactory
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
         string? directiveId = null,
-        IReadOnlyDictionary<string, object>? extensions = null);
+        IReadOnlyDictionary<string, object>? extensions = null,
+        VKTenantId? tenantId = null);
 
     // --- Directive ---
 
@@ -44,14 +46,15 @@ public interface IVKPsycheModelFactory
         string? outputConstraints = null);
 
     /// <summary>
-    /// Creates a new <see cref="VKDirectiveCharter"/> with a explicitly specified ID.
+    /// Creates a new <see cref="VKDirectiveCharter"/> with an explicitly specified ID.
     /// </summary>
     VKDirectiveCharter CreateDirective(
         VKDirectiveId id,
         string? overview = null,
         string? behaviorRules = null,
         string? safetyRules = null,
-        string? outputConstraints = null);
+        string? outputConstraints = null,
+        VKTenantId? tenantId = null);
 
     // --- Knowledge ---
 
@@ -66,7 +69,7 @@ public interface IVKPsycheModelFactory
         IReadOnlyList<VKKnowledgeKey>? keys = null);
 
     /// <summary>
-    /// Creates a new <see cref="VKKnowledgeEntry"/> with a explicitly specified ID.
+    /// Creates a new <see cref="VKKnowledgeEntry"/> with an explicitly specified ID.
     /// </summary>
     VKKnowledgeEntry CreateKnowledge(
         VKKnowledgeId id,
@@ -74,7 +77,8 @@ public interface IVKPsycheModelFactory
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
         string? xmlTag = null,
-        IReadOnlyList<VKKnowledgeKey>? keys = null);
+        IReadOnlyList<VKKnowledgeKey>? keys = null,
+        VKTenantId? tenantId = null);
 
     // --- Pattern ---
 
@@ -84,7 +88,7 @@ public interface IVKPsycheModelFactory
     VKPatternEntry CreatePattern(VKPromptSegment segment);
 
     /// <summary>
-    /// Creates a new <see cref="VKPatternEntry"/> with a explicitly specified ID.
+    /// Creates a new <see cref="VKPatternEntry"/> with an explicitly specified ID.
     /// </summary>
     VKPatternEntry CreatePattern(VKPatternId id, VKPromptSegment segment);
 
@@ -101,7 +105,7 @@ public interface IVKPsycheModelFactory
         string? forkPointRef = null);
 
     /// <summary>
-    /// Creates a new <see cref="VKSessionThread"/> with a explicitly specified ID.
+    /// Creates a new <see cref="VKSessionThread"/> with an explicitly specified ID and optional hydration state.
     /// </summary>
     VKSessionThread CreateSession(
         VKSessionId id,
@@ -109,7 +113,15 @@ public interface IVKPsycheModelFactory
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null);
+        string? forkPointRef = null,
+        VKSessionStatus status = VKSessionStatus.Active,
+        int turnCount = 0,
+        DateTimeOffset? createdAt = null,
+        DateTimeOffset? updatedAt = null,
+        DateTimeOffset? lastActivityAt = null,
+        VKTenantId? tenantId = null,
+        VKUserId? userId = null,
+        VKSessionKnowledgeState? knowledgeState = null);
 
     // --- Echo ---
 
@@ -121,10 +133,10 @@ public interface IVKPsycheModelFactory
         VKChatRole role,
         string content,
         int tokenCount = 0,
-        DateTimeOffset? timestamp = null);
+        DateTimeOffset? createdAt = null);
 
     /// <summary>
-    /// Creates a new <see cref="VKEchoTrace"/> with a explicitly specified ID.
+    /// Creates a new <see cref="VKEchoTrace"/> with an explicitly specified ID.
     /// </summary>
     VKEchoTrace CreateEcho(
         VKEchoId id,
@@ -132,5 +144,6 @@ public interface IVKPsycheModelFactory
         VKChatRole role,
         string content,
         int tokenCount = 0,
-        DateTimeOffset? timestamp = null);
+        DateTimeOffset? createdAt = null,
+        VKTenantId? tenantId = null);
 }

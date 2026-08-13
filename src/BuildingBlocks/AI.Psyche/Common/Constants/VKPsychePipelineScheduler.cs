@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -5,6 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Central registry defining the execution topology and scheduling order of all Psyche stages and extensions.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static constants registry without logic.")]
 public static class VKPsychePipelineScheduler
 {
     /// <summary>

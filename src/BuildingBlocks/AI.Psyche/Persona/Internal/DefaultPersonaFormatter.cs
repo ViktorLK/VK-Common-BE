@@ -31,8 +31,9 @@ internal sealed class DefaultPersonaFormatter : IVKPromptFormatter
 
         try
         {
-            // High performance rendering path using StringBuilder with capacity estimation [AP.01]
-            var sb = new StringBuilder(512);
+            // High performance rendering path using VKValueStringBuilder with stackalloc buffer [CS.04]
+            Span<char> initialBuffer = stackalloc char[512];
+            using var sb = new VKValueStringBuilder(initialBuffer);
 
             // 1. Macro Skeleton & Sovereignty (L1/L4) -> XML Tag
             sb.AppendLine($"<{PsycheConstants.XmlTags.Persona}>");

@@ -38,14 +38,15 @@ internal sealed class DefaultPsycheModelFactory(
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
         string? directiveId = null,
-        IReadOnlyDictionary<string, object>? extensions = null)
+        IReadOnlyDictionary<string, object>? extensions = null,
+        VKTenantId? tenantId = null)
     {
         VKGuard.NotNull(name);
         VKGuard.NotNull(description);
 
         return new VKPersonaAnchor
         {
-            TenantId = _identityContext.TenantId,
+            TenantId = tenantId ?? _identityContext.TenantId,
             Id = id,
             Name = name,
             Description = description,
@@ -73,11 +74,12 @@ internal sealed class DefaultPsycheModelFactory(
         string? overview = null,
         string? behaviorRules = null,
         string? safetyRules = null,
-        string? outputConstraints = null)
+        string? outputConstraints = null,
+        VKTenantId? tenantId = null)
     {
         return new VKDirectiveCharter
         {
-            TenantId = _identityContext.TenantId,
+            TenantId = tenantId ?? _identityContext.TenantId,
             Id = id,
             Overview = overview,
             BehaviorRules = behaviorRules,
@@ -106,13 +108,14 @@ internal sealed class DefaultPsycheModelFactory(
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
         string? xmlTag = null,
-        IReadOnlyList<VKKnowledgeKey>? keys = null)
+        IReadOnlyList<VKKnowledgeKey>? keys = null,
+        VKTenantId? tenantId = null)
     {
         VKGuard.NotNull(segment);
 
         return new VKKnowledgeEntry
         {
-            TenantId = _identityContext.TenantId,
+            TenantId = tenantId ?? _identityContext.TenantId,
             Id = id,
             Segment = segment,
             TriggerType = triggerType,
@@ -162,24 +165,34 @@ internal sealed class DefaultPsycheModelFactory(
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null)
+        string? forkPointRef = null,
+        VKSessionStatus status = VKSessionStatus.Active,
+        int turnCount = 0,
+        DateTimeOffset? createdAt = null,
+        DateTimeOffset? updatedAt = null,
+        DateTimeOffset? lastActivityAt = null,
+        VKTenantId? tenantId = null,
+        VKUserId? userId = null,
+        VKSessionKnowledgeState? knowledgeState = null)
     {
         var now = _timeProvider.GetUtcNow();
 
         return new VKSessionThread
         {
-            TenantId = _identityContext.TenantId,
-            UserId = _identityContext.UserId,
+            TenantId = tenantId ?? _identityContext.TenantId,
+            UserId = userId ?? _identityContext.UserId,
             Id = id,
             PersonaId = personaId,
             Mode = mode,
             ParentSessionId = parentSessionId,
             ForkSourceSessionId = forkSourceSessionId,
             ForkPointRef = forkPointRef,
-            Status = VKSessionStatus.Active,
-            CreatedAt = now,
-            UpdatedAt = now,
-            LastActivityAt = now
+            Status = status,
+            TurnCount = turnCount,
+            CreatedAt = createdAt ?? now,
+            UpdatedAt = updatedAt ?? now,
+            LastActivityAt = lastActivityAt,
+            KnowledgeState = knowledgeState ?? new VKSessionKnowledgeState()
         };
     }
 
@@ -191,9 +204,9 @@ internal sealed class DefaultPsycheModelFactory(
         VKChatRole role,
         string content,
         int tokenCount = 0,
-        DateTimeOffset? timestamp = null)
+        DateTimeOffset? createdAt = null)
     {
-        return CreateEcho(new VKEchoId(_guidGenerator.Create()), sessionId, role, content, tokenCount, timestamp);
+        return CreateEcho(new VKEchoId(_guidGenerator.Create()), sessionId, role, content, tokenCount, createdAt);
     }
 
     /// <inheritdoc />
@@ -203,19 +216,20 @@ internal sealed class DefaultPsycheModelFactory(
         VKChatRole role,
         string content,
         int tokenCount = 0,
-        DateTimeOffset? timestamp = null)
+        DateTimeOffset? createdAt = null,
+        VKTenantId? tenantId = null)
     {
         VKGuard.NotNull(content);
 
         return new VKEchoTrace
         {
-            TenantId = _identityContext.TenantId,
+            TenantId = tenantId ?? _identityContext.TenantId,
             SessionId = sessionId,
             Id = id,
             Role = role,
             Content = content,
             TokenCount = tokenCount,
-            Timestamp = timestamp ?? _timeProvider.GetUtcNow()
+            CreatedAt = createdAt ?? _timeProvider.GetUtcNow()
         };
     }
 }

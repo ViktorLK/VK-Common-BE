@@ -76,9 +76,11 @@ internal sealed class SecureCursorSerializer : IVKCursorSerializer
 
         var json = _jsonSerializer.Serialize(payload);
         var jsonBytes = Encoding.UTF8.GetBytes(json);
-        var signature = ComputeHmac(jsonBytes);
+        
+        Span<byte> signatureBuffer = stackalloc byte[32];
+        ComputeHmac(jsonBytes, signatureBuffer);
 
-        return $"{Convert.ToBase64String(jsonBytes)}.{Convert.ToBase64String(signature)}";
+        return $"{Convert.ToBase64String(jsonBytes)}.{Convert.ToBase64String(signatureBuffer)}";
     }
 
     /// <inheritdoc />
@@ -99,7 +101,9 @@ internal sealed class SecureCursorSerializer : IVKCursorSerializer
 
             var jsonBytes = Convert.FromBase64String(token[..dotIndex]);
             var providedSignature = Convert.FromBase64String(token[(dotIndex + 1)..]);
-            var expectedSignature = ComputeHmac(jsonBytes);
+            
+            Span<byte> expectedSignature = stackalloc byte[32];
+            ComputeHmac(jsonBytes, expectedSignature);
 
             // Timing-safe comparison to prevent timing attacks.
             if (!CryptographicOperations.FixedTimeEquals(providedSignature, expectedSignature))
@@ -135,12 +139,9 @@ internal sealed class SecureCursorSerializer : IVKCursorSerializer
         }
     }
 
-
-
-    private byte[] ComputeHmac(byte[] data)
+    private void ComputeHmac(ReadOnlySpan<byte> data, Span<byte> destination)
     {
-        using var hmac = new HMACSHA256(_signingKey);
-        return hmac.ComputeHash(data);
+        HMACSHA256.HashData(_signingKey, data, destination);
     }
 
 

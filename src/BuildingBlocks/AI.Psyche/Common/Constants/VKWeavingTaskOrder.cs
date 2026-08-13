@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
 /// <summary>
 /// Defines the order sequence for standard weaving tasks.
 /// Tasks are executed in ascending order.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static constants class without logic.")]
 public static class VKWeavingTaskOrder
 {
     /// <summary>

@@ -75,4 +75,9 @@ public sealed record VKSessionThread : IVKTenantScoped, IVKUserScoped
     /// Gets the timestamp when this session thread was last active (updated on each turn).
     /// </summary>
     public DateTimeOffset? LastActivityAt { get; init; }
+
+    /// <summary>
+    /// Gets the session-level knowledge execution tracking state for incremental matching & sliding window lifecycle.
+    /// </summary>
+    public VKSessionKnowledgeState KnowledgeState { get; init; } = new();
 }

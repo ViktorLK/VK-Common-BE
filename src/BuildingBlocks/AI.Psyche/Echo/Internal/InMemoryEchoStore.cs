@@ -42,7 +42,7 @@ internal sealed class InMemoryEchoStore : IVKEchoStore
         }
     }
 
-    public Task<VKResult> SaveTraceAsync(
+    public Task<VKResult> SaveHistoryAsync(
         VKEchoTrace trace,
         CancellationToken cancellationToken = default)
     {

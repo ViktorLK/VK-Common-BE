@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
@@ -33,32 +34,41 @@ internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (context.IsWeaveOnly || context.IsSandbox)
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
-            return VKResult.Success();
+            if (context.IsWeaveOnly || context.IsSandbox)
+            {
+                return VKResult.Success();
+            }
+
+            // Retrieve existing session thread resolved in the Before phase
+            var session = context.State<VKSessionThread>();
+            if (session is null)
+            {
+                return VKResult.Success();
+            }
+
+            var now = _timeProvider.GetUtcNow();
+            var updatedSession = session with
+            {
+                TurnCount = session.TurnCount + 1,
+                LastActivityAt = now,
+                UpdatedAt = now
+            };
+
+            var saveResult = await _sessionStore.UpdateSessionAsync(updatedSession, cancellationToken).ConfigureAwait(false);
+            if (saveResult.IsSuccess)
+            {
+                context.SetState(updatedSession);
+            }
+
+            return saveResult;
         }
-
-        // Retrieve existing session thread resolved in the Before phase
-        var session = context.State<VKSessionThread>();
-        if (session is null)
+        finally
         {
-            return VKResult.Success();
+            stopwatch.Stop();
+            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.SessionUpdateStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
-
-        var now = _timeProvider.GetUtcNow();
-        var updatedSession = session with
-        {
-            TurnCount = session.TurnCount + 1,
-            LastActivityAt = now,
-            UpdatedAt = now
-        };
-
-        var saveResult = await _sessionStore.SaveSessionAsync(updatedSession, cancellationToken).ConfigureAwait(false);
-        if (saveResult.IsSuccess)
-        {
-            context.SetState(updatedSession);
-        }
-
-        return saveResult;
     }
 }

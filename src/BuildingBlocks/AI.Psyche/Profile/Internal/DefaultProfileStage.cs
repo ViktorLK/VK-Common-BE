@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,73 +37,82 @@ internal sealed class DefaultProfileStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        // 1. Resolve UserId from Request or IdentityContext
-        var userId = context.Request.UserId ?? _identityContext.UserId;
-        if (!userId.IsEmpty)
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
-            var profileResult = await _profileStore.GetProfileAsync(userId, cancellationToken).ConfigureAwait(false);
-            if (profileResult.IsSuccess && profileResult.Value is not null)
+            // 1. Resolve UserId from Request or IdentityContext
+            var userId = context.Request.UserId ?? _identityContext.UserId;
+            if (!userId.IsEmpty)
             {
-                var profile = profileResult.Value;
-                context.SetState(profile);
-
-                // 2. Inject PreferredLanguage directive if defined (only if non-null/non-empty)
-                if (!string.IsNullOrWhiteSpace(profile.PreferredLanguage))
+                var profileResult = await _profileStore.GetProfileAsync(userId, cancellationToken).ConfigureAwait(false);
+                if (profileResult.IsSuccess && profileResult.Value is not null)
                 {
-                    context.AddFragment(new VKPromptFragment
-                    {
-                        TierType = VKPromptTierType.Directive,
-                        RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 10,
-                        Metadata = profile,
-                        Segment = new VKPromptSegment
-                        {
-                            Role = VKChatRole.System,
-                            Content = $"[Language Requirement]: Please respond using the user's preferred language ({profile.PreferredLanguage})."
-                        }
-                    });
-                }
+                    var profile = profileResult.Value;
+                    context.SetState(profile);
 
-                // 3. Inject TimeZone & Local Time directive if defined (only if non-null/non-empty)
-                if (!string.IsNullOrWhiteSpace(profile.TimeZone))
-                {
-                    var nowUtc = _timeProvider.GetUtcNow();
-                    var timeStr = TryFormatUserLocalTime(nowUtc, profile.TimeZone, out var formattedLocalTime)
-                        ? $"{formattedLocalTime} ({profile.TimeZone})"
-                        : $"{nowUtc:yyyy-MM-dd HH:mm:ss} UTC ({profile.TimeZone})";
-
-                    context.AddFragment(new VKPromptFragment
+                    // 2. Inject PreferredLanguage directive if defined (only if non-null/non-empty)
+                    if (!string.IsNullOrWhiteSpace(profile.PreferredLanguage))
                     {
-                        TierType = VKPromptTierType.Directive,
-                        RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 5,
-                        Metadata = profile,
-                        Segment = new VKPromptSegment
+                        context.AddFragment(new VKPromptFragment
                         {
-                            Role = VKChatRole.System,
-                            Content = $"[Current Time Context]: {timeStr}."
-                        }
-                    });
-                }
+                            TierType = VKPromptTierType.Directive,
+                            RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 10,
+                            Metadata = profile,
+                            Segment = new VKPromptSegment
+                            {
+                                Role = VKChatRole.System,
+                                Content = $"[Language Requirement]: Please respond using the user's preferred language ({profile.PreferredLanguage})."
+                            }
+                        });
+                    }
 
-                // 4. Inject Preferences directive if defined (only if non-empty dictionary)
-                if (profile.Preferences.Count > 0)
-                {
-                    var prefsStr = string.Join("; ", profile.Preferences.Select(kv => $"{kv.Key}: {kv.Value}"));
-                    context.AddFragment(new VKPromptFragment
+                    // 3. Inject TimeZone & Local Time directive if defined (only if non-null/non-empty)
+                    if (!string.IsNullOrWhiteSpace(profile.TimeZone))
                     {
-                        TierType = VKPromptTierType.Directive,
-                        RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 15,
-                        Metadata = profile,
-                        Segment = new VKPromptSegment
+                        var nowUtc = _timeProvider.GetUtcNow();
+                        var timeStr = TryFormatUserLocalTime(nowUtc, profile.TimeZone, out var formattedLocalTime)
+                            ? $"{formattedLocalTime} ({profile.TimeZone})"
+                            : $"{nowUtc:yyyy-MM-dd HH:mm:ss} UTC ({profile.TimeZone})";
+
+                        context.AddFragment(new VKPromptFragment
                         {
-                            Role = VKChatRole.System,
-                            Content = $"[User Output Preferences]: {prefsStr}."
-                        }
-                    });
+                            TierType = VKPromptTierType.Directive,
+                            RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 5,
+                            Metadata = profile,
+                            Segment = new VKPromptSegment
+                            {
+                                Role = VKChatRole.System,
+                                Content = $"[Current Time Context]: {timeStr}."
+                            }
+                        });
+                    }
+
+                    // 4. Inject Preferences directive if defined (only if non-empty dictionary)
+                    if (profile.Preferences.Count > 0)
+                    {
+                        var prefsStr = string.Join("; ", profile.Preferences.Select(kv => $"{kv.Key}: {kv.Value}"));
+                        context.AddFragment(new VKPromptFragment
+                        {
+                            TierType = VKPromptTierType.Directive,
+                            RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 15,
+                            Metadata = profile,
+                            Segment = new VKPromptSegment
+                            {
+                                Role = VKChatRole.System,
+                                Content = $"[User Output Preferences]: {prefsStr}."
+                            }
+                        });
+                    }
                 }
             }
-        }
 
-        return VKResult.Success();
+            return VKResult.Success();
+        }
+        finally
+        {
+            stopwatch.Stop();
+            context.Response.ProfilingMetrics["ProfileStage"] = stopwatch.Elapsed.TotalMilliseconds;
+        }
     }
 
     private static bool TryFormatUserLocalTime(System.DateTimeOffset nowUtc, string timeZoneId, out string result)

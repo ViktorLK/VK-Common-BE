@@ -81,7 +81,7 @@ internal sealed class DefaultKnowledgeInjectionStage : IVKPsychePipelineStage
 
         foreach (var entry in injectionState.Candidates)
         {
-            injections.Add(new VKKnowledgeInjection(entry.Id, turnNumber, string.Empty));
+            injections.Add(new VKKnowledgeInjection(context.Request.SessionId, entry.Id, turnNumber, string.Empty));
         }
 
         var recordResult = await _injectionStore.RecordInjectionsAsync(context.Request.SessionId, injections, cancellationToken).ConfigureAwait(false); // [CS.03]

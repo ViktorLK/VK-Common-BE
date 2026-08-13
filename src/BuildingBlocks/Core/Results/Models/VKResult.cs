@@ -23,6 +23,10 @@ public class VKResult : IVKResult
     /// Gets the errors associated with the result.
     /// </summary>
     public VKError[] Errors { get; }
+
+    /// <summary>
+    /// Gets the primary error associated with the result.
+    /// </summary>
     public VKError FirstError => Errors.Length > 0 ? Errors[0] : VKError.None;
 
     /// <summary>

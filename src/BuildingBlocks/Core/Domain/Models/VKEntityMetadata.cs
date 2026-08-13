@@ -1,16 +1,18 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace VK.Blocks.Core;
 
 /// <summary>
 /// Provides high-performance, non-generic access to entity metadata indicators (CS.04).
-/// Uses a unified BitFlags dictionary to minimize hash lookups in hot paths like EFCore lifecycle processing.
+/// Uses a unified BitFlags FrozenDictionary to minimize hash lookups in hot paths like EFCore lifecycle processing.
 /// </summary>
 public static class VKEntityMetadata
 {
-    private static readonly ConcurrentDictionary<Type, VKEntityCapability> _capabilityCache = new();
+    private static readonly object _syncLock = new();
+    private static FrozenDictionary<Type, VKEntityCapability> _capabilityCache = FrozenDictionary<Type, VKEntityCapability>.Empty;
 
     /// <summary>
     /// Checks if a type implements <see cref="IVKAuditable"/>.
@@ -47,31 +49,49 @@ public static class VKEntityMetadata
 
     private static VKEntityCapability GetCapabilities(Type type)
     {
-        return _capabilityCache.GetOrAdd(type, t =>
+        if (_capabilityCache.TryGetValue(type, out var capability))
         {
-            VKEntityCapability cap = VKEntityCapability.None;
+            return capability;
+        }
 
-            if (typeof(IVKAuditable).IsAssignableFrom(t))
+        lock (_syncLock)
+        {
+            if (_capabilityCache.TryGetValue(type, out capability))
             {
-                cap |= VKEntityCapability.Auditable;
+                return capability;
             }
 
-            if (typeof(IVKSoftDelete).IsAssignableFrom(t))
-            {
-                cap |= VKEntityCapability.SoftDelete;
-            }
+            var builder = new Dictionary<Type, VKEntityCapability>(_capabilityCache);
+            builder[type] = ComputeCapabilities(type);
+            _capabilityCache = builder.ToFrozenDictionary();
+            return _capabilityCache[type];
+        }
+    }
 
-            if (typeof(IVKMultiTenant).IsAssignableFrom(t))
-            {
-                cap |= VKEntityCapability.MultiTenant;
-            }
+    private static VKEntityCapability ComputeCapabilities(Type t)
+    {
+        VKEntityCapability cap = VKEntityCapability.None;
 
-            if (typeof(IVKMultiTenantEntity).IsAssignableFrom(t))
-            {
-                cap |= VKEntityCapability.MultiTenantEntity;
-            }
+        if (typeof(IVKAuditable).IsAssignableFrom(t))
+        {
+            cap |= VKEntityCapability.Auditable;
+        }
 
-            return cap;
-        });
+        if (typeof(IVKSoftDelete).IsAssignableFrom(t))
+        {
+            cap |= VKEntityCapability.SoftDelete;
+        }
+
+        if (typeof(IVKMultiTenant).IsAssignableFrom(t))
+        {
+            cap |= VKEntityCapability.MultiTenant;
+        }
+
+        if (typeof(IVKMultiTenantEntity).IsAssignableFrom(t))
+        {
+            cap |= VKEntityCapability.MultiTenantEntity;
+        }
+
+        return cap;
     }
 }

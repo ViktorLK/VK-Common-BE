@@ -1,3 +1,5 @@
+using System.Diagnostics.Metrics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 
@@ -6,9 +8,16 @@ namespace VK.Blocks.AI.Psyche.Pipeline.Diagnostics.Internal;
 /// <summary>
 /// Source-generated logger messages for Psyche Pipeline execution.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Source-generated diagnostics logger declarations containing no business logic.")]
 [VKBlockDiagnostics<VKAIPsycheBlock>]
 internal static partial class PipelineDiagnostics
 {
+    private static Histogram<double>? _pipelineDuration;
+    public static Histogram<double>? PipelineDuration => _pipelineDuration ??= Meter?.CreateHistogram<double>(
+        "vk.ai.psyche.pipeline.duration",
+        unit: "ms",
+        description: "Measures the duration of Psyche prompt weaving pipeline execution in milliseconds.");
+
     [LoggerMessage(
         EventId = VKPipelineDiagnosticsConstants.Logs.ExecutionStarted,
         Level = LogLevel.Information,

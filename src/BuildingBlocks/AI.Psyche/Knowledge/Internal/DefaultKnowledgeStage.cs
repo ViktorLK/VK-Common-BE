@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,85 +31,116 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Knowledge))
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
+            var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+            if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Knowledge))
+            {
+                return VKResult.Success();
+            }
+
+            if (context.Request.PersonaId.IsEmpty)
+            {
+                return VKResult.Failure(VKKnowledgeErrors.MissingPersona);
+            }
+
+            var knowledgeResult = await _store.GetRelevantEntriesAsync(context.Request.PersonaId, ct).ConfigureAwait(false); // [CS.03]
+            if (knowledgeResult.IsFailure)
+            {
+                return VKResult.Failure(knowledgeResult.Errors); // [CS.01]
+            }
+
+            var candidateEntries = knowledgeResult.Value.Where(e => e.Segment.IsEnabled).ToList();
+
+            // Separate constant entries from conditional keyword/regex entries
+            var activeEntries = candidateEntries
+                .Where(e => e.TriggerType == VKKnowledgeTriggerType.Constant)
+                .ToList();
+
+            var conditionalEntries = candidateEntries
+                .Where(e => e.TriggerType != VKKnowledgeTriggerType.Constant)
+                .ToList();
+
+            // Retrieve current Session state and TurnCount
+            var sessionThread = context.State<VKSessionThread>();
+            var currentTurn = sessionThread?.TurnCount ?? 0;
+
+            var sessionKnowledgeState = sessionThread?.KnowledgeState ?? context.State<VKSessionKnowledgeState>() ?? new VKSessionKnowledgeState();
+            var updatedTriggeredTurns = new Dictionary<VKKnowledgeId, int>(sessionKnowledgeState.LastTriggeredTurns);
+
+            var keywordScanDepth = _options.KeywordScanDepth;
+
+            // 1. Process active entries from previous turns within sliding window
+            if (keywordScanDepth != 0 && sessionKnowledgeState.LastTriggeredTurns.Count > 0)
+            {
+                var entriesById = conditionalEntries.ToDictionary(e => e.Id);
+
+                foreach (var (knowledgeId, lastTurn) in sessionKnowledgeState.LastTriggeredTurns)
+                {
+                    var elapsedTurns = currentTurn - lastTurn;
+                    var maxAllowedWindow = keywordScanDepth == -1 ? int.MaxValue : keywordScanDepth;
+
+                    if (elapsedTurns <= maxAllowedWindow && entriesById.TryGetValue(knowledgeId, out var entry))
+                    {
+                        if (!activeEntries.Contains(entry))
+                        {
+                            activeEntries.Add(entry);
+                        }
+                    }
+                    else
+                    {
+                        // Prune out-of-window entries from tracking state
+                        updatedTriggeredTurns.Remove(knowledgeId);
+                    }
+                }
+            }
+
+            // 2. Incremental scan on current UserInput
+            if (!string.IsNullOrWhiteSpace(context.Request.UserInput) && conditionalEntries.Count > 0)
+            {
+                var userInput = context.Request.UserInput;
+                foreach (var entry in conditionalEntries)
+                {
+                    var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
+                    if (matcher(userInput))
+                    {
+                        if (!activeEntries.Contains(entry))
+                        {
+                            activeEntries.Add(entry);
+                        }
+                        updatedTriggeredTurns[entry.Id] = currentTurn;
+                    }
+                }
+            }
+
+            // Update context states for downstream consumption & session persistence
+            var updatedKnowledgeState = new VKSessionKnowledgeState
+            {
+                LastEvaluatedTurn = currentTurn,
+                LastTriggeredTurns = updatedTriggeredTurns
+            };
+
+            if (sessionThread is not null)
+            {
+                context.SetState(sessionThread with { KnowledgeState = updatedKnowledgeState });
+            }
+            context.SetState(updatedKnowledgeState);
+
+            var candidateState = context.State<VKKnowledgeCandidatesState>();
+            if (candidateState == null)
+            {
+                candidateState = new VKKnowledgeCandidatesState();
+                context.SetState(candidateState);
+            }
+            candidateState.Candidates.AddRange(activeEntries);
+
             return VKResult.Success();
         }
-
-        if (context.Request.PersonaId.IsEmpty)
+        finally
         {
-            return VKResult.Failure(VKKnowledgeErrors.MissingPersona);
+            stopwatch.Stop();
+            context.Response.ProfilingMetrics["KnowledgeStage"] = stopwatch.Elapsed.TotalMilliseconds;
         }
-
-        var knowledgeResult = await _store.GetRelevantEntriesAsync(context.Request.PersonaId, ct).ConfigureAwait(false); // [CS.03]
-        if (knowledgeResult.IsFailure)
-        {
-            return VKResult.Failure(knowledgeResult.Errors); // [CS.01]
-        }
-
-        var candidateEntries = knowledgeResult.Value.Where(e => e.Segment.IsEnabled).ToList();
-
-        // Separate constant entries from conditional keyword/regex entries
-        var activeEntries = candidateEntries
-            .Where(e => e.TriggerType == VKKnowledgeTriggerType.Constant)
-            .ToList();
-
-        var conditionalEntries = candidateEntries
-            .Where(e => e.TriggerType != VKKnowledgeTriggerType.Constant)
-            .ToList();
-
-        // Fetch dialogue history from context fragments to scan for keyword matching
-        var echoes = context.Fragments
-            .Where(f => f.TierType == VKPromptTierType.Echo && f.Metadata is VKEchoTrace)
-            .OrderBy(f => f.RenderOrder)
-            .Select(f => (VKEchoTrace)f.Metadata!)
-            .ToList();
-
-        // Build the text list to scan based on KeywordScanDepth
-        var scanTexts = new List<string>();
-
-        if (_options.KeywordScanDepth != 0 && echoes.Count > 0)
-        {
-            var targetEchoes = _options.KeywordScanDepth == -1
-                ? echoes
-                : echoes.Skip(System.Math.Max(0, echoes.Count - _options.KeywordScanDepth));
-
-            foreach (var echo in targetEchoes)
-            {
-                if (!string.IsNullOrWhiteSpace(echo.Content))
-                {
-                    scanTexts.Add(echo.Content);
-                }
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(context.Request.UserInput))
-        {
-            scanTexts.Add(context.Request.UserInput);
-        }
-
-        // Evaluate conditional knowledge entries
-        if (scanTexts.Count > 0)
-        {
-            foreach (var entry in conditionalEntries)
-            {
-                var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
-                if (scanTexts.Any(text => matcher(text)))
-                {
-                    activeEntries.Add(entry);
-                }
-            }
-        }
-
-        var candidateState = context.State<VKKnowledgeCandidatesState>();
-        if (candidateState == null)
-        {
-            candidateState = new VKKnowledgeCandidatesState();
-            context.SetState(candidateState);
-        }
-        candidateState.Candidates.AddRange(activeEntries);
-
-        return VKResult.Success();
     }
 }

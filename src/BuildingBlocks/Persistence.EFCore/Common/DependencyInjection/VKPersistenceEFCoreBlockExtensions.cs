@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
-using VK.Blocks.Persistence;
 using VK.Blocks.Persistence.EFCore.Common.DependencyInjection.Internal;
 using VK.Blocks.Persistence.EFCore.Interceptors.Internal;
 
@@ -129,5 +128,6 @@ public static partial class VKPersistenceEFCoreBlockExtensions
         services.TryAddScoped(typeof(IVKWriteRepository<>), typeof(VKEFCoreRepository<>));
         services.TryAddScoped(typeof(IVKBaseRepository<>), typeof(VKEFCoreRepository<>));
         services.TryAddScoped(typeof(IVKBulkRepository<>), typeof(VKEFCoreRepository<>));
+        services.TryAddScoped(typeof(IVKSystemRepository<>), typeof(VKEFCoreSystemRepository<>));
     }
 }

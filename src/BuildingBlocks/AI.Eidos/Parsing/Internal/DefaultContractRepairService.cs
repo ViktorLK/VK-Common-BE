@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using VK.Blocks.Core;
 
@@ -13,7 +14,8 @@ internal sealed class DefaultContractRepairService : IVKContractRepairService
         VKGuard.NotNull(validationResult);
         VKGuard.NotNull(schema);
 
-        var sb = new StringBuilder();
+        Span<char> initialBuffer = stackalloc char[256];
+        using var sb = new VKValueStringBuilder(initialBuffer);
         sb.AppendLine("Your previous response failed JSON Contract Validation:");
         foreach (var err in validationResult.ErrorMessages)
         {

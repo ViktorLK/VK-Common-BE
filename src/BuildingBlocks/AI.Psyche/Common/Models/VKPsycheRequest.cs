@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -10,7 +11,6 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public sealed record VKPsycheRequest
 {
-    /// <summary>
     /// <summary>
     /// Gets the optional tenant identifier override. If null, ambient <see cref="IVKIdentityContext.TenantId"/> is inherited.
     /// </summary>
@@ -50,16 +50,16 @@ public sealed record VKPsycheRequest
     /// </summary>
     public bool WeaveOnly { get; init; } = false;
 
-    private readonly Dictionary<Type, object> _args = [];
+    private ImmutableDictionary<Type, object> Args { get; init; } = ImmutableDictionary<Type, object>.Empty;
 
     public VKPsycheRequest WithArgs<T>(T args) where T : class
     {
-        _args[typeof(T)] = VKGuard.NotNull(args);
-        return this;
+        VKGuard.NotNull(args);
+        return this with { Args = Args.SetItem(typeof(T), args) };
     }
 
     public T? GetArgs<T>() where T : class
-        => _args.TryGetValue(typeof(T), out object? v) ? (T)v : null;
+        => Args.TryGetValue(typeof(T), out object? v) ? (T)v : null;
 
-    internal IEnumerable<object> GetAllArgs() => _args.Values;
+    internal IEnumerable<object> GetAllArgs() => Args.Values;
 }

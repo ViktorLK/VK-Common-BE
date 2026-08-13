@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Persona.Diagnostics.Internal;
 
+[ExcludeFromCodeCoverage(Justification = "Source-generated diagnostics logger declarations containing no business logic.")]
 [VKBlockDiagnostics<VKAIPsycheBlock>]
 internal static partial class PersonaDiagnostics
 {

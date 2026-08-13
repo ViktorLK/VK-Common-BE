@@ -16,11 +16,4 @@ public interface IVKProfileStore
     Task<VKResult<VKProfilePresence?>> GetProfileAsync(
         VKUserId userId,
         CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Saves or updates a profile cognitive presence.
-    /// </summary>
-    Task<VKResult> SaveProfileAsync(
-        VKProfilePresence presence,
-        CancellationToken cancellationToken = default);
 }

@@ -30,12 +30,12 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 
 | ID | Rule | Tier | Check | Pass Condition |
 |:---|:-----|:-----|:------|:---------------|
-| S-01 | BB.01 | 🟡 | `DependencyInjection/` exists | Directory present |
-| S-02 | BB.01 | 🟡 | `DependencyInjection/Internal/` exists | Directory present |
-| S-03 | BB.04 | 🟡 | `Diagnostics/` exists | Directory present |
-| S-04 | BB.04 | 🟡 | `Diagnostics/Internal/` exists | Directory present |
+| S-01 | BB.01 | 🟡 | `DependencyInjection/` or Feature Slice DI | Directory present OR Feature Slices (`{Feature}/`) present with `[VKBlockMarker]` SG |
+| S-02 | BB.01 | 🟡 | `DependencyInjection/Internal/` or SG-generated DI | Directory present OR SG pipeline active via `[VKBlockMarker]` |
+| S-03 | BB.04 | 🟡 | `Diagnostics/` or Feature/SG Diagnostics | Directory present OR SG diagnostics active via `[VKBlockDiagnostics]` / Feature Diagnostics |
+| S-04 | BB.04 | 🟡 | `Diagnostics/Internal/` or SG Diagnostics | Directory present OR SG diagnostics active via `[VKBlockDiagnostics]` / Feature Diagnostics |
 | S-05 | BB.01 | 🔴 | Marker file exists at module root | `VK{Module}Block.cs` or similar `*Block.cs` at root level |
-| S-06 | BB.01 | 🟡 | Options NOT scattered across multiple folders | Options files should be co-located (not split between `Options/`, `DependencyInjection/`, `Features/` simultaneously) |
+| S-06 | BB.01 | 🟡 | Options Co-location | Options files co-located in Root, `Common/`, or within respective Feature Slices |
 
 ## Step 4: Marker Checks (grep_search on *Block.cs)
 
@@ -50,13 +50,13 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 
 | ID | Rule | Tier | Check | grep Query | Pass Condition |
 |:---|:-----|:-----|:------|:-----------|:---------------|
-| D-01 | BB.03 | 🔴 | Idempotency check exists | `IsVKBlockRegistered` | Found |
-| D-02 | BB.03 | 🔴 | Self-marker registration exists | `AddVKBlockMarker` | Found |
-| D-03 | AP.04 | 🟡 | Options uses standard helper | `AddVKBlockOptions` | Found |
+| D-01 | BB.03 | 🔴 | Idempotency check exists | `IsVKBlockRegistered` | Found OR module uses `[VKBlockMarker]` SG |
+| D-02 | BB.03 | 🔴 | Self-marker registration exists | `AddVKBlockMarker` | Found OR module uses `[VKBlockMarker]` SG |
+| D-03 | AP.04 | 🟡 | Options uses standard helper | `AddVKBlockOptions` | Found OR module uses `[VKBlockMarker]` / `[VKFeature]` SG |
 | D-04 | AP.02 | 🔴 | Uses `TryAdd` pattern | `TryAdd` | Found |
 | D-05 | AP.02 | 🔴 | No direct `Add` registration | `services.Add(Singleton\|Scoped\|Transient)` (regex) | **NOT found** = Pass |
-| D-06 | BB.03 | 🟡 | Wrapper → Internal delegation exists | `BlockRegistration.Register` in Extensions file | Found |
-| D-07 | BB.03 | 🔴 | Wrapper Method Naming Pattern | `AddVK.*Block` | Found |
+| D-06 | BB.03 | 🟡 | Wrapper → Internal delegation exists | `BlockRegistration.Register` | Found OR emitted by `VKBlockGenerator` SG |
+| D-07 | BB.03 | 🔴 | Wrapper Method Naming Pattern | `AddVK.*Block` | Found OR emitted by `VKBlockGenerator` SG |
 
 ## Step 6: Options Checks (grep_search)
 
@@ -64,7 +64,7 @@ Run `list_dir` on the module root and key subdirectories. Check the following:
 |:---|:-----|:-----|:------|:-----------|:---------------|
 | O-01 | BB.05 | 🟡 | Options is `sealed record` | `sealed record.*IVKBlockOptions` | Found |
 | O-02 | BB.05 | 🟡 | Options uses `VK` prefix in type name | `VK.*Options.*IVKBlockOptions` | Found |
-| O-03 | AP.04 | 🟡 | `SectionName` is defined | `SectionName` in Options files | Found |
+| O-03 | AP.04 | 🟡 | `SectionName` is defined | `SectionName` in Options files | Found OR emitted by `VKFeatureGenerator` SG |
 | O-04 | BB.05 | 🔴 | NOT `sealed class` (legacy) | `sealed class.*IVKBlockOptions` | **NOT found** = Pass |
 
 ## Step 7: Implementation Pattern Checks (grep_search, module-wide)

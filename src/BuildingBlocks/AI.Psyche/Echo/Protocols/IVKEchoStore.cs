@@ -22,7 +22,7 @@ public interface IVKEchoStore
     /// <summary>
     /// Appends a new conversation echo trace to short-term memory.
     /// </summary>
-    Task<VKResult> SaveTraceAsync(
+    Task<VKResult> SaveHistoryAsync(
         VKEchoTrace trace,
         CancellationToken cancellationToken = default);
 }

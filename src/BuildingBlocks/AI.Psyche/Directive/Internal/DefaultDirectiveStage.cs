@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -39,41 +40,50 @@ internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Directive))
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
+            var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+            if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Directive))
+            {
+                return VKResult.Success();
+            }
+
+            var directiveId = context.Args<VKDirectiveArgs>()?.DirectiveId;
+            if (!directiveId.HasValue || directiveId.Value.IsEmpty)
+            {
+                directiveId = VKDirectiveId.Empty;
+            }
+
+            var resolveResult = await _store.GetDirectiveAsync(directiveId.Value, cancellationToken).ConfigureAwait(false); // [CS.03]
+            if (resolveResult.IsFailure)
+            {
+                return VKResult.Failure(resolveResult.Errors);
+            }
+
+            var tierType = VKPromptTierType.Directive;
+            var directive = resolveResult.Value;
+            var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
+                ? idx * PsycheConstants.Layout.TierCoordinateGap
+                : PromptLayout.DefaultRenderOrders[tierType];
+
+            context.AddFragment(new VKPromptFragment()
+            {
+                TierType = tierType,
+                RenderOrder = baseRenderOrder,
+                Metadata = directive,
+                Segment = new VKPromptSegment
+                {
+                    Role = VKChatRole.System
+                }
+            });
+
             return VKResult.Success();
         }
-
-        var directiveId = context.Args<VKDirectiveArgs>()?.DirectiveId;
-        if (!directiveId.HasValue || directiveId.Value.IsEmpty)
+        finally
         {
-            directiveId = VKDirectiveId.Empty;
+            stopwatch.Stop();
+            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.DirectiveStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
-
-        var resolveResult = await _store.GetDirectiveAsync(directiveId.Value, cancellationToken).ConfigureAwait(false);
-        if (resolveResult.IsFailure)
-        {
-            return VKResult.Failure(resolveResult.Errors);
-        }
-
-        var tierType = VKPromptTierType.Directive;
-        var directive = resolveResult.Value;
-        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-            ? idx * PsycheConstants.Layout.TierCoordinateGap
-            : PromptLayout.DefaultRenderOrders[tierType];
-
-        context.AddFragment(new VKPromptFragment()
-        {
-            TierType = tierType,
-            RenderOrder = baseRenderOrder,
-            Metadata = directive,
-            Segment = new VKPromptSegment
-            {
-                Role = VKChatRole.System
-            }
-        });
-
-        return VKResult.Success();
     }
 }

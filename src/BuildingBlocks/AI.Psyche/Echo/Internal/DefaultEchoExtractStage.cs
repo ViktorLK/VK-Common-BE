@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,164 +49,173 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Echo))
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
-            return VKResult.Success();
-        }
-
-        // 1. Fetch history (supports Continuous multi-level parent ancestry tracing)
-        var allEchoes = new List<VKEchoTrace>();
-        var currentSessionId = (VKSessionId?)context.Request.SessionId;
-        var mode = context.Request.SessionMode;
-
-        var visitedSessions = new HashSet<VKSessionId>();
-
-        while (currentSessionId.HasValue && visitedSessions.Add(currentSessionId.Value))
-        {
-            var historyResult = await _echoStore.GetHistoryAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
-            if (historyResult.IsSuccess && historyResult.Value.Count > 0)
+            var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+            if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Echo))
             {
-                // Prepend parent echoes before child echoes
-                allEchoes.InsertRange(0, historyResult.Value);
+                return VKResult.Success();
             }
 
-            // Only trace parent dynamically if mode is Continuous
-            if (mode == VKSessionMode.Continuous)
+            // 1. Fetch history (supports Continuous multi-level parent ancestry tracing)
+            var allEchoes = new List<VKEchoTrace>();
+            var currentSessionId = (VKSessionId?)context.Request.SessionId;
+            var mode = context.Request.SessionMode;
+
+            var visitedSessions = new HashSet<VKSessionId>();
+
+            while (currentSessionId.HasValue && visitedSessions.Add(currentSessionId.Value))
             {
-                var cachedSession = context.State<VKSessionThread>();
-                if (cachedSession is not null && cachedSession.Id == currentSessionId.Value)
+                var historyResult = await _echoStore.GetHistoryAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
+                if (historyResult.IsSuccess && historyResult.Value.Count > 0)
                 {
-                    currentSessionId = cachedSession.ParentSessionId;
+                    // Prepend parent echoes before child echoes
+                    allEchoes.InsertRange(0, historyResult.Value);
+                }
+
+                // Only trace parent dynamically if mode is Continuous
+                if (mode == VKSessionMode.Continuous)
+                {
+                    var cachedSession = context.State<VKSessionThread>();
+                    if (cachedSession is not null && cachedSession.Id == currentSessionId.Value)
+                    {
+                        currentSessionId = cachedSession.ParentSessionId;
+                    }
+                    else
+                    {
+                        var sessionResult = await _sessionStore.GetSessionAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
+                        currentSessionId = sessionResult.IsSuccess ? sessionResult.Value?.ParentSessionId : null;
+                    }
                 }
                 else
                 {
-                    var sessionResult = await _sessionStore.GetSessionAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
-                    currentSessionId = sessionResult.IsSuccess ? sessionResult.Value?.ParentSessionId : null;
+                    break;
+                }
+            }
+
+            if (allEchoes.Count == 0)
+            {
+                return VKResult.Success();
+            }
+
+            // 1. Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
+            var maxWindowSize = context.Args<VKEchoArgs>()?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
+            if (maxWindowSize.HasValue && maxWindowSize.Value > 0 && allEchoes.Count > maxWindowSize.Value)
+            {
+                allEchoes = [.. allEchoes.Skip(allEchoes.Count - maxWindowSize.Value)];
+            }
+
+            // 2. Filter System Messages if disabled
+            if (!_echoOptions.IncludeSystemMessages)
+            {
+                allEchoes = [.. allEchoes.Where(e => e.Role != VKChatRole.System)];
+            }
+
+            if (allEchoes.Count == 0)
+            {
+                return VKResult.Success();
+            }
+
+            // 3. Resolve Effective Token Budget
+            int effectiveBudget = int.MaxValue;
+            if (_echoOptions.MaxTokens.HasValue && _echoOptions.MaxTokens.Value > 0)
+            {
+                effectiveBudget = _echoOptions.MaxTokens.Value;
+            }
+
+            var totalLimit = context.Args<VKWeavingArgs>()?.TotalContextLimit ?? _weavingOptions.TotalContextLimit;
+            int dynamicLimit = (int)(totalLimit * _echoOptions.TokenBudgetRatio);
+            effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
+
+            // 4. Trim dialogue history (from oldest to newest)
+            var retained = new List<VKEchoTrace>();
+
+            if (_echoOptions.PruneUnit == VKEchoPruneUnit.Turn)
+            {
+                // Prune by whole Turns (alternating user dialog steps)
+                var turns = GroupIntoTurns([.. allEchoes]);
+                int currentTokensSum = 0;
+                int retainedTurnsCount = 0;
+
+                foreach (var turn in turns)
+                {
+                    int turnTokens = turn.Sum(GetEchoTokens);
+
+                    var maxTurns = context.Args<VKEchoArgs>()?.MaxTurns ?? _echoOptions.MaxTurns;
+                    if (maxTurns.HasValue && retainedTurnsCount >= maxTurns.Value)
+                    {
+                        break;
+                    }
+
+                    if (currentTokensSum + turnTokens <= effectiveBudget)
+                    {
+                        foreach (var item in turn)
+                        {
+                            retained.Insert(0, item); // Maintain oldest-first chronological order
+                        }
+                        currentTokensSum += turnTokens;
+                        retainedTurnsCount++;
+                    }
+                    else
+                    {
+                        break; // Over budget: drop remaining oldest turns
+                    }
                 }
             }
             else
             {
-                break;
-            }
-        }
+                // Prune message-by-message
+                int currentTokensSum = 0;
 
-        if (allEchoes.Count == 0)
-        {
-            return VKResult.Success();
-        }
-
-        // 1. Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
-        var maxWindowSize = context.Args<VKEchoArgs>()?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
-        if (maxWindowSize.HasValue && maxWindowSize.Value > 0 && allEchoes.Count > maxWindowSize.Value)
-        {
-            allEchoes = [.. allEchoes.Skip(allEchoes.Count - maxWindowSize.Value)];
-        }
-
-        // 2. Filter System Messages if disabled
-        if (!_echoOptions.IncludeSystemMessages)
-        {
-            allEchoes = [.. allEchoes.Where(e => e.Role != VKChatRole.System)];
-        }
-
-        if (allEchoes.Count == 0)
-        {
-            return VKResult.Success();
-        }
-
-        // 3. Resolve Effective Token Budget
-        int effectiveBudget = int.MaxValue;
-        if (_echoOptions.MaxTokens.HasValue && _echoOptions.MaxTokens.Value > 0)
-        {
-            effectiveBudget = _echoOptions.MaxTokens.Value;
-        }
-
-        var totalLimit = context.Args<VKWeavingArgs>()?.TotalContextLimit ?? _weavingOptions.TotalContextLimit;
-        int dynamicLimit = (int)(totalLimit * _echoOptions.TokenBudgetRatio);
-        effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
-
-        // 4. Trim dialogue history (from oldest to newest)
-        var retained = new List<VKEchoTrace>();
-
-        if (_echoOptions.PruneUnit == VKEchoPruneUnit.Turn)
-        {
-            // Prune by whole Turns (alternating user dialog steps)
-            var turns = GroupIntoTurns([.. allEchoes]);
-            int currentTokensSum = 0;
-            int retainedTurnsCount = 0;
-
-            foreach (var turn in turns)
-            {
-                int turnTokens = turn.Sum(GetEchoTokens);
-
-                var maxTurns = context.Args<VKEchoArgs>()?.MaxTurns ?? _echoOptions.MaxTurns;
-                if (maxTurns.HasValue && retainedTurnsCount >= maxTurns.Value)
+                for (int i = allEchoes.Count - 1; i >= 0; i--)
                 {
-                    break;
-                }
+                    var item = allEchoes[i];
+                    int itemTokens = GetEchoTokens(item);
 
-                if (currentTokensSum + turnTokens <= effectiveBudget)
-                {
-                    foreach (var item in turn)
+                    if (currentTokensSum + itemTokens <= effectiveBudget)
                     {
-                        retained.Insert(0, item); // Maintain oldest-first chronological order
+                        retained.Insert(0, item); // Prepend to preserve oldest-first
+                        currentTokensSum += itemTokens;
                     }
-                    currentTokensSum += turnTokens;
-                    retainedTurnsCount++;
-                }
-                else
-                {
-                    break; // Over budget: drop remaining oldest turns
+                    else
+                    {
+                        break; // Over budget: drop remaining oldest messages
+                    }
                 }
             }
-        }
-        else
-        {
-            // Prune message-by-message
-            int currentTokensSum = 0;
 
-            for (int i = allEchoes.Count - 1; i >= 0; i--)
+            var tierType = VKPromptTierType.Echo;
+            var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
+                ? idx * PsycheConstants.Layout.TierCoordinateGap
+                : PromptLayout.DefaultRenderOrders[tierType];
+
+            for (var i = 0; i < retained.Count; i++)
             {
-                var item = allEchoes[i];
-                int itemTokens = GetEchoTokens(item);
-
-                if (currentTokensSum + itemTokens <= effectiveBudget)
+                var echo = retained[i];
+                context.AddFragment(new VKPromptFragment()
                 {
-                    retained.Insert(0, item); // Prepend to preserve oldest-first
-                    currentTokensSum += itemTokens;
-                }
-                else
-                {
-                    break; // Over budget: drop remaining oldest messages
-                }
+                    TierType = tierType,
+                    RenderOrder = baseRenderOrder + i,
+                    Metadata = echo,
+                    Segment = new VKPromptSegment()
+                    {
+                        Content = echo.Content,
+                        Role = echo.Role,
+                        RelativeDepth = VKPromptRelativeDepth.AfterEcho
+                    }
+                });
             }
+
+            _logger.EchoTrimmed(context.Request.SessionId, allEchoes.Count, retained.Count);
+
+            return VKResult.Success();
         }
-
-        var tierType = VKPromptTierType.Echo;
-        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-            ? idx * PsycheConstants.Layout.TierCoordinateGap
-            : PromptLayout.DefaultRenderOrders[tierType];
-
-        for (var i = 0; i < retained.Count; i++)
+        finally
         {
-            var echo = retained[i];
-            context.AddFragment(new VKPromptFragment()
-            {
-                TierType = tierType,
-                RenderOrder = baseRenderOrder + i,
-                Metadata = echo,
-                Segment = new VKPromptSegment()
-                {
-                    Content = echo.Content,
-                    Role = echo.Role,
-                    RelativeDepth = VKPromptRelativeDepth.AfterEcho
-                }
-            });
+            stopwatch.Stop();
+            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.EchoExtractStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
-
-        _logger.EchoTrimmed(context.Request.SessionId, allEchoes.Count, retained.Count);
-
-        return VKResult.Success();
     }
 
     /// <summary>

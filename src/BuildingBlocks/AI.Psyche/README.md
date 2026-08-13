@@ -99,49 +99,66 @@ flowchart TB
 
 ```
 AI.Psyche/
-├── Common/                        # 横断的関心事
+├── Common/                        # 横断的関心事（Vertical Slice 共有基盤）
 │   ├── Constants/                # 共有定数 (VKPsychePipelineScheduler, VKWeavingTaskOrder)
-│   ├── DependencyInjection/      # Block-level DI (VKPsycheBlockExtensions, IVKPsycheBuilder)
-│   │   ├── Internal/            # BlockRegistration, BlockBuilder
-│   │   └── Protocols/           # IVKAIPsycheBuilder
 │   ├── Internal/                 # 共有内部ユーティリティ (PromptPositionResolver, PromptConstants)
 │   ├── Models/                   # 公開データモデル (VKPsycheContext, VKPsycheRequest/Response, VKPromptFragment)
-│   └── Protocols/                # 公開インターフェース (IVKFragmentMetadata)
-├── Pipelines/                     # パイプライン実行管理
+│   ├── Protocols/                # 公開インターフェース (IVKFragmentMetadata)
+│   └── IVKPsycheModelFactory.cs  # ドメインモデルファクトリ (CS.06 確定性 API)
+├── Pipeline/                      # パイプライン実行管理
 │   ├── Diagnostics/Internal/     # [LoggerMessage] SG Diagnostics
-│   ├── Diagnostics/VKPipelineDiagnosticsConstants.cs
-│   ├── Internal/                 # DefaultPsychePipeline, DefaultPsychePipelineExecutor, PipelinesFeature
-│   └── Protocols/                # IVKPsychePipeline, IVKPsychePipelineExecutor, Stage/Middleware interfaces
+│   ├── Internal/                 # DefaultPsychePipeline, DefaultPsychePipelineExecutor
+│   ├── Protocols/                # IVKPsychePipeline, IVKPsychePipelineExecutor, Stage/Middleware
+│   ├── PipelineFeature.cs        # [VKFeature] SG トリガー
+│   └── VKPipelineOptions.cs      # Feature Options (sealed partial record)
 ├── Directive/                     # テナント指令機能
 │   ├── Diagnostics/Internal/     # [LoggerMessage] SG Diagnostics
-│   ├── Internal/                 # DefaultDirectiveStage, InMemoryDirectiveStore, DirectiveFeature
+│   ├── Internal/                 # DefaultDirectiveStage, InMemoryDirectiveStore
 │   ├── Models/                   # VKDirectiveCharter, VKDirectiveId, VKDirectiveArgs
-│   └── Protocols/                # IVKDirectiveStore, IVKDirectiveOptions
+│   ├── Protocols/                # IVKDirectiveStore
+│   └── DirectiveFeature.cs       # [VKFeature] SG トリガー
 ├── Echo/                          # 対話履歴（短期記憶）機能
 │   ├── Diagnostics/Internal/     # [LoggerMessage] SG Diagnostics
-│   ├── Internal/                 # DefaultEchoStage, InMemoryEchoStore, EchoRenderers, EchoFeature
-│   ├── Models/                   # VKEchoTrace, VKEchoPruneUnit, VKSessionId
-│   └── Protocols/                # IVKEchoStore, IVKEchoRenderer, IVKEchoOptions, IVKEchoOverrides
+│   ├── Internal/                 # DefaultEchoExtractStage, DefaultEchoSaveStage, InMemoryEchoStore, Renderers
+│   ├── Models/                   # VKEchoTrace, VKEchoPruneUnit
+│   ├── Protocols/                # IVKEchoStore, IVKEchoRenderer
+│   └── EchoFeature.cs            # [VKFeature] SG トリガー
 ├── Knowledge/                     # 動的ナレッジ機能
 │   ├── Diagnostics/Internal/     # [LoggerMessage] SG Diagnostics
 │   ├── Internal/                 # DefaultKnowledgeStage, DefaultKnowledgeFinalizerStage, InMemoryKnowledgeStore
-│   ├── Models/                   # VKKnowledgeEntry, VKKnowledgeKey, FilterLogic, Trigger, MatchType
-│   └── Protocols/                # IVKKnowledgeStore, IVKKnowledgeRenderer, IVKKnowledgeOptions/Overrides
+│   ├── Models/                   # VKKnowledgeEntry, VKKnowledgeKey, FilterLogic, Trigger
+│   ├── Protocols/                # IVKKnowledgeStore, IVKKnowledgeRenderer
+│   └── KnowledgeFeature.cs       # [VKFeature] SG トリガー
 ├── Pattern/                       # Few-Shot パターン注入機能
-│   ├── Internal/                 # DefaultPatternStage, InMemoryPatternStore, PatternFeature
+│   ├── Internal/                 # DefaultPatternStage, InMemoryPatternStore
 │   ├── Models/                   # Pattern domain models
-│   └── Protocols/                # IVKPatternStore, IVKPatternOptions
+│   ├── Protocols/                # IVKPatternStore
+│   └── PatternFeature.cs         # [VKFeature] SG トリガー
 ├── Persona/                       # ペルソナ（人格定義）機能
 │   ├── Diagnostics/Internal/     # [LoggerMessage] SG Diagnostics
-│   ├── Internal/                 # DefaultPersonaStage, InMemoryPersonaStore, PersonaFeature
-│   ├── Models/                   # VKPersonaAnchor, VKOutputSpecification, VKFewShotExample
-│   └── Protocols/                # IVKPersonaStore, IVKPersonaRenderer, IVKPersonaOptions
+│   ├── Internal/                 # DefaultPersonaStage, InMemoryPersonaStore, Renderers
+│   ├── Models/                   # VKPersonaAnchor, VKResponseFormat
+│   ├── Protocols/                # IVKPersonaStore, IVKPersonaRenderer
+│   └── PersonaFeature.cs         # [VKFeature] SG トリガー
+├── Profile/                       # プロファイル管理機能
+│   ├── Internal/                 # DefaultProfileStage, InMemoryProfileStore
+│   ├── Models/                   # VKProfilePresence
+│   ├── Protocols/                # IVKProfileStore
+│   └── ProfileFeature.cs         # [VKFeature] SG トリガー
+├── Session/                       # セッション管理機能
+│   ├── Internal/                 # DefaultSessionResolveStage, DefaultSessionUpdateStage, InMemorySessionStore
+│   ├── Models/                   # VKSessionThread, VKSessionId, VKSessionMode, VKSessionStatus
+│   ├── Protocols/                # IVKSessionStore
+│   └── SessionFeature.cs         # [VKFeature] SG トリガー
 ├── Weaving/                       # プロンプト織り込みエンジン
+│   ├── Contracts/                # VKWeavingErrors, VKWeavingArgs
 │   ├── Diagnostics/Internal/     # [LoggerMessage] SG Diagnostics
 │   ├── Internal/                 # FormatterTask, TruncateTask, TapestryTask, CoordinateResolveTask, ReplacementTask
-│   └── Protocols/                # IVKWeavingTask, IVKWeavingTaskEngine, IVKPromptFormatter
-├── VKAIPsycheBlock.cs             # [VKBlockMarker] ブロックマーカー
-└── VKAIPsycheOptions.cs           # ルート Options (IVKToggleableBlockOptions)
+│   ├── Protocols/                # IVKWeavingPipelineTask, IVKPromptFormatter
+│   ├── WeavingFeature.cs         # [VKFeature] SG トリガー
+│   └── VKWeavingOptions.cs       # Feature Options (sealed partial record)
+├── VKAIPsycheBlock.cs             # [VKBlockMarker] ブロックマーカー (SG: DI + Builder 自動生成)
+└── VK.Blocks.AI.Psyche.csproj     # プロジェクトファイル
 ```
 
 ---
@@ -281,7 +298,7 @@ public sealed class ChatService(IVKPsychePipeline pipeline)
             // LLM-specific parameters
         });
 
-        return await pipeline.RunAsync(request, ct);
+        return await pipeline.ExecuteAsync(request, ct);
     }
 }
 ```
@@ -312,23 +329,22 @@ builder.Services.TryAddEnumerable(
 
 ## 🏛️ アーキテクチャ監査
 
-最新の監査レポートは [AI.Psyche_20260617.md](/docs/04-AuditReports/AI.Psyche/AI.Psyche_20260617.md) を参照してください。
+最新の監査レポートは [AI.Psyche_20260811.md](/docs/04-AuditReports/AI.Psyche/AI.Psyche_20260811.md) を参照してください。
 
 | 項目             | 結果                  |
 | ---------------- | --------------------- |
-| **総合スコア**   | 88 / 100              |
-| **Fast Audit**   | 17/18 (94%)           |
-| **DI Registration** | ✅ PASS (BB.03 完全準拠) |
+| **総合スコア**   | 98 / 100              |
+| **Fast Audit**   | 35/35 (100%)          |
+| **DI Registration** | ✅ PASS (BB.03 SG 完全準拠) |
 | **重大な懸念事項** | なし                  |
 
 ### 監査による改善提案
 
 | 優先度 | 内容 |
 |:-------|:-----|
-| 🔴 High | InMemory Stores の `throw new ArgumentException` → `VKGuard` / `Result.Failure` に置換 (CS.01) |
-| 🔴 High | `InMemoryKnowledgeStore.Seed` の `KeyNotFoundException` 修正 |
-| 🟡 Medium | `DefaultPsychePipelineExecutor` のインライン `new VKError(...)` を定数化 |
-| 🟡 Medium | `PsychePipelineRunner` の Abort 時 `VKResult.Success()` 返却を修正 |
+| 🟡 Medium | `DefaultTapestryWeavingTask` の `TotalEstimatedTokens = 0` を `IVKTokenCounter` 実測値に置換 |
+| 🟡 Medium | `VKPsycheRequest` の重複 `<summary>` XML ドキュメントタグ修正 |
+| 🟢 Low | `VKPsycheContext.Fragments` のスプレッドコピーを `ImmutableList<T>` に最適化検討 |
 
 ---
 

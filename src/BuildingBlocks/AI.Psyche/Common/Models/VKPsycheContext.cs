@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using VK.Blocks.Core;
 
@@ -30,51 +31,44 @@ public sealed class VKPsycheContext
     public VKPsycheResponseBuilder Response { get; } = new();
 
     // ==========================================
-    // 3. Active Prompt Fragments (Thread-Safe Collection)
+    // 3. Active Prompt Fragments (Thread-Safe Immutable Collection)
     // ==========================================
 
-    private readonly Lock _lockFragments = new();
-    private readonly List<VKPromptFragment> _fragments = [];
+    private ImmutableList<VKPromptFragment> _fragments = ImmutableList<VKPromptFragment>.Empty;
 
     /// <summary>
     /// Gets all active prompt fragments currently accumulated in the context.
+    /// Lock-free, zero-allocation read access.
     /// </summary>
-    public IReadOnlyList<VKPromptFragment> Fragments
-    {
-        get
-        {
-            lock (_lockFragments)
-            {
-                return [.. _fragments];
-            }
-        }
-    }
+    public IReadOnlyList<VKPromptFragment> Fragments => _fragments;
 
     /// <summary>
     /// Safely adds a newly extracted prompt fragment into the active collection.
+    /// Uses CAS (Compare-And-Swap) for atomic, lock-free thread safety.
     /// </summary>
     /// <param name="fragment">The prompt fragment to add.</param>
     public void AddFragment(VKPromptFragment fragment)
     {
         VKGuard.NotNull(fragment);
-        lock (_lockFragments)
+        ImmutableList<VKPromptFragment> initial, updated;
+        do
         {
-            _fragments.Add(fragment);
+            initial = _fragments;
+            updated = initial.Add(fragment);
         }
+        while (Interlocked.CompareExchange(ref _fragments, updated, initial) != initial);
     }
 
     /// <summary>
     /// Safely overrides the active fragments collection (typically used during truncation/pruning).
+    /// Uses CAS (Compare-And-Swap) for atomic, lock-free thread safety.
     /// </summary>
     /// <param name="fragments">The new list of active prompt fragments.</param>
     public void SetFragments(IReadOnlyList<VKPromptFragment> fragments)
     {
         VKGuard.NotNull(fragments);
-        lock (_lockFragments)
-        {
-            _fragments.Clear();
-            _fragments.AddRange(fragments);
-        }
+        var newImmutableList = fragments.ToImmutableList();
+        Interlocked.Exchange(ref _fragments, newImmutableList);
     }
 
     // ==========================================

@@ -1,6 +1,6 @@
 # Task: VKResult.FirstError Documentation
 **ID**: CORE-004
-**Status**: 🟡 Medium | #Debt
+**Status**: ✅ Completed | #Debt
 **Target**: `VK.Blocks.Core` -> `VKResult.cs`
 **Ref**: N/A
 
@@ -8,6 +8,7 @@
 Add missing XML documentation for the `FirstError` property in `VKResult.cs` to improve developer experience and IntelliSense.
 
 ## ✅ DoD (Definition of Done)
-- [ ] Add `<summary>` XML tag to `FirstError`
-- [ ] Ensure all overloads/variants have consistent docs
-- [ ] Verify build
+- [x] Add `<summary>` XML tag to `FirstError`
+- [x] Ensure all overloads/variants have consistent docs
+- [x] Verify build
+

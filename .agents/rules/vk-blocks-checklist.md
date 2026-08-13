@@ -40,7 +40,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **AP.05**   |     | Args pattern: SG-automated via `[VKRequestOverride]`/`[VKNoRequestOverride]` + ArgsGenerationMode. |
 | **AP.06**   | 🔴  | Anti-overprotection: explicit builder overrides (`builder.OverrideXxx<T>()`) & no silent fallbacks. |
 | **AP.07**   | 🔴  | Non-intrusive capability: Core blocks must not make implicit state decisions; App owns lifecycles.  |
-| **BB.01**   |     | Vertical slice (Features at root). Foundations in `Common/` (Mandatory).           |
+| **BB.01**   |     | Vertical Slice layout (`{Feature}/` at root, `Common/` foundations). SG-driven DI & Diagnostics. |
 | **BB.02**   |     | `[VKBlockMarker]` on `sealed partial class` in module root. Source-generated.                     |
 | **BB.03**   | 🟡  | DI order (SG-automated): Check → Options → Mark → Validate → Provider → Toggle → CustomHook.     |
 | **BB.04**   |     | `[VKBlockDiagnostics]` attribute. `DiagnosticsConstants.cs` for semantic tokens.                  |

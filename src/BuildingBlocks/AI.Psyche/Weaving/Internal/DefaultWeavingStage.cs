@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,20 +30,29 @@ internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context); // [AP.01]
 
-        PruneDisabledTiers(context);
-
-        var runResult = await VKPipelineRunner.ExecuteComponentsAsync(_tasks, context, cancellationToken: cancellationToken).ConfigureAwait(false); // [CS.03]
-        if (runResult.IsFailure)
+        var stopwatch = Stopwatch.StartNew();
+        try
         {
-            return runResult; // [CS.01]
-        }
+            PruneDisabledTiers(context);
 
-        if (context.Response.Messages.Count == 0)
+            var runResult = await VKPipelineRunner.ExecuteComponentsAsync(_tasks, context, cancellationToken: cancellationToken).ConfigureAwait(false); // [CS.03]
+            if (runResult.IsFailure)
+            {
+                return runResult; // [CS.01]
+            }
+
+            if (context.Response.Messages.Count == 0)
+            {
+                return VKResult.Failure(VKWeavingErrors.NoTapestry); // [CS.01]
+            }
+
+            return VKResult.Success(); // [CS.01]
+        }
+        finally
         {
-            return VKResult.Failure(VKWeavingErrors.NoTapestry); // [CS.01]
+            stopwatch.Stop();
+            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.WeavingStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
-
-        return VKResult.Success(); // [CS.01]
     }
 
     private void PruneDisabledTiers(VKPsycheContext context)

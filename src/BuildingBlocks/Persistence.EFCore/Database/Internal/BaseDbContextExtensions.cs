@@ -55,11 +55,6 @@ internal static class BaseDbContextExtensions
 
             if (typeof(IVKMultiTenant).IsAssignableFrom(entityType.ClrType))
             {
-                if (!context.IsMultiTenancyEnabled)
-                {
-                    throw new InvalidOperationException($"Entity '{entityType.ClrType.Name}' implements IVKMultiTenant, but multi-tenancy is not enabled on the DbContext '{context.GetType().Name}'. Please ensure EnableMultiTenancy is set to true and properly passed to the base constructor.");
-                }
-
                 var setMultiTenantFilter = _multiTenantFilterSetters.GetOrAdd(entityType.ClrType, type =>
                 {
                     var concreteMethod = _setMultiTenantFilterMethod.MakeGenericMethod(type);
@@ -96,10 +91,18 @@ internal static class BaseDbContextExtensions
         modelBuilder.VKEntity<TEntity>().HasQueryFilter(e => !e.IsDeleted);
     }
 
+    /// <summary>
+    /// Configures EF Core Global Query Filter for multi-tenant entities.
+    /// <para>
+    /// When <see cref="VKBaseDbContext.IsMultiTenancyEnabled"/> is <c>false</c> (e.g. system background jobs), the filter is bypassed.
+    /// When <see cref="VKBaseDbContext.IsMultiTenancyEnabled"/> is <c>true</c>, entities are filtered by <c>CurrentTenantIdForQueryFilter</c>.
+    /// If <c>CurrentTenantIdForQueryFilter</c> is <c>null</c>, this query evaluates to 0 rows (Fail-Closed Defense-in-Depth).
+    /// </para>
+    /// </summary>
     private static void SetMultiTenantFilter<TEntity>(ModelBuilder modelBuilder, VKBaseDbContext context)
         where TEntity : class, IVKMultiTenant
     {
-        modelBuilder.VKEntity<TEntity>().HasQueryFilter(e => e.TenantId == context.CurrentTenantIdForQueryFilter);
+        modelBuilder.VKEntity<TEntity>().HasQueryFilter(e => !context.IsMultiTenancyEnabled || (context.CurrentTenantIdForQueryFilter != null && e.TenantId == context.CurrentTenantIdForQueryFilter));
     }
 
 }

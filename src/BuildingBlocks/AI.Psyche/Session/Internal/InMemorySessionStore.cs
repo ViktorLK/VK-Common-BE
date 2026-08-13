@@ -40,7 +40,7 @@ internal sealed class InMemorySessionStore : IVKSessionStore
         return Task.FromResult(VKResult.Success<VKSessionThread?>(session));
     }
 
-    public Task<VKResult> SaveSessionAsync(
+    public Task<VKResult> UpdateSessionAsync(
         VKSessionThread session,
         CancellationToken cancellationToken = default)
     {

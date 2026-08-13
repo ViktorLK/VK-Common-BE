@@ -54,14 +54,14 @@ internal sealed class EngramEchoStoreBridge : IVKEchoStore
                 Id = new VKEchoId(m.Id.Value),
                 Role = m.Metadata.TryGetValue("Role", out var roleStr) && Enum.TryParse<VKChatRole>(roleStr, out var r) ? r : VKChatRole.User,
                 Content = m.Content,
-                Timestamp = m.CreatedAt
+                CreatedAt = m.CreatedAt
             })
             .ToList();
 
         return VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(echoes);
     }
 
-    public async Task<VKResult> SaveTraceAsync(
+    public async Task<VKResult> SaveHistoryAsync(
         VKEchoTrace trace,
         CancellationToken cancellationToken = default)
     {
@@ -74,7 +74,7 @@ internal sealed class EngramEchoStoreBridge : IVKEchoStore
             SessionId = trace.SessionId,
             Category = VKMemoryCategory.ShortTerm,
             Content = trace.Content,
-            CreatedAt = trace.Timestamp,
+            CreatedAt = trace.CreatedAt,
             Metadata = FrozenDictionary.ToFrozenDictionary(new Dictionary<string, string>
             {
                 ["Role"] = trace.Role.ToString()

@@ -1,10 +1,12 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Knowledge.Diagnostics.Internal;
 
+[ExcludeFromCodeCoverage(Justification = "Source-generated diagnostics logger declarations containing no business logic.")]
 [VKBlockDiagnostics<VKAIPsycheBlock>]
 internal static partial class KnowledgeDiagnostics
 {

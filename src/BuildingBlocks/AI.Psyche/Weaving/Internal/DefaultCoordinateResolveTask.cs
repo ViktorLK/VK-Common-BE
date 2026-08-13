@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ internal sealed class DefaultCoordinateResolveTask : IVKWeavingPipelineTask
 
         var tierOrderOverrides = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides ?? _options.TierRenderOrderOverrides;
 
-        var dict = tierOrderOverrides is not null
+        IReadOnlyDictionary<VKPromptTierType, int> dict = tierOrderOverrides is not null && tierOrderOverrides.Count > 0
             ? tierOrderOverrides.Select((t, index) => new { t, index }).ToDictionary(x => x.t, x => x.index * PsycheConstants.Layout.TierCoordinateGap)
             : PromptLayout.DefaultRenderOrders;
 
