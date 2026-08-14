@@ -22,7 +22,7 @@ internal sealed class DefaultContentSanitizer : IVKContentSanitizer
 
     public string[] Sanitize(string[] rawMemories)
     {
-        if (rawMemories == null || rawMemories.Length == 0)
+        if (rawMemories is null || rawMemories.Length == 0)
         {
             return Array.Empty<string>();
         }

@@ -256,7 +256,7 @@ internal sealed class DefaultRevisionService : IVKRevisionService
         }
 
         var existingResult = await _store.GetByIdAsync(memoryId, cancellationToken).ConfigureAwait(false);
-        if (existingResult.IsFailure || existingResult.Value == null)
+        if (existingResult.IsFailure || existingResult.Value is null)
         {
             return VKResult.Failure(existingResult.Errors.DefaultIfEmpty(new VKError("AI.Engram.Revision.NotFound", $"Memory entry {memoryId} not found.")).ToList());
         }
@@ -316,7 +316,7 @@ internal sealed class DefaultRevisionService : IVKRevisionService
                 TopK = 500
             },
             cancellationToken).ConfigureAwait(false);
-        if (allMemoriesResult.IsFailure || allMemoriesResult.Value == null)
+        if (allMemoriesResult.IsFailure || allMemoriesResult.Value is null)
         {
             return;
         }

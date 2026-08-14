@@ -123,7 +123,7 @@ internal sealed class DefaultPredictiveMemoryPrefetcher : IVKPredictiveMemoryPre
 
     private async Task<string> ExtractIntentCueWithTimeoutAsync(string rawInput, CancellationToken cancellationToken)
     {
-        if (_chatEngine == null)
+        if (_chatEngine is null)
         {
             return rawInput;
         }

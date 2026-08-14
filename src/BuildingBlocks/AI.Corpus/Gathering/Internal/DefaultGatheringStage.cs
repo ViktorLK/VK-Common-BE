@@ -67,7 +67,7 @@ internal sealed class DefaultGatheringStage : IVKPsychePipelineStage
         }
 
         var candidateState = context.State<VKKnowledgeCandidatesState>();
-        if (candidateState == null)
+        if (candidateState is null)
         {
             candidateState = new VKKnowledgeCandidatesState();
             context.SetState(candidateState);
