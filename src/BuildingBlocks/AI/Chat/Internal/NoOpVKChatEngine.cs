@@ -15,7 +15,7 @@ internal sealed class NoOpVKChatEngine : IVKChatEngine
     /// <inheritdoc />
     public Task<VKResult<VKChatResponse>> SendAsync(
         IEnumerable<VKChatMessage> messages,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         _ = messages;
@@ -28,7 +28,7 @@ internal sealed class NoOpVKChatEngine : IVKChatEngine
     /// <inheritdoc />
     public async IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
         IEnumerable<VKChatMessage> messages,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         _ = messages;

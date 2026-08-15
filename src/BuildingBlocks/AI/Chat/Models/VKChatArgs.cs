@@ -2,7 +2,7 @@ namespace VK.Blocks.AI;
 
 /// <summary>
 /// Execution arguments for chat operations.
-/// Properties are generated via SG from VKChatOptions.
+/// Properties (Connection, Sampling, Tools) are automatically generated via SG from <see cref="VKChatOptions"/>.
 /// </summary>
 public partial record VKChatArgs : IVKAIProviderOverrides
 {
@@ -11,12 +11,4 @@ public partial record VKChatArgs : IVKAIProviderOverrides
     /// Request-only dynamic argument passed during execution.
     /// </summary>
     public string? ResponseSchema { get; init; }
-
-    /// <summary>
-    /// Gets or sets the tool choice policy or target tool name to force call (e.g., "Auto", "None", or specific tool name).
-    /// Request-only dynamic argument passed during execution.
-    /// </summary>
-    public string? ToolChoice { get; init; }
 }
-
-

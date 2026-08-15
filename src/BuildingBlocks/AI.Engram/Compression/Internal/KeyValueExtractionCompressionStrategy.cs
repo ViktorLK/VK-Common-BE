@@ -39,7 +39,7 @@ internal sealed class KeyValueExtractionCompressionStrategy : IVKCompressionStra
 
         var messages = new[] { VKChatMessage.FromText(VKChatRole.User, prompt) };
 
-        IVKAIArgs? chatArgs = null;
+        VKChatArgs? chatArgs = null;
         if (!string.IsNullOrWhiteSpace(_options.ModelId))
         {
             chatArgs = new VKChatArgs { ModelId = _options.ModelId };

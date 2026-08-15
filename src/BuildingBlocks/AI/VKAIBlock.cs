@@ -1,5 +1,5 @@
-using VK.Blocks.Core;
 using System.Collections.Generic;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
 
@@ -13,10 +13,7 @@ public sealed partial class VKAIBlock
 
     static partial void ValidateBlockCustom(VKAIOptions options, List<string> failures)
     {
-        if (options.RetryCount < 0)
-        {
-            failures.Add("Global RetryCount cannot be negative.");
-        }
+        _ = options;
+        _ = failures;
     }
-
 }

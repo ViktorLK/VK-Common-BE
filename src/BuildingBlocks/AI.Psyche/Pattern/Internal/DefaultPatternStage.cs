@@ -40,7 +40,7 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
                 return VKResult.Success();
             }
 
-            var patternsResult = await _store.GetCurrentPatternsAsync(ct).ConfigureAwait(false); // [CS.03]
+            var patternsResult = await _store.GetPatternsAsync(ct).ConfigureAwait(false); // [CS.03]
             if (patternsResult.IsFailure)
             {
                 return VKResult.Failure(patternsResult.Errors); // [CS.01]

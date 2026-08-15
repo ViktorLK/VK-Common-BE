@@ -28,7 +28,12 @@ internal sealed class AISemanticKernelKernelFactory(
         var globalAiOptions = globalOptions.Value;
         var chatFeatureOptions = chatOptions.GetOptions();
         var embeddingFeatureOptions = embeddingOptions.Value;
-        var httpClient = httpClientFactory.CreateClient(AISemanticKernelConstants.HttpClientName);
+        
+        // Dynamically resolve client by VKAIOptions.HttpClientName (with fallback)
+        var clientName = !string.IsNullOrWhiteSpace(globalAiOptions.HttpClientName)
+            ? globalAiOptions.HttpClientName
+            : AISemanticKernelConstants.HttpClientName;
+        var httpClient = httpClientFactory.CreateClient(clientName);
 
         IKernelBuilder builder = Microsoft.SemanticKernel.Kernel.CreateBuilder();
 
@@ -47,14 +52,6 @@ internal sealed class AISemanticKernelKernelFactory(
         if (chatFeatureOptions.Enabled)
         {
             builder.RegisterChatService(options, chatFeatureOptions, httpClient, serviceId: "primary");
-
-            if (chatFeatureOptions.ChatFallbacks?.Count > 0)
-            {
-                for (int i = 0; i < chatFeatureOptions.ChatFallbacks.Count; i++)
-                {
-                    builder.RegisterChatService(options, chatFeatureOptions.ChatFallbacks[i], httpClient, serviceId: $"fallback_{i}");
-                }
-            }
         }
 
         if (embeddingFeatureOptions.Enabled)
@@ -70,7 +67,6 @@ internal sealed class AISemanticKernelKernelFactory(
         }
 
         // 4. Register Industrial DNA Filters (Guardrails)
-        // Resolve filters from DI container
         var promptFilters = serviceProvider.GetServices<IPromptRenderFilter>();
         foreach (var filter in promptFilters)
         {

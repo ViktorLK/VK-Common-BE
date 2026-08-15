@@ -13,10 +13,6 @@ namespace VK.Blocks.AI.SemanticKernel.Common.Filters.Internal;
 /// Enforces round limits, records observability data, and supports emergency termination.
 /// Implements <see cref="IAutoFunctionInvocationFilter"/>.
 /// </summary>
-/// <remarks>
-/// This filter is active only when <see cref="VKChatOptions.EnableAutoToolCalling"/> is <c>true</c>.
-/// It provides the industrial-grade safeguard layer around SK's native auto tool-calling loop.
-/// </remarks>
 internal sealed class AISemanticKernelAutoFunctionFilter(
     ILogger<AISemanticKernelAutoFunctionFilter> logger,
     IOptions<VKChatOptions> chatOptions) : IAutoFunctionInvocationFilter // [AP.01]
@@ -37,7 +33,7 @@ internal sealed class AISemanticKernelAutoFunctionFilter(
         var round = context.RequestSequenceIndex;
 
         // 1. Guard: Enforce maximum auto-invocation rounds to prevent runaway loops.
-        var maxRounds = _chatOptions.MaxAutoToolCallRounds;
+        var maxRounds = _chatOptions.MaxAutoToolRounds;
         if (round >= maxRounds) // [CS.01]
         {
             _logger.LogAutoToolCallTerminated(maxRounds);

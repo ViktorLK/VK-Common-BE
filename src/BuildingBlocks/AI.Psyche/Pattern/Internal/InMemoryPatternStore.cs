@@ -30,7 +30,7 @@ internal sealed class InMemoryPatternStore : IVKPatternStore
     }
 
     /// <inheritdoc />
-    public Task<VKResult<IEnumerable<VKPatternEntry>>> GetCurrentPatternsAsync(CancellationToken cancellationToken = default)
+    public Task<VKResult<IEnumerable<VKPatternEntry>>> GetPatternsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         IEnumerable<VKPatternEntry> values = _patterns.Values;
