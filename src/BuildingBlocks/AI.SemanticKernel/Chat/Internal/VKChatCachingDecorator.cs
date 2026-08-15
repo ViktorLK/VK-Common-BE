@@ -24,7 +24,7 @@ internal sealed class VKChatCachingDecorator : IVKChatEngine
     /// <inheritdoc />
     public Task<VKResult<VKChatResponse>> SendAsync(
         IEnumerable<VKChatMessage> messages,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         string cacheKey = GenerateCacheKey(messages);
@@ -34,7 +34,7 @@ internal sealed class VKChatCachingDecorator : IVKChatEngine
     /// <inheritdoc />
     public Task<VKResult<VKChatResponse>> SendAsync(
         VKContextPayload payload,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(payload);
@@ -49,7 +49,7 @@ internal sealed class VKChatCachingDecorator : IVKChatEngine
     /// <inheritdoc />
     public IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
         IEnumerable<VKChatMessage> messages,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         return _inner.SendStreamingAsync(messages, args, cancellationToken);
@@ -58,7 +58,7 @@ internal sealed class VKChatCachingDecorator : IVKChatEngine
     /// <inheritdoc />
     public IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
         VKContextPayload payload,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         return _inner.SendStreamingAsync(payload, args, cancellationToken);
@@ -67,7 +67,7 @@ internal sealed class VKChatCachingDecorator : IVKChatEngine
     /// <inheritdoc />
     public Task<VKResult<VKStructuredChatResponse<T>>> SendStructuredAsync<T>(
         IEnumerable<VKChatMessage> messages,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default) where T : class
     {
         return _inner.SendStructuredAsync<T>(messages, args, cancellationToken);
@@ -78,7 +78,7 @@ internal sealed class VKChatCachingDecorator : IVKChatEngine
         Func<Task<VKResult<VKChatResponse>>> invokeUnderlying,
         CancellationToken cancellationToken)
     {
-        VKResult<string> cacheResult = await _cache.GetAsync(key, cancellationToken).ConfigureAwait(false); // [CS.03]
+        VKResult<string> cacheResult = await _cache.GetAsync(key, cancellationToken).ConfigureAwait(false);
         if (cacheResult.IsSuccess && !string.IsNullOrWhiteSpace(cacheResult.Value))
         {
             try
@@ -91,7 +91,7 @@ internal sealed class VKChatCachingDecorator : IVKChatEngine
             }
             catch
             {
-                // Fallback to underlying on deserialization failure
+                // Fallback
             }
         }
 
@@ -115,10 +115,14 @@ internal sealed class VKChatCachingDecorator : IVKChatEngine
     private static string GenerateCacheKey(IEnumerable<VKChatMessage> messages)
     {
         using var sha256 = System.Security.Cryptography.SHA256.Create();
-        var sb = new System.Text.StringBuilder();
+        Span<char> initialBuffer = stackalloc char[512];
+        using var sb = new VKValueStringBuilder(initialBuffer);
         foreach (VKChatMessage msg in messages)
         {
-            sb.Append(msg.Role.ToString()).Append(':').Append(msg.Content).Append('|');
+            sb.Append(msg.Role.ToString());
+            sb.Append(':');
+            sb.Append(msg.Content);
+            sb.Append('|');
         }
         byte[] bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(sb.ToString()));
         return Convert.ToHexString(bytes);

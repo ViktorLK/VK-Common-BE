@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.SemanticKernel.Common.Kernel.Internal;
 
@@ -58,38 +59,52 @@ internal sealed class AISemanticKernelCachedKernelFactory(
         var chat = chatOptionsProvider.GetOptions();
         var embed = embeddingOptions.Value;
 
-        var sb = new StringBuilder();
+        Span<char> initialBuffer = stackalloc char[256];
+        using var sb = new VKValueStringBuilder(initialBuffer);
 
-        // 1. Core AI Strategy
-        sb.Append(globalAi.Provider).Append('|');
-
-        // 2. Chat Feature Connectivity
-        sb.Append(chat.Provider).Append('|')
-          .Append(chat.ModelId).Append('|')
-          .Append(chat.Endpoint).Append('|')
-          .Append(chat.ApiKey?.Reveal() ?? "null").Append('|');
-
-        // 3. Embedding Feature Connectivity
-        sb.Append(embed.Provider).Append('|')
-          .Append(embed.ModelId).Append('|')
-          .Append(embed.Endpoint).Append('|')
-          .Append(embed.ApiKey?.Reveal() ?? "null").Append('|');
+        // 1. Core AI Strategy & 2. Chat Feature Connectivity & 3. Embedding Feature Connectivity
+        sb.Append(globalAi.HttpClientName ?? "default");
+        sb.Append('|');
+        sb.Append(chat.Provider?.ToString());
+        sb.Append('|');
+        sb.Append(chat.ModelId);
+        sb.Append('|');
+        sb.Append(chat.Endpoint);
+        sb.Append('|');
+        sb.Append(chat.ApiKey?.Reveal() ?? "null");
+        sb.Append('|');
+        sb.Append(embed.Provider?.ToString());
+        sb.Append('|');
+        sb.Append(embed.ModelId);
+        sb.Append('|');
+        sb.Append(embed.Endpoint);
+        sb.Append('|');
+        sb.Append(embed.ApiKey?.Reveal() ?? "null");
+        sb.Append('|');
 
         // 4. SK Specific Infrastructure
-        sb.Append(AISemanticKernelOptions.OrgId).Append('|')
-          .Append(AISemanticKernelOptions.DeploymentName).Append('|')
-          .Append(AISemanticKernelOptions.TemplateFormat).Append('|')
-          .Append(AISemanticKernelOptions.EnableNativePlanners).Append('|');
+        sb.Append(AISemanticKernelOptions.OrgId);
+        sb.Append('|');
+        sb.Append(AISemanticKernelOptions.DeploymentName);
+        sb.Append('|');
+        sb.Append(AISemanticKernelOptions.TemplateFormat);
+        sb.Append('|');
+        sb.Append(AISemanticKernelOptions.EnableNativePlanners.ToString());
+        sb.Append('|');
 
         // 5. Plugins Feature Set (Deterministic ordering)
-        sb.Append(AISemanticKernelOptions.Plugins.AutoDiscoveryEnabled).Append('|');
+        sb.Append(AISemanticKernelOptions.Plugins.AutoDiscoveryEnabled.ToString());
+        sb.Append('|');
 
         if (AISemanticKernelOptions.Plugins.Types.Count > 0)
         {
             var sortedTypes = AISemanticKernelOptions.Plugins.Types.OrderBy(x => x.Key);
             foreach (var kvp in sortedTypes)
             {
-                sb.Append(kvp.Key).Append(':').Append(kvp.Value).Append(';');
+                sb.Append(kvp.Key);
+                sb.Append(':');
+                sb.Append(kvp.Value);
+                sb.Append(';');
             }
         }
 
@@ -98,12 +113,12 @@ internal sealed class AISemanticKernelCachedKernelFactory(
             var sortedAssemblies = AISemanticKernelOptions.Plugins.AssembliesToScan.OrderBy(x => x);
             foreach (var asm in sortedAssemblies)
             {
-                sb.Append(asm).Append(';');
+                sb.Append(asm);
+                sb.Append(';');
             }
         }
 
         // 6. Secure Hashing (SHA256)
-        // Ensure the raw ApiKey never leaves this method scope
         byte[] inputBytes = Encoding.UTF8.GetBytes(sb.ToString());
         byte[] hashBytes = SHA256.HashData(inputBytes);
 

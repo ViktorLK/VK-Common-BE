@@ -12,7 +12,7 @@ public interface IVKChat
 {
     /// <summary>
     /// Sends a prompt to the chat service and returns the complete assistant response.
-    /// Handles history management, system prompts, and industrial defaults internally.
+    /// Handles message packaging and diagnostics internally.
     /// </summary>
     /// <param name="prompt">The user input.</param>
     /// <param name="history">Optional conversation history to include.</param>
@@ -22,12 +22,12 @@ public interface IVKChat
     Task<VKResult<VKChatResponse>> SendAsync(
         string prompt,
         IEnumerable<VKChatMessage>? history = null,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Sends a prompt to the chat service and streams the assistant response back.
-    /// Handles history management, system prompts, and industrial defaults internally.
+    /// Handles message packaging and diagnostics internally.
     /// </summary>
     /// <param name="prompt">The user input.</param>
     /// <param name="history">Optional conversation history to include.</param>
@@ -37,6 +37,6 @@ public interface IVKChat
     IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
         string prompt,
         IEnumerable<VKChatMessage>? history = null,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default);
 }

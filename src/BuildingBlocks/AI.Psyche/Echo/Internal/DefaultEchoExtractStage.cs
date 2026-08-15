@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Echo.Diagnostics.Internal;
 using VK.Blocks.Core;
@@ -15,6 +14,7 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// <summary>
 /// Default implementation of the dialogue echo stage.
 /// Retains and sliding-window trims short-term dialogue history.
+/// Respects physical model limits dynamically via <see cref="IVKModelCatalog"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
 internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
@@ -22,6 +22,7 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
     private readonly IVKEchoStore _echoStore;
     private readonly IVKSessionStore _sessionStore;
     private readonly IVKTokenCounter _tokenCounter;
+    private readonly IVKModelCatalog _modelCatalog;
     private readonly VKEchoOptions _echoOptions;
     private readonly VKWeavingOptions _weavingOptions;
     private readonly ILogger<DefaultEchoExtractStage> _logger;
@@ -30,6 +31,7 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         IVKEchoStore echoStore,
         IVKSessionStore sessionStore,
         IVKTokenCounter tokenCounter,
+        IVKModelCatalog modelCatalog,
         VKEchoOptions echoOptions,
         VKWeavingOptions weavingOptions,
         ILogger<DefaultEchoExtractStage> logger)
@@ -37,6 +39,7 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         _echoStore = VKGuard.NotNull(echoStore);
         _sessionStore = VKGuard.NotNull(sessionStore);
         _tokenCounter = VKGuard.NotNull(tokenCounter);
+        _modelCatalog = VKGuard.NotNull(modelCatalog);
         _echoOptions = VKGuard.NotNull(echoOptions);
         _weavingOptions = VKGuard.NotNull(weavingOptions);
         _logger = VKGuard.NotNull(logger);
@@ -117,14 +120,21 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
                 return VKResult.Success();
             }
 
-            // 3. Resolve Effective Token Budget
+            // 3. Resolve Effective Token Budget dynamically based on IVKModelCatalog & MaxContextBudget
+            var modelId = context.Args<VKChatArgs>()?.ModelId ?? string.Empty;
+            var modelMetadata = _modelCatalog.GetModelMetadata(modelId);
+
+            var configuredBudget = context.Args<VKWeavingArgs>()?.MaxContextBudget ?? _weavingOptions.MaxContextBudget;
+            var totalLimit = configuredBudget.HasValue
+                ? Math.Min(configuredBudget.Value, modelMetadata.ContextWindowSize)
+                : modelMetadata.ContextWindowSize;
+
             int effectiveBudget = int.MaxValue;
             if (_echoOptions.MaxTokens.HasValue && _echoOptions.MaxTokens.Value > 0)
             {
                 effectiveBudget = _echoOptions.MaxTokens.Value;
             }
 
-            var totalLimit = context.Args<VKWeavingArgs>()?.TotalContextLimit ?? _weavingOptions.TotalContextLimit;
             int dynamicLimit = (int)(totalLimit * _echoOptions.TokenBudgetRatio);
             effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
 

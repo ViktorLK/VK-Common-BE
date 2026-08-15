@@ -109,8 +109,10 @@ public static class VKAIEidosSchemaFactory
     /// </summary>
     public static string MergeSchemas(string baseSchemaJson, string overlaySchemaJson)
     {
-        if (string.IsNullOrWhiteSpace(baseSchemaJson)) return overlaySchemaJson;
-        if (string.IsNullOrWhiteSpace(overlaySchemaJson)) return baseSchemaJson;
+        if (string.IsNullOrWhiteSpace(baseSchemaJson))
+            return overlaySchemaJson;
+        if (string.IsNullOrWhiteSpace(overlaySchemaJson))
+            return baseSchemaJson;
 
         try
         {
@@ -148,7 +150,7 @@ public static class VKAIEidosSchemaFactory
                 }
 
                 var existingSet = new HashSet<string>(
-                    baseRequired.Select(x => x?.GetValue<string>()).OfType<string>(), 
+                    baseRequired.Select(x => x?.GetValue<string>()).OfType<string>(),
                     StringComparer.OrdinalIgnoreCase);
 
                 foreach (var item in overlayRequired)
@@ -172,8 +174,8 @@ public static class VKAIEidosSchemaFactory
     {
         if (node is JsonObject obj)
         {
-            if (obj.TryGetPropertyValue("description", out var descNode) && 
-                descNode is JsonValue val && 
+            if (obj.TryGetPropertyValue("description", out var descNode) &&
+                descNode is JsonValue val &&
                 val.TryGetValue<string>(out var descStr))
             {
                 foreach (var (key, value) in templateArgs)
@@ -248,7 +250,8 @@ public static class VKAIEidosSchemaFactory
 
     private static List<string> ExtractRequiredProperties(Type targetType, JsonNode? node)
     {
-        if (node is not JsonObject obj) return [];
+        if (node is not JsonObject obj)
+            return [];
 
         if (!obj.ContainsKey("required") || obj["required"] is not JsonArray requiredArray)
         {

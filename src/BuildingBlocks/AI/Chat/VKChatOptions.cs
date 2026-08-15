@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using VK.Blocks.Core;
 
@@ -6,8 +5,12 @@ namespace VK.Blocks.AI;
 
 /// <summary>
 /// Configuration settings for the Chat feature.
+/// Represents baseline direct execution options and generation sampling defaults.
+/// Follows BB.05 (Options pattern with sealed record) and AP.05 (SG-driven Args generation).
+/// Governance, routing, and connection fallbacks belong to AI.Synapse.
+/// Mind prompt assembly and persona orchestration belong to AI.Psyche.
 /// </summary>
-public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
+public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIProviderOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether Chat feature is enabled.
@@ -16,7 +19,7 @@ public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIPro
     [VKNoRequestOverride]
     public bool Enabled { get; init; } = true;
 
-    // --- Connection ---
+    // --- 1. Direct Connection Defaults ---
 
     /// <inheritdoc />
     public VKAIProviderType? Provider { get; init; }
@@ -30,63 +33,10 @@ public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIPro
     /// <inheritdoc />
     public string? Endpoint { get; init; }
 
-    // --- Resilience ---
-
-    /// <inheritdoc />
-    public TimeSpan? Timeout { get; init; }
-
-    /// <inheritdoc />
-    public int? RetryCount { get; init; }
-
-    /// <inheritdoc />
-    [VKNoRequestOverride]
-    public int? CircuitBreakerThreshold { get; init; }
-
-    /// <inheritdoc />
-    [VKNoRequestOverride]
-    public TimeSpan? CircuitBreakerBreakDuration { get; init; }
+    // --- 2. Sampling Defaults (7 Essentials - 100% matches VKGenerationOptions) ---
 
     /// <summary>
-    /// Gets or sets the fallback chain for Chat features.
-    /// Used for cross-provider resilience when rate limits or transient failures occur.
-    /// </summary>
-    [VKNoRequestOverride]
-    public IReadOnlyList<VKChatFallbackConfig> ChatFallbacks { get; init; } = [];
-
-    // --- Audit ---
-
-    /// <inheritdoc />
-    public bool? EnableAudit { get; init; }
-
-    // --- Quota ---
-
-    /// <inheritdoc />
-    [VKNoRequestOverride]
-    public long? GlobalTokenLimit { get; init; }
-
-    /// <inheritdoc />
-    [VKNoRequestOverride]
-    public long? MonthlyTokenBudget { get; init; }
-
-    /// <inheritdoc />
-    [VKNoRequestOverride]
-    public int? RateLimitPerMinute { get; init; }
-
-    // --- Safety ---
-
-    /// <inheritdoc />
-    public bool? EnableContentFilter { get; init; }
-
-    /// <summary>
-    /// Gets or sets whether to log the fully rendered prompt sent to the LLM.
-    /// </summary>
-    [VKNoRequestOverride]
-    public bool EnablePromptLogging { get; init; } = false;
-
-    // --- Chat Specific ---
-
-    /// <summary>
-    /// Gets or sets the temperature.
+    /// Gets or sets the temperature for sampling randomness.
     /// </summary>
     public float? Temperature { get; init; } = 0.7f;
 
@@ -94,6 +44,11 @@ public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIPro
     /// Gets or sets the top-p sampling value.
     /// </summary>
     public float? TopP { get; init; } = 1.0f;
+
+    /// <summary>
+    /// Gets or sets the top-k sampling value (if supported by provider).
+    /// </summary>
+    public int? TopK { get; init; }
 
     /// <summary>
     /// Gets or sets the frequency penalty.
@@ -106,70 +61,45 @@ public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIPro
     public float? PresencePenalty { get; init; } = 0.0f;
 
     /// <summary>
-    /// Gets or sets the maximum tokens to generate.
+    /// Gets or sets the maximum tokens to generate in response.
     /// </summary>
-    public int? MaxTokens { get; init; } = 512;
-
-    /// <summary>
-    /// Gets or sets the maximum context window size for the model.
-    /// </summary>
-    [VKNoRequestOverride]
-    public int ContextWindowSize { get; init; } = 4096;
-
-    /// <summary>
-    /// Gets or sets the number of tokens to reserve for the assistant response.
-    /// </summary>
-    [VKNoRequestOverride]
-    public int ResponseReservedTokens { get; init; } = 512;
-
-    /// <summary>
-    /// Gets or sets the number of tokens to reserve for the system prompt.
-    /// </summary>
-    [VKNoRequestOverride]
-    public int SystemPromptReservedTokens { get; init; } = 512;
+    public int? MaxTokens { get; init; } = 2048;
 
     /// <summary>
     /// Gets or sets the stop sequences.
     /// </summary>
     public IReadOnlyList<string>? StopSequences { get; init; } = [];
 
+    // --- 3. Stream Control ---
+
     /// <summary>
     /// Gets or sets a value indicating whether streaming is enabled.
     /// </summary>
     public bool? StreamingEnabled { get; init; } = true;
 
-    /// <summary>
-    /// Gets or sets the default system prompt.
-    /// If provided, it will be injected as the first message if no system message exists in history.
-    /// </summary>
-    public string? DefaultSystemPrompt { get; init; }
+    // --- 4. Tool & Function Calling ---
 
     /// <summary>
-    /// Gets or sets the maximum number of history messages to retain.
-    /// If null, no trimming is performed.
-    /// </summary>
-    public int? MaxHistoryMessages { get; init; }
-
-    /// <summary>
-    /// Gets or sets the tools available for the chat engine.
+    /// Gets or sets the atomic tools available for the model during chat operations.
     /// </summary>
     public IReadOnlyList<IVKAtomicTool>? Tools { get; init; } = [];
 
     /// <summary>
-    /// Gets or sets a value indicating whether Semantic Kernel's automatic function calling
-    /// (<see cref="Microsoft.SemanticKernel.FunctionChoiceBehavior.Auto()"/>) is enabled.
-    /// When true, the LLM may autonomously invoke registered kernel plugins during a single chat request.
-    /// Defaults to <c>false</c> to preserve backward compatibility.
+    /// Gets or sets the tool choice policy ("Auto", "None", "Required", or specific tool name).
+    /// Defaults to "Auto".
     /// </summary>
-    public bool EnableAutoToolCalling { get; init; } = false;
+    public string? ToolChoice { get; init; } = "Auto";
 
     /// <summary>
-    /// Gets or sets the maximum number of automatic tool call rounds the LLM is allowed to perform
-    /// within a single <see cref="SendAsync"/> invocation.
-    /// Prevents runaway auto-invocation loops.
-    /// Defaults to <c>10</c>. Ignored when <see cref="EnableAutoToolCalling"/> is <c>false</c>.
+    /// Gets or sets whether the chat engine should automatically execute tool calls and continue generation.
+    /// Defaults to true.
+    /// </summary>
+    public bool? AutoInvokeTools { get; init; } = true;
+
+    /// <summary>
+    /// Gets or sets the maximum rounds of automated tool invocation allowed in a single chat turn.
+    /// Hard security ceiling to prevent runaway loops.
     /// </summary>
     [VKNoRequestOverride]
-    public int MaxAutoToolCallRounds { get; init; } = 10;
+    public int MaxAutoToolRounds { get; init; } = 5;
 }
-

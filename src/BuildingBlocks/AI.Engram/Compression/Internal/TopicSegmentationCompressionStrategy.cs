@@ -64,7 +64,7 @@ internal sealed class TopicSegmentationCompressionStrategy : IVKCompressionStrat
                                      $"CONVERSATION HISTORY:\n{indexedHistory}";
 
         var messages = new[] { VKChatMessage.FromText(VKChatRole.User, segmentationPrompt) };
-        IVKAIArgs? chatArgs = null;
+        VKChatArgs? chatArgs = null;
         string? targetModel = _options.SegmentationModelId ?? _options.ModelId;
         if (!string.IsNullOrWhiteSpace(targetModel))
         {
@@ -160,7 +160,7 @@ internal sealed class TopicSegmentationCompressionStrategy : IVKCompressionStrat
         return result;
     }
 
-    private async Task<VKResult<string>> FallbackSummarizeAsync(string content, IVKAIArgs? chatArgs, CancellationToken cancellationToken)
+    private async Task<VKResult<string>> FallbackSummarizeAsync(string content, VKChatArgs? chatArgs, CancellationToken cancellationToken)
     {
         string prompt = $"Summarize the following chat history briefly, consolidating key points, facts, and preferences:\n\n{content}";
         var messages = new[] { VKChatMessage.FromText(VKChatRole.User, prompt) };

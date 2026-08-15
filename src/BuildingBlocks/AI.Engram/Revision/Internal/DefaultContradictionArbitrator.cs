@@ -59,7 +59,7 @@ internal sealed class DefaultContradictionArbitrator : IVKContradictionArbitrato
 
         var messages = new[] { VKChatMessage.FromText(VKChatRole.User, prompt) };
 
-        IVKAIArgs? chatArgs = null;
+        VKChatArgs? chatArgs = null;
         string? targetModel = _options?.ArbitrationModelId ?? _options?.ModelId;
         if (!string.IsNullOrWhiteSpace(targetModel))
         {

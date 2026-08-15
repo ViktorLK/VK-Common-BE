@@ -4,16 +4,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-
 using VK.Blocks.AI.Psyche.Weaving.Diagnostics.Internal;
 using VK.Blocks.Core;
 
-// // [AP.03] Internal implementation inside Internal/ folder without VK prefix
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 
 internal sealed class DefaultPromptTruncateTask : IVKWeavingPipelineTask
 {
     private readonly IVKTokenCounter _tokenCounter;
+    private readonly IVKModelCatalog _modelCatalog;
     private readonly VKWeavingOptions _options;
     private readonly ILogger<DefaultPromptTruncateTask> _logger;
 
@@ -21,10 +20,12 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingPipelineTask
 
     public DefaultPromptTruncateTask(
         IVKTokenCounter tokenCounter,
+        IVKModelCatalog modelCatalog,
         VKWeavingOptions options,
         ILogger<DefaultPromptTruncateTask> logger)
     {
         _tokenCounter = VKGuard.NotNull(tokenCounter);
+        _modelCatalog = VKGuard.NotNull(modelCatalog);
         _options = VKGuard.NotNull(options);
         _logger = VKGuard.NotNull(logger);
     }
@@ -33,22 +34,23 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingPipelineTask
     {
         VKGuard.NotNull(context);
 
-        var allowedBudget = context.Args<VKWeavingArgs>()?.AvailableHistoryLimit ?? _options.AvailableHistoryLimit;
-        var maxTokenLimit = context.Args<VKWeavingArgs>()?.MaxTokenLimit ?? _options.MaxTokenLimit;
-        var totalLimit = context.Args<VKWeavingArgs>()?.TotalContextLimit ?? _options.TotalContextLimit;
+        // 1. Dynamically resolve physical model metadata via IVKModelCatalog
+        var modelId = context.Args<VKChatArgs>()?.ModelId ?? string.Empty;
+        var modelMetadata = _modelCatalog.GetModelMetadata(modelId);
 
-        // Ensure the total context limit does not exceed the maximum allowed token limit
-        totalLimit = Math.Min(totalLimit, maxTokenLimit);
-
-        var maxResponse = context.Args<VKWeavingArgs>()?.MaxResponseTokens ?? _options.MaxResponseTokens;
+        // Total Limit = MaxContextBudget (from args or options) ?? Physical Model Context Window
+        var configuredBudget = context.Args<VKWeavingArgs>()?.MaxContextBudget ?? _options.MaxContextBudget;
+        var totalLimit = configuredBudget.HasValue
+            ? Math.Min(configuredBudget.Value, modelMetadata.ContextWindowSize)
+            : modelMetadata.ContextWindowSize;
 
         var fragments = context.Fragments.ToList();
 
-        // 1. Separate non-history from history fragments
+        // 2. Separate non-history from history fragments
         var nonHistoryFragments = fragments.Where(f => f.TierType != VKPromptTierType.Echo).ToList();
         var historyFragments = fragments.Where(f => f.TierType == VKPromptTierType.Echo).ToList();
 
-        // 2. Count tokens of all non-history fragments first (System, Persona, Knowledge, Directives, Scenario)
+        // 3. Count tokens of all non-history fragments first (System, Persona, Knowledge, Directives, Scenario)
         int nonHistoryTokens = 0;
         foreach (var f in nonHistoryFragments)
         {
@@ -59,16 +61,14 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingPipelineTask
             }
         }
 
-        // 3. Compute remaining history budget using strict merged rules
+        // 4. Compute remaining history budget using strict merged rules & model metadata
         int remainingHistoryBudget = totalLimit - nonHistoryTokens;
         if (remainingHistoryBudget < 0)
         {
             remainingHistoryBudget = 0;
         }
 
-        remainingHistoryBudget = Math.Min(remainingHistoryBudget, allowedBudget);
-
-        // 4. Sort history chronologically: highest RenderOrder (most recent) comes first
+        // 5. Sort history chronologically: highest RenderOrder (most recent) comes first
         var historySorted = historyFragments
             .OrderByDescending(f => f.RenderOrder)
             .ToList();
@@ -76,7 +76,7 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingPipelineTask
         var retainedHistory = new List<VKPromptFragment>();
         int activeHistoryTokens = 0;
 
-        // 5. Retain most recent history messages up to the remaining budget
+        // 6. Retain most recent history messages up to the remaining budget
         for (int i = 0; i < historySorted.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -103,7 +103,7 @@ internal sealed class DefaultPromptTruncateTask : IVKWeavingPipelineTask
             }
         }
 
-        // 6. Combine all non-history fragments and the retained chronologically-valid history fragments
+        // 7. Combine all non-history fragments and the retained chronologically-valid history fragments
         var finalFragments = new List<VKPromptFragment>(nonHistoryFragments);
         finalFragments.AddRange(retainedHistory);
 

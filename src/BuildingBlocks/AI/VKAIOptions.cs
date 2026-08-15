@@ -1,44 +1,23 @@
-using System;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
 
 /// <summary>
-/// Default configuration settings for the AI building block.
-/// These values serve as fallbacks for all AI features.
-/// Following BB.06: Modular Feature Pattern.
+/// Root infrastructure configuration for the AI building block.
+/// Governs transport channel and sensitive logging compliance.
+/// Feature-specific settings (Chat, Embeddings) belong to their respective feature options.
 /// </summary>
 public sealed partial record VKAIOptions : IVKBlockOptions
 {
     /// <summary>
-    /// Gets or sets the default provider for all AI features.
-    /// Specific feature providers can override this value.
-    /// Defaults to OpenAI.
+    /// Gets or sets the custom named HttpClient used for AI transport pipelines.
+    /// If null or empty, defaults to "VK.AI" or the anonymous HttpClient.
     /// </summary>
-    public VKAIProviderType Provider { get; init; } = VKAIProviderType.OpenAI;
+    public string? HttpClientName { get; init; }
 
     /// <summary>
-    /// Gets or sets the global default retry count for AI operations.
+    /// Gets or sets whether sensitive user prompts and completions can be emitted to telemetry/logs.
+    /// Defaults to false for privacy & GDPR compliance.
     /// </summary>
-    public int RetryCount { get; init; } = 3;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether to enable global audit logging.
-    /// </summary>
-    public bool EnableAudit { get; init; } = true;
-
-    /// <summary>
-    /// Gets or sets the global default timeout for AI operations.
-    /// </summary>
-    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(60);
-
-    /// <summary>
-    /// Gets or sets the global default circuit breaker threshold (consecutive failures).
-    /// </summary>
-    public int CircuitBreakerThreshold { get; init; } = 5;
-
-    /// <summary>
-    /// Gets or sets the global default duration the circuit should remain open when tripped.
-    /// </summary>
-    public TimeSpan CircuitBreakerBreakDuration { get; init; } = TimeSpan.FromSeconds(15);
+    public bool EnableSensitiveDataLogging { get; init; } = false;
 }

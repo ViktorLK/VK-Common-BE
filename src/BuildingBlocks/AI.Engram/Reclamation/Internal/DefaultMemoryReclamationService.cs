@@ -60,7 +60,7 @@ internal sealed class DefaultMemoryReclamationService : IVKMemoryReclamationServ
                 new VKMemoryQuery { TopK = batchSize },
                 cancellationToken).ConfigureAwait(false);
 
-            if (queryResult.IsFailure || queryResult.Value == null || queryResult.Value.Count == 0)
+            if (queryResult.IsFailure || queryResult.Value is null || queryResult.Value.Count == 0)
             {
                 var emptyResult = new VKReclamationResult { IsDryRun = runOptions.DryRun };
                 _logger.ReclamationCycleCompleted(0, 0, 0, 0);

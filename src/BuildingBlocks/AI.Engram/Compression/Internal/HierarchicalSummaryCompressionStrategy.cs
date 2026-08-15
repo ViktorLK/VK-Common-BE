@@ -70,7 +70,7 @@ internal sealed class HierarchicalSummaryCompressionStrategy : IVKCompressionStr
 
         // Phase 1: Summarize each chunk individually
         var chunkSummaries = new List<string>();
-        IVKAIArgs? chatArgs = null;
+        VKChatArgs? chatArgs = null;
         if (!string.IsNullOrWhiteSpace(_options.ModelId))
         {
             chatArgs = new VKChatArgs { ModelId = _options.ModelId };

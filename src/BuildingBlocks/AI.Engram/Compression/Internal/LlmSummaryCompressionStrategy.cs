@@ -105,7 +105,7 @@ internal sealed class LlmSummaryCompressionStrategy : IVKCompressionStrategy
             VKChatMessage.FromText(VKChatRole.User, userSb.ToString())
         };
 
-        IVKAIArgs? chatArgs = null;
+        VKChatArgs? chatArgs = null;
         string? targetModel = _options.SummaryModelId ?? _options.ModelId;
         if (!string.IsNullOrWhiteSpace(targetModel))
         {

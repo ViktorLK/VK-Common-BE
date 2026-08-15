@@ -40,7 +40,7 @@ internal sealed class AISemanticKernelEmbeddingEngine : AISemanticKernelEngineBa
         try
         {
             var embeddings = await _defaultEmbeddingService.GenerateAsync([text], cancellationToken: cancellationToken).ConfigureAwait(false); // [RuleID: CS.03]
-            if (embeddings == null || embeddings.Count == 0)
+            if (embeddings is null || embeddings.Count == 0)
             {
                 return VKResult.Failure<VKVector>(VKError.Failure("AI.Embeddings.Failed", "Failed to generate embedding vector."));
             }

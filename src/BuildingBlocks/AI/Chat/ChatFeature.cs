@@ -1,8 +1,7 @@
-using VK.Blocks.AI.Chat.Internal;
-using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Chat.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -24,19 +23,19 @@ internal sealed partial class ChatFeature
     // [SG Hook] Optional validation hook
     static partial void ValidateFeatureCustom(VKChatOptions options, List<string> failures)
     {
-        if (string.IsNullOrWhiteSpace(options.ModelId))
+        if (options.MaxAutoToolRounds < 1)
         {
-            failures.Add("ModelId is required when Chat is enabled.");
+            failures.Add("MaxAutoToolRounds must be at least 1.");
         }
 
-        if (options.Timeout.HasValue && options.Timeout.Value <= TimeSpan.Zero)
+        if (options.Temperature is < 0.0f or > 2.0f)
         {
-            failures.Add("Timeout must be greater than zero.");
+            failures.Add("Temperature must be between 0.0 and 2.0.");
         }
 
-        if (options.RetryCount.HasValue && options.RetryCount.Value < 0)
+        if (options.TopP is < 0.0f or > 1.0f)
         {
-            failures.Add("RetryCount must be greater than or equal to 0.");
+            failures.Add("TopP must be between 0.0 and 1.0.");
         }
     }
 }

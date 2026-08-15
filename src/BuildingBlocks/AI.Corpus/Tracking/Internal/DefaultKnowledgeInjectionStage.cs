@@ -71,7 +71,7 @@ internal sealed class DefaultKnowledgeInjectionStage : IVKPsychePipelineStage
 
         // 2. Persist knowledge injection tracking logs
         var injectionState = context.State<VKKnowledgeCandidatesState>();
-        if (injectionState == null || injectionState.Candidates.Count == 0)
+        if (injectionState is null || injectionState.Candidates.Count == 0)
         {
             return VKResult.Success();
         }

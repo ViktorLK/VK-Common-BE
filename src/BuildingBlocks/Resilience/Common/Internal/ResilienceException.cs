@@ -16,7 +16,7 @@ internal sealed class ResilienceException : VKBaseException
     }
 
     public ResilienceException(string message, Exception innerException)
-        : base(DefaultCode, message)
+        : base(DefaultCode, message, innerException: innerException)
     {
     }
 }

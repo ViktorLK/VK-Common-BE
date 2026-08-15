@@ -128,7 +128,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
             context.SetState(updatedKnowledgeState);
 
             var candidateState = context.State<VKKnowledgeCandidatesState>();
-            if (candidateState == null)
+            if (candidateState is null)
             {
                 candidateState = new VKKnowledgeCandidatesState();
                 context.SetState(candidateState);

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using VK.Blocks.Core;
 
-// // [AP.03] Public contract in root namespace carrying VK prefix
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
@@ -12,29 +11,16 @@ namespace VK.Blocks.AI.Psyche;
 public sealed partial record VKWeavingOptions : IVKBlockOptions
 {
     /// <summary>
-    /// Gets the absolute maximum token limit supported by the downstream LLM model. Default is 32,768.
+    /// Gets the optional tenant-enforced maximum context token budget.
+    /// If null (default), dynamically uses the physical ContextWindowSize from <see cref="IVKModelCatalog"/>.
     /// </summary>
-    public int MaxTokenLimit { get; init; } = 32768;
+    public int? MaxContextBudget { get; init; } = null;
 
     /// <summary>
-    /// Gets the total allowable context window token limit for prompt assembly. Default is 32,768.
+    /// Gets the default reserved token budget allocated for LLM response generation when not specified in args.
+    /// Default is 2,048.
     /// </summary>
-    public int TotalContextLimit { get; init; } = 32768;
-
-    /// <summary>
-    /// Gets the reserved token budget allocated for LLM response generation. Default is 2,048.
-    /// </summary>
-    public int MaxResponseTokens { get; init; } = 2048;
-
-    /// <summary>
-    /// Gets the maximum allowable token budget for dialogue history (Echo fragments). Default is 16,384.
-    /// </summary>
-    public int AvailableHistoryLimit { get; init; } = 16384;
-
-    /// <summary>
-    /// Gets the maximum allowable token budget for injected knowledge fragments. Default is 8,192.
-    /// </summary>
-    public int AvailableKnowledgeLimit { get; init; } = 8192;
+    public int DefaultResponseReservedTokens { get; init; } = 2048;
 
     /// <summary>
     /// Gets the list of prompt tiers that should be completely disabled and pruned during weaving.

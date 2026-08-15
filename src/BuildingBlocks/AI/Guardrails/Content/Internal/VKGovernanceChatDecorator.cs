@@ -34,7 +34,7 @@ internal sealed class VKGovernanceChatDecorator : IVKChatEngine
 
     public async Task<VKResult<VKChatResponse>> SendAsync(
         IEnumerable<VKChatMessage> history,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         if (_options.Value.EnableContentFilter != true)
@@ -87,7 +87,7 @@ internal sealed class VKGovernanceChatDecorator : IVKChatEngine
 
     public async IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
         IEnumerable<VKChatMessage> history,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (_options.Value.EnableContentFilter != true)
@@ -118,12 +118,6 @@ internal sealed class VKGovernanceChatDecorator : IVKChatEngine
             }
         }
 
-        // 2. Stream Inner Engine
-        // Note: Real-time streaming moderation is complex. A simple approach is to moderate chunks,
-        // but this often fails since bad words can be split across chunks.
-        // Advanced implementations use a sliding window buffer.
-        // For now, we trust the model output more if input was safe, or we buffer (which breaks streaming).
-        // Since this is a basic decorator, we'll stream as-is, but a real app might need delayed chunk emitting.
         await foreach (var chunk in _inner.SendStreamingAsync(history, args, cancellationToken).ConfigureAwait(false))
         {
             yield return chunk;

@@ -24,7 +24,7 @@ internal sealed class VKChatIdempotencyDecorator : IVKChatEngine
     /// <inheritdoc />
     public Task<VKResult<VKChatResponse>> SendAsync(
         IEnumerable<VKChatMessage> messages,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         string? idempotencyKey = GetIdempotencyKey(args);
@@ -39,7 +39,7 @@ internal sealed class VKChatIdempotencyDecorator : IVKChatEngine
     /// <inheritdoc />
     public Task<VKResult<VKChatResponse>> SendAsync(
         VKContextPayload payload,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         string? idempotencyKey = GetIdempotencyKey(args);
@@ -54,7 +54,7 @@ internal sealed class VKChatIdempotencyDecorator : IVKChatEngine
     /// <inheritdoc />
     public IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
         IEnumerable<VKChatMessage> messages,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         return _inner.SendStreamingAsync(messages, args, cancellationToken);
@@ -63,7 +63,7 @@ internal sealed class VKChatIdempotencyDecorator : IVKChatEngine
     /// <inheritdoc />
     public IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
         VKContextPayload payload,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default)
     {
         return _inner.SendStreamingAsync(payload, args, cancellationToken);
@@ -72,7 +72,7 @@ internal sealed class VKChatIdempotencyDecorator : IVKChatEngine
     /// <inheritdoc />
     public Task<VKResult<VKStructuredChatResponse<T>>> SendStructuredAsync<T>(
         IEnumerable<VKChatMessage> messages,
-        IVKAIArgs? args = null,
+        VKChatArgs? args = null,
         CancellationToken cancellationToken = default) where T : class
     {
         return _inner.SendStructuredAsync<T>(messages, args, cancellationToken);
@@ -86,7 +86,7 @@ internal sealed class VKChatIdempotencyDecorator : IVKChatEngine
         string cacheKey = $"Idempotency:Chat:{key}";
 
         // 1. Try get cached completed result
-        VKResult<string> cacheVal = await _cache.GetAsync(cacheKey, cancellationToken).ConfigureAwait(false); // [CS.03]
+        VKResult<string> cacheVal = await _cache.GetAsync(cacheKey, cancellationToken).ConfigureAwait(false);
         if (cacheVal.IsSuccess && !string.IsNullOrWhiteSpace(cacheVal.Value))
         {
             if (cacheVal.Value == "IN_PROGRESS")
@@ -136,12 +136,9 @@ internal sealed class VKChatIdempotencyDecorator : IVKChatEngine
         }
     }
 
-    private static string? GetIdempotencyKey(IVKAIArgs? args)
+    private static string? GetIdempotencyKey(VKChatArgs? args)
     {
-        if (args?.Context is not null && args.Context.TryGetValue("IdempotencyKey", out var val) && val is not null)
-        {
-            return val.ToString();
-        }
+        _ = args;
         return null;
     }
 }

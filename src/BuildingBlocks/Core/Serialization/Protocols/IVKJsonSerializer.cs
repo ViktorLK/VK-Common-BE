@@ -39,4 +39,29 @@ public interface IVKJsonSerializer
     /// <param name="utf8Json">The UTF-8 encoded JSON bytes to deserialize.</param>
     /// <returns>The deserialized object, or <c>null</c> if deserialization fails.</returns>
     T? Deserialize<T>(ReadOnlySpan<byte> utf8Json);
+
+    /// <summary>
+    /// Safely deserializes the JSON string to an object of type <typeparamref name="T"/>, 
+    /// returning <paramref name="defaultValue"/> if the JSON is null, whitespace, or invalid.
+    /// </summary>
+    /// <typeparam name="T">The type of the object to deserialize to.</typeparam>
+    /// <param name="json">The JSON string to deserialize.</param>
+    /// <param name="defaultValue">The fallback default value.</param>
+    /// <returns>The deserialized object, or <paramref name="defaultValue"/> on empty/error.</returns>
+    T? DeserializeOrDefault<T>(string? json, T? defaultValue = default)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return defaultValue;
+        }
+
+        try
+        {
+            return Deserialize<T>(json) ?? defaultValue;
+        }
+        catch
+        {
+            return defaultValue;
+        }
+    }
 }

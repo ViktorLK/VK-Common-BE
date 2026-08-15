@@ -43,7 +43,7 @@ internal sealed class CrossSessionConsolidationStrategy : IVKCrossSessionConsoli
                         $"MEMORIES:\n{memoryTexts}";
 
         var messages = new[] { VKChatMessage.FromText(VKChatRole.User, prompt) };
-        IVKAIArgs? chatArgs = null;
+        VKChatArgs? chatArgs = null;
         string? targetModel = _options.FactExtractionModelId ?? _options.ModelId;
         if (!string.IsNullOrWhiteSpace(targetModel))
         {

@@ -82,14 +82,13 @@ internal sealed class BasicAgent : IVKAgent
         var sw = Stopwatch.StartNew();
         bool isSuccess = false;
 
-        // 3-Tier Merge: Args (L3) ?? Feature Options (L2) ?? Global AI Options (L1)
         var effectiveOptions = args.Merge(_options);
-        var timeout = effectiveOptions.Timeout ?? _globalOptions.Timeout;
+        var timeout = effectiveOptions.Timeout ?? TimeSpan.FromMinutes(2);
 
-        bool enableAudit = (args is IVKAIAuditOptions a ? a.EnableAudit : null) ?? effectiveOptions.EnableAudit ?? _globalOptions.EnableAudit;
+        bool enableAudit = (args is IVKAIAuditOptions a ? a.EnableAudit : null) ?? effectiveOptions.EnableAudit ?? true;
         if (enableAudit && _logger.IsEnabled(LogLevel.Information))
         {
-            var taskInput = effectiveOptions.LogToolData ? input : "[REDACTED]";
+            var taskInput = effectiveOptions.LogToolData || _globalOptions.EnableSensitiveDataLogging ? input : "[REDACTED]";
             AgentsLog.AgentTaskStarted(_logger, tenantId, traceId, Name, taskInput);
         }
 
@@ -100,7 +99,6 @@ internal sealed class BasicAgent : IVKAgent
         {
             var history = new List<VKChatMessage>();
 
-            // Inject Default System Prompt if provided and not already present (BB.06/AP.01)
             if (!string.IsNullOrWhiteSpace(_options.DefaultSystemPrompt))
             {
                 history.Add(VKChatMessage.FromText(VKChatRole.System, _options.DefaultSystemPrompt));
@@ -116,13 +114,11 @@ internal sealed class BasicAgent : IVKAgent
                 iteration++;
                 AgentsLog.AgentIterationStarted(_logger, tenantId, traceId, Name, iteration);
 
-                // Trim history to stay within context limits (Industrial Safety)
                 if (effectiveOptions.MaxHistoryMessages.HasValue && history.Count > effectiveOptions.MaxHistoryMessages.Value)
                 {
                     ChatHistoryHelper.TrimHistory(history, effectiveOptions.MaxHistoryMessages.Value);
                 }
 
-                // Merge Chat Args (L3) with Chat Options (L2) and inject Tools
                 var chatArgs = args?.Chat ?? VKChatArgs.Empty;
                 chatArgs = chatArgs with { Tools = Tools };
 
@@ -142,7 +138,6 @@ internal sealed class BasicAgent : IVKAgent
                 var chatResponse = chatResult.Value;
                 var assistantMessage = chatResponse.Message;
 
-                // Track and enforce token budget (Cost Control)
                 if (chatResponse.Usage is not null)
                 {
                     totalTokens += (int)chatResponse.Usage.TotalTokens;
@@ -159,7 +154,6 @@ internal sealed class BasicAgent : IVKAgent
 
                 if (assistantMessage.ToolCalls is null || !assistantMessage.ToolCalls.Any())
                 {
-                    // Task completed (no more tools to call)
                     isSuccess = true;
                     if (enableAudit)
                     {
@@ -168,7 +162,6 @@ internal sealed class BasicAgent : IVKAgent
                     return VKResult.Success(assistantMessage.Content);
                 }
 
-                // Execute tool calls with throttling
                 var toolCallsToExecute = assistantMessage.ToolCalls.Take(effectiveOptions.MaxToolCallsPerIteration).ToList();
                 var skippedToolCalls = assistantMessage.ToolCalls.Skip(effectiveOptions.MaxToolCallsPerIteration).ToList();
 
@@ -263,16 +256,14 @@ internal sealed class BasicAgent : IVKAgent
 
         AgentsLog.ToolCallStarted(_logger, tenantId, traceId, Name, tool.Manifest.Metadata.Name, toolCall.Id);
 
-        // Implementation of Tool-level retry with 3-tier fallback
         var toolResult = VKResult.Failure<VKAtomicToolResult>(VKAgentErrors.ExecutionFailed);
-        int retryCount = options.ToolRetryCount ?? _globalOptions.RetryCount;
+        int retryCount = options.ToolRetryCount ?? 0;
         int attempt = 0;
 
         while (attempt <= retryCount)
         {
             attempt++;
 
-            // Apply Pre-execution filters
             var executingContext = new VKAtomicToolExecutingContext(this, tool, toolCall.Arguments, context);
             foreach (var filter in _filters)
             {
@@ -289,7 +280,6 @@ internal sealed class BasicAgent : IVKAgent
                 toolResult = await tool.ExecuteAsync(toolCall.Arguments, context, cancellationToken).ConfigureAwait(false);
             }
 
-            // Apply Post-execution filters
             var executedContext = new VKAtomicToolExecutedContext(this, tool, toolCall.Arguments, context, toolResult);
             foreach (var filter in _filters)
             {
@@ -303,7 +293,6 @@ internal sealed class BasicAgent : IVKAgent
                 break;
             }
 
-            // Exponential Backoff or simple delay (Industrial Reliability)
             if (options.ToolRetryBackoffMs > 0)
             {
                 await Task.Delay(options.ToolRetryBackoffMs, cancellationToken).ConfigureAwait(false);
@@ -312,7 +301,6 @@ internal sealed class BasicAgent : IVKAgent
 
         string content = toolResult.IsSuccess ? toolResult.Value.Content : string.Empty;
 
-        // Truncate large tool results to prevent token explosion (Safety Guard)
         if (options.MaxToolResultLength.HasValue && content.Length > options.MaxToolResultLength.Value)
         {
             content = content[..options.MaxToolResultLength.Value] + "... [TRUNCATED]";
