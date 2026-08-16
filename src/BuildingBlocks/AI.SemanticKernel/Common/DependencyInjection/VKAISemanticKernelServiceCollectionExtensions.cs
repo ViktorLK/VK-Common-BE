@@ -51,14 +51,15 @@ public static class VKAISemanticKernelServiceCollectionExtensions
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAutoFunctionInvocationFilter, AISemanticKernelAutoFunctionFilter>());
 
         // 3. Infrastructure & Plugin Providers
+        services.AddMemoryCache();
         services.TryAddScoped<IAISemanticKernelKernelFactory, AISemanticKernelKernelFactory>();
         services.Decorate<IAISemanticKernelKernelFactory, AISemanticKernelCachedKernelFactory>();
         services.TryAddScoped<Microsoft.SemanticKernel.Kernel>(sp => sp.GetRequiredService<IAISemanticKernelKernelFactory>().CreateKernel());
 
-        // 4. Default Engines
-        services.TryAddScoped<IVKChatEngine, AISemanticKernelChatEngine>();
-        services.TryAddScoped<IVKTextEngine, AISemanticKernelTextEngine>();
-        services.TryAddScoped<IVKEmbeddingsEngine, AISemanticKernelEmbeddingEngine>();
+        // 4. Default Engines (Replace NoOp implementations registered by VK.Blocks.AI)
+        services.Replace(ServiceDescriptor.Scoped<IVKChatEngine, AISemanticKernelChatEngine>());
+        services.Replace(ServiceDescriptor.Scoped<IVKTextEngine, AISemanticKernelTextEngine>());
+        services.Replace(ServiceDescriptor.Scoped<IVKEmbeddingsEngine, AISemanticKernelEmbeddingEngine>());
 
         // 5. Multi-Provider Registrations (Keyed Services)
         foreach (VKAIProviderType providerType in Enum.GetValues<VKAIProviderType>())

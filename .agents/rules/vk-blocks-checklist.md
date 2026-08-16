@@ -25,6 +25,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **CS.05**   |     | `IAuditable`/`ISoftDelete` via Interceptors + Global Filters. No manual logic.                    |
 | **CS.06**   | 🔴  | No `Guid.NewGuid()`/`DateTime.UtcNow`. Use `IVKGuidGenerator`/`TimeProvider`/`IVKJsonSerializer`. |
 | **CS.07**   | 🔴  | `GetRequiredService` default. `GetService` only with documented fallback (`?? default`).          |
+| **CS.08**   | 🔴  | DB: TenantId NOT NULL, MaxLength mandatory, explicit FK/Index names, Restrict delete, idempotent script. |
 | **OR.01**   | 🔴  | `[LoggerMessage]` SG only. No `logger.LogXxx()`. Structured templates. TraceId mandatory.         |
 | **OR.02**   |     | `TenantId` via EF Global Filter. No bypass. PII masked in logs.                                   |
 | **OR.03**   |     | Polly on ALL external calls. Retry(3x) + CircuitBreaker + explicit Timeout.                       |
@@ -60,12 +61,12 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 
 > Rules marked 🔴 (Type A) and 🟡 (Type B) are the core constraints. They follow this enforcement logic:
 
-1. **Type A (Logic Bottom Line - 🔴)**: **Zero Tolerance, No Exceptions**. These govern stability and determinism (CS.01, CS.03, CS.06, CS.07, OR.01, AP.01, AP.06, AP.07, PS.04, PS.05). They MUST be followed even in Labs or experimental contexts.
+1. **Type A (Logic Bottom Line - 🔴)**: **Zero Tolerance, No Exceptions**. These govern stability and determinism (CS.01, CS.03, CS.06, CS.07, CS.08, OR.01, AP.01, AP.06, AP.07, PS.04, PS.05). They MUST be followed even in Labs or experimental contexts.
 2. **Type B (Industrial Habits - 🟡)**: **Zero Tolerance by Default**. These govern naming, organization, and process (AP.03, BB.03, BB.07, BB.08, DL.02, DL.03, DL.04, DL.05). They can be **waived** only in `src/Labs` or when a Layer 2/3 prompt explicitly grants permission to deviate.
 3. **Audit Flagging**: Every violation MUST produce `🚩 [RuleID] {rationale}`. For Type B wavers, the rationale should cite the permission (e.g., `🚩 [AP.03] Bypassed per LAB01`).
 4. **Immediate Correction**: If a non-waived violation is detected, stop and fix it immediately.
 
-**Type A IDs**: CS.01, CS.03, CS.06, CS.07, OR.01, AP.01, AP.06, AP.07, PS.04, PS.05
+**Type A IDs**: CS.01, CS.03, CS.06, CS.07, CS.08, OR.01, AP.01, AP.06, AP.07, PS.04, PS.05
 **Type B IDs**: AP.03, BB.03, BB.07, BB.08, DL.02, DL.03, DL.04, DL.05
 
 ---
@@ -84,7 +85,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **Industrialization / Audit**   | BB.01 (Full Structure)        |
 | **DI registration**             | BB.03, AP.02, BB.06           |
 | **Options / Config class**      | AP.04, BB.05, AP.05           |
-| **DB / EF Core queries**        | CS.04, CS.05, OR.02           |
+| **DB / EF Core queries & Entities** | CS.04, CS.05, CS.08, OR.02 |
 | **Logging / Metrics**           | OR.01, BB.04                  |
 | **External HTTP / SDK calls**   | OR.03                         |
 | **Test creation**               | DL.01                         |
@@ -96,7 +97,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **Walkthrough**                 | PS.02                         |
 | **Module-specific work**        | `vk_be_get_module_context(path)` |
 | **`/vk-audit-fast`**            | BB.01, AP.03, BB.02, BB.03    |
-| **`/vk-audit-architecture`**    | BB.01, AP.03, BB.02, BB.03, BB.04, BB.05, AP.02, CS.02 |
+| **`/vk-audit-architecture`**    | BB.01, AP.03, BB.02, BB.03, BB.04, BB.05, AP.02, CS.02, CS.08 |
 | **`/vk-audit-semantic`**        | CS.01, CS.03, AP.01, CS.06, OR.01 |
 
 ---

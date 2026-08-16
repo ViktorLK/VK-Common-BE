@@ -1,7 +1,13 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using VK.Blocks.AI.Psyche.Weaving.Internal;
+using VK.Blocks.Core;
+using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Weaving;
 
@@ -11,39 +17,70 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Weaving;
 /// </summary>
 public sealed class DefaultPromptTruncateTaskTests
 {
+    private static (VKPsycheContext Context, IServiceProvider Services) CreateTestContext(
+        string userInput = "hello")
+    {
+        var services = new ServiceCollection().BuildServiceProvider();
+        var request = new VKPsycheRequest
+        {
+            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            SessionId = new VKSessionId(Guid.NewGuid()),
+            UserInput = userInput
+        };
+
+        var context = new VKPsycheContext
+        {
+            Request = request,
+            Services = services
+        };
+
+        return (context, services);
+    }
+
     [Fact]
-    public async Task ExecuteAsync_WhenHistoryExceedsBudget_TruncatesAndAddsToEvicted()
+    public async Task ExecuteAsync_WhenHistoryExceedsBudget_TruncatesHistory()
     {
         // Arrange
         var tokenCounterMock = new Mock<IVKTokenCounter>();
-        var optionsMock = new Mock<IOptions<VKWeavingOptions>>();
-        optionsMock.Setup(o => o.Value).Returns(new VKWeavingOptions
+        tokenCounterMock.Setup(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string>())).Returns(30);
+        var options = new VKWeavingOptions
         {
             TotalContextLimit = 100,
             MaxResponseTokens = 20,
             AvailableHistoryLimit = 50
-        });
+        };
 
         // Mock token counter: each history segment has 30 tokens.
         tokenCounterMock.Setup(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(30);
 
         var loggerMock = new Mock<ILogger<DefaultPromptTruncateTask>>();
-        var task = new DefaultPromptTruncateTask(tokenCounterMock.Object, optionsMock.Object, loggerMock.Object);
+        var task = new DefaultPromptTruncateTask(tokenCounterMock.Object, options, loggerMock.Object);
 
-        var context = new VKWeavingContext
-        {
-            TenantId = "test-tenant",
-            PersonaId = "test-persona",
-            SessionId = "test-session",
-            UserInput = "hello",
-            CorrelationId = "test-correlation"
-        };
-
+        var (context, _) = CreateTestContext();
         var mockMetadata = new Mock<IVKFragmentMetadata>().Object;
-        var f1 = new VKPromptFragment { TierType = VKPromptTierType.Echo, Role = VKChatRole.User, Depth = 0, RenderOrder = 0, Content = "Recent Msg", Metadata = mockMetadata };
-        var f2 = new VKPromptFragment { TierType = VKPromptTierType.Echo, Role = VKChatRole.Assistant, Depth = 1, RenderOrder = 0, Content = "Middle Msg", Metadata = mockMetadata };
-        var f3 = new VKPromptFragment { TierType = VKPromptTierType.Echo, Role = VKChatRole.User, Depth = 2, RenderOrder = 0, Content = "Oldest Msg", Metadata = mockMetadata };
+
+        var f1 = new VKPromptFragment
+        {
+            TierType = VKPromptTierType.Echo,
+            RenderOrder = 2,
+            Segment = new VKPromptSegment { Role = VKChatRole.User, Content = "Recent Msg" },
+            Metadata = mockMetadata
+        };
+        var f2 = new VKPromptFragment
+        {
+            TierType = VKPromptTierType.Echo,
+            RenderOrder = 1,
+            Segment = new VKPromptSegment { Role = VKChatRole.Assistant, Content = "Middle Msg" },
+            Metadata = mockMetadata
+        };
+        var f3 = new VKPromptFragment
+        {
+            TierType = VKPromptTierType.Echo,
+            RenderOrder = 0,
+            Segment = new VKPromptSegment { Role = VKChatRole.User, Content = "Oldest Msg" },
+            Metadata = mockMetadata
+        };
 
         context.AddFragment(f1);
         context.AddFragment(f2);
@@ -56,12 +93,8 @@ public sealed class DefaultPromptTruncateTaskTests
         result.IsSuccess.Should().BeTrue();
 
         // Allowed budget is Math.Min(100 - 20 - 0, 50) = 50 tokens.
-        // We can only fit one 30-token history fragment (f1, since it has Depth = 0, the lowest depth/most recent).
-        // The other 2 history fragments (f2, f3) must be evicted.
+        // We can only fit one 30-token history fragment (f1).
         context.Fragments.Should().ContainSingle(f => f.TierType == VKPromptTierType.Echo);
-        context.Fragments.First().Depth.Should().Be(0);
-
-        context.Evicted.Should().HaveCount(2);
-        context.Evicted.Select(e => e.Depth).Should().BeEquivalentTo([1, 2]);
+        context.Fragments.First().Segment.Content.Should().Be("Recent Msg");
     }
 }

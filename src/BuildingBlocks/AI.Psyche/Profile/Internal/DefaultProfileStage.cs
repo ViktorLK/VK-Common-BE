@@ -88,7 +88,7 @@ internal sealed class DefaultProfileStage : IVKPsychePipelineStage
                     }
 
                     // 4. Inject Preferences directive if defined (only if non-empty dictionary)
-                    if (profile.Preferences.Count > 0)
+                    if (profile.Preferences is { Count: > 0 })
                     {
                         var prefsStr = string.Join("; ", profile.Preferences.Select(kv => $"{kv.Key}: {kv.Value}"));
                         context.AddFragment(new VKPromptFragment

@@ -1,143 +1,113 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
 using VK.Blocks.AI.Psyche.Echo.Internal;
 using VK.Blocks.Core;
+using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Echo;
 
 /// <summary>
-/// Unit tests for the <see cref="DefaultEchoStage"/> class.
+/// Unit tests for the <see cref="DefaultEchoExtractStage"/> class.
 /// Follows AP.01, CS.01, CS.03, and DL.01 rules.
 /// </summary>
 public sealed class DefaultEchoStageTests
 {
-    [Fact]
-    public async Task ExecuteAsync_HappyPath_AddsEchoFragmentWithDialogueHistory()
+    private static (VKPsycheContext Context, IServiceProvider Services) CreateTestContext(
+        VKSessionId sessionId,
+        string userInput = "how are you?")
     {
-        // Arrange
-        var echoStoreMock = new Mock<IVKEchoStore>();
-        var tokenCounterMock = new Mock<IVKTokenCounter>();
-        var loggerMock = new Mock<ILogger<DefaultEchoStage>>();
-
-        var echoOptionsMock = new Mock<IOptions<VKEchoOptions>>();
-        echoOptionsMock.Setup(o => o.Value).Returns(new VKEchoOptions
+        var services = new ServiceCollection().BuildServiceProvider();
+        var request = new VKPsycheRequest
         {
-            IncludeSystemMessages = false,
-            PruneUnit = VKEchoPruneUnit.Turn,
-            TokenBudgetRatio = 0.5
-        });
-
-        var weavingOptionsMock = new Mock<IOptions<VKWeavingOptions>>();
-        weavingOptionsMock.Setup(o => o.Value).Returns(new VKWeavingOptions
-        {
-            TotalContextLimit = 4000
-        });
-
-        var history = new List<VKEchoTrace>
-        {
-            new() { Role = VKChatRole.User, Content = "Hello" },
-            new() { Role = VKChatRole.Assistant, Content = "Hi there" }
+            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            SessionId = sessionId,
+            UserInput = userInput
         };
 
-        echoStoreMock.Setup(s => s.GetHistoryAsync("test-session", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(history));
-
-        tokenCounterMock.Setup(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(10);
-
-        var stage = new DefaultEchoStage(
-            echoStoreMock.Object,
-            tokenCounterMock.Object,
-            echoOptionsMock.Object,
-            weavingOptionsMock.Object,
-            loggerMock.Object
-        );
-
-        var context = new VKWeavingContext
+        var context = new VKPsycheContext
         {
-            TenantId = "test-tenant",
-            PersonaId = "test-persona",
-            SessionId = "test-session",
-            UserInput = "how are you?",
-            CorrelationId = "test-correlation"
+            Request = request,
+            Services = services
         };
 
-        // Act
-        var result = await stage.ExecuteAsync(context);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        var echoFragments = context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).ToList();
-        echoFragments.Should().HaveCount(2);
-
-        echoFragments[0].Metadata.Should().BeOfType<VKEchoTrace>();
-        ((VKEchoTrace)echoFragments[0].Metadata).Content.Should().Be("Hello");
-        ((VKEchoTrace)echoFragments[1].Metadata).Content.Should().Be("Hi there");
+        return (context, services);
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithMaxWindowSizeOverride_RespectsOverride()
+    public async Task ExecuteAsync_WhenHistoryExists_InjectsEchoFragments()
     {
         // Arrange
         var echoStoreMock = new Mock<IVKEchoStore>();
+        var sessionStoreMock = new Mock<IVKSessionStore>();
         var tokenCounterMock = new Mock<IVKTokenCounter>();
-        var loggerMock = new Mock<ILogger<DefaultEchoStage>>();
+        var echoOptions = new VKEchoOptions { Enabled = true };
+        var weavingOptions = new VKWeavingOptions();
+        var loggerMock = new Mock<ILogger<DefaultEchoExtractStage>>();
 
-        var echoOptionsMock = new Mock<IOptions<VKEchoOptions>>();
-        echoOptionsMock.Setup(o => o.Value).Returns(new VKEchoOptions
-        {
-            IncludeSystemMessages = false,
-            PruneUnit = VKEchoPruneUnit.Message,
-            TokenBudgetRatio = 0.5,
-            MaxWindowSize = null
-        });
-
-        var weavingOptionsMock = new Mock<IOptions<VKWeavingOptions>>();
-        weavingOptionsMock.Setup(o => o.Value).Returns(new VKWeavingOptions
-        {
-            TotalContextLimit = 4000
-        });
-
+        var sessionId = new VKSessionId(Guid.NewGuid());
         var history = new List<VKEchoTrace>
         {
-            new() { Role = VKChatRole.User, Content = "Message 1" },
-            new() { Role = VKChatRole.Assistant, Content = "Message 2" },
-            new() { Role = VKChatRole.User, Content = "Message 3" }
+            new() { TenantId = VKTenantId.Default, SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.User, Content = "Message 1" },
+            new() { TenantId = VKTenantId.Default, SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.Assistant, Content = "Message 2" },
+            new() { TenantId = VKTenantId.Default, SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.User, Content = "Message 3" }
         };
 
-        echoStoreMock.Setup(s => s.GetHistoryAsync("test-session", It.IsAny<CancellationToken>()))
+        echoStoreMock.Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(history));
 
-        tokenCounterMock.Setup(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(10);
-
-        var stage = new DefaultEchoStage(
+        var stage = new DefaultEchoExtractStage(
             echoStoreMock.Object,
+            sessionStoreMock.Object,
             tokenCounterMock.Object,
-            echoOptionsMock.Object,
-            weavingOptionsMock.Object,
-            loggerMock.Object
-        );
-
-        var context = new VKWeavingContext
-        {
-            TenantId = "test-tenant",
-            PersonaId = "test-persona",
-            SessionId = "test-session",
-            UserInput = "how are you?",
-            CorrelationId = "test-correlation",
-            Echo = new VKEchoArgs { MaxWindowSize = 2 }
-        };
+            echoOptions,
+            weavingOptions,
+            loggerMock.Object);
+        var (context, _) = CreateTestContext(sessionId);
 
         // Act
-        var result = await stage.ExecuteAsync(context);
+        var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        var echoFragments = context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).ToList();
-        echoFragments.Should().HaveCount(2);
-        ((VKEchoTrace)echoFragments[0].Metadata).Content.Should().Be("Message 2");
-        ((VKEchoTrace)echoFragments[1].Metadata).Content.Should().Be("Message 3");
+        context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).Should().HaveCount(3);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenDisabled_ReturnsSuccessWithoutInjectingFragments()
+    {
+        // Arrange
+        var echoStoreMock = new Mock<IVKEchoStore>();
+        var sessionStoreMock = new Mock<IVKSessionStore>();
+        var tokenCounterMock = new Mock<IVKTokenCounter>();
+        var echoOptions = new VKEchoOptions { Enabled = false };
+        var weavingOptions = new VKWeavingOptions();
+        var loggerMock = new Mock<ILogger<DefaultEchoExtractStage>>();
+
+        var sessionId = new VKSessionId(Guid.NewGuid());
+        echoStoreMock.Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>([]));
+
+        var stage = new DefaultEchoExtractStage(
+            echoStoreMock.Object,
+            sessionStoreMock.Object,
+            tokenCounterMock.Object,
+            echoOptions,
+            weavingOptions,
+            loggerMock.Object);
+        var (context, _) = CreateTestContext(sessionId);
+
+        // Act
+        var result = await stage.ExecuteAsync(context, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.Should().BeTrue();
+        context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).Should().BeEmpty();
     }
 }

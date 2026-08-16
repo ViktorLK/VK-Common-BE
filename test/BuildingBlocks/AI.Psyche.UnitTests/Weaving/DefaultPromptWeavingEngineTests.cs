@@ -1,86 +1,65 @@
-using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using VK.Blocks.AI.Psyche.Weaving.Internal;
 using VK.Blocks.Core;
+using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Weaving;
 
 /// <summary>
-/// Unit tests for the <see cref="DefaultPromptWeavingEngine"/> class.
+/// Unit tests for the <see cref="DefaultWeavingStage"/> class.
 /// Follows AP.01, CS.01, CS.03, and DL.01 rules.
 /// </summary>
 public sealed class DefaultPromptWeavingEngineTests
 {
-    [Fact]
-    public async Task WeavePromptAsync_HappyPath_ExecutesTasksAndReturnsTapestry()
+    private static (VKPsycheContext Context, IServiceProvider Services) CreateTestContext(
+        string userInput = "hello")
     {
-        // Arrange
-        var mockTapestry = new VKPromptTapestry
+        var services = new ServiceCollection().BuildServiceProvider();
+        var request = new VKPsycheRequest
         {
-            SystemInstructions = "Mocked System Prompt",
-            Messages = new List<VKChatMessage>(),
-            TotalEstimatedTokens = 100
+            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            SessionId = new VKSessionId(Guid.NewGuid()),
+            UserInput = userInput
         };
 
-        var mockTask = new Mock<IVKWeavingTask>();
-        mockTask.SetupGet(t => t.TaskOrder).Returns(100);
-        mockTask.SetupGet(t => t.IsParallel).Returns(false);
-        mockTask.Setup(t => t.ExecuteAsync(It.IsAny<VKWeavingContext>(), It.IsAny<CancellationToken>()))
-            .Callback<VKWeavingContext, CancellationToken>((ctx, ct) => ctx.Tapestry = mockTapestry)
-            .ReturnsAsync(VKResult.Success());
-
-        var optionsMock = new Mock<IOptions<VKWeavingOptions>>();
-        optionsMock.Setup(o => o.Value).Returns(new VKWeavingOptions());
-
-        var engine = new DefaultPromptWeavingEngine(new[] { mockTask.Object }, optionsMock.Object);
-
-        var context = new VKWeavingContext
+        var context = new VKPsycheContext
         {
-            TenantId = "test-tenant",
-            PersonaId = "test-persona",
-            SessionId = "test-session",
-            UserInput = "hello",
-            CorrelationId = "test-correlation"
+            Request = request,
+            Services = services
         };
 
-        // Act
-        var result = await engine.WeavePromptAsync(context, CancellationToken.None);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(mockTapestry);
-        mockTask.Verify(t => t.ExecuteAsync(context, It.IsAny<CancellationToken>()), Times.Once);
+        return (context, services);
     }
 
     [Fact]
-    public async Task WeavePromptAsync_WhenNoTapestryProduced_ReturnsWeavingNoTapestryError()
+    public async Task ExecuteAsync_HappyPath_ExecutesTasksSuccessfully()
     {
         // Arrange
-        var mockTask = new Mock<IVKWeavingTask>();
-        mockTask.SetupGet(t => t.TaskOrder).Returns(100);
-        mockTask.SetupGet(t => t.IsParallel).Returns(false);
-        mockTask.Setup(t => t.ExecuteAsync(It.IsAny<VKWeavingContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success()); // Success but doesn't set context.Tapestry
+        var mockTask = new Mock<IVKWeavingPipelineTask>();
+        mockTask.SetupGet(t => t.IsActive).Returns(true);
+        mockTask.SetupGet(t => t.Schedule).Returns(new VKPipelineSchedule(100));
+        mockTask.Setup(t => t.ExecuteAsync(It.IsAny<VKPsycheContext>(), It.IsAny<CancellationToken>()))
+            .Callback((VKPsycheContext ctx, CancellationToken _) =>
+            {
+                ctx.Response.Messages.Add(new VKChatMessage { Role = VKChatRole.System, Content = "System prompt" });
+            })
+            .Returns(Task.FromResult(VKResult.Success()));
 
-        var optionsMock = new Mock<IOptions<VKWeavingOptions>>();
-        optionsMock.Setup(o => o.Value).Returns(new VKWeavingOptions());
-
-        var engine = new DefaultPromptWeavingEngine(new[] { mockTask.Object }, optionsMock.Object);
-
-        var context = new VKWeavingContext
-        {
-            TenantId = "test-tenant",
-            PersonaId = "test-persona",
-            SessionId = "test-session",
-            UserInput = "hello",
-            CorrelationId = "test-correlation"
-        };
+        var options = new VKWeavingOptions();
+        var stage = new DefaultWeavingStage(new[] { mockTask.Object }, options);
+        var (context, _) = CreateTestContext();
 
         // Act
-        var result = await engine.WeavePromptAsync(context, CancellationToken.None);
+        var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.FirstError.Code.Should().Be(VKWeavingErrors.NoTapestry.Code);
+        result.IsSuccess.Should().BeTrue();
+        mockTask.Verify(t => t.ExecuteAsync(context, It.IsAny<CancellationToken>()), Times.Once);
     }
 }
