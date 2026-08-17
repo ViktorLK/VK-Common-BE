@@ -43,6 +43,7 @@
 - [x] [AI-016: Implement VK.Blocks.AI.RAG Enterprise Search and Retrieval Package](./.Archive/AI/016-implement-vkblocksairag-enterprise-search-and-retrieval-package.md)
 - [ ] [AI-017: Decouple Hardcoded AI Dependencies from DI Source Generator](./AI/017-decouple-hardcoded-ai-dependencies-from-di-source-generator.md)
 - [ ] [AI-018: Extension Libraries VKPsycheResponse ModelResult Strongly-Typed Extension Methods (DX)](./AI/018-extension-libraries-vkpsycheresponse-modelresult-strongly-typed-extension-methods-(dx).md)
+- [ ] [AI-020: Evaluate and Cleanup Redundant IVKAIProviderOverrides Interface](./AI/020-evaluate-and-cleanup-redundant-ivkaiprovideroverrides-interface.md)
 ## 🔐 Authorization Tasks
 
 - [ ] [AUTHORIZATION-001: Authorization DI Normalization](./Authorization/001-di-normalization.md)
@@ -88,6 +89,7 @@
 - [ ] [AI.SEMANTICKERNEL-003: Industrial Telemetry and Semantic Logging Implementation](./AI.SemanticKernel/003-industrial-telemetry-and-semantic-logging-implementation.md)
 - [ ] [AI.SEMANTICKERNEL-004: Complete Governance Filters and Token Counting Logic](./AI.SemanticKernel/004-complete-governance-filters-and-token-counting-logic.md)
 
+- [ ] [AI.SEMANTICKERNEL-005: Refactor AI.SemanticKernel registration using VKBlockBuilderExtensions syntax sugar](./AI.SemanticKernel/005-refactor-aisemantickernel-registration-using-vkblockbuilderextensions-syntax-sugar.md)
 ## 📋 Web Tasks
 
 - [ ] [WEB-002: Standardize Web Options with IVKToggleableBlockOptions](./Web/002-standardize-web-options-with-ivktoggleableblockoptions.md)

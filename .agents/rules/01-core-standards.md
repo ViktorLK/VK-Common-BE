@@ -59,3 +59,26 @@ trigger: manual
 - **Prohibit GetService**: The use of `GetService<T>()` or `GetService(Type)` is STRICTLY PROHIBITED for required dependencies, as it returns `null` and violates the deterministic failure principle.
 - **Optional Services**: For truly optional services, use `GetServices<T>()` and check for an empty collection, or explicitly document why `GetService` is used with a null-coalescing fallback (e.g., `sp.GetService<T>() ?? Default`).
 - **Fail Fast**: Prefer container-level failure over manual null checks in application logic.
+
+### CS.08 — Persistence & Database Standards
+
+- **Tenant Isolation**:
+  - `TenantId` in DB MUST be `NOT NULL` (enforce via DbContext conventions/configurations).
+  - Multi-tenant high-frequency query indexes MUST use `TenantId` as the leading column (`IX_{Table}_TenantId_{BizKey}`).
+- **Primary Key**:
+  - All entities MUST have an explicit Primary Key `Id`. Use Sequential GUID / UUIDv7 to prevent B-Tree page splits.
+- **Timestamps & Audit Lifecycle**:
+  - `CreatedAt`: `NOT NULL` (`DateTimeOffset`), automated via interceptors.
+  - `UpdatedAt`: `NULL` on creation (`DateTimeOffset`), updated only on actual modification.
+  - No manual timestamp assignment in business logic.
+- **String Boundaries**:
+  - ALL string properties MUST specify `.HasMaxLength()` explicitly. Prohibit unbounded implicit `TEXT` / `VARCHAR(MAX)`.
+- **Relationships & Cascades**:
+  - ALL Foreign Keys MUST specify an explicit `.HasConstraintName("FK_{Source}_{Target}_{Prop}")`.
+  - `DeleteBehavior.Restrict` or `DeleteBehavior.NoAction` is MANDATORY for business entities. Implicit `Cascade` is PROHIBITED.
+- **Index Definitions**:
+  - ALL Indexes MUST specify an explicit `.HasDatabaseName("IX_{Table}_{Columns}")`.
+  - Unique Indexes on Soft-Delete tables MUST specify `.HasFilter("IsDeleted = 0")`.
+- **Migrations & Delivery**:
+  - EF Core Migrations are owned EXCLUSIVELY by the Application Host (BuildingBlocks only provide models/conventions).
+  - Production deployment scripts MUST be generated using `dotnet ef migrations script --idempotent`.

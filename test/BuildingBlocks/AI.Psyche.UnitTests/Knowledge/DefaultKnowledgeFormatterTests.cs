@@ -1,5 +1,10 @@
+using System;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using VK.Blocks.AI.Psyche.Knowledge.Internal;
+using VK.Blocks.Core;
+using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 
@@ -18,15 +23,20 @@ public sealed class DefaultKnowledgeFormatterTests
         _formatter = new DefaultKnowledgeFormatter(_rendererMock.Object);
     }
 
-    private static VKWeavingContext CreateTestContext()
+    private static VKPsycheContext CreateTestContext()
     {
-        return new VKWeavingContext
+        var services = new ServiceCollection().BuildServiceProvider();
+        var request = new VKPsycheRequest
         {
-            TenantId = "test-tenant",
-            PersonaId = "test-persona",
-            SessionId = "test-session",
-            UserInput = "test-user-input",
-            CorrelationId = "test-correlation"
+            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            SessionId = new VKSessionId(Guid.NewGuid()),
+            UserInput = "test-user-input"
+        };
+
+        return new VKPsycheContext
+        {
+            Request = request,
+            Services = services
         };
     }
 
@@ -37,12 +47,13 @@ public sealed class DefaultKnowledgeFormatterTests
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Knowledge,
-            Role = VKChatRole.System,
             RenderOrder = 0,
+            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "test" },
             Metadata = new VKKnowledgeEntry
             {
-                Id = "test",
-                Content = "test"
+                TenantId = VKTenantId.Default,
+                Id = new VKKnowledgeId(Guid.NewGuid()),
+                Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "test" }
             }
         };
 
@@ -54,14 +65,14 @@ public sealed class DefaultKnowledgeFormatterTests
     }
 
     [Fact]
-    public void Format_WhenSingleUnpinnedEntry_WrapsInKnowledgeTag()
+    public void Format_WhenSingleEntry_WrapsInKnowledgeTag()
     {
         // Arrange
         var entry = new VKKnowledgeEntry
         {
-            Id = "k1",
-            Content = "Apples are red.",
-            Position = new VKKnowledgeRelativePosition(VKKnowledgeRelative.BeforePersona)
+            TenantId = VKTenantId.Default,
+            Id = new VKKnowledgeId(Guid.NewGuid()),
+            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Apples are red." }
         };
 
         _rendererMock.Setup(r => r.Render(entry)).Returns("Apples are red.");
@@ -70,16 +81,15 @@ public sealed class DefaultKnowledgeFormatterTests
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Knowledge,
-            Role = VKChatRole.System,
-            Depth = null,
             RenderOrder = 900,
+            Segment = entry.Segment,
             Metadata = entry
         };
         context.AddFragment(fragment);
 
         var expected =
             $"<knowledge>{Environment.NewLine}" +
-            $"  Apples are red.{Environment.NewLine}" +
+            $"Apples are red.{Environment.NewLine}" +
             $"</knowledge>";
 
         // Act
@@ -96,10 +106,10 @@ public sealed class DefaultKnowledgeFormatterTests
         // Arrange
         var entry = new VKKnowledgeEntry
         {
-            Id = "k1",
-            Content = "Apples are red.",
-            Tag = "lore",
-            Position = new VKKnowledgeAbsolutePosition(VKChatRole.User, 2)
+            TenantId = VKTenantId.Default,
+            Id = new VKKnowledgeId(Guid.NewGuid()),
+            XmlTag = "lore",
+            Segment = new VKPromptSegment { Role = VKChatRole.User, Content = "Apples are red." }
         };
 
         _rendererMock.Setup(r => r.Render(entry)).Returns("Apples are red.");
@@ -108,16 +118,15 @@ public sealed class DefaultKnowledgeFormatterTests
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Knowledge,
-            Role = VKChatRole.User,
-            Depth = 2,
             RenderOrder = 0,
+            Segment = entry.Segment,
             Metadata = entry
         };
         context.AddFragment(fragment);
 
         var expected =
             $"<lore>{Environment.NewLine}" +
-            $"  Apples are red.{Environment.NewLine}" +
+            $"Apples are red.{Environment.NewLine}" +
             $"</lore>";
 
         // Act
@@ -134,15 +143,15 @@ public sealed class DefaultKnowledgeFormatterTests
         // Arrange
         var entry1 = new VKKnowledgeEntry
         {
-            Id = "k1",
-            Content = "Apples are red.",
-            Position = new VKKnowledgeRelativePosition(VKKnowledgeRelative.BeforePersona)
+            TenantId = VKTenantId.Default,
+            Id = new VKKnowledgeId(Guid.NewGuid()),
+            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Apples are red." }
         };
         var entry2 = new VKKnowledgeEntry
         {
-            Id = "k2",
-            Content = "Bananas are yellow.",
-            Position = new VKKnowledgeRelativePosition(VKKnowledgeRelative.BeforePersona)
+            TenantId = VKTenantId.Default,
+            Id = new VKKnowledgeId(Guid.NewGuid()),
+            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Bananas are yellow." }
         };
 
         _rendererMock.Setup(r => r.Render(entry1)).Returns("Apples are red.");
@@ -152,17 +161,15 @@ public sealed class DefaultKnowledgeFormatterTests
         var frag1 = new VKPromptFragment
         {
             TierType = VKPromptTierType.Knowledge,
-            Role = VKChatRole.System,
-            Depth = null,
             RenderOrder = 900,
+            Segment = entry1.Segment,
             Metadata = entry1
         };
         var frag2 = new VKPromptFragment
         {
             TierType = VKPromptTierType.Knowledge,
-            Role = VKChatRole.System,
-            Depth = null,
             RenderOrder = 901,
+            Segment = entry2.Segment,
             Metadata = entry2
         };
         context.AddFragment(frag1);
@@ -170,8 +177,9 @@ public sealed class DefaultKnowledgeFormatterTests
 
         var expected =
             $"<knowledge>{Environment.NewLine}" +
-            $"  Apples are red.{Environment.NewLine}" +
-            $"  Bananas are yellow.{Environment.NewLine}" +
+            $"Apples are red.{Environment.NewLine}" +
+            $"{Environment.NewLine}" +
+            $"Bananas are yellow.{Environment.NewLine}" +
             $"</knowledge>";
 
         // Act
@@ -192,15 +200,15 @@ public sealed class DefaultKnowledgeFormatterTests
         // Arrange
         var entryBefore = new VKKnowledgeEntry
         {
-            Id = "k_before",
-            Content = "Before fact.",
-            Position = new VKKnowledgeRelativePosition(VKKnowledgeRelative.BeforePersona)
+            TenantId = VKTenantId.Default,
+            Id = new VKKnowledgeId(Guid.NewGuid()),
+            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Before fact.", AbsoluteDepth = 1 }
         };
         var entryAfter = new VKKnowledgeEntry
         {
-            Id = "k_after",
-            Content = "After fact.",
-            Position = new VKKnowledgeRelativePosition(VKKnowledgeRelative.AfterPersona)
+            TenantId = VKTenantId.Default,
+            Id = new VKKnowledgeId(Guid.NewGuid()),
+            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "After fact.", AbsoluteDepth = 2 }
         };
 
         _rendererMock.Setup(r => r.Render(entryBefore)).Returns("Before fact.");
@@ -210,17 +218,15 @@ public sealed class DefaultKnowledgeFormatterTests
         var fragBefore = new VKPromptFragment
         {
             TierType = VKPromptTierType.Knowledge,
-            Role = VKChatRole.System,
-            Depth = null,
             RenderOrder = 900,
+            Segment = entryBefore.Segment,
             Metadata = entryBefore
         };
         var fragAfter = new VKPromptFragment
         {
             TierType = VKPromptTierType.Knowledge,
-            Role = VKChatRole.System,
-            Depth = null,
             RenderOrder = 1100,
+            Segment = entryAfter.Segment,
             Metadata = entryAfter
         };
         context.AddFragment(fragBefore);
@@ -228,12 +234,12 @@ public sealed class DefaultKnowledgeFormatterTests
 
         var expectedBefore =
             $"<knowledge>{Environment.NewLine}" +
-            $"  Before fact.{Environment.NewLine}" +
+            $"Before fact.{Environment.NewLine}" +
             $"</knowledge>";
 
         var expectedAfter =
             $"<knowledge>{Environment.NewLine}" +
-            $"  After fact.{Environment.NewLine}" +
+            $"After fact.{Environment.NewLine}" +
             $"</knowledge>";
 
         // Act

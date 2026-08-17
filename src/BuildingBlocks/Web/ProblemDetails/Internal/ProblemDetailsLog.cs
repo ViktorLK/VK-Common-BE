@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Web.ProblemDetails.Internal;
@@ -21,4 +21,3 @@ internal static partial class ProblemDetailsLog
         Message = "Created ProblemDetails response. Code: {ErrorCode}, Type: {VKErrorType}, Status: {StatusCode}")]
     public static partial void LogProblemDetailsCreated(ILogger logger, string? errorCode, string vkErrorType, int? statusCode);
 }
-

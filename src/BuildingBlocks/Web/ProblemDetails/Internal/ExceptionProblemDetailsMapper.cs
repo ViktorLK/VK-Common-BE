@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.Extensions.Hosting;
 using VK.Blocks.Core;
@@ -62,4 +62,3 @@ internal sealed partial class ExceptionProblemDetailsMapper(
         };
     }
 }
-

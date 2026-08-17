@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
 using VK.Blocks.Web.Diagnostics.Internal;
-using VK.Blocks.Web.Internal;
 
 namespace VK.Blocks.Web.RequestLogging.Internal;
 
@@ -65,4 +64,3 @@ public sealed class RequestLoggingMiddleware(
         }
     }
 }
-

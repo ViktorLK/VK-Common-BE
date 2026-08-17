@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Web.Tenancy.Internal;
 
@@ -23,5 +23,12 @@ internal static partial class TenancyLog
         this ILogger logger,
         string tenantId,
         string parameterName);
-}
 
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Resolved TenantId '{TenantId}' from route parameter '{RouteKey}'")]
+    public static partial void LogTenantResolvedFromRoute(
+        this ILogger logger,
+        string tenantId,
+        string routeKey);
+}

@@ -1,6 +1,12 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using VK.Blocks.AI.Psyche.Weaving.Internal;
 using VK.Blocks.Core;
+using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Weaving;
 
@@ -10,30 +16,41 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Weaving;
 /// </summary>
 public sealed class DefaultPromptFormatterTaskTests
 {
+    private static (VKPsycheContext Context, IServiceProvider Services) CreateTestContext(string userInput = "hello")
+    {
+        var services = new ServiceCollection().BuildServiceProvider();
+        var request = new VKPsycheRequest
+        {
+            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            SessionId = new VKSessionId(Guid.NewGuid()),
+            UserInput = userInput
+        };
+
+        var context = new VKPsycheContext
+        {
+            Request = request,
+            Services = services
+        };
+
+        return (context, services);
+    }
+
     [Fact]
     public async Task ExecuteAsync_HappyPath_FormatsFragmentsAndUpdatesContent()
     {
         // Arrange
         var mockFormatter = new Mock<IVKPromptFormatter>();
         mockFormatter.Setup(f => f.CanFormat(It.IsAny<VKPromptFragment>())).Returns(true);
-        mockFormatter.Setup(f => f.Format(It.IsAny<VKPromptFragment>(), It.IsAny<VKWeavingContext>()))
+        mockFormatter.Setup(f => f.Format(It.IsAny<VKPromptFragment>(), It.IsAny<VKPsycheContext>()))
             .Returns(VKResult.Success("Formatted Content"));
 
         var task = new DefaultPromptFormatterTask(new[] { mockFormatter.Object });
-
-        var context = new VKWeavingContext
-        {
-            TenantId = "test-tenant",
-            PersonaId = "test-persona",
-            SessionId = "test-session",
-            UserInput = "hello",
-            CorrelationId = "test-correlation"
-        };
+        var (context, _) = CreateTestContext();
 
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Persona,
-            Role = VKChatRole.System,
+            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Initial Content" },
             RenderOrder = 0,
             Metadata = new Mock<IVKFragmentMetadata>().Object
         };
@@ -45,7 +62,7 @@ public sealed class DefaultPromptFormatterTaskTests
         // Assert
         result.IsSuccess.Should().BeTrue();
         context.Fragments.Should().ContainSingle();
-        context.Fragments.First().Content.Should().Be("Formatted Content");
+        context.Fragments.First().Segment.Content.Should().Be("Formatted Content");
     }
 
     [Fact]
@@ -56,24 +73,15 @@ public sealed class DefaultPromptFormatterTaskTests
         mockFormatter.Setup(f => f.CanFormat(It.IsAny<VKPromptFragment>())).Returns(false);
 
         var task = new DefaultPromptFormatterTask(new[] { mockFormatter.Object });
+        var (context, _) = CreateTestContext();
 
-        var context = new VKWeavingContext
-        {
-            TenantId = "test-tenant",
-            PersonaId = "test-persona",
-            SessionId = "test-session",
-            UserInput = "hello",
-            CorrelationId = "test-correlation"
-        };
-
-        // Fragment with no Content and no matching formatter
+        // Fragment with empty Content and no matching formatter
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Persona,
-            Role = VKChatRole.System,
+            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = string.Empty },
             RenderOrder = 0,
-            Metadata = new Mock<IVKFragmentMetadata>().Object,
-            Content = null
+            Metadata = new Mock<IVKFragmentMetadata>().Object
         };
         context.AddFragment(fragment);
 
