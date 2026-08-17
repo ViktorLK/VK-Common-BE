@@ -66,7 +66,7 @@ public sealed class ResponseShapingFilter : IAsyncResultFilter
         {
             var dataProp = type.GetProperty("Data");
             var dataValue = dataProp?.GetValue(value);
-            if (dataValue != null)
+            if (dataValue is not null)
             {
                 return new
                 {
@@ -80,7 +80,7 @@ public sealed class ResponseShapingFilter : IAsyncResultFilter
         {
             var itemsProp = type.GetProperty("Items");
             var itemsValue = itemsProp?.GetValue(value);
-            if (itemsValue != null)
+            if (itemsValue is not null)
             {
                 return new
                 {
@@ -137,7 +137,7 @@ public sealed class ResponseShapingFilter : IAsyncResultFilter
         foreach (var field in fields)
         {
             var prop = allProps.FirstOrDefault(p => p.Name.Equals(field, StringComparison.OrdinalIgnoreCase));
-            if (prop != null)
+            if (prop is not null)
             {
                 elementInits.Add(Expression.ElementInit(
                     addMethod,

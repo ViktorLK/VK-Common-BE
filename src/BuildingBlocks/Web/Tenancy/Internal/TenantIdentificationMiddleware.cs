@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 using VK.Blocks.Web.Diagnostics.Internal;
-using VK.Blocks.Web.Internal;
 
 namespace VK.Blocks.Web.Tenancy.Internal;
 
@@ -25,26 +24,47 @@ public sealed class TenantIdentificationMiddleware(
         activity?.SetTag(WebDiagnosticsConstants.TagMethod, context.Request.Method);
         activity?.SetTag(WebDiagnosticsConstants.TagPath, context.Request.Path);
 
-        // 1. Try Header
-        if (!context.Request.Headers.TryGetValue(VKTenancyConstants.TenantIdHeaderName, out var tenantId) ||
-            !IsValidTenantId(tenantId))
+        string? tenantId = null;
+
+        // 1. Try Route (Route priority)
+        if (context.Request.RouteValues.TryGetValue("tenantId", out var routeVal) && routeVal is string routeStr && IsValidTenantId(routeStr))
         {
-            // 2. Try Query String
-            if (context.Request.Query.TryGetValue(VKTenancyConstants.TenantIdQueryParameterName, out tenantId) &&
-                IsValidTenantId(tenantId))
+            tenantId = routeStr;
+            _logger.LogTenantResolvedFromRoute(tenantId, "tenantId");
+        }
+        else if (context.Request.RouteValues.TryGetValue("tenant", out var routeVal2) && routeVal2 is string routeStr2 && IsValidTenantId(routeStr2))
+        {
+            tenantId = routeStr2;
+            _logger.LogTenantResolvedFromRoute(tenantId, "tenant");
+        }
+
+        // 2. Try Header
+        if (string.IsNullOrEmpty(tenantId))
+        {
+            if (context.Request.Headers.TryGetValue(VKTenancyConstants.TenantIdHeaderName, out var headerVal) && IsValidTenantId(headerVal))
             {
-                _logger.LogTenantResolvedFromQuery(tenantId.ToString(), VKTenancyConstants.TenantIdQueryParameterName);
+                var valStr = headerVal.ToString();
+                tenantId = valStr;
+                _logger.LogTenantResolvedFromHeader(valStr, VKTenancyConstants.TenantIdHeaderName);
             }
         }
-        else
+
+        // 3. Try Query String
+        if (string.IsNullOrEmpty(tenantId))
         {
-            _logger.LogTenantResolvedFromHeader(tenantId.ToString(), VKTenancyConstants.TenantIdHeaderName);
+            if (context.Request.Query.TryGetValue(VKTenancyConstants.TenantIdQueryParameterName, out var queryVal) && IsValidTenantId(queryVal))
+            {
+                var valStr = queryVal.ToString();
+                tenantId = valStr;
+                _logger.LogTenantResolvedFromQuery(valStr, VKTenancyConstants.TenantIdQueryParameterName);
+            }
         }
 
         if (IsValidTenantId(tenantId))
         {
-            // Store in Items so it's accessible by IVKUserContext even before authentication claims are present.
-            context.Items[WebConstants.Items.TenantId] = tenantId.ToString();
+            // Store in Items so it's accessible by IVKSecurityContext even before authentication claims are present.
+            context.Items[WebConstants.Items.TenantId] = tenantId;
+            activity?.SetTag(WebDiagnosticsConstants.TagTenantId, tenantId);
         }
 
         await _next(context).ConfigureAwait(false);
@@ -56,4 +76,3 @@ public sealed class TenantIdentificationMiddleware(
         return !string.IsNullOrWhiteSpace(tenantId) && tenantId.Length <= 128;
     }
 }
-

@@ -35,38 +35,14 @@ Defines the ASP.NET Core presentation-layer infrastructure — controllers, midd
 
 - All JSON serialization MUST consume Core's `IVKJsonSerializer` configuration. Per-controller or per-endpoint `JsonSerializerOptions` overrides are PROHIBITED outside a documented exception.
 
-### 7. Route Convention Enforcement
-
-- Routes MUST follow the standard template (`api/v{version}/{module}/{resource}`). Ad-hoc `[Route]` attributes deviating from this convention are PROHIBITED without an ADR.
-
-### 8. Rate Limiting Response Consistency
-
-- 429 responses MUST be shaped through the same `VKProblemDetails`/EH error contract as other failures — not a bare framework default response.
-
-### 9. Security Headers by Default
+### 7. Security Headers by Default
 
 - Standard security headers (`X-Content-Type-Options`, `Strict-Transport-Security`, `Content-Security-Policy`) MUST be injected globally via middleware. Per-controller opt-in is PROHIBITED — omission must be an explicit, documented exception, not the default.
 
-### 10. Streaming File Transfer
-
-- File upload/download endpoints MUST use streaming request/response bodies, consuming Storage module's chunked-upload contract. Buffering entire file bodies into memory within a controller action is PROHIBITED.
-
-### 11. Idempotency for Unsafe Retries
-
-- State-mutating endpoints exposed to client-side retry (e.g. payment, order creation) MUST support an `Idempotency-Key` header mechanism. Silent duplicate-write risk on retry is not acceptable for endpoints explicitly marked idempotent-required.
-
-### 12. Health Endpoint Aggregation Only
-
-- `/health`, `/health/ready`, `/health/live` MUST aggregate results from Observability's `IHealthCheck` registry. Web MUST NOT define its own ad-hoc health probes — probe implementations belong to each module's own package (e.g. `Persistence.EFCore`, `Storage.Azure`).
-
-### 13. Graceful Shutdown
+### 8. Graceful Shutdown
 
 - The pipeline MUST integrate `IHostApplicationLifetime` to drain in-flight requests before process termination. Abrupt connection termination on deployment/restart is PROHIBITED.
 
-### 14. Environment-Differentiated CORS
+### 9. Environment-Differentiated CORS
 
 - CORS policy MUST be explicitly configured per environment. A permissive/wildcard policy MUST NOT be reachable in a production configuration path, even as a fallback default.
-
-### 15. Test-Friendly Pipeline
-
-- A `WebApplicationFactory`-based test harness MUST be provided, supporting authenticated-user simulation and tenant-context injection without standing up a real IDP or database.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Web.RequestLogging.Internal;
@@ -38,4 +38,3 @@ internal static partial class RequestLoggingLog
         string path,
         double elapsedMs);
 }
-

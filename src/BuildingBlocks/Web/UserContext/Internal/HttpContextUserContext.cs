@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using VK.Blocks.Core;
-using VK.Blocks.Web.Internal;
 
 namespace VK.Blocks.Web.UserContext.Internal;
 
@@ -11,66 +10,73 @@ namespace VK.Blocks.Web.UserContext.Internal;
 /// Provides access to the current authenticated user context from HttpContext.
 /// Complies with CS.04 (Performance) by caching roles within the request scope.
 /// </summary>
-internal sealed class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : IVKUserContext
+internal sealed class HttpContextUserContext(IHttpContextAccessor httpContextAccessor) : IVKSecurityContext
 {
     private readonly IHttpContextAccessor _httpContextAccessor = VKGuard.NotNull(httpContextAccessor);
     private IReadOnlyList<string>? _cachedRoles;
 
     /// <inheritdoc />
-    public string? UserId
+    public VKTenantId TenantId
+    {
+        get
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext is null)
+            {
+                return VKTenantId.Default;
+            }
+
+            // 1. Try standard VK claim
+            var tenantIdStr = httpContext.User?.FindFirst(VKClaimConstants.TenantId)?.Value;
+            if (!string.IsNullOrWhiteSpace(tenantIdStr) && VKTenantId.TryParse(tenantIdStr, null, out var parsedTenantId))
+            {
+                return parsedTenantId;
+            }
+
+            // 2. Fallback to identified TenantId from middleware (stored in HttpContext.Items)
+            if (httpContext.Items.TryGetValue(WebConstants.Items.TenantId, out var identifiedValue) &&
+                identifiedValue is string idStr &&
+                VKTenantId.TryParse(idStr, null, out var itemTenantId))
+            {
+                return itemTenantId;
+            }
+
+            return VKTenantId.Default;
+        }
+    }
+
+    /// <inheritdoc />
+    public VKUserId UserId
     {
         get
         {
             var user = _httpContextAccessor.HttpContext?.User;
-            return user?.FindFirst(VKClaimConstants.UserId)?.Value
+            var userIdStr = user?.FindFirst(VKClaimConstants.UserId)?.Value
+                   ?? user?.FindFirst("sub")?.Value
                    ?? user?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                   ?? user?.FindFirst("sub")?.Value;
+                   ?? user?.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+
+            return VKUserId.FromNullable(userIdStr);
         }
     }
 
     /// <inheritdoc />
     public string? UserName => _httpContextAccessor.HttpContext?.User?.Identity?.Name;
 
-    /// <inheritdoc />
-    public string? TenantId
-    {
-        get
-        {
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext == null)
-            {
-                return null;
-            }
 
-            // 1. Try standard VK claim
-            var tenantId = httpContext.User?.FindFirst(VKClaimConstants.TenantId)?.Value;
-            if (!string.IsNullOrWhiteSpace(tenantId))
-            {
-                return tenantId;
-            }
-
-            // 2. Fallback to identified TenantId from middleware (stored in HttpContext.Items)
-            if (httpContext.Items.TryGetValue(WebConstants.Items.TenantId, out var identifiedValue))
-            {
-                return identifiedValue?.ToString();
-            }
-
-            return null;
-        }
-    }
 
     /// <inheritdoc />
     public IReadOnlyList<string> Roles
     {
         get
         {
-            if (_cachedRoles != null)
+            if (_cachedRoles is not null)
             {
                 return _cachedRoles;
             }
 
             var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null)
+            if (user is null)
             {
                 return [];
             }
@@ -90,4 +96,3 @@ internal sealed class HttpContextUserContext(IHttpContextAccessor httpContextAcc
     /// <inheritdoc />
     public bool IsAuthenticated => _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 }
-
