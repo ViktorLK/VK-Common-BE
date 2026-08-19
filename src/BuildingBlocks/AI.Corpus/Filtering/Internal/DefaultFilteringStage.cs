@@ -166,7 +166,7 @@ internal sealed class DefaultFilteringStage : IVKPsychePipelineStage
         VKCorpusArgs? corpusArgs = context.Args<VKCorpusArgs>();
         corpusContext = corpusContext with
         {
-            PersonaId = context.Request.PersonaId.Value.ToString(),
+            PersonaId = context.Request.PersonaIds.Count > 0 ? context.Request.PersonaIds[0].Value.ToString() : null,
             UserSegment = corpusArgs?.UserSegment,
             StateValues = corpusArgs?.StateValues ?? new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
             UnlockedSecrets = corpusArgs?.UnlockedSecrets ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase),

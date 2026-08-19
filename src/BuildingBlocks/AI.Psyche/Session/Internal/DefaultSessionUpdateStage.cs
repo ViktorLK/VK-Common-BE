@@ -68,7 +68,7 @@ internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.SessionUpdateStage] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics[VKPsycheProfilingKeys.SessionUpdateStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 }

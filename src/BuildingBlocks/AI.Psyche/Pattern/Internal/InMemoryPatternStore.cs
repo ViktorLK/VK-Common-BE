@@ -30,11 +30,28 @@ internal sealed class InMemoryPatternStore : IVKPatternStore
     }
 
     /// <inheritdoc />
-    public Task<VKResult<IEnumerable<VKPatternEntry>>> GetPatternsAsync(CancellationToken cancellationToken = default)
+    public Task<VKResult<IReadOnlyList<VKPatternEntry>>> GetPatternsAsync(
+        IReadOnlyList<VKPatternId> patternIds,
+        CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        IEnumerable<VKPatternEntry> values = _patterns.Values;
-        return Task.FromResult(VKResult.Success(values));
+
+        if (patternIds.Count == 0)
+        {
+            IReadOnlyList<VKPatternEntry> all = [.. _patterns.Values];
+            return Task.FromResult(VKResult.Success(all));
+        }
+
+        var list = new List<VKPatternEntry>(patternIds.Count);
+        foreach (var id in patternIds)
+        {
+            if (_patterns.TryGetValue(id, out var pattern))
+            {
+                list.Add(pattern);
+            }
+        }
+
+        return Task.FromResult(VKResult.Success<IReadOnlyList<VKPatternEntry>>(list));
     }
 
     /// <summary>

@@ -42,14 +42,14 @@ internal sealed class EgressTextPipelineStage : IVKPsychePipelineStage
         {
             var combinedText = string.Join(string.Empty, segments);
             var updatedMsg = new VKChatMessage { Role = VKChatRole.Assistant, Content = combinedText };
-            context.Response.ChatResponse = (context.Response.ChatResponse ?? new VKChatResponse { Message = updatedMsg }) with { Message = updatedMsg };
+            context.ResponseBuilder.ChatResponse = (context.ResponseBuilder.ChatResponse ?? new VKChatResponse { Message = updatedMsg }) with { Message = updatedMsg };
 
             if (_options.EnablePacing)
             {
                 var pacingResult = _pacer.CalculatePacing(segments, _options);
                 if (pacingResult.IsSuccess)
                 {
-                    context.Response.Metadata["VKEgressPacingChunks"] = pacingResult.Value;
+                    context.ResponseBuilder.Metadata["VKEgressPacingChunks"] = pacingResult.Value;
                 }
             }
 
@@ -69,11 +69,11 @@ internal sealed class EgressTextPipelineStage : IVKPsychePipelineStage
         }
 
         var formattedText = formatResult.Value;
-        if (formattedText != rawContent && context.Response.ChatResponse?.Message is not null)
+        if (formattedText != rawContent && context.ResponseBuilder.ChatResponse?.Message is not null)
         {
-            var originalMsg = context.Response.ChatResponse.Message;
+            var originalMsg = context.ResponseBuilder.ChatResponse.Message;
             var updatedMsg = originalMsg with { Content = formattedText };
-            context.Response.ChatResponse = context.Response.ChatResponse with { Message = updatedMsg };
+            context.ResponseBuilder.ChatResponse = context.ResponseBuilder.ChatResponse with { Message = updatedMsg };
         }
 
         if (_options.EnablePacing)
@@ -81,7 +81,7 @@ internal sealed class EgressTextPipelineStage : IVKPsychePipelineStage
             var pacingResult = _pacer.CalculatePacing([formattedText], _options);
             if (pacingResult.IsSuccess)
             {
-                context.Response.Metadata["VKEgressPacingChunks"] = pacingResult.Value;
+                context.ResponseBuilder.Metadata["VKEgressPacingChunks"] = pacingResult.Value;
             }
         }
 
@@ -90,15 +90,15 @@ internal sealed class EgressTextPipelineStage : IVKPsychePipelineStage
 
     private static IReadOnlyList<string>? ExtractSegments(VKPsycheContext context)
     {
-        if (context.Response.ModelResult is IVKNarrativeResponse narrativeResponse && narrativeResponse.NarrativeSegments is { Count: > 0 })
+        if (context.ResponseBuilder.ModelResult is IVKNarrativeResponse narrativeResponse && narrativeResponse.NarrativeSegments is { Count: > 0 })
         {
             return narrativeResponse.NarrativeSegments;
         }
 
-        if (context.Response.ModelResult is not null)
+        if (context.ResponseBuilder.ModelResult is not null)
         {
-            var prop = context.Response.ModelResult.GetType().GetProperty("NarrativeSegments", BindingFlags.Public | BindingFlags.Instance);
-            if (prop?.GetValue(context.Response.ModelResult) is IReadOnlyList<string> list && list.Count > 0)
+            var prop = context.ResponseBuilder.ModelResult.GetType().GetProperty("NarrativeSegments", BindingFlags.Public | BindingFlags.Instance);
+            if (prop?.GetValue(context.ResponseBuilder.ModelResult) is IReadOnlyList<string> list && list.Count > 0)
             {
                 return list;
             }
@@ -109,15 +109,15 @@ internal sealed class EgressTextPipelineStage : IVKPsychePipelineStage
 
     private static string? ExtractRawContent(VKPsycheContext context)
     {
-        if (context.Response.ModelResult is not null)
+        if (context.ResponseBuilder.ModelResult is not null)
         {
-            var prop = context.Response.ModelResult.GetType().GetProperty("NarrativeText", BindingFlags.Public | BindingFlags.Instance);
-            if (prop?.GetValue(context.Response.ModelResult) is string textFromProp && !string.IsNullOrWhiteSpace(textFromProp))
+            var prop = context.ResponseBuilder.ModelResult.GetType().GetProperty("NarrativeText", BindingFlags.Public | BindingFlags.Instance);
+            if (prop?.GetValue(context.ResponseBuilder.ModelResult) is string textFromProp && !string.IsNullOrWhiteSpace(textFromProp))
             {
                 return textFromProp;
             }
         }
 
-        return context.Response.ChatResponse?.Message.Content;
+        return context.ResponseBuilder.ChatResponse?.Message.Content;
     }
 }

@@ -10,7 +10,7 @@ internal sealed class DefaultMemoryExtractor : IVKMemoryExtractor
     public bool TryExtract(VKPsycheContext context, out string[] memoriesToSave)
     {
         memoriesToSave = Array.Empty<string>();
-        if (context.Response.ChatResponse?.Message?.Content is null)
+        if (context.ResponseBuilder.ChatResponse?.Message?.Content is null)
         {
             return false;
         }
@@ -18,7 +18,7 @@ internal sealed class DefaultMemoryExtractor : IVKMemoryExtractor
         var list = new List<string>();
 
         // Find the last user message
-        var lastUserMsg = context.Response.Messages
+        var lastUserMsg = context.ResponseBuilder.Messages
             .LastOrDefault(m => m.Role == VKChatRole.User);
 
         if (lastUserMsg?.Content is not null)
@@ -26,7 +26,7 @@ internal sealed class DefaultMemoryExtractor : IVKMemoryExtractor
             list.Add($"User: {lastUserMsg.Content}");
         }
 
-        list.Add($"Assistant: {context.Response.ChatResponse.Message.Content}");
+        list.Add($"Assistant: {context.ResponseBuilder.ChatResponse.Message.Content}");
 
         memoriesToSave = [.. list];
         return memoriesToSave.Length > 0;

@@ -31,12 +31,12 @@ internal sealed class EgressGuardrailsPipelineStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (context.Response.ChatResponse?.Message is null)
+        if (context.ResponseBuilder.ChatResponse?.Message is null)
         {
             return VKResult.Success();
         }
 
-        var rawContent = context.Response.ChatResponse.Message.Content;
+        var rawContent = context.ResponseBuilder.ChatResponse.Message.Content;
         if (string.IsNullOrWhiteSpace(rawContent))
         {
             return VKResult.Success();
@@ -51,9 +51,9 @@ internal sealed class EgressGuardrailsPipelineStage : IVKPsychePipelineStage
         if (safetyResult.Value != rawContent)
         {
             _logger.LogInformation("Egress guardrail sanitized/modified the response content.");
-            var originalMsg = context.Response.ChatResponse.Message;
+            var originalMsg = context.ResponseBuilder.ChatResponse.Message;
             var updatedMsg = originalMsg with { Content = safetyResult.Value };
-            context.Response.ChatResponse = context.Response.ChatResponse with { Message = updatedMsg };
+            context.ResponseBuilder.ChatResponse = context.ResponseBuilder.ChatResponse with { Message = updatedMsg };
         }
 
         return VKResult.Success();

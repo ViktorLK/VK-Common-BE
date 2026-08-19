@@ -10,32 +10,41 @@ namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
 /// <summary>
 /// Basic concrete implementation of <see cref="IVKKnowledgeStore"/>.
-/// Injects <see cref="IVKIdentityContext"/> for ambient multi-tenant isolation.
 /// </summary>
 internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
 {
     private readonly ConcurrentDictionary<string, List<VKKnowledgeEntry>> _store = new(StringComparer.OrdinalIgnoreCase);
-    private readonly IVKIdentityContext _identityContext;
 
-    public InMemoryKnowledgeStore(IVKIdentityContext identityContext)
+    public InMemoryKnowledgeStore()
     {
-        _identityContext = VKGuard.NotNull(identityContext);
     }
 
-    public Task<VKResult<IEnumerable<VKKnowledgeEntry>>> GetRelevantEntriesAsync(
-        VKPersonaId personaId,
+    public Task<VKResult<IReadOnlyList<VKKnowledgeEntry>>> GetKnowledgeEntriesAsync(
+        IReadOnlyList<VKKnowledgeId> knowledgeIds,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        VKGuard.NotEmptyGuid(personaId.Value);
 
-        if (!_store.TryGetValue(personaId.ToString(), out var entries))
+        var resultList = new List<VKKnowledgeEntry>();
+
+        if (knowledgeIds.Count == 0)
         {
-            return Task.FromResult(VKResult.Failure<IEnumerable<VKKnowledgeEntry>>(VKKnowledgeErrors.NotFound));
+            foreach (var list in _store.Values)
+            {
+                resultList.AddRange(list);
+            }
+            return Task.FromResult(VKResult.Success<IReadOnlyList<VKKnowledgeEntry>>(resultList));
         }
 
-        var filtered = entries.Where(e => e.TenantId == _identityContext.TenantId);
-        return Task.FromResult(VKResult.Success<IEnumerable<VKKnowledgeEntry>>(filtered));
+        foreach (var kId in knowledgeIds)
+        {
+            if (_store.TryGetValue(kId.ToString(), out var entries))
+            {
+                resultList.AddRange(entries);
+            }
+        }
+
+        return Task.FromResult(VKResult.Success<IReadOnlyList<VKKnowledgeEntry>>(resultList));
     }
 
     public InMemoryKnowledgeStore Seed(VKKnowledgeEntry knowledgeEntry)

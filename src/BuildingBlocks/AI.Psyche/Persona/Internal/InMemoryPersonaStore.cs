@@ -8,37 +8,33 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 
 /// <summary>
 /// Basic concrete implementation of <see cref="IVKPersonaStore"/>.
-/// Injects <see cref="IVKIdentityContext"/> for ambient multi-tenant isolation.
 /// Follows AP.01 and CS.03.
 /// </summary>
 internal sealed class InMemoryPersonaStore : IVKPersonaStore
 {
     private readonly ConcurrentDictionary<VKPersonaId, VKPersonaAnchor> _store = new();
-    private readonly IVKIdentityContext _identityContext;
 
-    public InMemoryPersonaStore(IVKIdentityContext identityContext)
+    public InMemoryPersonaStore()
     {
-        _identityContext = VKGuard.NotNull(identityContext);
     }
 
-    public Task<VKResult<VKPersonaAnchor>> GetPersonaAsync(
-        VKPersonaId personaId,
+    public Task<VKResult<IReadOnlyList<VKPersonaAnchor>>> GetPersonasAsync(
+        IReadOnlyList<VKPersonaId> personaIds,
         CancellationToken cancellationToken = default)
     {
-        VKGuard.NotEmptyGuid(personaId.Value);
+        VKGuard.NotNull(personaIds);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_store.TryGetValue(personaId, out var anchor))
+        var list = new List<VKPersonaAnchor>(personaIds.Count);
+        foreach (var personaId in personaIds)
         {
-            return Task.FromResult(VKResult.Failure<VKPersonaAnchor>(VKPersonaErrors.NotFound));
+            if (_store.TryGetValue(personaId, out var anchor))
+            {
+                list.Add(anchor);
+            }
         }
 
-        if (anchor.TenantId != _identityContext.TenantId)
-        {
-            return Task.FromResult(VKResult.Failure<VKPersonaAnchor>(VKPersonaErrors.NotFound));
-        }
-
-        return Task.FromResult(VKResult.Success(anchor));
+        return Task.FromResult(VKResult.Success<IReadOnlyList<VKPersonaAnchor>>(list));
     }
 
     public InMemoryPersonaStore Seed(VKPersonaAnchor persona)

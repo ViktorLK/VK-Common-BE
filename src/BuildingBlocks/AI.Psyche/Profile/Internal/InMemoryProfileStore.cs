@@ -11,24 +11,17 @@ namespace VK.Blocks.AI.Psyche.Profile.Internal;
 /// </summary>
 internal sealed class InMemoryProfileStore : IVKProfileStore
 {
-    private readonly ConcurrentDictionary<VKUserId, VKProfilePresence> _presences = new();
-    private readonly IVKIdentityContext _identityContext;
+    private readonly ConcurrentDictionary<VKProfileId, VKProfilePresence> _presences = new();
 
-    public InMemoryProfileStore(IVKIdentityContext identityContext)
+    public InMemoryProfileStore()
     {
-        _identityContext = VKGuard.NotNull(identityContext);
     }
 
     public Task<VKResult<VKProfilePresence?>> GetProfileAsync(
-        VKUserId userId,
+        VKProfileId profileId,
         CancellationToken cancellationToken = default)
     {
-        if (!_presences.TryGetValue(userId, out var presence))
-        {
-            return Task.FromResult(VKResult.Success<VKProfilePresence?>(null));
-        }
-
-        if (presence.TenantId != _identityContext.TenantId)
+        if (!_presences.TryGetValue(profileId, out var presence))
         {
             return Task.FromResult(VKResult.Success<VKProfilePresence?>(null));
         }
@@ -42,7 +35,7 @@ internal sealed class InMemoryProfileStore : IVKProfileStore
     public InMemoryProfileStore Seed(VKProfilePresence presence)
     {
         VKGuard.NotNull(presence);
-        _presences[presence.UserId] = presence;
+        _presences[presence.Id] = presence;
         return this;
     }
 }

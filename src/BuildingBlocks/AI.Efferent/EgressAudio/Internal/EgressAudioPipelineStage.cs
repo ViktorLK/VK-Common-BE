@@ -32,12 +32,12 @@ internal sealed class EgressAudioPipelineStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (context.Response.ChatResponse?.Message is null)
+        if (context.ResponseBuilder.ChatResponse?.Message is null)
         {
             return VKResult.Success();
         }
 
-        var text = context.Response.ChatResponse.Message.Content;
+        var text = context.ResponseBuilder.ChatResponse.Message.Content;
         if (string.IsNullOrWhiteSpace(text))
         {
             return VKResult.Success();

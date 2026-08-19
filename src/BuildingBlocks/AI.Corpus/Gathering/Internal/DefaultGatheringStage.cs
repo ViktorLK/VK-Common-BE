@@ -55,7 +55,7 @@ internal sealed class DefaultGatheringStage : IVKPsychePipelineStage
         {
             SessionId = context.Request.SessionId,
             CurrentTurn = currentTurn,
-            PersonaId = context.Request.PersonaId.Value.ToString(),
+            PersonaId = context.Request.PersonaIds.Count > 0 ? context.Request.PersonaIds[0].Value.ToString() : null,
             ScanTexts = [context.Request.UserInput]
         };
 

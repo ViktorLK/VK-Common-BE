@@ -1,19 +1,13 @@
 using System;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// A single pulse of conversation history representing an echo in short-term memory.
-/// Follows AP.01 (sealed record for immutability). Implements <see cref="IVKTenantScoped"/>.
+/// Follows AP.01 (sealed record for immutability).
 /// </summary>
-public sealed record VKEchoTrace : IVKFragmentMetadata, IVKTenantScoped
+public sealed record VKEchoTrace : IVKFragmentMetadata
 {
-    /// <summary>
-    /// Gets the tenant identifier for multi-tenant SaaS isolation.
-    /// </summary>
-    public required VKTenantId TenantId { get; init; }
-
     /// <summary>
     /// Gets the session identifier that owns this conversation echo trace.
     /// </summary>

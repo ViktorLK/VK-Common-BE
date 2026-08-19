@@ -73,7 +73,6 @@ internal static class KnowledgeProposalMapper
         {
             Knowledge = new VKKnowledgeEntry
             {
-                TenantId = VKTenantId.FromNullable(tenantId),
                 Id = new VKKnowledgeId(Guid.NewGuid()),
                 TriggerType = VKKnowledgeTriggerType.Constant,
                 Segment = new VKPromptSegment

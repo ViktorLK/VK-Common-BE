@@ -11,7 +11,9 @@ namespace VK.Blocks.AI.Psyche;
 public interface IVKPatternStore
 {
     /// <summary>
-    /// Gets current default or global pattern entries.
+    /// Gets pattern entries matching the specified pattern IDs (or all patterns if patternIds is empty).
     /// </summary>
-    Task<VKResult<IEnumerable<VKPatternEntry>>> GetPatternsAsync(CancellationToken cancellationToken = default);
+    Task<VKResult<IReadOnlyList<VKPatternEntry>>> GetPatternsAsync(
+        IReadOnlyList<VKPatternId> patternIds,
+        CancellationToken cancellationToken = default);
 }

@@ -14,13 +14,19 @@ namespace VK.Blocks.AI.Engram.Consolidation.Internal;
 internal sealed class CrossSessionConsolidationStrategy : IVKCrossSessionConsolidationStrategy
 {
     private readonly IVKChatEngine _chatEngine;
+    private readonly IVKGuidGenerator _guidGenerator;
+    private readonly TimeProvider _timeProvider;
     private readonly VKConsolidationOptions _options;
 
     public CrossSessionConsolidationStrategy(
         IVKChatEngine chatEngine,
+        IVKGuidGenerator guidGenerator,
+        TimeProvider timeProvider,
         IOptions<VKConsolidationOptions> options)
     {
         _chatEngine = VKGuard.NotNull(chatEngine);
+        _guidGenerator = VKGuard.NotNull(guidGenerator);
+        _timeProvider = VKGuard.NotNull(timeProvider);
         _options = VKGuard.NotNull(options?.Value);
     }
 
@@ -65,20 +71,21 @@ internal sealed class CrossSessionConsolidationStrategy : IVKCrossSessionConsoli
                                .Where(l => !string.IsNullOrWhiteSpace(l))
                                .ToList();
 
+            var now = _timeProvider.GetUtcNow();
             var newEntries = new List<VKMemoryEntry>();
             foreach (var fact in lines)
             {
                 newEntries.Add(new VKMemoryEntry
                 {
-                    Id = new VKMemoryId(Guid.NewGuid()),
+                    Id = new VKMemoryId(_guidGenerator.Create()),
                     Content = fact,
                     Category = VKMemoryCategory.LongTerm,
                     Importance = 0.85f,
-                    CreatedAt = DateTimeOffset.UtcNow,
+                    CreatedAt = now,
                     Metadata = new Dictionary<string, string>
                     {
                         ["Source"] = "CrossSessionConsolidation",
-                        ["ConsolidatedAt"] = DateTimeOffset.UtcNow.ToString("O")
+                        ["ConsolidatedAt"] = now.ToString("O")
                     }
                 });
             }
@@ -87,7 +94,7 @@ internal sealed class CrossSessionConsolidationStrategy : IVKCrossSessionConsoli
         }
         catch (Exception ex)
         {
-            return VKResult.Failure<IReadOnlyList<VKMemoryEntry>>(new VKError("Engram.Consolidation.CrossSessionError", ex.Message));
+            return VKResult.Failure<IReadOnlyList<VKMemoryEntry>>(VKConsolidationErrors.CrossSessionError);
         }
     }
 }

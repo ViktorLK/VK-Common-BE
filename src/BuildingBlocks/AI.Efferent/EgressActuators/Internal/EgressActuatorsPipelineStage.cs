@@ -31,14 +31,14 @@ internal sealed class EgressActuatorsPipelineStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        if (context.Response.ChatResponse?.Message?.ToolCalls is null ||
-            context.Response.ChatResponse.Message.ToolCalls.Count == 0)
+        if (context.ResponseBuilder.ChatResponse?.Message?.ToolCalls is null ||
+            context.ResponseBuilder.ChatResponse.Message.ToolCalls.Count == 0)
         {
             return VKResult.Success();
         }
 
         var executionResult = await _actionDispatcher.DispatchActionsAsync(
-            context.Response.ChatResponse.Message.ToolCalls,
+            context.ResponseBuilder.ChatResponse.Message.ToolCalls,
             cancellationToken).ConfigureAwait(false);
 
         if (executionResult.IsFailure)

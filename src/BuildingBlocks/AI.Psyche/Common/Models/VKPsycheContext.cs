@@ -13,22 +13,34 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public sealed class VKPsycheContext
 {
-
     /// <summary>
     /// Gets the original request payload containing overrides and arguments.
     /// </summary>
     public required VKPsycheRequest Request { get; init; }
 
     /// <summary>
+    /// Gets the mutable response builder for accumulating execution results.
+    /// </summary>
+    public VKPsycheResponseBuilder ResponseBuilder { get; } = new();
+
+    /// <summary>
+    /// Gets the unique correlation ID to trace this execution across logging, profiling, and diagnostics.
+    /// Guaranteed to be non-empty.
+    /// </summary>
+    public required string CorrelationId { get; init; }
+
+    /// <summary>
+    /// Gets the timestamp when this pipeline execution was initiated.
+    /// Guaranteed to be resolved.
+    /// </summary>
+    public required DateTimeOffset CreatedAt { get; init; }
+
+
+    /// <summary>
     /// Gets a value indicating whether the current execution is running under Sandbox trial mode.
     /// Downstream consumers (Efferent state mutations, Corpus usage tracking, Engram memory consolidation) MUST inspect this to strictly skip permanent DB side-effects.
     /// </summary>
-    public bool IsSandbox => Request.SessionMode == VKSessionMode.Sandbox;
-
-    /// <summary>
-    /// Gets the mutable response builder for accumulating execution results.
-    /// </summary>
-    public VKPsycheResponseBuilder Response { get; } = new();
+    public bool IsSandbox => State<VKSessionThread>()?.Mode == VKSessionMode.Sandbox;
 
     // ==========================================
     // 3. Active Prompt Fragments (Thread-Safe Immutable Collection)
@@ -123,9 +135,10 @@ public sealed class VKPsycheContext
     public required IServiceProvider Services { get; init; }
 
     private int _isAborted;
+    private int _isCompleted;
 
     /// <summary>
-    /// Aborts the current pipeline execution.
+    /// Aborts the current pipeline execution with failure.
     /// </summary>
     public void Abort()
     {
@@ -136,4 +149,18 @@ public sealed class VKPsycheContext
     /// Gets a value indicating whether the pipeline execution has been aborted.
     /// </summary>
     public bool IsAborted => Interlocked.CompareExchange(ref _isAborted, 0, 0) == 1;
+
+    /// <summary>
+    /// Marks the pipeline execution as successfully completed early.
+    /// Skips terminal LLM invocation and subsequent after stages, returning success.
+    /// </summary>
+    public void Complete()
+    {
+        Interlocked.Exchange(ref _isCompleted, 1);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the pipeline execution has completed early.
+    /// </summary>
+    public bool IsCompleted => Interlocked.CompareExchange(ref _isCompleted, 0, 0) == 1;
 }

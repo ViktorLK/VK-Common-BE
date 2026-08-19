@@ -15,17 +15,20 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
 {
     private readonly IVKPsychePipelineExecutor _executor;
     private readonly IVKGuidGenerator _guidGenerator;
+    private readonly TimeProvider _timeProvider;
     private readonly ILogger<DefaultPsychePipeline> _logger;
     private readonly IServiceProvider _services;
 
     public DefaultPsychePipeline(
         IVKPsychePipelineExecutor executor,
         IVKGuidGenerator guidGenerator,
+        TimeProvider timeProvider,
         ILogger<DefaultPsychePipeline> logger,
         IServiceProvider services)
     {
         _executor = VKGuard.NotNull(executor);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
+        _timeProvider = VKGuard.NotNull(timeProvider);
         _logger = VKGuard.NotNull(logger);
         _services = VKGuard.NotNull(services);
     }
@@ -38,22 +41,20 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
 
         var stopwatch = Stopwatch.StartNew();
         var traceId = request.CorrelationId ?? _guidGenerator.Create().ToString();
+        var now = _timeProvider.GetUtcNow();
 
         _logger.PipelineStarted(
-            request.PersonaId,
+            string.Join(",", request.PersonaIds),
             request.SessionId,
             traceId);
 
-        var requestWithTrace = string.IsNullOrWhiteSpace(request.CorrelationId)
-            ? request with { CorrelationId = traceId }
-            : request;
-
         var context = new VKPsycheContext
         {
-            Request = requestWithTrace,
+            Request = request,
+            CorrelationId = traceId,
+            CreatedAt = request.CreatedAt ?? now,
             Services = _services
         };
-        context.Response.CorrelationId = traceId;
 
         var result = await _executor.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
 

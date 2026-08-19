@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -31,8 +30,7 @@ public interface IVKPsycheModelFactory
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
         string? directiveId = null,
-        IReadOnlyDictionary<string, object>? extensions = null,
-        VKTenantId? tenantId = null);
+        IReadOnlyDictionary<string, object>? extensions = null);
 
     // --- Directive ---
 
@@ -53,8 +51,7 @@ public interface IVKPsycheModelFactory
         string? overview = null,
         string? behaviorRules = null,
         string? safetyRules = null,
-        string? outputConstraints = null,
-        VKTenantId? tenantId = null);
+        string? outputConstraints = null);
 
     // --- Knowledge ---
 
@@ -77,8 +74,7 @@ public interface IVKPsycheModelFactory
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
         string? xmlTag = null,
-        IReadOnlyList<VKKnowledgeKey>? keys = null,
-        VKTenantId? tenantId = null);
+        IReadOnlyList<VKKnowledgeKey>? keys = null);
 
     // --- Pattern ---
 
@@ -98,7 +94,6 @@ public interface IVKPsycheModelFactory
     /// Creates a new <see cref="VKSessionThread"/> with an automatically generated ID.
     /// </summary>
     VKSessionThread CreateSession(
-        VKPersonaId personaId,
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
@@ -109,7 +104,6 @@ public interface IVKPsycheModelFactory
     /// </summary>
     VKSessionThread CreateSession(
         VKSessionId id,
-        VKPersonaId personaId,
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
@@ -119,9 +113,28 @@ public interface IVKPsycheModelFactory
         DateTimeOffset? createdAt = null,
         DateTimeOffset? updatedAt = null,
         DateTimeOffset? lastActivityAt = null,
-        VKTenantId? tenantId = null,
-        VKUserId? userId = null,
         VKSessionKnowledgeState? knowledgeState = null);
+
+    // --- Profile ---
+
+    /// <summary>
+    /// Creates a new <see cref="VKProfilePresence"/> with an automatically generated ID.
+    /// </summary>
+    VKProfilePresence CreateProfile(
+        string? displayName = null,
+        string? preferredLanguage = null,
+        string? timeZone = null,
+        IReadOnlyDictionary<string, string>? preferences = null);
+
+    /// <summary>
+    /// Creates a new <see cref="VKProfilePresence"/> with an explicitly specified ID.
+    /// </summary>
+    VKProfilePresence CreateProfile(
+        VKProfileId id,
+        string? displayName = null,
+        string? preferredLanguage = null,
+        string? timeZone = null,
+        IReadOnlyDictionary<string, string>? preferences = null);
 
     // --- Echo ---
 
@@ -144,6 +157,5 @@ public interface IVKPsycheModelFactory
         VKChatRole role,
         string content,
         int tokenCount = 0,
-        DateTimeOffset? createdAt = null,
-        VKTenantId? tenantId = null);
+        DateTimeOffset? createdAt = null);
 }

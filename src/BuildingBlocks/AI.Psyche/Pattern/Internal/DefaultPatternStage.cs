@@ -40,13 +40,18 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
                 return VKResult.Success();
             }
 
-            var patternsResult = await _store.GetPatternsAsync(ct).ConfigureAwait(false); // [CS.03]
+            if (context.Request.PatternIds.Count == 0)
+            {
+                return VKResult.Success();
+            }
+
+            var patternsResult = await _store.GetPatternsAsync(context.Request.PatternIds, ct).ConfigureAwait(false); // [CS.03]
             if (patternsResult.IsFailure)
             {
                 return VKResult.Failure(patternsResult.Errors); // [CS.01]
             }
 
-            var currentPatterns = patternsResult.Value.ToList();
+            var currentPatterns = patternsResult.Value;
 
             foreach (var pattern in currentPatterns)
             {
@@ -63,7 +68,7 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics["PatternStage"] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics["PatternStage"] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 }

@@ -31,7 +31,7 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
     {
         VKGuard.NotNull(context);
 
-        _logger.ExecutionStarted(context.Request.SessionId.Value.ToString(), context.Request.CorrelationId ?? string.Empty);
+        _logger.ExecutionStarted(context.Request.SessionId.Value.ToString(), context.CorrelationId);
         var stopwatch = Stopwatch.StartNew();
 
         var result = await base.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
@@ -41,14 +41,14 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         if (result.IsFailure)
         {
             _logger.ExecutionFailed(
-                context.Request.CorrelationId ?? string.Empty,
+                context.CorrelationId,
                 result.FirstError.Code,
                 result.FirstError.Description);
             return result;
         }
 
         _logger.ExecutionCompleted(
-            context.Request.CorrelationId ?? string.Empty,
+            context.CorrelationId,
             stopwatch.Elapsed.TotalMilliseconds);
 
         return result;
@@ -58,16 +58,6 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         VKPsycheContext context,
         CancellationToken cancellationToken)
     {
-        if (context.Response.Messages.Count == 0)
-        {
-            return VKResult.Failure(VKPipelineErrors.EmptyResponse);
-        }
-
-        if (context.IsWeaveOnly)
-        {
-            return VKResult.Success();
-        }
-
         if (context.Services.GetService(typeof(IVKChatEngine)) is not IVKChatEngine chatEngine)
         {
             return VKResult.Failure(VKPipelineErrors.ChatEngineNotFound);
@@ -78,7 +68,7 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         var stopwatch = Stopwatch.StartNew();
         try
         {
-            var chatResult = await chatEngine.SendAsync(context.Response.Messages, chatArgs, cancellationToken).ConfigureAwait(false);
+            var chatResult = await chatEngine.SendAsync(context.ResponseBuilder.Messages, chatArgs, cancellationToken).ConfigureAwait(false);
             if (chatResult.IsFailure)
             {
                 return VKResult.Failure(chatResult.Errors);
@@ -86,10 +76,10 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
 
             context.SetState(chatResult.Value);
 
-            context.Response.ChatResponse = chatResult.Value;
+            context.ResponseBuilder.ChatResponse = chatResult.Value;
             if (chatResult.Value.Usage is not null)
             {
-                context.Response.Usage = chatResult.Value.Usage;
+                context.ResponseBuilder.Usage = chatResult.Value.Usage;
             }
 
             return VKResult.Success();
@@ -97,17 +87,19 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.LLMInvocation] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics[VKPsycheProfilingKeys.LLMInvocation] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 
     protected override VKPsycheResponse BuildResponse(VKPsycheContext context)
     {
         VKGuard.NotNull(context);
-        return context.Response.Build(context);
+        return context.ResponseBuilder.Build(context);
     }
 
     protected override bool CheckAborted(VKPsycheContext context) => context.IsAborted;
+
+    protected override bool CheckCompleted(VKPsycheContext context) => context.IsCompleted;
 
     protected override VKResult GetAbortResult(VKPsycheContext context) => VKResult.Failure(VKPipelineErrors.Aborted);
 }

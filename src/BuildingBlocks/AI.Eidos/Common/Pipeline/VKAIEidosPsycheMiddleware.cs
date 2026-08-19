@@ -117,7 +117,7 @@ public sealed class VKAIEidosPsycheMiddleware(
                 accumulatedIssues.Add($"[AutoRepair #{repairAttempt}] Sent corrective instruction to LLM.");
 
                 // Append corrective prompt as a user turn for the retry
-                context.Response.Messages.Add(VKChatMessage.FromText(VKChatRole.User, repairInst.CorrectivePrompt));
+                context.ResponseBuilder.Messages.Add(VKChatMessage.FromText(VKChatRole.User, repairInst.CorrectivePrompt));
                 continue;
             }
 
@@ -140,19 +140,20 @@ public sealed class VKAIEidosPsycheMiddleware(
     private async Task<VKAIEidosResponseContract?> ResolveContractAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
         var contract = context.State<VKAIEidosResponseContract>();
-        if (contract is not null) return contract;
+        if (contract is not null)
+            return contract;
 
         var args = context.Args<VKAIEidosRequestArgs>();
-        if (args is null) return null;
+        if (args is null)
+            return null;
 
         VKAIEidosResponseContract? resolvedContract = args.ExplicitContract;
 
         if (resolvedContract is null && !string.IsNullOrWhiteSpace(args.Scenario))
         {
-            var tenantId = context.Request.TenantId?.Value.ToString();
-            var personaId = context.Request.PersonaId.Value.ToString();
+            var personaId = context.Request.PersonaIds.Count > 0 ? context.Request.PersonaIds[0].Value.ToString() : null;
 
-            var contractRes = await _resolver.ResolveForContextAsync(args.Scenario, tenantId, personaId, cancellationToken).ConfigureAwait(false);
+            var contractRes = await _resolver.ResolveForContextAsync(args.Scenario, tenantId: null, personaId, cancellationToken).ConfigureAwait(false);
             if (contractRes.IsSuccess)
             {
                 resolvedContract = contractRes.Value;
@@ -239,7 +240,7 @@ public sealed class VKAIEidosPsycheMiddleware(
 
     private string? ExtractRawJson(VKPsycheContext context, VKAIEidosResponseContract contract)
     {
-        var toolCalls = context.Response.ChatResponse?.Message.ToolCalls;
+        var toolCalls = context.ResponseBuilder.ChatResponse?.Message.ToolCalls;
         if (toolCalls is not null && toolCalls.Count > 0)
         {
             var targetToolCall = toolCalls.FirstOrDefault(t =>
@@ -252,9 +253,9 @@ public sealed class VKAIEidosPsycheMiddleware(
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(context.Response.ChatResponse?.Message.Content))
+        if (!string.IsNullOrWhiteSpace(context.ResponseBuilder.ChatResponse?.Message.Content))
         {
-            return _extractor.ExtractJsonBlock(context.Response.ChatResponse.Message.Content);
+            return _extractor.ExtractJsonBlock(context.ResponseBuilder.ChatResponse.Message.Content);
         }
 
         return null;
@@ -263,7 +264,8 @@ public sealed class VKAIEidosPsycheMiddleware(
     private object? BindModel(string rawJson, Type targetType)
     {
         var method = typeof(IVKContractBinder).GetMethod(nameof(IVKContractBinder.Bind))?.MakeGenericMethod(targetType);
-        if (method is null) return null;
+        if (method is null)
+            return null;
 
         var resultObj = method.Invoke(_binder, [rawJson]);
         if (resultObj is VKResult vkResult && (bool)vkResult.GetType().GetProperty("IsSuccess")!.GetValue(vkResult)!)
@@ -291,7 +293,7 @@ public sealed class VKAIEidosPsycheMiddleware(
             Issues = issues
         };
 
-        context.Response.ModelResult = model ?? envelope;
-        context.Response.Metadata["VKAIEidosEnvelope"] = envelope;
+        context.ResponseBuilder.ModelResult = model ?? envelope;
+        context.ResponseBuilder.Metadata["VKAIEidosEnvelope"] = envelope;
     }
 }

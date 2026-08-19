@@ -41,9 +41,14 @@ internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
                 return runResult; // [CS.01]
             }
 
-            if (context.Response.Messages.Count == 0)
+            if (context.ResponseBuilder.Messages.Count == 0)
             {
                 return VKResult.Failure(VKWeavingErrors.NoTapestry); // [CS.01]
+            }
+
+            if (context.IsWeaveOnly)
+            {
+                context.Complete();
             }
 
             return VKResult.Success(); // [CS.01]
@@ -51,7 +56,7 @@ internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.WeavingStage] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics[VKPsycheProfilingKeys.WeavingStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 

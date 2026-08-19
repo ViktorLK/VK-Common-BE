@@ -67,5 +67,5 @@ public sealed record VKPsycheResponse
     /// <summary>
     /// Gets the correlation identifier linked with the request pipeline execution.
     /// </summary>
-    public string? CorrelationId { get; init; }
+    public required string CorrelationId { get; init; }
 }

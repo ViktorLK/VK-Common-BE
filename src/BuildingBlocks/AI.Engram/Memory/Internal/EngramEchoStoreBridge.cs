@@ -49,7 +49,6 @@ internal sealed class EngramEchoStoreBridge : IVKEchoStore
             .OrderBy(m => m.CreatedAt)
             .Select(m => new VKEchoTrace
             {
-                TenantId = m.TenantId ?? VKTenantId.Default,
                 SessionId = m.SessionId ?? sessionId,
                 Id = new VKEchoId(m.Id.Value),
                 Role = m.Metadata.TryGetValue("Role", out var roleStr) && Enum.TryParse<VKChatRole>(roleStr, out var r) ? r : VKChatRole.User,
@@ -70,7 +69,7 @@ internal sealed class EngramEchoStoreBridge : IVKEchoStore
         var memoryEntry = new VKMemoryEntry
         {
             Id = new VKMemoryId(trace.Id.Value),
-            TenantId = trace.TenantId,
+            TenantId = VKTenantId.Default,
             SessionId = trace.SessionId,
             Category = VKMemoryCategory.ShortTerm,
             Content = trace.Content,

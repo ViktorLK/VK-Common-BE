@@ -1,8 +1,8 @@
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Represents a custom prompt preset pattern woven into the prompt tapestry.
-/// Metaphor: Custom prompt nodes defined by users/tenants.
+/// Represents a customizable pattern or prompt injection node in the weaving pipeline.
+/// Metaphor: Custom prompt nodes defined by users or application logic.
 /// </summary>
 public sealed record VKPatternEntry : IVKFragmentMetadata
 {

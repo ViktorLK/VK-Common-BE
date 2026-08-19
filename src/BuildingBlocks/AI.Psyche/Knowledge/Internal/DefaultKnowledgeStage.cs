@@ -40,12 +40,12 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
                 return VKResult.Success();
             }
 
-            if (context.Request.PersonaId.IsEmpty)
+            if (context.Request.KnowledgeIds.Count == 0)
             {
-                return VKResult.Failure(VKKnowledgeErrors.MissingPersona);
+                return VKResult.Success();
             }
 
-            var knowledgeResult = await _store.GetRelevantEntriesAsync(context.Request.PersonaId, ct).ConfigureAwait(false); // [CS.03]
+            var knowledgeResult = await _store.GetKnowledgeEntriesAsync(context.Request.KnowledgeIds, ct).ConfigureAwait(false); // [CS.03]
             if (knowledgeResult.IsFailure)
             {
                 return VKResult.Failure(knowledgeResult.Errors); // [CS.01]
@@ -140,7 +140,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics["KnowledgeStage"] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics["KnowledgeStage"] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 }

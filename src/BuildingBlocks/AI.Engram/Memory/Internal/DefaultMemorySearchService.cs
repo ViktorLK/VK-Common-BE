@@ -20,6 +20,8 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
 {
     private readonly IVKMemoryStore _memoryStore;
     private readonly IVKIdentityContext _identityContext;
+    private readonly IVKGuidGenerator _guidGenerator;
+    private readonly TimeProvider _timeProvider;
     private readonly VKMemoryOptions _options;
     private readonly ILogger<DefaultMemorySearchService> _logger;
     private readonly IVKRetrievalStore? _retrievalStore;
@@ -28,6 +30,8 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
     public DefaultMemorySearchService(
         IVKMemoryStore memoryStore,
         IVKIdentityContext identityContext,
+        IVKGuidGenerator guidGenerator,
+        TimeProvider timeProvider,
         Microsoft.Extensions.Options.IOptions<VKMemoryOptions> options,
         ILogger<DefaultMemorySearchService> logger,
         IVKRetrievalStore? retrievalStore = null,
@@ -35,6 +39,8 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
     {
         _memoryStore = VKGuard.NotNull(memoryStore);
         _identityContext = VKGuard.NotNull(identityContext);
+        _guidGenerator = VKGuard.NotNull(guidGenerator);
+        _timeProvider = VKGuard.NotNull(timeProvider);
         _options = VKGuard.NotNull(options?.Value);
         _logger = VKGuard.NotNull(logger);
         _retrievalStore = retrievalStore;
@@ -85,10 +91,10 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
                 {
                     Entry = new VKMemoryEntry
                     {
-                        Id = new VKMemoryId(Guid.TryParse(r.Chunk.Id, out var parsedGuid) ? parsedGuid : Guid.NewGuid()),
+                        Id = new VKMemoryId(Guid.TryParse(r.Chunk.Id, out var parsedGuid) ? parsedGuid : _guidGenerator.Create()),
                         Content = r.Chunk.Content,
                         TenantId = targetTenantId,
-                        CreatedAt = DateTimeOffset.UtcNow,
+                        CreatedAt = _timeProvider.GetUtcNow(),
                         Category = query.Category ?? VKMemoryCategory.ShortTerm,
                         ExtendedScope = query.ExtendedScope
                     },

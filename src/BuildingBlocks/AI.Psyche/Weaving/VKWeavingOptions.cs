@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Psyche;
 public sealed partial record VKWeavingOptions : IVKBlockOptions
 {
     /// <summary>
-    /// Gets the optional tenant-enforced maximum context token budget.
+    /// Gets the optional maximum context token budget.
     /// If null (default), dynamically uses the physical ContextWindowSize from <see cref="IVKModelCatalog"/>.
     /// </summary>
     public int? MaxContextBudget { get; init; } = null;

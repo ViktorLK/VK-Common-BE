@@ -3,17 +3,11 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Represents a tenant's Directive containing core system prompt instructions and safety rules.
-/// Follows AP.01 (sealed record for immutability). Implements <see cref="IVKTenantScoped"/>.
-/// Order follows TenantId -> Id hierarchy with required TenantId.
+/// Represents a Directive containing core system prompt instructions and safety rules.
+/// Follows AP.01 (sealed record for immutability).
 /// </summary>
-public sealed record VKDirectiveCharter : IVKFragmentMetadata, IVKTenantScoped
+public sealed record VKDirectiveCharter : IVKFragmentMetadata
 {
-    /// <summary>
-    /// Gets the tenant identifier for multi-tenant SaaS isolation.
-    /// </summary>
-    public required VKTenantId TenantId { get; init; }
-
     /// <summary>
     /// Gets the directive identifier.
     /// </summary>

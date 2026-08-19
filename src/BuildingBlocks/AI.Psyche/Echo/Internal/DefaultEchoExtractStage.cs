@@ -61,10 +61,15 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
                 return VKResult.Success();
             }
 
+            if (context.Request.SessionId.IsEmpty)
+            {
+                return VKResult.Success();
+            }
+
             // 1. Fetch history (supports Continuous multi-level parent ancestry tracing)
             var allEchoes = new List<VKEchoTrace>();
             var currentSessionId = (VKSessionId?)context.Request.SessionId;
-            var mode = context.Request.SessionMode;
+            var mode = context.State<VKSessionThread>()?.Mode ?? VKSessionMode.Isolated;
 
             var visitedSessions = new HashSet<VKSessionId>();
 
@@ -160,10 +165,7 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
 
                     if (currentTokensSum + turnTokens <= effectiveBudget)
                     {
-                        foreach (var item in turn)
-                        {
-                            retained.Insert(0, item); // Maintain oldest-first chronological order
-                        }
+                        retained.InsertRange(0, turn); // Maintain oldest-first chronological order and intra-turn order
                         currentTokensSum += turnTokens;
                         retainedTurnsCount++;
                     }
@@ -224,7 +226,7 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.EchoExtractStage] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics[VKPsycheProfilingKeys.EchoExtractStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 
