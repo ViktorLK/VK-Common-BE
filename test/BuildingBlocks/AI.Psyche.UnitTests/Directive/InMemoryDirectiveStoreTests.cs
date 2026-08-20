@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -13,100 +14,67 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Directive;
 public sealed class InMemoryDirectiveStoreTests
 {
     [Fact]
-    public async Task GetDirectiveAsync_WhenSeededAndTenantMatches_ReturnsSuccess()
+    public async Task GetDirectivesAsync_WhenSeeded_ReturnsSuccess()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
         var loggerMock = new Mock<ILogger<InMemoryDirectiveStore>>();
 
-        var store = new InMemoryDirectiveStore(identityMock.Object, loggerMock.Object);
+        var store = new InMemoryDirectiveStore(loggerMock.Object);
         var directiveId = new VKDirectiveId(Guid.NewGuid());
         var directive = new VKDirectiveCharter
         {
             Id = directiveId,
-            TenantId = VKTenantId.Default,
             Overview = "Test Charter"
         };
         store.Seed(directive);
 
         // Act
-        var result = await store.GetDirectiveAsync(directiveId, CancellationToken.None);
+        var result = await store.GetDirectivesAsync([directiveId], CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(directive);
+        result.Value.Should().ContainSingle(d => d.Id == directiveId);
     }
 
     [Fact]
-    public async Task GetDirectiveAsync_WhenNotFound_ReturnsNotFoundFailure()
+    public async Task GetDirectivesAsync_WhenNotFound_ReturnsEmptyList()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
         var loggerMock = new Mock<ILogger<InMemoryDirectiveStore>>();
 
-        var store = new InMemoryDirectiveStore(identityMock.Object, loggerMock.Object);
+        var store = new InMemoryDirectiveStore(loggerMock.Object);
 
         // Act
-        var result = await store.GetDirectiveAsync(new VKDirectiveId(Guid.NewGuid()), CancellationToken.None);
+        var result = await store.GetDirectivesAsync([new VKDirectiveId(Guid.NewGuid())], CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Errors.Should().Contain(VKDirectiveErrors.NotFound);
-    }
-
-    [Fact]
-    public async Task GetDirectiveAsync_WhenTenantMismatch_ReturnsNotFoundFailure()
-    {
-        // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(new VKTenantId(Guid.NewGuid()));
-        var loggerMock = new Mock<ILogger<InMemoryDirectiveStore>>();
-
-        var store = new InMemoryDirectiveStore(identityMock.Object, loggerMock.Object);
-        var directiveId = new VKDirectiveId(Guid.NewGuid());
-        var directive = new VKDirectiveCharter
-        {
-            Id = directiveId,
-            TenantId = VKTenantId.Default,
-            Overview = "Test Charter"
-        };
-        store.Seed(directive);
-
-        // Act
-        var result = await store.GetDirectiveAsync(directiveId, CancellationToken.None);
-
-        // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Errors.Should().Contain(VKDirectiveErrors.NotFound);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
     }
 
     [Fact]
     public async Task RemoveAndClear_RemovesDirectivesFromStore()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
         var loggerMock = new Mock<ILogger<InMemoryDirectiveStore>>();
 
-        var store = new InMemoryDirectiveStore(identityMock.Object, loggerMock.Object);
+        var store = new InMemoryDirectiveStore(loggerMock.Object);
         var id1 = new VKDirectiveId(Guid.NewGuid());
         var id2 = new VKDirectiveId(Guid.NewGuid());
         store.Seed([
-            new VKDirectiveCharter { Id = id1, TenantId = VKTenantId.Default, Overview = "1" },
-            new VKDirectiveCharter { Id = id2, TenantId = VKTenantId.Default, Overview = "2" }
+            new VKDirectiveCharter { Id = id1, Overview = "1" },
+            new VKDirectiveCharter { Id = id2, Overview = "2" }
         ]);
 
         // Act
         store.Remove(id1);
-        var res1 = await store.GetDirectiveAsync(id1, CancellationToken.None);
+        var res1 = await store.GetDirectivesAsync([id1], CancellationToken.None);
 
         store.Clear();
-        var res2 = await store.GetDirectiveAsync(id2, CancellationToken.None);
+        var res2 = await store.GetDirectivesAsync([id2], CancellationToken.None);
 
         // Assert
-        res1.IsFailure.Should().BeTrue();
-        res2.IsFailure.Should().BeTrue();
+        res1.Value.Should().BeEmpty();
+        res2.Value.Should().BeEmpty();
     }
 }

@@ -13,25 +13,21 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 public sealed class InMemoryKnowledgeStoreTests
 {
     [Fact]
-    public async Task GetRelevantEntriesAsync_WhenSeeded_ReturnsMatchingTenantEntries()
+    public async Task GetKnowledgeEntriesAsync_WhenSeeded_ReturnsEntries()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-
-        var store = new InMemoryKnowledgeStore(identityMock.Object);
+        var store = new InMemoryKnowledgeStore();
         var idGuid = Guid.NewGuid();
-        var personaId = new VKPersonaId(idGuid);
+        var entryId = new VKKnowledgeId(idGuid);
         var entry = new VKKnowledgeEntry
         {
-            Id = new VKKnowledgeId(idGuid),
-            TenantId = VKTenantId.Default,
+            Id = entryId,
             Segment = new VKPromptSegment { Content = "Knowledge Text" }
         };
         store.Seed(entry);
 
         // Act
-        var result = await store.GetRelevantEntriesAsync(personaId, CancellationToken.None);
+        var result = await store.GetKnowledgeEntriesAsync([entryId], CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -39,19 +35,16 @@ public sealed class InMemoryKnowledgeStoreTests
     }
 
     [Fact]
-    public async Task GetRelevantEntriesAsync_WhenNotFound_ReturnsNotFoundFailure()
+    public async Task GetKnowledgeEntriesAsync_WhenNotFound_ReturnsEmptyList()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-
-        var store = new InMemoryKnowledgeStore(identityMock.Object);
+        var store = new InMemoryKnowledgeStore();
 
         // Act
-        var result = await store.GetRelevantEntriesAsync(new VKPersonaId(Guid.NewGuid()), CancellationToken.None);
+        var result = await store.GetKnowledgeEntriesAsync([new VKKnowledgeId(Guid.NewGuid())], CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Errors.Should().Contain(VKKnowledgeErrors.NotFound);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
     }
 }

@@ -13,55 +13,46 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Echo;
 public sealed class InMemoryEchoStoreTests
 {
     [Fact]
-    public async Task SaveTraceAsync_And_GetHistoryAsync_ReturnsTracesMatchingTenant()
+    public async Task SaveTraceAsync_And_GetHistoryAsync_ReturnsTraces()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-
-        var store = new InMemoryEchoStore(identityMock.Object);
+        var store = new InMemoryEchoStore();
         var sessionId = new VKSessionId(Guid.NewGuid());
         var trace1 = new VKEchoTrace
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = sessionId,
-            TenantId = VKTenantId.Default,
             Role = VKChatRole.User,
             Content = "Msg 1"
         };
-        var traceOtherTenant = new VKEchoTrace
+        var trace2 = new VKEchoTrace
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = sessionId,
-            TenantId = new VKTenantId(Guid.NewGuid()),
-            Role = VKChatRole.User,
-            Content = "Msg Other"
+            Role = VKChatRole.Assistant,
+            Content = "Msg 2"
         };
 
-        store.Seed(sessionId, [trace1, traceOtherTenant]);
+        store.Seed(sessionId, [trace1, trace2]);
 
         // Act
         var result = await store.GetHistoryAsync(sessionId, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().ContainSingle(t => t.Content == "Msg 1");
+        result.Value.Should().HaveCount(2);
     }
 
     [Fact]
     public async Task RemoveAndClear_OperatesCorrectly()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-
-        var store = new InMemoryEchoStore(identityMock.Object);
+        var store = new InMemoryEchoStore();
         var sessionId = new VKSessionId(Guid.NewGuid());
         var trace = new VKEchoTrace
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = sessionId,
-            TenantId = VKTenantId.Default,
             Role = VKChatRole.User,
             Content = "Msg 1"
         };

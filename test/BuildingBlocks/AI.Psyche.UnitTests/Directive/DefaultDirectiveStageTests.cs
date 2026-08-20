@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -24,26 +25,36 @@ public sealed class DefaultDirectiveStageTests
         var storeMock = new Mock<IVKDirectiveStore>();
         var loggerMock = new Mock<ILogger<DefaultDirectiveStage>>();
 
-        var directiveId = VKDirectiveId.Empty;
+        var directiveId = new VKDirectiveId(Guid.NewGuid());
         var directive = new VKDirectiveCharter
         {
-            TenantId = VKTenantId.Default,
             Id = directiveId,
             Overview = "Test Safety Rulebook"
         };
-        storeMock.Setup(s => s.GetDirectiveAsync(directiveId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success(directive));
+        storeMock.Setup(s => s.GetDirectivesAsync(It.IsAny<IReadOnlyList<VKDirectiveId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success<IReadOnlyList<VKDirectiveCharter>>([directive]));
 
         var options = new VKDirectiveOptions { Enabled = true };
         var stage = new DefaultDirectiveStage(options, storeMock.Object, loggerMock.Object, new VKWeavingOptions());
-        var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
+        var (context, _) = new VKPsycheRequestBuilder()
+            .WithUserInput("hello")
+            .BuildContext();
+
+        var request = context.Request with { DirectiveIds = [directiveId] };
+        var testContext = new VKPsycheContext
+        {
+            Request = request,
+            CorrelationId = context.CorrelationId,
+            CreatedAt = context.CreatedAt,
+            Services = context.Services
+        };
 
         // Act
-        var result = await stage.ExecuteAsync(context, CancellationToken.None);
+        var result = await stage.ExecuteAsync(testContext, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        var fragment = context.Fragments.Should().ContainSingle(f => f.TierType == VKPromptTierType.Directive).Subject;
+        var fragment = testContext.Fragments.Should().ContainSingle(f => f.TierType == VKPromptTierType.Directive).Subject;
         fragment.Metadata.Should().Be(directive);
     }
 
@@ -56,15 +67,24 @@ public sealed class DefaultDirectiveStageTests
         var weavingOptions = new VKWeavingOptions { DisabledTiers = [VKPromptTierType.Directive] };
         var options = new VKDirectiveOptions { Enabled = true };
         var stage = new DefaultDirectiveStage(options, storeMock.Object, loggerMock.Object, weavingOptions);
+        var directiveId = new VKDirectiveId(Guid.NewGuid());
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
+        var request = context.Request with { DirectiveIds = [directiveId] };
+        var testContext = new VKPsycheContext
+        {
+            Request = request,
+            CorrelationId = context.CorrelationId,
+            CreatedAt = context.CreatedAt,
+            Services = context.Services
+        };
 
         // Act
-        var result = await stage.ExecuteAsync(context, CancellationToken.None);
+        var result = await stage.ExecuteAsync(testContext, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        context.Fragments.Should().NotContain(f => f.TierType == VKPromptTierType.Directive);
-        storeMock.Verify(s => s.GetDirectiveAsync(It.IsAny<VKDirectiveId>(), It.IsAny<CancellationToken>()), Times.Never);
+        testContext.Fragments.Should().NotContain(f => f.TierType == VKPromptTierType.Directive);
+        storeMock.Verify(s => s.GetDirectivesAsync(It.IsAny<IReadOnlyList<VKDirectiveId>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -73,9 +93,36 @@ public sealed class DefaultDirectiveStageTests
         // Arrange
         var storeMock = new Mock<IVKDirectiveStore>();
         var loggerMock = new Mock<ILogger<DefaultDirectiveStage>>();
-        storeMock.Setup(s => s.GetDirectiveAsync(It.IsAny<VKDirectiveId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
+        var directiveId = new VKDirectiveId(Guid.NewGuid());
+        storeMock.Setup(s => s.GetDirectivesAsync(It.IsAny<IReadOnlyList<VKDirectiveId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Failure<IReadOnlyList<VKDirectiveCharter>>(VKDirectiveErrors.NotFound));
 
+        var options = new VKDirectiveOptions { Enabled = true };
+        var stage = new DefaultDirectiveStage(options, storeMock.Object, loggerMock.Object, new VKWeavingOptions());
+        var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
+        var request = context.Request with { DirectiveIds = [directiveId] };
+        var testContext = new VKPsycheContext
+        {
+            Request = request,
+            CorrelationId = context.CorrelationId,
+            CreatedAt = context.CreatedAt,
+            Services = context.Services
+        };
+
+        // Act
+        var result = await stage.ExecuteAsync(testContext, CancellationToken.None);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Errors.Should().Contain(VKDirectiveErrors.NotFound);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenDirectiveIdsEmpty_ReturnsSuccessWithoutCallingStore()
+    {
+        // Arrange
+        var storeMock = new Mock<IVKDirectiveStore>();
+        var loggerMock = new Mock<ILogger<DefaultDirectiveStage>>();
         var options = new VKDirectiveOptions { Enabled = true };
         var stage = new DefaultDirectiveStage(options, storeMock.Object, loggerMock.Object, new VKWeavingOptions());
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
@@ -84,49 +131,8 @@ public sealed class DefaultDirectiveStageTests
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Errors.Should().Contain(VKDirectiveErrors.NotFound);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_WithCustomDirectiveIdInArgs_CallsStoreWithCustomId()
-    {
-        // Arrange
-        var storeMock = new Mock<IVKDirectiveStore>();
-        var loggerMock = new Mock<ILogger<DefaultDirectiveStage>>();
-        var customId = new VKDirectiveId(Guid.NewGuid());
-        var directive = new VKDirectiveCharter
-        {
-            TenantId = VKTenantId.Default,
-            Id = customId,
-            Overview = "Custom Directive"
-        };
-        storeMock.Setup(s => s.GetDirectiveAsync(customId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success(directive));
-
-        var options = new VKDirectiveOptions { Enabled = true };
-        var stage = new DefaultDirectiveStage(options, storeMock.Object, loggerMock.Object, new VKWeavingOptions());
-        
-        var request = new VKPsycheRequest
-        {
-            TenantId = VKTenantId.Default,
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
-            UserInput = "hello"
-        }.WithArgs(new VKDirectiveArgs { DirectiveId = customId });
-
-        var (context, _) = new VKPsycheRequestBuilder().BuildContext();
-        context = new VKPsycheContext
-        {
-            Request = request,
-            Services = context.Services
-        };
-
-        // Act
-        var result = await stage.ExecuteAsync(context, CancellationToken.None);
-
-        // Assert
         result.IsSuccess.Should().BeTrue();
-        storeMock.Verify(s => s.GetDirectiveAsync(customId, It.IsAny<CancellationToken>()), Times.Once);
+        storeMock.Verify(s => s.GetDirectivesAsync(It.IsAny<IReadOnlyList<VKDirectiveId>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
 

@@ -84,11 +84,37 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
                 registerByDefault = regVal;
             }
             var argsGenerationMode = ArgsMode.None;
+            INamedTypeSymbol? argsBaseTypeSymbol = attribute.NamedArguments.FirstOrDefault(n => n.Key == "ArgsBaseType").Value.Value as INamedTypeSymbol;
+
             var argsModeArg = attribute.NamedArguments.FirstOrDefault(n => n.Key == "ArgsGenerationMode");
             if (argsModeArg.Value.Value is int modeVal)
             {
                 argsGenerationMode = modeVal;
             }
+
+            // Check if optionsTypeSymbol has [VKOptions] attribute overriding settings
+            if (optionsTypeSymbol is not null)
+            {
+                var vkOptionsAttr = optionsTypeSymbol.GetAttributes().FirstOrDefault(a =>
+                    a.AttributeClass?.ToDisplayString() == "VK.Blocks.Core.VKOptionsAttribute" ||
+                    a.AttributeClass?.Name == "VKOptionsAttribute" ||
+                    a.AttributeClass?.Name == "VKOptions");
+
+                if (vkOptionsAttr is not null)
+                {
+                    var optArgsMode = vkOptionsAttr.NamedArguments.FirstOrDefault(n => n.Key == "ArgsMode");
+                    if (optArgsMode.Value.Value is int optModeVal)
+                    {
+                        argsGenerationMode = optModeVal;
+                    }
+                    var optArgsBase = vkOptionsAttr.NamedArguments.FirstOrDefault(n => n.Key == "ArgsBaseType").Value.Value as INamedTypeSymbol;
+                    if (optArgsBase is not null)
+                    {
+                        argsBaseTypeSymbol = optArgsBase;
+                    }
+                }
+            }
+
             sectionNameOverride = attribute.NamedArguments.FirstOrDefault(n => n.Key == "SectionName").Value.Value?.ToString();
             namespaceOverride = attribute.NamedArguments.FirstOrDefault(n => n.Key == "Namespace").Value.Value?.ToString();
             optionsTypeSymbol = attribute.NamedArguments.FirstOrDefault(n => n.Key == "OptionsType").Value.Value as INamedTypeSymbol;
@@ -240,7 +266,6 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
                 }
             }
 
-            INamedTypeSymbol? argsBaseTypeSymbol = attribute.NamedArguments.FirstOrDefault(n => n.Key == "ArgsBaseType").Value.Value as INamedTypeSymbol;
             ArgsBaseInfo? argsBaseInfo = null;
 
             if (argsBaseTypeSymbol is not null)

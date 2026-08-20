@@ -10,7 +10,6 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Builders;
 /// </summary>
 public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry>
 {
-    private VKTenantId _tenantId = VKTenantId.Default;
     private VKKnowledgeId _id = new(Guid.NewGuid());
     private VKKnowledgeTriggerType _triggerType = VKKnowledgeTriggerType.Constant;
     private VKPromptSegment _segment = new() { Role = VKChatRole.System, Content = "Knowledge Content", IsEnabled = true };
@@ -44,7 +43,6 @@ public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry
     {
         return new VKKnowledgeEntry
         {
-            TenantId = _tenantId,
             Id = _id,
             TriggerType = _triggerType,
             Segment = _segment,

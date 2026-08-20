@@ -11,16 +11,10 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Builders;
 /// </summary>
 public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
 {
-    private VKTenantId _tenantId = VKTenantId.Default;
     private VKPersonaId _personaId = new(Guid.NewGuid());
     private VKSessionId _sessionId = new(Guid.NewGuid());
+    private VKProfileId? _profileId;
     private string _userInput = "hello";
-
-    public VKPsycheRequestBuilder WithTenantId(VKTenantId tenantId)
-    {
-        _tenantId = tenantId;
-        return this;
-    }
 
     public VKPsycheRequestBuilder WithPersonaId(VKPersonaId personaId)
     {
@@ -34,6 +28,12 @@ public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
         return this;
     }
 
+    public VKPsycheRequestBuilder WithProfileId(VKProfileId profileId)
+    {
+        _profileId = profileId;
+        return this;
+    }
+
     public VKPsycheRequestBuilder WithUserInput(string userInput)
     {
         _userInput = userInput;
@@ -44,9 +44,9 @@ public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
     {
         return new VKPsycheRequest
         {
-            TenantId = _tenantId,
-            PersonaId = _personaId,
+            PersonaIds = [_personaId],
             SessionId = _sessionId,
+            ProfileId = _profileId,
             UserInput = _userInput
         };
     }
@@ -62,6 +62,8 @@ public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
         var context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = Guid.NewGuid().ToString(),
+            CreatedAt = DateTimeOffset.UtcNow,
             Services = services
         };
 
