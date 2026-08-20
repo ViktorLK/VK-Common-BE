@@ -117,7 +117,7 @@ internal sealed class DefaultPredictiveMemoryPrefetcher : IVKPredictiveMemoryPre
         catch (Exception ex)
         {
             VK.Blocks.AI.Engram.Retrieval.Diagnostics.Internal.RetrievalLogExtensions.PrefetchError(_logger, ex, predictiveCue);
-            return VKResult.Failure<IReadOnlyList<VKMemoryEntry>>(new VKError("Engram.Retrieval.PrefetchError", ex.Message));
+            return VKResult.Failure<IReadOnlyList<VKMemoryEntry>>(VKRetrievalErrors.PrefetchError);
         }
     }
 

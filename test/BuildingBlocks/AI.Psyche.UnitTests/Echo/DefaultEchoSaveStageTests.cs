@@ -18,16 +18,13 @@ public sealed class DefaultEchoSaveStageTests
     {
         // Arrange
         var storeMock = new Mock<IVKEchoStore>();
-        storeMock.Setup(s => s.SaveTraceAsync(It.IsAny<VKEchoTrace>(), It.IsAny<CancellationToken>()))
+        storeMock.Setup(s => s.SaveHistoryAsync(It.IsAny<VKEchoTrace>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(VKResult.Success());
 
         var modelFactoryMock = new Mock<IVKPsycheModelFactory>();
         var sessionId = new VKSessionId(Guid.NewGuid());
-        var userTrace = new VKEchoTrace { Id = new VKEchoId(Guid.NewGuid()), SessionId = sessionId, TenantId = VKTenantId.Default, Role = VKChatRole.User, Content = "hello" };
-        var assistantTrace = new VKEchoTrace { Id = new VKEchoId(Guid.NewGuid()), SessionId = sessionId, TenantId = VKTenantId.Default, Role = VKChatRole.Assistant, Content = "hi" };
-
-        modelFactoryMock.Setup(m => m.CreateEcho(sessionId, VKChatRole.User, "hello")).Returns(userTrace);
-        modelFactoryMock.Setup(m => m.CreateEcho(sessionId, VKChatRole.Assistant, "hi")).Returns(assistantTrace);
+        var userTrace = new VKEchoTrace { Id = new VKEchoId(Guid.NewGuid()), SessionId = sessionId, Role = VKChatRole.User, Content = "hello" };
+        var assistantTrace = new VKEchoTrace { Id = new VKEchoId(Guid.NewGuid()), SessionId = sessionId, Role = VKChatRole.Assistant, Content = "hi" };
 
         var options = new VKEchoOptions { Enabled = true, AutoSaveHistory = true };
         var loggerMock = new Mock<ILogger<DefaultEchoSaveStage>>();
@@ -36,24 +33,24 @@ public sealed class DefaultEchoSaveStageTests
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
         var session = new VKSessionThread
         {
-            Id = sessionId,
-            TenantId = VKTenantId.Default,
-            UserId = new VKUserId(Guid.NewGuid()),
-            PersonaId = new VKPersonaId(Guid.NewGuid())
+            Id = sessionId
         };
         context.SetState(session);
-        context.Response.ChatResponse = new VKChatResponse
+        context.ResponseBuilder.ChatResponse = new VKChatResponse
         {
             Message = new VKChatMessage { Role = VKChatRole.Assistant, Content = "hi" }
         };
+
+        modelFactoryMock.Setup(m => m.CreateEcho(sessionId, VKChatRole.User, "hello", 0, context.CreatedAt)).Returns(userTrace);
+        modelFactoryMock.Setup(m => m.CreateEcho(sessionId, VKChatRole.Assistant, "hi", 0, null)).Returns(assistantTrace);
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        storeMock.Verify(s => s.SaveTraceAsync(userTrace, It.IsAny<CancellationToken>()), Times.Once);
-        storeMock.Verify(s => s.SaveTraceAsync(assistantTrace, It.IsAny<CancellationToken>()), Times.Once);
+        storeMock.Verify(s => s.SaveHistoryAsync(userTrace, It.IsAny<CancellationToken>()), Times.Once);
+        storeMock.Verify(s => s.SaveHistoryAsync(assistantTrace, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -68,8 +65,7 @@ public sealed class DefaultEchoSaveStageTests
 
         var request = new VKPsycheRequest
         {
-            TenantId = VKTenantId.Default,
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             UserInput = "hello",
             WeaveOnly = true
         };
@@ -77,6 +73,8 @@ public sealed class DefaultEchoSaveStageTests
         context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = context.CorrelationId,
+            CreatedAt = context.CreatedAt,
             Services = context.Services
         };
 
@@ -85,6 +83,6 @@ public sealed class DefaultEchoSaveStageTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        storeMock.Verify(s => s.SaveTraceAsync(It.IsAny<VKEchoTrace>(), It.IsAny<CancellationToken>()), Times.Never);
+        storeMock.Verify(s => s.SaveHistoryAsync(It.IsAny<VKEchoTrace>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

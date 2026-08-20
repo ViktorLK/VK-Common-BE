@@ -47,7 +47,6 @@ public sealed class DefaultEchoFormatterTests
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = new VKSessionId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Role = VKChatRole.User,
             Content = "Hello"
         };

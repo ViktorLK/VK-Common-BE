@@ -26,7 +26,7 @@ public sealed class DefaultEchoStageTests
         var services = new ServiceCollection().BuildServiceProvider();
         var request = new VKPsycheRequest
         {
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             SessionId = sessionId,
             UserInput = userInput
         };
@@ -34,6 +34,8 @@ public sealed class DefaultEchoStageTests
         var context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = Guid.NewGuid().ToString(),
+            CreatedAt = DateTimeOffset.UtcNow,
             Services = services
         };
 
@@ -47,6 +49,10 @@ public sealed class DefaultEchoStageTests
         var echoStoreMock = new Mock<IVKEchoStore>();
         var sessionStoreMock = new Mock<IVKSessionStore>();
         var tokenCounterMock = new Mock<IVKTokenCounter>();
+        var modelCatalogMock = new Mock<IVKModelCatalog>();
+        modelCatalogMock.Setup(m => m.GetModelMetadata(It.IsAny<string>()))
+            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
+
         var echoOptions = new VKEchoOptions { Enabled = true };
         var weavingOptions = new VKWeavingOptions();
         var loggerMock = new Mock<ILogger<DefaultEchoExtractStage>>();
@@ -54,9 +60,9 @@ public sealed class DefaultEchoStageTests
         var sessionId = new VKSessionId(Guid.NewGuid());
         var history = new List<VKEchoTrace>
         {
-            new() { TenantId = VKTenantId.Default, SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.User, Content = "Message 1" },
-            new() { TenantId = VKTenantId.Default, SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.Assistant, Content = "Message 2" },
-            new() { TenantId = VKTenantId.Default, SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.User, Content = "Message 3" }
+            new() { SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.User, Content = "Message 1" },
+            new() { SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.Assistant, Content = "Message 2" },
+            new() { SessionId = sessionId, Id = new VKEchoId(Guid.NewGuid()), Role = VKChatRole.User, Content = "Message 3" }
         };
 
         echoStoreMock.Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
@@ -66,6 +72,7 @@ public sealed class DefaultEchoStageTests
             echoStoreMock.Object,
             sessionStoreMock.Object,
             tokenCounterMock.Object,
+            modelCatalogMock.Object,
             echoOptions,
             weavingOptions,
             loggerMock.Object);
@@ -86,6 +93,10 @@ public sealed class DefaultEchoStageTests
         var echoStoreMock = new Mock<IVKEchoStore>();
         var sessionStoreMock = new Mock<IVKSessionStore>();
         var tokenCounterMock = new Mock<IVKTokenCounter>();
+        var modelCatalogMock = new Mock<IVKModelCatalog>();
+        modelCatalogMock.Setup(m => m.GetModelMetadata(It.IsAny<string>()))
+            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
+
         var echoOptions = new VKEchoOptions { Enabled = false };
         var weavingOptions = new VKWeavingOptions();
         var loggerMock = new Mock<ILogger<DefaultEchoExtractStage>>();
@@ -98,6 +109,7 @@ public sealed class DefaultEchoStageTests
             echoStoreMock.Object,
             sessionStoreMock.Object,
             tokenCounterMock.Object,
+            modelCatalogMock.Object,
             echoOptions,
             weavingOptions,
             loggerMock.Object);

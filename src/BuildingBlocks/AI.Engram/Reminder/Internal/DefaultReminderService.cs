@@ -211,7 +211,7 @@ internal sealed class DefaultReminderService : IVKReminderService
 
             if (entry.TriggerType == VKReminderTriggerType.OnSessionStart)
             {
-                if (context.Response.Messages.Count <= 2)
+                if (context.ResponseBuilder.Messages.Count <= 2)
                 {
                     shouldTrigger = true;
                 }
@@ -285,7 +285,7 @@ internal sealed class DefaultReminderService : IVKReminderService
         }
         catch (Exception ex)
         {
-            return VKResult.Failure<bool>(new VKError("AI.Engram.Reminder.LlmEvaluationError", ex.Message));
+            return VKResult.Failure<bool>(VKReminderErrors.LlmEvaluationFailed);
         }
     }
 
@@ -302,7 +302,6 @@ internal sealed class DefaultReminderService : IVKReminderService
 
             var knowledgeEntry = new VKKnowledgeEntry
             {
-                TenantId = VKTenantId.Default,
                 Id = new VKKnowledgeId(parsedId),
                 Segment = new VKPromptSegment
                 {

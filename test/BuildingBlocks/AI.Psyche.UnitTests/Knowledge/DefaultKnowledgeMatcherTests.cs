@@ -16,7 +16,6 @@ public sealed class DefaultKnowledgeMatcherTests
         var entry = new VKKnowledgeEntry
         {
             Id = new VKKnowledgeId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Rule" },
             TriggerType = VKKnowledgeTriggerType.Constant,
             Keys = []
@@ -36,7 +35,6 @@ public sealed class DefaultKnowledgeMatcherTests
         var entry = new VKKnowledgeEntry
         {
             Id = new VKKnowledgeId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Rule" },
             TriggerType = VKKnowledgeTriggerType.Keyword,
             Keys = []
@@ -56,7 +54,6 @@ public sealed class DefaultKnowledgeMatcherTests
         var entry = new VKKnowledgeEntry
         {
             Id = new VKKnowledgeId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Refund Policy" },
             TriggerType = VKKnowledgeTriggerType.Keyword,
             FilterLogic = VKKnowledgeFilterLogic.AndAny,
@@ -80,7 +77,6 @@ public sealed class DefaultKnowledgeMatcherTests
         var entry = new VKKnowledgeEntry
         {
             Id = new VKKnowledgeId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Order Status" },
             TriggerType = VKKnowledgeTriggerType.Keyword,
             Keys = [
@@ -103,7 +99,6 @@ public sealed class DefaultKnowledgeMatcherTests
         var entry = new VKKnowledgeEntry
         {
             Id = new VKKnowledgeId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Broken Rule" },
             TriggerType = VKKnowledgeTriggerType.Keyword,
             Keys = [
@@ -126,7 +121,6 @@ public sealed class DefaultKnowledgeMatcherTests
         var entry = new VKKnowledgeEntry
         {
             Id = id,
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Constant Rule" },
             TriggerType = VKKnowledgeTriggerType.Constant,
             Keys = []

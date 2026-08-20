@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -17,17 +16,12 @@ namespace VK.Blocks.AI.Psyche;
 ///   4. Goals & Intentions -> Managed by <c>AI.Engram</c> (Working Memory / Goal Tracking).
 ///   5. Work Context & Tasks -> Managed by <c>AI.Engram</c> (Contextual Reminder/Task Memory).
 /// </remarks>
-public sealed record VKProfilePresence : IVKFragmentMetadata, IVKTenantScoped, IVKUserScoped
+public sealed record VKProfilePresence : IVKFragmentMetadata
 {
     /// <summary>
-    /// Gets the tenant identifier for multi-tenant SaaS isolation.
+    /// Gets the unique profile identifier.
     /// </summary>
-    public required VKTenantId TenantId { get; init; }
-
-    /// <summary>
-    /// Gets the user identifier.
-    /// </summary>
-    public required VKUserId UserId { get; init; }
+    public required VKProfileId Id { get; init; }
 
     /// <summary>
     /// Gets the preferred display name / roleplay alias in dialogue (e.g. "Hero" or "Alice").

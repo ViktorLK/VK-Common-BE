@@ -11,9 +11,9 @@ namespace VK.Blocks.AI.Psyche;
 public interface IVKProfileStore
 {
     /// <summary>
-    /// Retrieves a profile cognitive presence by user ID within current ambient identity.
+    /// Retrieves a profile cognitive presence by profile ID.
     /// </summary>
     Task<VKResult<VKProfilePresence?>> GetProfileAsync(
-        VKUserId userId,
+        VKProfileId profileId,
         CancellationToken cancellationToken = default);
 }

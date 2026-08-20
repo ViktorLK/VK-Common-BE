@@ -12,4 +12,5 @@ public static class VKConsolidationErrors
     public static readonly VKError MergeViaSummaryError = new("AI.Engram.Consolidation.MergeViaSummaryError", "LLM merge via summary failed.");
     public static readonly VKError PersistenceFailed = new("AI.Engram.Consolidation.PersistenceFailed", "Memory entry failed to persist after all retry attempts.");
     public static readonly VKError EmbeddingGenerationFailed = new("AI.Engram.Consolidation.EmbeddingGenerationFailed", "Failed to generate embedding for consolidated memory.");
+    public static readonly VKError CrossSessionError = new("AI.Engram.Consolidation.CrossSessionError", "Cross-session memory consolidation failed.");
 }

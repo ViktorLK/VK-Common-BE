@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,9 +33,19 @@ internal sealed class RuleBasedScoringTask : IVKScoringTask
                 return VKResult.Failure<VKScoringResult>(result.Errors);
             }
 
-            if (result.Value is not null)
+            if (result.IsSuccess)
             {
-                return VKResult.Success(result.Value);
+                try
+                {
+                    if (result.Value is not null)
+                    {
+                        return VKResult.Success(result.Value);
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    // Result was Success with null value
+                }
             }
         }
 

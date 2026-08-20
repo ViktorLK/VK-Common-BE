@@ -46,38 +46,45 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
                 return VKResult.Success();
             }
 
-            var personaResult = await _store.GetPersonaAsync(context.Request.PersonaId, cancellationToken).ConfigureAwait(false); // [CS.03]
-            if (personaResult.IsFailure)
+            if (context.Request.PersonaIds.Count == 0)
             {
-                return VKResult.Failure(personaResult.Errors); // [CS.01]
+                return VKResult.Success();
             }
 
-            context.SetState(personaResult.Value);
-
-            _logger.PersonaResolved(context.Request.PersonaId, personaResult.Value.Name);
+            var personasResult = await _store.GetPersonasAsync(context.Request.PersonaIds, cancellationToken).ConfigureAwait(false); // [CS.03]
+            if (personasResult.IsFailure)
+            {
+                return VKResult.Failure(personasResult.Errors); // [CS.01]
+            }
 
             var tierType = VKPromptTierType.Persona;
             var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
                 ? idx * PsycheConstants.Layout.TierCoordinateGap
                 : PromptLayout.DefaultRenderOrders[tierType];
 
-            context.AddFragment(new VKPromptFragment()
+            foreach (var persona in personasResult.Value)
             {
-                TierType = tierType,
-                RenderOrder = baseRenderOrder,
-                Metadata = personaResult.Value,
-                Segment = new VKPromptSegment
+                context.SetState(persona);
+                _logger.PersonaResolved(persona.Id, persona.Name);
+
+                context.AddFragment(new VKPromptFragment()
                 {
-                    Role = VKChatRole.System
-                }
-            });
+                    TierType = tierType,
+                    RenderOrder = baseRenderOrder,
+                    Metadata = persona,
+                    Segment = new VKPromptSegment
+                    {
+                        Role = VKChatRole.System
+                    }
+                });
+            }
 
             return VKResult.Success();
         }
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.PersonaStage] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics[VKPsycheProfilingKeys.PersonaStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 }

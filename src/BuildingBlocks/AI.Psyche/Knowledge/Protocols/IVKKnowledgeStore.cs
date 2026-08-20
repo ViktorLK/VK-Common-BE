@@ -7,15 +7,14 @@ namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Knowledge: Manages Lorebooks and static facts to eliminate hallucinations.
-/// Follows CS.01, CS.03, and Ambient Context isolation patterns.
-/// Stores automatically resolve TenantId via injected <see cref="IVKIdentityContext"/>.
+/// Follows CS.01 and CS.03 patterns.
 /// </summary>
 public interface IVKKnowledgeStore
 {
     /// <summary>
-    /// Gets relevant knowledge entries for a persona within ambient identity context.
+    /// Gets relevant knowledge entries for the specified knowledge IDs.
     /// </summary>
-    Task<VKResult<IEnumerable<VKKnowledgeEntry>>> GetRelevantEntriesAsync(
-        VKPersonaId personaId,
+    Task<VKResult<IReadOnlyList<VKKnowledgeEntry>>> GetKnowledgeEntriesAsync(
+        IReadOnlyList<VKKnowledgeId> knowledgeIds,
         CancellationToken cancellationToken = default);
 }

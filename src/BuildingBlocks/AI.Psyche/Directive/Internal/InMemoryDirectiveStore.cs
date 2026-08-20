@@ -9,44 +9,39 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche.Directive.Internal;
 
 /// <summary>
-/// Default implementation of the Tenant Directive resolver.
-/// Injects <see cref="IVKIdentityContext"/> for ambient multi-tenant isolation.
+/// Default implementation of the Directive resolver.
 /// Implements AP.01 (sealed class default) and CS.03.
 /// </summary>
 internal sealed class InMemoryDirectiveStore : IVKDirectiveStore
 {
     private readonly ConcurrentDictionary<VKDirectiveId, VKDirectiveCharter> _store = new();
-    private readonly IVKIdentityContext _identityContext;
     private readonly ILogger<InMemoryDirectiveStore> _logger;
 
-    public InMemoryDirectiveStore(IVKIdentityContext identityContext, ILogger<InMemoryDirectiveStore> logger)
+    public InMemoryDirectiveStore(ILogger<InMemoryDirectiveStore> logger)
     {
-        _identityContext = VKGuard.NotNull(identityContext);
         _logger = VKGuard.NotNull(logger);
 
         _logger.DirectiveInitialized();
     }
 
-    public Task<VKResult<VKDirectiveCharter>> GetDirectiveAsync(
-        VKDirectiveId directiveId,
+    public Task<VKResult<IReadOnlyList<VKDirectiveCharter>>> GetDirectivesAsync(
+        IReadOnlyList<VKDirectiveId> directiveIds,
         CancellationToken cancellationToken = default)
     {
-        VKGuard.NotEmptyGuid(directiveId.Value);
+        VKGuard.NotNull(directiveIds);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!_store.TryGetValue(directiveId, out var directive))
+        var list = new List<VKDirectiveCharter>(directiveIds.Count);
+        foreach (var directiveId in directiveIds)
         {
-            return Task.FromResult(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
+            if (_store.TryGetValue(directiveId, out var directive))
+            {
+                list.Add(directive);
+                _logger.DirectiveResolved(directiveId.ToString());
+            }
         }
 
-        if (directive.TenantId != _identityContext.TenantId)
-        {
-            return Task.FromResult(VKResult.Failure<VKDirectiveCharter>(VKDirectiveErrors.NotFound));
-        }
-
-        _logger.DirectiveResolved(directiveId.ToString());
-
-        return Task.FromResult(VKResult.Success(directive));
+        return Task.FromResult(VKResult.Success<IReadOnlyList<VKDirectiveCharter>>(list));
     }
 
     public InMemoryDirectiveStore Seed(VKDirectiveCharter directive)

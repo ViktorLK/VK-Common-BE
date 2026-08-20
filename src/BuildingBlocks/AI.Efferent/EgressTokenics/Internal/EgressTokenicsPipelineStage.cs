@@ -33,12 +33,12 @@ internal sealed class EgressTokenicsPipelineStage : IVKPsychePipelineStage
         VKGuard.NotNull(context);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (context.Response.ChatResponse?.Message is null)
+        if (context.ResponseBuilder.ChatResponse?.Message is null)
         {
             return Task.FromResult(VKResult.Success());
         }
 
-        var content = context.Response.ChatResponse.Message.Content;
+        var content = context.ResponseBuilder.ChatResponse.Message.Content;
         if (string.IsNullOrWhiteSpace(content))
         {
             return Task.FromResult(VKResult.Success());
@@ -48,7 +48,7 @@ internal sealed class EgressTokenicsPipelineStage : IVKPsychePipelineStage
         {
             int tokenCount = _tokenCounter.CountTokens(content);
             _logger.LogInformation("Counted {Count} output tokens for generation response.", tokenCount);
-            context.Response.TotalEstimatedTokens += tokenCount;
+            context.ResponseBuilder.TotalEstimatedTokens += tokenCount;
         }
         catch (Exception ex)
         {

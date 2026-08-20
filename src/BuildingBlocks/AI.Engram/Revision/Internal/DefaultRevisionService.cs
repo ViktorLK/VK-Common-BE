@@ -95,8 +95,8 @@ internal sealed class DefaultRevisionService : IVKRevisionService
         }
 
         // Latest conversation turn (user + assistant response)
-        var lastUserMsg = context.Response.Messages.LastOrDefault(m => m.Role == VKChatRole.User)?.Content;
-        var assistantResponse = context.Response.ChatResponse?.Message?.Content;
+        var lastUserMsg = context.ResponseBuilder.Messages.LastOrDefault(m => m.Role == VKChatRole.User)?.Content;
+        var assistantResponse = context.ResponseBuilder.ChatResponse?.Message?.Content;
         if (string.IsNullOrWhiteSpace(lastUserMsg) || string.IsNullOrWhiteSpace(assistantResponse))
         {
             return VKResult.Success();
@@ -252,13 +252,13 @@ internal sealed class DefaultRevisionService : IVKRevisionService
     {
         if (targetVersion < 1)
         {
-            return VKResult.Failure(new VKError("AI.Engram.Revision.InvalidVersion", "Target version must be greater than or equal to 1."));
+            return VKResult.Failure(VKRevisionErrors.InvalidVersion);
         }
 
         var existingResult = await _store.GetByIdAsync(memoryId, cancellationToken).ConfigureAwait(false);
         if (existingResult.IsFailure || existingResult.Value is null)
         {
-            return VKResult.Failure(existingResult.Errors.DefaultIfEmpty(new VKError("AI.Engram.Revision.NotFound", $"Memory entry {memoryId} not found.")).ToList());
+            return VKResult.Failure(existingResult.Errors.DefaultIfEmpty(VKRevisionErrors.NotFound).ToList());
         }
 
         var existing = existingResult.Value;
@@ -270,13 +270,13 @@ internal sealed class DefaultRevisionService : IVKRevisionService
 
         if (targetVersion > existing.Version)
         {
-            return VKResult.Failure(new VKError("AI.Engram.Revision.FutureVersion", $"Cannot rollback to version {targetVersion} which is higher than current version {existing.Version}."));
+            return VKResult.Failure(VKRevisionErrors.FutureVersion);
         }
 
         string versionContentKey = $"Version_{targetVersion}_Content";
         if (!existing.Metadata.TryGetValue(versionContentKey, out var historicContent))
         {
-            return VKResult.Failure(new VKError("AI.Engram.Revision.VersionNotFound", $"History for version {targetVersion} of entry {memoryId} is not available in metadata."));
+            return VKResult.Failure(VKRevisionErrors.VersionNotFound);
         }
 
         var now = _timeProvider.GetUtcNow();
@@ -392,7 +392,7 @@ internal sealed class DefaultRevisionService : IVKRevisionService
         }
         catch (Exception ex)
         {
-            return VKResult.Failure<string>(new VKError("AI.Engram.Revision.AnalysisError", ex.Message)); // [CS.01]
+            return VKResult.Failure<string>(VKRevisionErrors.AnalysisError); // [CS.01]
         }
     }
 }

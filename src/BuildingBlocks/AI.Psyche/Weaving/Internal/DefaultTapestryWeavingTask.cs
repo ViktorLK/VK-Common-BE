@@ -140,8 +140,8 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
             }
         }
 
-        context.Response.Messages.AddRange(finalMessages);
-        context.Response.TotalEstimatedTokens = estimatedTokens;
+        context.ResponseBuilder.Messages.AddRange(finalMessages);
+        context.ResponseBuilder.TotalEstimatedTokens = estimatedTokens;
 
         _logger.WeavingAssembled(context.Request.SessionId, finalMessages.Count);
 

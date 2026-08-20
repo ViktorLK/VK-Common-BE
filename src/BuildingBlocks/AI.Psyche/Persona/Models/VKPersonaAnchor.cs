@@ -4,16 +4,10 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Represents an AI persona anchor. Implements <see cref="IVKTenantScoped"/>.
-/// Order follows TenantId -> Id hierarchy with required TenantId.
+/// Represents an AI persona anchor.
 /// </summary>
-public sealed record VKPersonaAnchor : IVKFragmentMetadata, IVKTenantScoped
+public sealed record VKPersonaAnchor : IVKFragmentMetadata
 {
-    /// <summary>
-    /// Gets the tenant identifier for multi-tenant SaaS isolation.
-    /// </summary>
-    public required VKTenantId TenantId { get; init; }
-
     /// <summary>
     /// Gets the unique identifier for the persona.
     /// </summary>
@@ -37,7 +31,7 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata, IVKTenantScoped
 
     /// <summary>
     /// Gets the ID of the specific Directive Charter to use for this persona.
-    /// Overrides the tenant default if specified.
+    /// Overrides the system default if specified.
     /// </summary>
     public string? DirectiveId { get; init; }
 

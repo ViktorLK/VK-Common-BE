@@ -188,7 +188,7 @@ internal sealed class DefaultMemoryReclamationService : IVKMemoryReclamationServ
         catch (Exception ex)
         {
             _logger.ReclamationCycleError(ex);
-            return VKResult.Failure<VKReclamationResult>(new VKError("AI.Engram.Reclamation.CycleError", ex.Message));
+            return VKResult.Failure<VKReclamationResult>(VKReclamationErrors.CycleError);
         }
     }
 

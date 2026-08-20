@@ -8,7 +8,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche.Directive.Internal;
 
 /// <summary>
-/// Pipeline stage to fetch the Tenant Directive and prepend it to the weaving context's system instructions.
+/// Pipeline stage to fetch the Directive and prepend it to the weaving context's system instructions.
 /// Implements AP.01 (sealed class default) and CS.03.
 /// </summary>
 internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
@@ -49,41 +49,42 @@ internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
                 return VKResult.Success();
             }
 
-            var directiveId = context.Args<VKDirectiveArgs>()?.DirectiveId;
-            if (!directiveId.HasValue || directiveId.Value.IsEmpty)
+            if (context.Request.DirectiveIds.Count == 0)
             {
-                directiveId = VKDirectiveId.Empty;
+                return VKResult.Success();
             }
 
-            var resolveResult = await _store.GetDirectiveAsync(directiveId.Value, cancellationToken).ConfigureAwait(false); // [CS.03]
+            var resolveResult = await _store.GetDirectivesAsync(context.Request.DirectiveIds, cancellationToken).ConfigureAwait(false); // [CS.03]
             if (resolveResult.IsFailure)
             {
                 return VKResult.Failure(resolveResult.Errors);
             }
 
             var tierType = VKPromptTierType.Directive;
-            var directive = resolveResult.Value;
             var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
                 ? idx * PsycheConstants.Layout.TierCoordinateGap
                 : PromptLayout.DefaultRenderOrders[tierType];
 
-            context.AddFragment(new VKPromptFragment()
+            foreach (var directive in resolveResult.Value)
             {
-                TierType = tierType,
-                RenderOrder = baseRenderOrder,
-                Metadata = directive,
-                Segment = new VKPromptSegment
+                context.AddFragment(new VKPromptFragment()
                 {
-                    Role = VKChatRole.System
-                }
-            });
+                    TierType = tierType,
+                    RenderOrder = baseRenderOrder,
+                    Metadata = directive,
+                    Segment = new VKPromptSegment
+                    {
+                        Role = VKChatRole.System
+                    }
+                });
+            }
 
             return VKResult.Success();
         }
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.DirectiveStage] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics[VKPsycheProfilingKeys.DirectiveStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 }

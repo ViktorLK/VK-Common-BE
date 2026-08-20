@@ -18,7 +18,6 @@ public sealed class EchoRenderersTests
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = new VKSessionId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Role = VKChatRole.User,
             Content = "Hello"
         };
@@ -40,7 +39,6 @@ public sealed class EchoRenderersTests
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = new VKSessionId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Role = VKChatRole.Assistant,
             Content = "Hi there"
         };
@@ -64,7 +62,6 @@ public sealed class EchoRenderersTests
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = new VKSessionId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Role = VKChatRole.User,
             Content = "Prompt"
         };
@@ -86,7 +83,6 @@ public sealed class EchoRenderersTests
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = new VKSessionId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Role = VKChatRole.User,
             Content = "Raw content"
         };
@@ -108,7 +104,6 @@ public sealed class EchoRenderersTests
         {
             Id = new VKEchoId(Guid.NewGuid()),
             SessionId = new VKSessionId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Role = VKChatRole.User,
             Content = "Xml payload"
         };

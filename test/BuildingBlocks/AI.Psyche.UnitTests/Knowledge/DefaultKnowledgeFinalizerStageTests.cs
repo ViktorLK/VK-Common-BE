@@ -22,13 +22,11 @@ public sealed class DefaultKnowledgeFinalizerStageTests
         var entry1 = new VKKnowledgeEntry
         {
             Id = new VKKnowledgeId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Doc 1" }
         };
         var entry2 = new VKKnowledgeEntry
         {
             Id = new VKKnowledgeId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Doc 2" }
         };
 

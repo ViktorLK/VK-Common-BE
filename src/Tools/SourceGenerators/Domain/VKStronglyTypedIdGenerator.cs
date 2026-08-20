@@ -122,10 +122,11 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         sb.AppendLine($"    /// Determines whether the specified <see cref=\"{target.Name}\"/> is null or empty.");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine($"    public static bool IsNullOrEmpty([System.Diagnostics.CodeAnalysis.NotNullWhen(false)] {target.Name}? id) => !id.HasValue || id.Value.IsEmpty;");
+        sb.AppendLine($"    public static bool IsNullOrEmpty({target.Name} id) => id.IsEmpty;");
         sb.AppendLine("}");
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
-        sb.AppendLine($"/// Extension methods for nullable <see cref=\"{target.Name}\"/>.");
+        sb.AppendLine($"/// Extension methods for <see cref=\"{target.Name}\"/>.");
         sb.AppendLine("/// </summary>");
         sb.AppendLine($"public static class {target.Name}Extensions");
         sb.AppendLine("{");
@@ -134,6 +135,11 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         sb.AppendLine("    /// </summary>");
         sb.AppendLine($"    public static bool IsNullOrEmpty([System.Diagnostics.CodeAnalysis.NotNullWhen(false)] this {target.Name}? id) =>");
         sb.AppendLine($"        {target.Name}.IsNullOrEmpty(id);");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine($"    /// Determines whether the <see cref=\"{target.Name}\"/> is empty.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine($"    public static bool IsNullOrEmpty(this {target.Name} id) => id.IsEmpty;");
         sb.AppendLine("}");
         sb.AppendLine();
 

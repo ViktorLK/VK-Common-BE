@@ -17,20 +17,23 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 public sealed class DefaultKnowledgeStageTests
 {
     private static (VKPsycheContext Context, IServiceProvider Services) CreateTestContext(
-        string personaId = "test-persona",
+        IReadOnlyList<VKKnowledgeId>? knowledgeIds = null,
         string userInput = "test input")
     {
         var services = new ServiceCollection().BuildServiceProvider();
         var request = new VKPsycheRequest
         {
-            PersonaId = new VKPersonaId(System.Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(System.Guid.NewGuid())],
             SessionId = new VKSessionId(System.Guid.NewGuid()),
+            KnowledgeIds = knowledgeIds ?? [],
             UserInput = userInput
         };
 
         var context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = System.Guid.NewGuid().ToString(),
+            CreatedAt = System.DateTimeOffset.UtcNow,
             Services = services
         };
 
@@ -48,7 +51,6 @@ public sealed class DefaultKnowledgeStageTests
         var entryId = new VKKnowledgeId(System.Guid.NewGuid());
         var entry = new VKKnowledgeEntry
         {
-            TenantId = VKTenantId.Default,
             Id = entryId,
             TriggerType = VKKnowledgeTriggerType.Keyword,
             Segment = new VKPromptSegment
@@ -63,13 +65,13 @@ public sealed class DefaultKnowledgeStageTests
             }
         };
 
-        IEnumerable<VKKnowledgeEntry> entries = [entry];
-        storeMock.Setup(s => s.GetRelevantEntriesAsync(It.IsAny<VKPersonaId>(), It.IsAny<CancellationToken>()))
+        IReadOnlyList<VKKnowledgeEntry> entries = [entry];
+        storeMock.Setup(s => s.GetKnowledgeEntriesAsync(It.IsAny<IReadOnlyList<VKKnowledgeId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(VKResult.Success(entries));
 
         var stage = new DefaultKnowledgeStage(options, storeMock.Object, weavingOptions);
         var finalizer = new DefaultKnowledgeFinalizerStage();
-        var (context, _) = CreateTestContext(userInput: "I really like to eat an apple every day!");
+        var (context, _) = CreateTestContext(knowledgeIds: [entryId], userInput: "I really like to eat an apple every day!");
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
@@ -97,7 +99,6 @@ public sealed class DefaultKnowledgeStageTests
         var entryId = new VKKnowledgeId(System.Guid.NewGuid());
         var entry = new VKKnowledgeEntry
         {
-            TenantId = VKTenantId.Default,
             Id = entryId,
             TriggerType = VKKnowledgeTriggerType.Constant,
             Segment = new VKPromptSegment
@@ -108,12 +109,12 @@ public sealed class DefaultKnowledgeStageTests
             }
         };
 
-        storeMock.Setup(s => s.GetRelevantEntriesAsync(It.IsAny<VKPersonaId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IEnumerable<VKKnowledgeEntry>>([entry]));
+        storeMock.Setup(s => s.GetKnowledgeEntriesAsync(It.IsAny<IReadOnlyList<VKKnowledgeId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success<IReadOnlyList<VKKnowledgeEntry>>([entry]));
 
         var stage = new DefaultKnowledgeStage(options, storeMock.Object, weavingOptions);
         var finalizer = new DefaultKnowledgeFinalizerStage();
-        var (context, _) = CreateTestContext();
+        var (context, _) = CreateTestContext(knowledgeIds: [entryId]);
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);

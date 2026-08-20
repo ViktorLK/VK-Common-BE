@@ -5,16 +5,10 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Represents an entry in a knowledge/worldbook. Implements <see cref="IVKTenantScoped"/>.
-/// Order follows TenantId -> Id hierarchy with default sentinel VKTenantId.Default.
+/// Represents an entry in a knowledge/worldbook.
 /// </summary>
-public sealed record VKKnowledgeEntry : IVKFragmentMetadata, IVKTenantScoped
+public sealed record VKKnowledgeEntry : IVKFragmentMetadata
 {
-    /// <summary>
-    /// Gets the tenant identifier for multi-tenant SaaS isolation. Defaults to <see cref="VKTenantId.Default"/>.
-    /// </summary>
-    public required VKTenantId TenantId { get; init; }
-
     /// <summary>
     /// Gets the unique identifier for the entry.
     /// </summary>

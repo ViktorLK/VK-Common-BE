@@ -16,7 +16,6 @@ public sealed class DefaultKnowledgeRendererTests
         var entry = new VKKnowledgeEntry
         {
             Id = new VKKnowledgeId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
             Segment = new VKPromptSegment { Content = "Rendered knowledge text" }
         };
 

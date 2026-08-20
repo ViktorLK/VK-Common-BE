@@ -5,16 +5,14 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche.Common.Internal;
 
 /// <summary>
-/// Default implementation of <see cref="IVKPsycheModelFactory"/> which binds current <see cref="IVKIdentityContext"/>,
-/// <see cref="IVKGuidGenerator"/> (CS.06), and <see cref="TimeProvider"/> (CS.06) to Psyche models.
+/// Default implementation of <see cref="IVKPsycheModelFactory"/> which binds
+/// <see cref="IVKGuidGenerator"/> (CS.06) and <see cref="TimeProvider"/> (CS.06) to Psyche models.
 /// Follows AP.01.
 /// </summary>
 internal sealed class DefaultPsycheModelFactory(
-    IVKIdentityContext identityContext,
     IVKGuidGenerator guidGenerator,
     TimeProvider timeProvider) : IVKPsycheModelFactory
 {
-    private readonly IVKIdentityContext _identityContext = VKGuard.NotNull(identityContext);
     private readonly IVKGuidGenerator _guidGenerator = VKGuard.NotNull(guidGenerator);
     private readonly TimeProvider _timeProvider = VKGuard.NotNull(timeProvider);
 
@@ -38,15 +36,13 @@ internal sealed class DefaultPsycheModelFactory(
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
         string? directiveId = null,
-        IReadOnlyDictionary<string, object>? extensions = null,
-        VKTenantId? tenantId = null)
+        IReadOnlyDictionary<string, object>? extensions = null)
     {
         VKGuard.NotNull(name);
         VKGuard.NotNull(description);
 
         return new VKPersonaAnchor
         {
-            TenantId = tenantId ?? _identityContext.TenantId,
             Id = id,
             Name = name,
             Description = description,
@@ -74,12 +70,10 @@ internal sealed class DefaultPsycheModelFactory(
         string? overview = null,
         string? behaviorRules = null,
         string? safetyRules = null,
-        string? outputConstraints = null,
-        VKTenantId? tenantId = null)
+        string? outputConstraints = null)
     {
         return new VKDirectiveCharter
         {
-            TenantId = tenantId ?? _identityContext.TenantId,
             Id = id,
             Overview = overview,
             BehaviorRules = behaviorRules,
@@ -108,14 +102,12 @@ internal sealed class DefaultPsycheModelFactory(
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
         string? xmlTag = null,
-        IReadOnlyList<VKKnowledgeKey>? keys = null,
-        VKTenantId? tenantId = null)
+        IReadOnlyList<VKKnowledgeKey>? keys = null)
     {
         VKGuard.NotNull(segment);
 
         return new VKKnowledgeEntry
         {
-            TenantId = tenantId ?? _identityContext.TenantId,
             Id = id,
             Segment = segment,
             TriggerType = triggerType,
@@ -149,19 +141,17 @@ internal sealed class DefaultPsycheModelFactory(
 
     /// <inheritdoc />
     public VKSessionThread CreateSession(
-        VKPersonaId personaId,
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
         string? forkPointRef = null)
     {
-        return CreateSession(new VKSessionId(_guidGenerator.Create()), personaId, mode, parentSessionId, forkSourceSessionId, forkPointRef);
+        return CreateSession(new VKSessionId(_guidGenerator.Create()), mode, parentSessionId, forkSourceSessionId, forkPointRef);
     }
 
     /// <inheritdoc />
     public VKSessionThread CreateSession(
         VKSessionId id,
-        VKPersonaId personaId,
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
@@ -171,18 +161,13 @@ internal sealed class DefaultPsycheModelFactory(
         DateTimeOffset? createdAt = null,
         DateTimeOffset? updatedAt = null,
         DateTimeOffset? lastActivityAt = null,
-        VKTenantId? tenantId = null,
-        VKUserId? userId = null,
         VKSessionKnowledgeState? knowledgeState = null)
     {
         var now = _timeProvider.GetUtcNow();
 
         return new VKSessionThread
         {
-            TenantId = tenantId ?? _identityContext.TenantId,
-            UserId = userId ?? _identityContext.UserId,
             Id = id,
-            PersonaId = personaId,
             Mode = mode,
             ParentSessionId = parentSessionId,
             ForkSourceSessionId = forkSourceSessionId,
@@ -193,6 +178,36 @@ internal sealed class DefaultPsycheModelFactory(
             UpdatedAt = updatedAt ?? now,
             LastActivityAt = lastActivityAt,
             KnowledgeState = knowledgeState ?? new VKSessionKnowledgeState()
+        };
+    }
+
+    // --- Profile ---
+
+    /// <inheritdoc />
+    public VKProfilePresence CreateProfile(
+        string? displayName = null,
+        string? preferredLanguage = null,
+        string? timeZone = null,
+        IReadOnlyDictionary<string, string>? preferences = null)
+    {
+        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, timeZone, preferences);
+    }
+
+    /// <inheritdoc />
+    public VKProfilePresence CreateProfile(
+        VKProfileId id,
+        string? displayName = null,
+        string? preferredLanguage = null,
+        string? timeZone = null,
+        IReadOnlyDictionary<string, string>? preferences = null)
+    {
+        return new VKProfilePresence
+        {
+            Id = id,
+            DisplayName = displayName,
+            PreferredLanguage = preferredLanguage,
+            TimeZone = timeZone,
+            Preferences = preferences ?? new Dictionary<string, string>()
         };
     }
 
@@ -216,14 +231,12 @@ internal sealed class DefaultPsycheModelFactory(
         VKChatRole role,
         string content,
         int tokenCount = 0,
-        DateTimeOffset? createdAt = null,
-        VKTenantId? tenantId = null)
+        DateTimeOffset? createdAt = null)
     {
         VKGuard.NotNull(content);
 
         return new VKEchoTrace
         {
-            TenantId = tenantId ?? _identityContext.TenantId,
             SessionId = sessionId,
             Id = id,
             Role = role,

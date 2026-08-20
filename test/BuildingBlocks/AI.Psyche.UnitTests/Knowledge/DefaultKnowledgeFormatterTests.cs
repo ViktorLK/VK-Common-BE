@@ -28,7 +28,7 @@ public sealed class DefaultKnowledgeFormatterTests
         var services = new ServiceCollection().BuildServiceProvider();
         var request = new VKPsycheRequest
         {
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             SessionId = new VKSessionId(Guid.NewGuid()),
             UserInput = "test-user-input"
         };
@@ -36,6 +36,8 @@ public sealed class DefaultKnowledgeFormatterTests
         return new VKPsycheContext
         {
             Request = request,
+            CorrelationId = Guid.NewGuid().ToString(),
+            CreatedAt = DateTimeOffset.UtcNow,
             Services = services
         };
     }
@@ -51,7 +53,6 @@ public sealed class DefaultKnowledgeFormatterTests
             Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "test" },
             Metadata = new VKKnowledgeEntry
             {
-                TenantId = VKTenantId.Default,
                 Id = new VKKnowledgeId(Guid.NewGuid()),
                 Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "test" }
             }
@@ -70,7 +71,6 @@ public sealed class DefaultKnowledgeFormatterTests
         // Arrange
         var entry = new VKKnowledgeEntry
         {
-            TenantId = VKTenantId.Default,
             Id = new VKKnowledgeId(Guid.NewGuid()),
             Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Apples are red." }
         };
@@ -106,7 +106,6 @@ public sealed class DefaultKnowledgeFormatterTests
         // Arrange
         var entry = new VKKnowledgeEntry
         {
-            TenantId = VKTenantId.Default,
             Id = new VKKnowledgeId(Guid.NewGuid()),
             XmlTag = "lore",
             Segment = new VKPromptSegment { Role = VKChatRole.User, Content = "Apples are red." }
@@ -143,13 +142,11 @@ public sealed class DefaultKnowledgeFormatterTests
         // Arrange
         var entry1 = new VKKnowledgeEntry
         {
-            TenantId = VKTenantId.Default,
             Id = new VKKnowledgeId(Guid.NewGuid()),
             Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Apples are red." }
         };
         var entry2 = new VKKnowledgeEntry
         {
-            TenantId = VKTenantId.Default,
             Id = new VKKnowledgeId(Guid.NewGuid()),
             Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Bananas are yellow." }
         };
@@ -200,13 +197,11 @@ public sealed class DefaultKnowledgeFormatterTests
         // Arrange
         var entryBefore = new VKKnowledgeEntry
         {
-            TenantId = VKTenantId.Default,
             Id = new VKKnowledgeId(Guid.NewGuid()),
             Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Before fact.", AbsoluteDepth = 1 }
         };
         var entryAfter = new VKKnowledgeEntry
         {
-            TenantId = VKTenantId.Default,
             Id = new VKKnowledgeId(Guid.NewGuid()),
             Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "After fact.", AbsoluteDepth = 2 }
         };

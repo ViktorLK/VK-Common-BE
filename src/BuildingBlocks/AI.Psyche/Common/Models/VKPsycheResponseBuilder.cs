@@ -45,11 +45,6 @@ public sealed class VKPsycheResponseBuilder
     public VKAITokenUsage? Usage { get; set; }
 
     /// <summary>
-    /// Gets or sets the correlation identifier linked with the request pipeline execution.
-    /// </summary>
-    public string? CorrelationId { get; set; }
-
-    /// <summary>
     /// Builds the final immutable VKPsycheResponse from the accumulated state and context.
     /// </summary>
     /// <param name="context">The execution payload context.</param>
@@ -70,7 +65,7 @@ public sealed class VKPsycheResponseBuilder
             ProfilingMetrics = new Dictionary<string, double>(ProfilingMetrics),
             Metadata = new Dictionary<string, object>(Metadata),
             Usage = Usage,
-            CorrelationId = CorrelationId
+            CorrelationId = context.CorrelationId
         };
     }
 }

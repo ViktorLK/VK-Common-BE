@@ -57,12 +57,12 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage
             var userInput = context.Request.UserInput;
             if (!string.IsNullOrWhiteSpace(userInput))
             {
-                var userTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.User, userInput);
+                var userTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.User, userInput, createdAt: context.CreatedAt);
                 await _echoStore.SaveHistoryAsync(userTrace, cancellationToken).ConfigureAwait(false);
             }
 
             // 2. Auto-save Assistant Response trace (from context.Response.ChatResponse.Message.Content)
-            var assistantMsgContent = context.Response.ChatResponse?.Message?.Content;
+            var assistantMsgContent = context.ResponseBuilder.ChatResponse?.Message?.Content;
             if (!string.IsNullOrWhiteSpace(assistantMsgContent))
             {
                 var assistantTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.Assistant, assistantMsgContent);
@@ -74,7 +74,7 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage
         finally
         {
             stopwatch.Stop();
-            context.Response.ProfilingMetrics[VKPsycheProfilingKeys.EchoSaveStage] = stopwatch.Elapsed.TotalMilliseconds;
+            context.ResponseBuilder.ProfilingMetrics[VKPsycheProfilingKeys.EchoSaveStage] = stopwatch.Elapsed.TotalMilliseconds;
         }
     }
 }

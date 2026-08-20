@@ -13,7 +13,7 @@ public sealed record VKKnowledgeTriple : IVKMultiTenant
     /// <summary>
     /// Gets the unique identifier for this triple record.
     /// </summary>
-    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid Id { get; init; }
 
     /// <summary>
     /// Gets the tenant identifier for strict multi-tenant isolation.

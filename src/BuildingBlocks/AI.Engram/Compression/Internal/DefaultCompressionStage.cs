@@ -51,7 +51,7 @@ internal sealed partial class DefaultCompressionStage : IVKPsychePipelineStage
         VKGuard.NotNull(context);
 
         // Sandbox mode bypass: strictly skip L2 summary distillation & L3 fact consolidation
-        if (context.Request.SessionMode == VKSessionMode.Sandbox)
+        if (context.IsSandbox)
         {
             return VKResult.Success();
         }
@@ -94,7 +94,6 @@ internal sealed partial class DefaultCompressionStage : IVKPsychePipelineStage
                 // Inject the updated memory fragment into context
                 var knowledgeEntry = new VKKnowledgeEntry
                 {
-                    TenantId = VKTenantId.Default,
                     Id = VKKnowledgeId.New(_guidGenerator),
                     TriggerType = VKKnowledgeTriggerType.Constant,
                     Segment = new VKPromptSegment

@@ -93,7 +93,6 @@ internal sealed class DefaultRecallKnowledgeLifecycleStore : IVKRecallKnowledgeL
             _ = Guid.TryParse(result.Document.Id, out Guid guidId);
             VKKnowledgeEntry knowledge = new()
             {
-                TenantId = VKTenantId.Default,
                 Id = new VKKnowledgeId(guidId),
                 Segment = new VKPromptSegment
                 {

@@ -1,35 +1,17 @@
 using System;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Domain model representing a conversation session thread, lineage, and lifecycle.
-/// Follows AP.01 (sealed record) and BB.01. Implements <see cref="IVKTenantScoped"/> and <see cref="IVKUserScoped"/>.
-/// Order follows TenantId -> UserId -> Id hierarchy with required TenantId.
-/// Symmetry with VKEchoTrace, VKPersonaAnchor, and VKDirectiveCharter.
+/// Follows AP.01 (sealed record) and BB.01.
 /// </summary>
-public sealed record VKSessionThread : IVKTenantScoped, IVKUserScoped
+public sealed record VKSessionThread
 {
-    /// <summary>
-    /// Gets the tenant identifier for multi-tenant SaaS isolation.
-    /// </summary>
-    public required VKTenantId TenantId { get; init; }
-
-    /// <summary>
-    /// Gets the user identifier for user-level session security boundary. Defaults to <see cref="VKUserId.Anonymous"/>.
-    /// </summary>
-    public required VKUserId UserId { get; init; }
-
     /// <summary>
     /// Gets the unique session identifier.
     /// </summary>
     public required VKSessionId Id { get; init; }
-
-    /// <summary>
-    /// Gets the target Persona identifier bound to this session thread.
-    /// </summary>
-    public required VKPersonaId PersonaId { get; init; }
 
     /// <summary>
     /// Gets the operational mode for this session thread (Isolated, Continuous, Sandbox).
