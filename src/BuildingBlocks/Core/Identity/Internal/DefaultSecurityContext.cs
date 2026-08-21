@@ -11,20 +11,34 @@ internal sealed class DefaultSecurityContext : IVKSecurityContext
     /// <summary>
     /// Gets a static singleton instance of <see cref="DefaultSecurityContext"/>.
     /// </summary>
-    public static DefaultSecurityContext Instance { get; } = new();
+    public static DefaultSecurityContext Instance { get; } = new(VKTenantId.Default, VKUserId.System, null, [], false);
 
     /// <inheritdoc />
-    public VKTenantId TenantId { get; init; } = VKTenantId.Default;
+    public VKTenantId TenantId { get; init; }
 
     /// <inheritdoc />
-    public VKUserId UserId { get; init; } = VKUserId.System;
+    public VKUserId UserId { get; init; }
 
     /// <inheritdoc />
     public string? UserName { get; init; }
 
     /// <inheritdoc />
-    public IReadOnlyList<string> Roles { get; init; } = [];
+    public IReadOnlyList<string> Roles { get; init; }
 
     /// <inheritdoc />
     public bool IsAuthenticated { get; init; }
+
+    public DefaultSecurityContext(
+        VKTenantId tenantId,
+        VKUserId userId,
+        string? userName,
+        IReadOnlyList<string> roles,
+        bool isAuthenticated)
+    {
+        TenantId = tenantId;
+        UserId = userId;
+        UserName = userName;
+        Roles = roles ?? [];
+        IsAuthenticated = isAuthenticated;
+    }
 }

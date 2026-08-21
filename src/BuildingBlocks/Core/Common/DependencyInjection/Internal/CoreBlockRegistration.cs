@@ -30,8 +30,13 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton<IVKGuidGenerator, SequentialGuidGenerator>();
         services.TryAddSingleton<IVKJsonSerializer, SystemTextJsonSerializer>();
         services.TryAddSingleton<IVKEnvironmentProvider, VKDefaultEnvironmentProvider>();
-        services.TryAddSingleton<IVKIdentityContext>(DefaultIdentityContext.Instance);
-        services.TryAddSingleton<IVKSecurityContext>(DefaultSecurityContext.Instance);
+        
+        // Identity and Security with AsyncLocal ambient context support and Dynamic Dispatchers
+        services.TryAddSingleton<IVKIdentityContextAccessor, AsyncLocalIdentityContextAccessor>();
+        services.TryAddSingleton<IVKIdentityContext, AmbientIdentityContextDispatcher>();
+        services.TryAddSingleton<IVKSecurityContextAccessor, AsyncLocalSecurityContextAccessor>();
+        services.TryAddSingleton<IVKSecurityContext, AmbientSecurityContextDispatcher>();
+
         services.TryAddSingleton<IVKSyncStateStore, VKNoOpSyncStateStore>();
         services.TryAddSingleton<IVKDistributedLockProvider, InProcessMemoryLockProvider>();
         services.TryAddSingleton<IVKActiveTenantProvider, DefaultSingleTenantActiveTenantProvider>();
