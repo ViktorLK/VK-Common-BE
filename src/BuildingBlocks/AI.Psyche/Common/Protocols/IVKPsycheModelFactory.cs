@@ -1,14 +1,37 @@
 using System;
 using System.Collections.Generic;
+using VK.Blocks.AI;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Domain model factory for creating AI.Psyche entities automatically bound to ambient identity context, IVKGuidGenerator, and TimeProvider.
+/// Domain model factory for creating AI.Psyche entities and value objects automatically bound to ambient identity context, IVKGuidGenerator, and TimeProvider.
 /// Follows AP.01, AP.03, CS.06.
 /// </summary>
 public interface IVKPsycheModelFactory
 {
+    // --- Segment & Key (Value Objects) ---
+
+    /// <summary>
+    /// Creates a new <see cref="VKPromptSegment"/> with validated layout coordinates and prompt payload.
+    /// </summary>
+    VKPromptSegment CreateSegment(
+        string content,
+        string? name = null,
+        bool isEnabled = true,
+        VKChatRole role = VKChatRole.System,
+        int? absoluteDepth = null,
+        VKPromptRelativeDepth? relativeDepth = null,
+        int depthPriority = 0);
+
+    /// <summary>
+    /// Creates a new <see cref="VKKnowledgeKey"/> for knowledge trigger matching.
+    /// </summary>
+    VKKnowledgeKey CreateKey(
+        string text,
+        VKKnowledgeMatchType matchType = VKKnowledgeMatchType.Contains,
+        bool caseSensitive = false);
+
     // --- Persona ---
 
     /// <summary>

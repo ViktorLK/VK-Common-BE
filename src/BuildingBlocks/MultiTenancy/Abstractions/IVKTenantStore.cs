@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
@@ -16,7 +17,7 @@ public interface IVKTenantStore
     /// <param name="tenantId">The unique tenant identifier.</param>
     /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
     /// <returns>A <see cref="VKResult{T}"/> containing <see cref="IVKTenantInfo"/> if found; otherwise, a failure.</returns>
-    Task<VKResult<IVKTenantInfo>> GetByIdAsync(string tenantId, CancellationToken cancellationToken = default);
+    Task<VKResult<IVKTenantInfo>> GetByIdAsync(VKTenantId tenantId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves tenant information by the associated domain name.
@@ -25,4 +26,11 @@ public interface IVKTenantStore
     /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
     /// <returns>A <see cref="VKResult{T}"/> containing <see cref="IVKTenantInfo"/> if found; otherwise, a failure.</returns>
     Task<VKResult<IVKTenantInfo>> GetByDomainAsync(string domain, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves all active tenants in the system.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
+    /// <returns>A <see cref="VKResult{T}"/> containing a list of <see cref="IVKTenantInfo"/>.</returns>
+    Task<VKResult<IReadOnlyList<IVKTenantInfo>>> GetActiveTenantsAsync(CancellationToken cancellationToken = default);
 }

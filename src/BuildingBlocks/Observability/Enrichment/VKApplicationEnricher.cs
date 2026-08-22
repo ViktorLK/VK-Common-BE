@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.Options;
+
 namespace VK.Blocks.Observability;
 
 public sealed class VKApplicationEnricher(IOptions<VKObservabilityOptions> options) : IVKLogEnricher

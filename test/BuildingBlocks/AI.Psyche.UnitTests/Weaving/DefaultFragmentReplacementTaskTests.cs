@@ -26,8 +26,7 @@ public sealed class DefaultFragmentReplacementTaskTests
 
         var request = new VKPsycheRequest
         {
-            TenantId = VKTenantId.Default,
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             UserInput = "test"
         }.WithArgs(new VKWeavingArgs { Variables = new Dictionary<string, object?> { ["name"] = "Alice" } });
 
@@ -35,6 +34,8 @@ public sealed class DefaultFragmentReplacementTaskTests
         context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = context.CorrelationId,
+            CreatedAt = context.CreatedAt,
             Services = context.Services
         };
 
@@ -64,8 +65,7 @@ public sealed class DefaultFragmentReplacementTaskTests
 
         var request = new VKPsycheRequest
         {
-            TenantId = VKTenantId.Default,
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             UserInput = "test"
         }.WithArgs(new VKWeavingArgs { Variables = new Dictionary<string, object?> { ["user"] = "Bob" } });
 
@@ -73,6 +73,8 @@ public sealed class DefaultFragmentReplacementTaskTests
         context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = context.CorrelationId,
+            CreatedAt = context.CreatedAt,
             Services = context.Services
         };
 

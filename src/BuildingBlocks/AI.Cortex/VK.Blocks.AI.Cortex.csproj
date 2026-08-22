@@ -6,13 +6,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\Resilience\VK.Blocks.Resilience.csproj" />
+    <ProjectReference Include="..\Workflow.Abstractions\VK.Blocks.Workflow.Abstractions.csproj" />
     <ProjectReference Include="..\AI\VK.Blocks.AI.csproj" />
     <ProjectReference Include="..\AI.Psyche\VK.Blocks.AI.Psyche.csproj" />
     <ProjectReference Include="..\AI.Eidos\VK.Blocks.AI.Eidos.csproj" />
-    <ProjectReference Include="..\AI.Engram\VK.Blocks.AI.Engram.csproj" />
-    <ProjectReference Include="..\AI.Corpus\VK.Blocks.AI.Corpus.csproj" />
-    <ProjectReference Include="..\Workflow.Abstractions\VK.Blocks.Workflow.Abstractions.csproj" />
-    <ProjectReference Include="..\Resilience\VK.Blocks.Resilience.csproj" />
   </ItemGroup>
 
   <ItemGroup>

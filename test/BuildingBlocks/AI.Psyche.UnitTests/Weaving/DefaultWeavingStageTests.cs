@@ -17,7 +17,7 @@ public sealed class DefaultWeavingStageTests
         public VKPipelineSchedule Schedule => new(1);
         public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
         {
-            context.Response.Messages.Add(new VKChatMessage { Role = VKChatRole.User, Content = "hello" });
+            context.ResponseBuilder.Messages.Add(new VKChatMessage { Role = VKChatRole.User, Content = "hello" });
             return Task.FromResult(VKResult.Success());
         }
     }
@@ -37,6 +37,6 @@ public sealed class DefaultWeavingStageTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        context.Response.Messages.Should().ContainSingle();
+        context.ResponseBuilder.Messages.Should().ContainSingle();
     }
 }

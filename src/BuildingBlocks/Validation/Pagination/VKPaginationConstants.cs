@@ -1,4 +1,4 @@
-﻿namespace VK.Blocks.Validation;
+namespace VK.Blocks.Validation;
 
 /// <summary>
 /// Constants for pagination validation.
@@ -17,4 +17,3 @@ public static class VKPaginationConstants
     public const string OverOffsetLimit = "Offset limit exceeded.";
     public const string OverPageSize = "Page size exceeded.";
 }
-

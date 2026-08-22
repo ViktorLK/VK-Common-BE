@@ -10,7 +10,7 @@ internal sealed class TenantContextTenantProvider(IVKTenantContext tenantContext
     private readonly IVKTenantContext _tenantContext = VKGuard.NotNull(tenantContext);
 
     /// <inheritdoc />
-    public string? GetCurrentTenantId()
+    public VKTenantId? GetCurrentTenantId()
     {
         return _tenantContext.CurrentTenant?.Id;
     }

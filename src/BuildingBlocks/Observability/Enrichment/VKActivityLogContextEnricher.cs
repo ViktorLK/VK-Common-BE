@@ -9,7 +9,7 @@ public sealed class VKActivityLogContextEnricher(IEnumerable<IVKLogEnricher> log
     public IDisposable Enrich()
     {
         var activity = Activity.Current;
-        if (activity == null)
+        if (activity is null)
         {
             return NullScope.Instance;
         }

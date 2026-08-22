@@ -14,7 +14,7 @@ public sealed record VKTenantInfo : IVKTenantInfo
     /// </summary>
     [SetsRequiredMembers]
     public VKTenantInfo(
-        string id,
+        VKTenantId id,
         string name,
         string? domain = null,
         bool isActive = true,
@@ -22,7 +22,7 @@ public sealed record VKTenantInfo : IVKTenantInfo
         string? schema = null,
         IReadOnlyDictionary<string, string>? metadata = null)
     {
-        Id = VKGuard.NotNullOrWhiteSpace(id);
+        Id = id;
         Name = VKGuard.NotNullOrWhiteSpace(name);
         Domain = domain;
         IsActive = isActive;
@@ -34,7 +34,7 @@ public sealed record VKTenantInfo : IVKTenantInfo
     /// <summary>
     /// Gets the unique identifier of the tenant.
     /// </summary>
-    public required string Id { get; init; }
+    public required VKTenantId Id { get; init; }
 
     /// <summary>
     /// Gets the display name of the tenant.

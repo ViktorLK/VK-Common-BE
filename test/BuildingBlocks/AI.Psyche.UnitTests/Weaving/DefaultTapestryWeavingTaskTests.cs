@@ -41,11 +41,11 @@ public sealed class DefaultTapestryWeavingTaskTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        context.Response.Messages.Should().HaveCount(2);
-        context.Response.Messages[0].Role.Should().Be(VKChatRole.System);
-        context.Response.Messages[0].Content.Should().Be("System Instruction");
-        context.Response.Messages[1].Role.Should().Be(VKChatRole.User);
-        context.Response.Messages[1].Content.Should().Be("User Question");
+        context.ResponseBuilder.Messages.Should().HaveCount(2);
+        context.ResponseBuilder.Messages[0].Role.Should().Be(VKChatRole.System);
+        context.ResponseBuilder.Messages[0].Content.Should().Be("System Instruction");
+        context.ResponseBuilder.Messages[1].Role.Should().Be(VKChatRole.User);
+        context.ResponseBuilder.Messages[1].Content.Should().Be("User Question");
     }
 
     [Fact]
@@ -74,6 +74,6 @@ public sealed class DefaultTapestryWeavingTaskTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        context.Response.Messages.Should().HaveCount(2);
+        context.ResponseBuilder.Messages.Should().HaveCount(2);
     }
 }

@@ -7,7 +7,7 @@ public sealed class VKTraceContextEnricher : IVKLogEnricher
     public void Enrich(Action<string, object?> propertyAdder)
     {
         var activity = Activity.Current;
-        if (activity != null)
+        if (activity is not null)
         {
             propertyAdder("trace.id", activity.TraceId.ToHexString());
             propertyAdder("span.id", activity.SpanId.ToHexString());

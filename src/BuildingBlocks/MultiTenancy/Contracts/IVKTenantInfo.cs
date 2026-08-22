@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.MultiTenancy;
 
@@ -10,7 +11,7 @@ public interface IVKTenantInfo
     /// <summary>
     /// Gets the unique identifier for the tenant.
     /// </summary>
-    string Id { get; }
+    VKTenantId Id { get; }
 
     /// <summary>
     /// Gets the human-readable name of the tenant.

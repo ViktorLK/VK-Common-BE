@@ -18,25 +18,25 @@ public sealed class DefaultProfileStageTests
     {
         // Arrange
         var storeMock = new Mock<IVKProfileStore>();
-        var identityMock = new Mock<IVKIdentityContext>();
-        var userId = new VKUserId(Guid.NewGuid());
-        identityMock.SetupGet(i => i.UserId).Returns(userId);
+        var profileId = new VKProfileId(Guid.NewGuid());
 
         var profile = new VKProfilePresence
         {
-            UserId = userId,
-            TenantId = VKTenantId.Default,
+            Id = profileId,
             PreferredLanguage = "zh-CN",
             TimeZone = "UTC",
             Preferences = new Dictionary<string, string> { ["Format"] = "Markdown" }
         };
-        storeMock.Setup(s => s.GetProfileAsync(userId, It.IsAny<CancellationToken>()))
+        storeMock.Setup(s => s.GetProfileAsync(profileId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(VKResult.Success<VKProfilePresence?>(profile));
 
         var options = new VKProfileOptions { Enabled = true };
-        var stage = new DefaultProfileStage(options, storeMock.Object, identityMock.Object, TimeProvider.System);
+        var stage = new DefaultProfileStage(options, storeMock.Object, TimeProvider.System);
 
-        var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
+        var (context, _) = new VKPsycheRequestBuilder()
+            .WithProfileId(profileId)
+            .WithUserInput("hello")
+            .BuildContext();
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
@@ -50,15 +50,12 @@ public sealed class DefaultProfileStageTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenNoUserId_ReturnsSuccessWithoutFragments()
+    public async Task ExecuteAsync_WhenNoProfileId_ReturnsSuccessWithoutFragments()
     {
         // Arrange
         var storeMock = new Mock<IVKProfileStore>();
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.UserId).Returns(VKUserId.Empty);
-
         var options = new VKProfileOptions { Enabled = true };
-        var stage = new DefaultProfileStage(options, storeMock.Object, identityMock.Object);
+        var stage = new DefaultProfileStage(options, storeMock.Object);
 
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
 
