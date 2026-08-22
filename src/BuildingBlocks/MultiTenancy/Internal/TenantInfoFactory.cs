@@ -1,3 +1,5 @@
+using VK.Blocks.Core;
+
 namespace VK.Blocks.MultiTenancy.Internal;
 
 /// <summary>
@@ -6,8 +8,8 @@ namespace VK.Blocks.MultiTenancy.Internal;
 internal sealed class TenantInfoFactory : IVKTenantInfoFactory
 {
     /// <inheritdoc />
-    public IVKTenantInfo Create(string tenantId, string? name = null)
+    public IVKTenantInfo Create(VKTenantId tenantId, string? name = null)
     {
-        return new VKTenantInfo(tenantId, name ?? tenantId);
+        return new VKTenantInfo(tenantId, name ?? tenantId.ToString());
     }
 }

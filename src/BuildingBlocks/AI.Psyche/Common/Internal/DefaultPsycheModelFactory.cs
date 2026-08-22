@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Common.Internal;
@@ -15,6 +16,48 @@ internal sealed class DefaultPsycheModelFactory(
 {
     private readonly IVKGuidGenerator _guidGenerator = VKGuard.NotNull(guidGenerator);
     private readonly TimeProvider _timeProvider = VKGuard.NotNull(timeProvider);
+
+    // --- Segment & Key ---
+
+    /// <inheritdoc />
+    public VKPromptSegment CreateSegment(
+        string content,
+        string? name = null,
+        bool isEnabled = true,
+        VKChatRole role = VKChatRole.System,
+        int? absoluteDepth = null,
+        VKPromptRelativeDepth? relativeDepth = null,
+        int depthPriority = 0)
+    {
+        VKGuard.NotNull(content);
+
+        return new VKPromptSegment
+        {
+            Content = content,
+            Name = name,
+            IsEnabled = isEnabled,
+            Role = role,
+            AbsoluteDepth = absoluteDepth,
+            RelativeDepth = relativeDepth,
+            DepthPriority = Math.Clamp(depthPriority, 0, 999)
+        };
+    }
+
+    /// <inheritdoc />
+    public VKKnowledgeKey CreateKey(
+        string text,
+        VKKnowledgeMatchType matchType = VKKnowledgeMatchType.Contains,
+        bool caseSensitive = false)
+    {
+        VKGuard.NotNull(text);
+
+        return new VKKnowledgeKey
+        {
+            Text = text,
+            MatchType = matchType,
+            CaseSensitive = caseSensitive
+        };
+    }
 
     // --- Persona ---
 

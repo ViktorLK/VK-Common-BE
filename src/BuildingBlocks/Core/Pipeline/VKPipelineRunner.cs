@@ -61,11 +61,15 @@ public static class VKPipelineRunner
     /// <summary>
     /// Legacy helper to execute chunked stages for backwards compatibility.
     /// </summary>
+    /// <summary>
+    /// Legacy helper to execute chunked stages for backwards compatibility.
+    /// </summary>
     public static async Task<VKResult> ExecuteChunksAsync<T, TContext>(
         List<List<T>> chunks,
         TContext context,
         Func<TContext, bool> checkAbortedFunc,
         Func<TContext, VKResult> abortResultFunc,
+        Func<TContext, bool> checkCompletedFunc,
         Func<T, bool> isParallelSelector,
         Func<T, TContext, CancellationToken, Task<VKResult>> executeFunc,
         CancellationToken cancellationToken) where TContext : class
@@ -74,6 +78,7 @@ public static class VKPipelineRunner
         VKGuard.NotNull(context);
         VKGuard.NotNull(checkAbortedFunc);
         VKGuard.NotNull(abortResultFunc);
+        VKGuard.NotNull(checkCompletedFunc);
         VKGuard.NotNull(isParallelSelector);
         VKGuard.NotNull(executeFunc);
 
@@ -83,6 +88,11 @@ public static class VKPipelineRunner
             if (checkAbortedFunc(context))
             {
                 return abortResultFunc(context);
+            }
+
+            if (checkCompletedFunc(context))
+            {
+                return VKResult.Success();
             }
 
             var parallel = chunk.Where(isParallelSelector).ToList();
@@ -109,6 +119,11 @@ public static class VKPipelineRunner
                 if (checkAbortedFunc(context))
                 {
                     return abortResultFunc(context);
+                }
+
+                if (checkCompletedFunc(context))
+                {
+                    return VKResult.Success();
                 }
 
                 if (stage is IVKPipelineComponent { IsActive: false })
@@ -187,6 +202,7 @@ public static class VKPipelineRunner
         TContext context,
         Func<TContext, bool>? checkAbortedFunc = null,
         Func<TContext, VKResult>? abortResultFunc = null,
+        Func<TContext, bool>? checkCompletedFunc = null,
         CancellationToken cancellationToken = default) where TContext : class
     {
         VKGuard.NotNull(components);
@@ -208,6 +224,7 @@ public static class VKPipelineRunner
             context,
             checkAbortedFunc: checkAbortedFunc ?? (_ => false),
             abortResultFunc: abortResultFunc ?? (_ => VKResult.Success()),
+            checkCompletedFunc: checkCompletedFunc ?? (_ => false),
             isParallelSelector: c => c.Schedule.IsParallel,
             executeFunc: (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
             cancellationToken: cancellationToken);

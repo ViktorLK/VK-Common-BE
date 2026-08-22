@@ -65,6 +65,12 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
     protected abstract bool CheckAborted(TContext context);
 
     /// <summary>
+    /// Checks if the execution context has been marked as completed early.
+    /// Default is false.
+    /// </summary>
+    protected virtual bool CheckCompleted(TContext context) => false;
+
+    /// <summary>
     /// Gets the failure result when aborted.
     /// </summary>
     protected abstract VKResult GetAbortResult(TContext context);
@@ -80,6 +86,7 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
             context,
             CheckAborted,
             GetAbortResult,
+            CheckCompleted,
             c => c.Schedule.IsParallel,
             (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
             cancellationToken).ConfigureAwait(false);
@@ -93,6 +100,12 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
         {
             var abortResult = GetAbortResult(context);
             return VKResult.Failure<TResponse>(abortResult.Errors);
+        }
+
+        // Check if early completion was signaled in Before phase (e.g. cached response or weave-only)
+        if (CheckCompleted(context))
+        {
+            return VKResult.Success(BuildResponse(context));
         }
 
         // 2. Build the middleware delegate onion chain starting from terminalAction
@@ -118,6 +131,7 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
             context,
             CheckAborted,
             GetAbortResult,
+            CheckCompleted,
             c => c.Schedule.IsParallel,
             (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
             cancellationToken).ConfigureAwait(false);

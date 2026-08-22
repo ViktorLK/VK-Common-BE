@@ -23,14 +23,16 @@ public sealed class DefaultPromptTruncateTaskTests
         var services = new ServiceCollection().BuildServiceProvider();
         var request = new VKPsycheRequest
         {
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             SessionId = new VKSessionId(Guid.NewGuid()),
-            UserInput = userInput
+            UserInput = "hello"
         };
 
         var context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = Guid.NewGuid().ToString(),
+            CreatedAt = DateTimeOffset.UtcNow,
             Services = services
         };
 
@@ -43,19 +45,18 @@ public sealed class DefaultPromptTruncateTaskTests
         // Arrange
         var tokenCounterMock = new Mock<IVKTokenCounter>();
         tokenCounterMock.Setup(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string>())).Returns(30);
+
+        var modelCatalogMock = new Mock<IVKModelCatalog>();
+        modelCatalogMock.Setup(m => m.GetModelMetadata(It.IsAny<string>()))
+            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 20, ContextWindowSize = 50 });
+
         var options = new VKWeavingOptions
         {
-            TotalContextLimit = 100,
-            MaxResponseTokens = 20,
-            AvailableHistoryLimit = 50
+            MaxContextBudget = 50
         };
 
-        // Mock token counter: each history segment has 30 tokens.
-        tokenCounterMock.Setup(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns(30);
-
         var loggerMock = new Mock<ILogger<DefaultPromptTruncateTask>>();
-        var task = new DefaultPromptTruncateTask(tokenCounterMock.Object, options, loggerMock.Object);
+        var task = new DefaultPromptTruncateTask(tokenCounterMock.Object, modelCatalogMock.Object, options, loggerMock.Object);
 
         var (context, _) = CreateTestContext();
         var mockMetadata = new Mock<IVKFragmentMetadata>().Object;

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Observability.Diagnostics.Internal;
 
@@ -14,4 +14,3 @@ internal static partial class ObservabilityLog
         Message = "Observability block services registered.")]
     public static partial void LogBlockRegistered(this ILogger logger);
 }
-

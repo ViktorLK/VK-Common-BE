@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 using VK.Blocks.Validation.Diagnostics.Internal;
 
-namespace VK.Blocks.Validation.Pipelines.Internal;
+namespace VK.Blocks.Validation.Pipeline.Internal;
 
 /// <summary>
 /// realization of <see cref="IVKValidationPipeline"/> that executes all registered validators.

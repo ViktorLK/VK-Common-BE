@@ -17,7 +17,7 @@ public sealed class DefaultSessionUpdateStageTests
     {
         // Arrange
         var storeMock = new Mock<IVKSessionStore>();
-        storeMock.Setup(s => s.SaveSessionAsync(It.IsAny<VKSessionThread>(), It.IsAny<CancellationToken>()))
+        storeMock.Setup(s => s.UpdateSessionAsync(It.IsAny<VKSessionThread>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(VKResult.Success());
 
         var options = new VKSessionOptions { Enabled = true };
@@ -27,9 +27,6 @@ public sealed class DefaultSessionUpdateStageTests
         var session = new VKSessionThread
         {
             Id = new VKSessionId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
-            UserId = new VKUserId(Guid.NewGuid()),
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
             TurnCount = 2
         };
         context.SetState(session);
@@ -39,7 +36,7 @@ public sealed class DefaultSessionUpdateStageTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        storeMock.Verify(s => s.SaveSessionAsync(It.Is<VKSessionThread>(st => st.TurnCount == 3), It.IsAny<CancellationToken>()), Times.Once);
+        storeMock.Verify(s => s.UpdateSessionAsync(It.Is<VKSessionThread>(st => st.TurnCount == 3), It.IsAny<CancellationToken>()), Times.Once);
         context.State<VKSessionThread>()!.TurnCount.Should().Be(3);
     }
 
@@ -53,8 +50,7 @@ public sealed class DefaultSessionUpdateStageTests
 
         var request = new VKPsycheRequest
         {
-            TenantId = VKTenantId.Default,
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             UserInput = "hello",
             WeaveOnly = true
         };
@@ -62,6 +58,8 @@ public sealed class DefaultSessionUpdateStageTests
         context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = context.CorrelationId,
+            CreatedAt = context.CreatedAt,
             Services = context.Services
         };
 
@@ -70,6 +68,6 @@ public sealed class DefaultSessionUpdateStageTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        storeMock.Verify(s => s.SaveSessionAsync(It.IsAny<VKSessionThread>(), It.IsAny<CancellationToken>()), Times.Never);
+        storeMock.Verify(s => s.UpdateSessionAsync(It.IsAny<VKSessionThread>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

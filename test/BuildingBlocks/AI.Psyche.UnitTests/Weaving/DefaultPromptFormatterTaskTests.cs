@@ -21,7 +21,7 @@ public sealed class DefaultPromptFormatterTaskTests
         var services = new ServiceCollection().BuildServiceProvider();
         var request = new VKPsycheRequest
         {
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             SessionId = new VKSessionId(Guid.NewGuid()),
             UserInput = userInput
         };
@@ -29,6 +29,8 @@ public sealed class DefaultPromptFormatterTaskTests
         var context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = Guid.NewGuid().ToString(),
+            CreatedAt = DateTimeOffset.UtcNow,
             Services = services
         };
 

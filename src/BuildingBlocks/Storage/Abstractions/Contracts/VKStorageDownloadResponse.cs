@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+
 namespace VK.Blocks.Storage;
 
 public sealed record VKStorageDownloadResponse(
@@ -10,9 +11,9 @@ public sealed record VKStorageDownloadResponse(
 {
     public async ValueTask DisposeAsync()
     {
-        if (Content != null)
+        if (Content is not null)
         {
-            await Content.DisposeAsync();
+            await Content.DisposeAsync().ConfigureAwait(false);
         }
     }
 }

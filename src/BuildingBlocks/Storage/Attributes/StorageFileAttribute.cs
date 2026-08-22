@@ -42,7 +42,7 @@ public sealed class StorageFileAttribute : ValidationAttribute
         }
 
         // 3. Extension Check (Optional at Attribute level)
-        if (_allowedExtensions != null)
+        if (_allowedExtensions is not null)
         {
             var extension = Path.GetExtension(fileName).ToLowerInvariant();
             if (!_allowedExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))

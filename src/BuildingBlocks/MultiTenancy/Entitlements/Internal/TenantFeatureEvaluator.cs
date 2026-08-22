@@ -41,13 +41,12 @@ internal sealed class TenantFeatureEvaluator(
     }
 
     /// <inheritdoc />
-    public async ValueTask<VKResult<bool>> IsFeatureEnabledAsync(string tenantId, string featureName, CancellationToken cancellationToken = default)
+    public async ValueTask<VKResult<bool>> IsFeatureEnabledAsync(VKTenantId tenantId, string featureName, CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNullOrWhiteSpace(tenantId);
         VKGuard.NotNullOrWhiteSpace(featureName);
 
         // Check current context first to avoid store lookup if it matches
-        if (string.Equals(_tenantContext.CurrentTenant?.Id, tenantId, StringComparison.OrdinalIgnoreCase))
+        if (_tenantContext.CurrentTenant?.Id == tenantId)
         {
             return await IsFeatureEnabledAsync(featureName, cancellationToken).ConfigureAwait(false);
         }

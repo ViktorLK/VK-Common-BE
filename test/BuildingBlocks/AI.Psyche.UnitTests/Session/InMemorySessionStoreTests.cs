@@ -12,22 +12,14 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Session;
 public sealed class InMemorySessionStoreTests
 {
     [Fact]
-    public async Task GetSessionAsync_WhenSeededAndIdentityMatches_ReturnsSession()
+    public async Task GetSessionAsync_WhenSeeded_ReturnsSession()
     {
         // Arrange
-        var userId = new VKUserId(Guid.NewGuid());
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-        identityMock.SetupGet(i => i.UserId).Returns(userId);
-
-        var store = new InMemorySessionStore(identityMock.Object);
+        var store = new InMemorySessionStore();
         var sessionId = new VKSessionId(Guid.NewGuid());
         var session = new VKSessionThread
         {
-            Id = sessionId,
-            TenantId = VKTenantId.Default,
-            UserId = userId,
-            PersonaId = new VKPersonaId(Guid.NewGuid())
+            Id = sessionId
         };
         store.Seed(session);
 
@@ -40,23 +32,11 @@ public sealed class InMemorySessionStoreTests
     }
 
     [Fact]
-    public async Task GetSessionAsync_WhenIdentityMismatch_ReturnsNull()
+    public async Task GetSessionAsync_WhenNotFound_ReturnsNull()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-        identityMock.SetupGet(i => i.UserId).Returns(new VKUserId(Guid.NewGuid()));
-
-        var store = new InMemorySessionStore(identityMock.Object);
+        var store = new InMemorySessionStore();
         var sessionId = new VKSessionId(Guid.NewGuid());
-        var session = new VKSessionThread
-        {
-            Id = sessionId,
-            TenantId = VKTenantId.Default,
-            UserId = new VKUserId(Guid.NewGuid()),
-            PersonaId = new VKPersonaId(Guid.NewGuid())
-        };
-        store.Seed(session);
 
         // Act
         var result = await store.GetSessionAsync(sessionId, CancellationToken.None);
@@ -68,26 +48,18 @@ public sealed class InMemorySessionStoreTests
     }
 
     [Fact]
-    public async Task SaveSessionAsync_SavesSessionSuccessfully()
+    public async Task UpdateSessionAsync_UpdatesSessionSuccessfully()
     {
         // Arrange
-        var userId = new VKUserId(Guid.NewGuid());
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-        identityMock.SetupGet(i => i.UserId).Returns(userId);
-
-        var store = new InMemorySessionStore(identityMock.Object);
+        var store = new InMemorySessionStore();
         var sessionId = new VKSessionId(Guid.NewGuid());
         var session = new VKSessionThread
         {
-            Id = sessionId,
-            TenantId = VKTenantId.Default,
-            UserId = userId,
-            PersonaId = new VKPersonaId(Guid.NewGuid())
+            Id = sessionId
         };
 
         // Act
-        var saveResult = await store.SaveSessionAsync(session, CancellationToken.None);
+        var saveResult = await store.UpdateSessionAsync(session, CancellationToken.None);
         var getResult = await store.GetSessionAsync(sessionId, CancellationToken.None);
 
         // Assert

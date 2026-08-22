@@ -55,6 +55,7 @@ public interface IVKPipelineJob<in TContext>
             context,
             checkAbortedFunc: ctx => false,
             abortResultFunc: ctx => VKResult.Success(),
+            checkCompletedFunc: ctx => false,
             isParallelSelector: c => c.Schedule.IsParallel,
             executeFunc: (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
             cancellationToken: cancellationToken);

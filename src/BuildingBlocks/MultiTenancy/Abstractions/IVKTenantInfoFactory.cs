@@ -1,3 +1,5 @@
+using VK.Blocks.Core;
+
 namespace VK.Blocks.MultiTenancy;
 
 /// <summary>
@@ -12,5 +14,5 @@ public interface IVKTenantInfoFactory
     /// <param name="tenantId">The unique tenant identifier.</param>
     /// <param name="name">The display name for the tenant (often the same as ID during resolution).</param>
     /// <returns>An instance of <see cref="IVKTenantInfo"/>.</returns>
-    IVKTenantInfo Create(string tenantId, string? name = null);
+    IVKTenantInfo Create(VKTenantId tenantId, string? name = null);
 }

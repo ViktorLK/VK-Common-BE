@@ -24,5 +24,5 @@ public interface IVKTenantFeatureEvaluator
     /// <param name="featureName">The name of the feature to check.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A <see cref="VKResult{T}"/> containing <c>true</c> if the feature is enabled; otherwise, <c>false</c>.</returns>
-    ValueTask<VKResult<bool>> IsFeatureEnabledAsync(string tenantId, string featureName, CancellationToken cancellationToken = default);
+    ValueTask<VKResult<bool>> IsFeatureEnabledAsync(VKTenantId tenantId, string featureName, CancellationToken cancellationToken = default);
 }

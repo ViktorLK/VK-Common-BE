@@ -12,24 +12,20 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Profile;
 public sealed class InMemoryProfileStoreTests
 {
     [Fact]
-    public async Task GetProfileAsync_WhenSeededAndTenantMatches_ReturnsPresence()
+    public async Task GetProfileAsync_WhenSeeded_ReturnsPresence()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-
-        var store = new InMemoryProfileStore(identityMock.Object);
-        var userId = new VKUserId(Guid.NewGuid());
+        var store = new InMemoryProfileStore();
+        var profileId = new VKProfileId(Guid.NewGuid());
         var profile = new VKProfilePresence
         {
-            UserId = userId,
-            TenantId = VKTenantId.Default,
+            Id = profileId,
             PreferredLanguage = "ja-JP"
         };
         store.Seed(profile);
 
         // Act
-        var result = await store.GetProfileAsync(userId, CancellationToken.None);
+        var result = await store.GetProfileAsync(profileId, CancellationToken.None);
 
         // Assert
         result.IsSuccess.Should().BeTrue();
@@ -37,26 +33,18 @@ public sealed class InMemoryProfileStoreTests
     }
 
     [Fact]
-    public async Task SaveProfileAsync_SavesProfileSuccessfully()
+    public async Task GetProfileAsync_WhenNotFound_ReturnsNull()
     {
         // Arrange
-        var identityMock = new Mock<IVKIdentityContext>();
-        identityMock.SetupGet(i => i.TenantId).Returns(VKTenantId.Default);
-
-        var store = new InMemoryProfileStore(identityMock.Object);
-        var userId = new VKUserId(Guid.NewGuid());
-        var profile = new VKProfilePresence
-        {
-            UserId = userId,
-            TenantId = VKTenantId.Default
-        };
+        var store = new InMemoryProfileStore();
+        var profileId = new VKProfileId(Guid.NewGuid());
 
         // Act
-        var saveRes = await store.SaveProfileAsync(profile, CancellationToken.None);
-        var getRes = await store.GetProfileAsync(userId, CancellationToken.None);
+        var getRes = await store.GetProfileAsync(profileId, CancellationToken.None);
 
         // Assert
-        saveRes.IsSuccess.Should().BeTrue();
-        getRes.Value.Should().Be(profile);
+        getRes.IsSuccess.Should().BeTrue();
+        Action act = () => _ = getRes.Value;
+        act.Should().Throw<InvalidOperationException>();
     }
 }

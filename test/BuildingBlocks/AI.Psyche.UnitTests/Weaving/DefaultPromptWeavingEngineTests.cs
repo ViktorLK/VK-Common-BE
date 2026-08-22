@@ -23,7 +23,7 @@ public sealed class DefaultPromptWeavingEngineTests
         var services = new ServiceCollection().BuildServiceProvider();
         var request = new VKPsycheRequest
         {
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
+            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
             SessionId = new VKSessionId(Guid.NewGuid()),
             UserInput = userInput
         };
@@ -31,6 +31,8 @@ public sealed class DefaultPromptWeavingEngineTests
         var context = new VKPsycheContext
         {
             Request = request,
+            CorrelationId = Guid.NewGuid().ToString(),
+            CreatedAt = DateTimeOffset.UtcNow,
             Services = services
         };
 
@@ -47,7 +49,7 @@ public sealed class DefaultPromptWeavingEngineTests
         mockTask.Setup(t => t.ExecuteAsync(It.IsAny<VKPsycheContext>(), It.IsAny<CancellationToken>()))
             .Callback((VKPsycheContext ctx, CancellationToken _) =>
             {
-                ctx.Response.Messages.Add(new VKChatMessage { Role = VKChatRole.System, Content = "System prompt" });
+                ctx.ResponseBuilder.Messages.Add(new VKChatMessage { Role = VKChatRole.System, Content = "System prompt" });
             })
             .Returns(Task.FromResult(VKResult.Success()));
 

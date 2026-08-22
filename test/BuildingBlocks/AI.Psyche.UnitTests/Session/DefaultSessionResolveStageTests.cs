@@ -21,9 +21,6 @@ public sealed class DefaultSessionResolveStageTests
         var session = new VKSessionThread
         {
             Id = sessionId,
-            TenantId = VKTenantId.Default,
-            UserId = new VKUserId(Guid.NewGuid()),
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
             Status = VKSessionStatus.Active
         };
         storeMock.Setup(s => s.GetSessionAsync(sessionId, It.IsAny<CancellationToken>()))
@@ -53,9 +50,6 @@ public sealed class DefaultSessionResolveStageTests
         var session = new VKSessionThread
         {
             Id = sessionId,
-            TenantId = VKTenantId.Default,
-            UserId = new VKUserId(Guid.NewGuid()),
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
             Status = VKSessionStatus.Closed
         };
         storeMock.Setup(s => s.GetSessionAsync(sessionId, It.IsAny<CancellationToken>()))

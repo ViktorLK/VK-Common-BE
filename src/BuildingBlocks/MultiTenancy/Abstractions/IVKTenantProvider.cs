@@ -1,3 +1,5 @@
+using VK.Blocks.Core;
+
 namespace VK.Blocks.MultiTenancy;
 
 /// <summary>
@@ -9,10 +11,10 @@ public interface IVKTenantProvider
     /// Gets the current tenant identifier.
     /// </summary>
     /// <returns>The tenant identifier, or null if no tenant context is available.</returns>
-    string? GetCurrentTenantId();
+    VKTenantId? GetCurrentTenantId();
 
     /// <summary>
     /// Checks whether the request is executed within a multi-tenant context.
     /// </summary>
-    bool HasTenantContext => !string.IsNullOrWhiteSpace(GetCurrentTenantId());
+    bool HasTenantContext => GetCurrentTenantId() is not null;
 }
