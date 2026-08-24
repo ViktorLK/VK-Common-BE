@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 

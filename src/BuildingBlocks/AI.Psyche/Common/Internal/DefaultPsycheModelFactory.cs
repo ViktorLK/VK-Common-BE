@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Common.Internal;

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>VK.Blocks.AI.Psyche.EFCore</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\AI\VK.Blocks.AI.csproj" />
+    <ProjectReference Include="..\AI.Psyche\VK.Blocks.AI.Psyche.csproj" />
+    <ProjectReference Include="..\Persistence\VK.Blocks.Persistence.csproj" />
+    <ProjectReference Include="..\Persistence.EFCore\VK.Blocks.Persistence.EFCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>VK.Blocks.AI.Psyche.EFCore.UnitTests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>
