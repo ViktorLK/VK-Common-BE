@@ -3,7 +3,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Defines the role of a message in a chat conversation.
 /// </summary>
-public enum VKChatRole
+public enum VKChatRole : byte
 {
     /// <summary>
     /// System role for instructions.

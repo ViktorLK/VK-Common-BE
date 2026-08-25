@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using VK.Blocks.AI.Psyche.Common.Internal;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -25,11 +23,11 @@ public sealed record VKKnowledgeEntry : IVKFragmentMetadata
     public VKKnowledgeFilterLogic FilterLogic { get; init; } = VKKnowledgeFilterLogic.AndAny;
 
     /// <summary>
-    /// Gets the XML wrapper tag used when this entry is woven into the prompt.
-    /// Defaults to <see cref="VKKnowledgeXmlTags.Knowledge"/>.
-    /// Applies to both relative and absolute (pinned) positioning; use any string (e.g. <c>lore</c>, <c>important_knowledge</c>).
+    /// Gets the optional XML wrapper tag used when this entry is woven into the prompt.
+    /// When null or whitespace, prompt assembly falls back to the default <c>knowledge</c> tag.
+    /// Applies to both relative and absolute (pinned) positioning; use any custom string (e.g. <c>lore</c>, <c>important_knowledge</c>).
     /// </summary>
-    public string XmlTag { get; init; } = PsycheConstants.XmlTags.Knowledge;
+    public string? XmlTag { get; init; }
 
     /// <summary>
     /// Gets the structured keys that trigger this entry.

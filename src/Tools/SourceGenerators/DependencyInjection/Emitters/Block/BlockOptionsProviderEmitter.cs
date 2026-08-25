@@ -26,6 +26,7 @@ internal static class BlockOptionsProviderEmitter
         sb.AppendLine("/// <summary>");
         sb.AppendLine($"/// Automatically generated default implementation of <see cref=\"{interfaceName}\"/>.");
         sb.AppendLine("/// </summary>");
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated options provider boilerplate.\")]");
         sb.AppendLine($"internal sealed class {implementationName}(IOptions<{optionsClassName}> options) : {interfaceName}");
         sb.AppendLine("{");
         sb.AppendLine($"    private readonly IOptions<{optionsClassName}> _options = options;");

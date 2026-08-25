@@ -16,6 +16,10 @@ internal static class BlockRegistrationEmitter
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection.Extensions;");
         sb.AppendLine("using Microsoft.Extensions.Options;");
         sb.AppendLine("using VK.Blocks.Core;");
+        if (target.HasPersistEntities)
+        {
+            sb.AppendLine("using VK.Blocks.Persistence.EFCore;");
+        }
         sb.AppendLine($"using {target.Namespace};");
         sb.AppendLine();
         sb.AppendLine($"namespace {target.Namespace}.Common.DependencyInjection.Internal;");
@@ -59,6 +63,16 @@ internal static class BlockRegistrationEmitter
             sb.AppendLine("        }");
             sb.AppendLine();
         }
+
+        if (target.HasPersistEntities)
+        {
+            sb.AppendLine("        // 5b. Auto-Generated Persistence Pipeline");
+            sb.AppendLine("        services.AddGeneratedModelContributors();");
+            sb.AppendLine("        services.AddGeneratedPersistenceRepositories();");
+            sb.AppendLine();
+        }
+
+        // 6. Custom Hook
         sb.AppendLine("        // 6. Custom Hook");
         sb.AppendLine($"        {target.ClassName}.Register(builder);");
         sb.AppendLine("        return builder;");

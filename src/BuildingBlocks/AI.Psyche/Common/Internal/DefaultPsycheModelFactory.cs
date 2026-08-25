@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Common.Internal;
@@ -66,10 +65,9 @@ internal sealed class DefaultPsycheModelFactory(
         string name,
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
-        string? directiveId = null,
         IReadOnlyDictionary<string, object>? extensions = null)
     {
-        return CreatePersona(new VKPersonaId(_guidGenerator.Create()), name, description, traits, directiveId, extensions);
+        return CreatePersona(new VKPersonaId(_guidGenerator.Create()), name, description, traits, extensions);
     }
 
     /// <inheritdoc />
@@ -78,7 +76,6 @@ internal sealed class DefaultPsycheModelFactory(
         string name,
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
-        string? directiveId = null,
         IReadOnlyDictionary<string, object>? extensions = null)
     {
         VKGuard.NotNull(name);
@@ -90,7 +87,6 @@ internal sealed class DefaultPsycheModelFactory(
             Name = name,
             Description = description,
             Traits = traits ?? new Dictionary<string, string>(),
-            DirectiveId = directiveId,
             Extensions = extensions ?? new Dictionary<string, object>()
         };
     }
@@ -155,7 +151,7 @@ internal sealed class DefaultPsycheModelFactory(
             Segment = segment,
             TriggerType = triggerType,
             FilterLogic = filterLogic,
-            XmlTag = xmlTag ?? PsycheConstants.XmlTags.Knowledge,
+            XmlTag = xmlTag,
             Keys = keys ?? []
         };
     }

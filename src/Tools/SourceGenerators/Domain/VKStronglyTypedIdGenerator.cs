@@ -125,9 +125,8 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         sb.AppendLine($"    public static bool IsNullOrEmpty({target.Name} id) => id.IsEmpty;");
         sb.AppendLine("}");
         sb.AppendLine();
-        sb.AppendLine("/// <summary>");
-        sb.AppendLine($"/// Extension methods for <see cref=\"{target.Name}\"/>.");
-        sb.AppendLine("/// </summary>");
+        // Extensions
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated strongly-typed ID extensions without business logic.\")]");
         sb.AppendLine($"public static class {target.Name}Extensions");
         sb.AppendLine("{");
         sb.AppendLine("    /// <summary>");
@@ -144,6 +143,7 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         sb.AppendLine();
 
         // JSON Converter
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated JSON converter without business logic.\")]");
         sb.AppendLine($"public class {target.Name}JsonConverter : JsonConverter<{target.Name}>");
         sb.AppendLine("{");
         sb.AppendLine($"    public override {target.Name} Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => new(reader.GetGuid());");
@@ -154,6 +154,7 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         if (target.HasEfCore)
         {
             // EF Core Converter
+            sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated EF Core converter without business logic.\")]");
             sb.AppendLine($"public class {target.Name}EfCoreConverter : ValueConverter<{target.Name}, Guid>");
             sb.AppendLine("{");
             sb.AppendLine($"    public {target.Name}EfCoreConverter() : base(id => id.Value, value => new {target.Name}(value)) {{ }}");
@@ -161,6 +162,7 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
             sb.AppendLine();
 
             // EF Core Value Comparer
+            sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated EF Core value comparer without business logic.\")]");
             sb.AppendLine($"public class {target.Name}ValueComparer : ValueComparer<{target.Name}>");
             sb.AppendLine("{");
             sb.AppendLine($"    public {target.Name}ValueComparer() : base((l, r) => l.Value == r.Value, v => v.Value.GetHashCode(), v => new {target.Name}(v.Value)) {{ }}");
@@ -169,6 +171,7 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         }
 
         // Type Converter
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated TypeConverter without business logic.\")]");
         sb.AppendLine($"public class {target.Name}TypeConverter : TypeConverter");
         sb.AppendLine("{");
         sb.AppendLine("    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) => sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);");

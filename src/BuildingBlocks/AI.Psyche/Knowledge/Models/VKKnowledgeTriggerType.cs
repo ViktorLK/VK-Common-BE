@@ -3,15 +3,15 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Defines how a knowledge entry is triggered.
 /// </summary>
-public enum VKKnowledgeTriggerType
+public enum VKKnowledgeTriggerType : byte
 {
     /// <summary>
     /// Always active.
     /// </summary>
-    Constant,
+    Constant = 0,
 
     /// <summary>
     /// Triggered by keywords.
     /// </summary>
-    Keyword
+    Keyword = 1
 }

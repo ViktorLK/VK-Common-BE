@@ -16,6 +16,20 @@ public sealed class VKTypeMetadataCache
     }
 
     /// <summary>
+    /// Gets a value indicating whether the type implements <see cref="IVKCreationAudited"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to check.</typeparam>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsCreationAudited<T>() => InnerCache<T>.IsCreationAudited;
+
+    /// <summary>
+    /// Gets a value indicating whether the type implements <see cref="IVKModificationAudited"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to check.</typeparam>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsModificationAudited<T>() => InnerCache<T>.IsModificationAudited;
+
+    /// <summary>
     /// Gets a value indicating whether the type implements <see cref="IVKAuditable"/>.
     /// </summary>
     /// <typeparam name="T">The type to check.</typeparam>
@@ -23,14 +37,21 @@ public sealed class VKTypeMetadataCache
     public static bool IsAuditable<T>() => InnerCache<T>.IsAuditable;
 
     /// <summary>
-    /// Gets a value indicating whether the type implements <see cref="IVKSoftDelete"/>.
+    /// Gets a value indicating whether the type implements <see cref="IVKSoftDeletable"/>.
     /// </summary>
     /// <typeparam name="T">The type to check.</typeparam>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsSoftDelete<T>() => InnerCache<T>.IsSoftDelete;
 
     /// <summary>
-    /// Gets a value indicating whether the type implements <see cref="IVKMultiTenant"/>.
+    /// Gets a value indicating whether the type implements <see cref="IVKDeletionAudited"/>.
+    /// </summary>
+    /// <typeparam name="T">The type to check.</typeparam>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsDeletionAudited<T>() => InnerCache<T>.IsDeletionAudited;
+
+    /// <summary>
+    /// Gets a value indicating whether the type implements <see cref="IVKTenantScoped"/>.
     /// </summary>
     /// <typeparam name="T">The type to check.</typeparam>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -71,9 +92,12 @@ public sealed class VKTypeMetadataCache
 
     private static class InnerCache<T>
     {
+        public static readonly bool IsCreationAudited = typeof(IVKCreationAudited).IsAssignableFrom(typeof(T));
+        public static readonly bool IsModificationAudited = typeof(IVKModificationAudited).IsAssignableFrom(typeof(T));
         public static readonly bool IsAuditable = typeof(IVKAuditable).IsAssignableFrom(typeof(T));
-        public static readonly bool IsSoftDelete = typeof(IVKSoftDelete).IsAssignableFrom(typeof(T));
-        public static readonly bool IsMultiTenant = typeof(IVKMultiTenant).IsAssignableFrom(typeof(T));
+        public static readonly bool IsSoftDelete = typeof(IVKSoftDeletable).IsAssignableFrom(typeof(T));
+        public static readonly bool IsDeletionAudited = typeof(IVKDeletionAudited).IsAssignableFrom(typeof(T));
+        public static readonly bool IsMultiTenant = typeof(IVKTenantScoped).IsAssignableFrom(typeof(T));
         public static readonly string Name = typeof(T).Name;
         public static readonly string FullName = typeof(T).FullName ?? typeof(T).Name;
     }

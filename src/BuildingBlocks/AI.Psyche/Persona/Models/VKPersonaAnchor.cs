@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -28,12 +27,6 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata
     /// Used for industrial definitions (e.g. Tone: Professional, Format: JSON).
     /// </summary>
     public IReadOnlyDictionary<string, string> Traits { get; init; } = new Dictionary<string, string>();
-
-    /// <summary>
-    /// Gets the ID of the specific Directive Charter to use for this persona.
-    /// Overrides the system default if specified.
-    /// </summary>
-    public string? DirectiveId { get; init; }
 
     /// <summary>
     /// Gets custom unstructured properties allowing downstream extensions (e.g. for PWP).

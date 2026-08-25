@@ -14,6 +14,14 @@ public interface IVKIdentityContextAccessor
     IVKIdentityContext Current { get; }
 
     /// <summary>
+    /// Begins an ambient tenant-only scope (Level 1) that restores previous context upon disposal.
+    /// User identity inside this scope safely falls back to <see cref="VKUserId.Anonymous"/>.
+    /// </summary>
+    /// <param name="tenantId">The active tenant identifier.</param>
+    /// <returns>An <see cref="IDisposable"/> token that restores the previous context upon disposal.</returns>
+    IDisposable BeginTenantScope(VKTenantId tenantId);
+
+    /// <summary>
     /// Begins an ambient identity scope with strongly-typed coordinates that restores previous identity upon disposal.
     /// </summary>
     /// <param name="tenantId">The active tenant identifier.</param>

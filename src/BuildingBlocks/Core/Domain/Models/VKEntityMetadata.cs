@@ -15,81 +15,109 @@ public static class VKEntityMetadata
     private static FrozenDictionary<Type, VKEntityCapability> _capabilityCache = FrozenDictionary<Type, VKEntityCapability>.Empty;
 
     /// <summary>
-    /// Checks if a type implements <see cref="IVKAuditable"/>.
+    /// Checks if a type implements <see cref="IVKCreationAudited"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsAuditable(Type type) => (GetCapabilities(type) & VKEntityCapability.Auditable) != 0;
+    public static bool IsCreationAudited(Type type) => (GetCapabilities(type) & VKEntityCapability.CreationAudited) != 0;
 
     /// <summary>
-    /// Checks if a type implements <see cref="IVKSoftDelete"/>.
+    /// Checks if a type implements <see cref="IVKModificationAudited"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsSoftDelete(Type type) => (GetCapabilities(type) & VKEntityCapability.SoftDelete) != 0;
+    public static bool IsModificationAudited(Type type) => (GetCapabilities(type) & VKEntityCapability.ModificationAudited) != 0;
 
     /// <summary>
-    /// Checks if a type implements <see cref="IVKMultiTenant"/>.
+    /// Checks if a type implements <see cref="IVKAuditable"/> (both creation and modification audited).
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsAuditable(Type type) => (GetCapabilities(type) & VKEntityCapability.Auditable) == VKEntityCapability.Auditable;
+
+    /// <summary>
+    /// Checks if a type implements <see cref="IVKSoftDeletable"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsSoftDelete(Type type) => (GetCapabilities(type) & VKEntityCapability.SoftDeletable) != 0;
+
+    /// <summary>
+    /// Checks if a type implements <see cref="IVKDeletionAudited"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsDeletionAudited(Type type) => (GetCapabilities(type) & VKEntityCapability.DeletionAudited) != 0;
+
+    /// <summary>
+    /// Checks if a type implements <see cref="IVKTenantScoped"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsMultiTenant(Type type) => (GetCapabilities(type) & VKEntityCapability.MultiTenant) != 0;
-
-    /// <summary>
-    /// Checks if a type implements <see cref="IVKMultiTenantEntity"/>.
-    /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsMultiTenantEntity(Type type) => (GetCapabilities(type) & VKEntityCapability.MultiTenantEntity) != 0;
 
     /// <summary>
     /// Checks if the type is assignable to the target type.
     /// </summary>
     /// <param name="type">The type to check.</param>
     /// <param name="targetType">The target type to check against.</param>
-    /// <returns>True if assignable, otherwise false.</returns>
+    /// <returns>True if assignable; otherwise, false.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsAssignableTo(Type type, Type targetType) => type.IsAssignableTo(targetType);
+    public static bool IsAssignableTo(Type type, Type targetType) => targetType.IsAssignableFrom(type);
 
-    private static VKEntityCapability GetCapabilities(Type type)
+    /// <summary>
+    /// Gets the aggregate capabilities bitmask for a given type.
+    /// Uses lock-free immutable replacement for atomic and thread-safe updates.
+    /// </summary>
+    /// <param name="type">The entity type to check.</param>
+    /// <returns>A bitmask of <see cref="VKEntityCapability"/> flags.</returns>
+    public static VKEntityCapability GetCapabilities(Type type)
     {
-        if (_capabilityCache.TryGetValue(type, out var capability))
+        VKGuard.NotNull(type);
+
+        if (_capabilityCache.TryGetValue(type, out var caps))
         {
-            return capability;
+            return caps;
         }
+
+        var newCaps = ComputeCapabilities(type);
 
         lock (_syncLock)
         {
-            if (_capabilityCache.TryGetValue(type, out capability))
+            if (!_capabilityCache.ContainsKey(type))
             {
-                return capability;
+                var dictionary = new Dictionary<Type, VKEntityCapability>(_capabilityCache)
+                {
+                    [type] = newCaps
+                };
+                _capabilityCache = dictionary.ToFrozenDictionary();
             }
-
-            var builder = new Dictionary<Type, VKEntityCapability>(_capabilityCache);
-            builder[type] = ComputeCapabilities(type);
-            _capabilityCache = builder.ToFrozenDictionary();
-            return _capabilityCache[type];
         }
+
+        return newCaps;
     }
 
     private static VKEntityCapability ComputeCapabilities(Type t)
     {
         VKEntityCapability cap = VKEntityCapability.None;
 
-        if (typeof(IVKAuditable).IsAssignableFrom(t))
+        if (typeof(IVKCreationAudited).IsAssignableFrom(t))
         {
-            cap |= VKEntityCapability.Auditable;
+            cap |= VKEntityCapability.CreationAudited;
         }
 
-        if (typeof(IVKSoftDelete).IsAssignableFrom(t))
+        if (typeof(IVKModificationAudited).IsAssignableFrom(t))
         {
-            cap |= VKEntityCapability.SoftDelete;
+            cap |= VKEntityCapability.ModificationAudited;
         }
 
-        if (typeof(IVKMultiTenant).IsAssignableFrom(t))
+        if (typeof(IVKSoftDeletable).IsAssignableFrom(t))
+        {
+            cap |= VKEntityCapability.SoftDeletable;
+        }
+
+        if (typeof(IVKDeletionAudited).IsAssignableFrom(t))
+        {
+            cap |= VKEntityCapability.DeletionAudited;
+        }
+
+        if (typeof(IVKTenantScoped).IsAssignableFrom(t))
         {
             cap |= VKEntityCapability.MultiTenant;
-        }
-
-        if (typeof(IVKMultiTenantEntity).IsAssignableFrom(t))
-        {
-            cap |= VKEntityCapability.MultiTenantEntity;
         }
 
         return cap;

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using VK.Blocks.AI;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -41,7 +40,6 @@ public interface IVKPsycheModelFactory
         string name,
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
-        string? directiveId = null,
         IReadOnlyDictionary<string, object>? extensions = null);
 
     /// <summary>
@@ -52,7 +50,6 @@ public interface IVKPsycheModelFactory
         string name,
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
-        string? directiveId = null,
         IReadOnlyDictionary<string, object>? extensions = null);
 
     // --- Directive ---

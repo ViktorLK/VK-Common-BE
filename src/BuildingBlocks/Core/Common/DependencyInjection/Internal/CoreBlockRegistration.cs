@@ -5,7 +5,6 @@ using VK.Blocks.Core.Guids.Internal;
 using VK.Blocks.Core.Identity.Internal;
 using VK.Blocks.Core.Serialization.Internal;
 using VK.Blocks.Core.Synchronization.Internal;
-using VK.Blocks.Core.Tenancy.Internal;
 using VK.Blocks.Core.Utilities;
 
 namespace VK.Blocks.Core.Common.DependencyInjection.Internal;
@@ -31,11 +30,14 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton<IVKJsonSerializer, SystemTextJsonSerializer>();
         services.TryAddSingleton<IVKEnvironmentProvider, VKDefaultEnvironmentProvider>();
         
-        // Identity and Security with AsyncLocal ambient context support and Dynamic Dispatchers
-        services.TryAddSingleton<IVKIdentityContextAccessor, AsyncLocalIdentityContextAccessor>();
+        // Level 1: Tenancy with single-AsyncLocal ambient context support, Dynamic Dispatcher and Narrow Provider
+        services.TryAddSingleton<IVKTenantContextAccessor, AmbientTenantContextAccessor>();
+        services.TryAddSingleton<IVKTenantContext, AmbientTenantContextDispatcher>();
+        services.TryAddTransient<IVKTenantProvider, DefaultIdentityTenantProvider>();
+        
+        // Level 2: Identity with Dynamic Dispatcher
+        services.TryAddSingleton<IVKIdentityContextAccessor, AmbientIdentityContextAccessor>();
         services.TryAddSingleton<IVKIdentityContext, AmbientIdentityContextDispatcher>();
-        services.TryAddSingleton<IVKSecurityContextAccessor, AsyncLocalSecurityContextAccessor>();
-        services.TryAddSingleton<IVKSecurityContext, AmbientSecurityContextDispatcher>();
 
         services.TryAddSingleton<IVKSyncStateStore, VKNoOpSyncStateStore>();
         services.TryAddSingleton<IVKDistributedLockProvider, InProcessMemoryLockProvider>();
