@@ -40,6 +40,7 @@ internal static class FeatureArgsEmitter
 
         var interfaces = " : " + string.Join(", ", interfaceList);
 
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated request-scoped arguments record.\")]");
         sb.AppendLine($"public partial record {argsClassName}{interfaces}");
         sb.AppendLine("{");
         sb.AppendLine($"    public static {argsClassName} Empty {{ get; }} = new();");
@@ -86,6 +87,7 @@ internal static class FeatureArgsEmitter
 
         sb.AppendLine("}");
         sb.AppendLine();
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated request-scoped arguments extensions.\")]");
         sb.AppendLine($"public static partial class {extensionsClassName}");
         sb.AppendLine("{");
         sb.AppendLine($"    public static {target.Options.ClassName} Merge(this {argsClassName}? args, {target.Options.ClassName} options)");

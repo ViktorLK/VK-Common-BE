@@ -39,6 +39,7 @@ internal static class FeatureOptionsProviderEmitter
         sb.AppendLine($"    {target.Options.ClassName} GetOptions({argsName}? args = null);");
         sb.AppendLine("}");
         sb.AppendLine();
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated options provider boilerplate.\")]");
         sb.AppendLine($"internal sealed class {implementationName}(IOptions<{target.Options.ClassName}> options) : {interfaceName}");
         sb.AppendLine("{");
         sb.AppendLine($"    private readonly IOptions<{target.Options.ClassName}> _options = options;");

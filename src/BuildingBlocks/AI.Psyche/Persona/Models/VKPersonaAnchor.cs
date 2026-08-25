@@ -29,12 +29,6 @@ public sealed record VKPersonaAnchor : IVKFragmentMetadata
     public IReadOnlyDictionary<string, string> Traits { get; init; } = new Dictionary<string, string>();
 
     /// <summary>
-    /// Gets the ID of the specific Directive Charter to use for this persona.
-    /// Overrides the system default if specified.
-    /// </summary>
-    public string? DirectiveId { get; init; }
-
-    /// <summary>
     /// Gets custom unstructured properties allowing downstream extensions (e.g. for PWP).
     /// </summary>
     public IReadOnlyDictionary<string, object> Extensions { get; init; } = new Dictionary<string, object>();

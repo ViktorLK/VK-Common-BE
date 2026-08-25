@@ -69,6 +69,7 @@ public sealed class VKEnumExtensionsGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated enum extensions without business logic.\")]");
         sb.AppendLine($"public static partial class {enumName}Extensions");
         sb.AppendLine("{");
 

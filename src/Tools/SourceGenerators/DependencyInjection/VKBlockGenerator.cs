@@ -82,6 +82,13 @@ public sealed class VKBlockGenerator : IIncrementalGenerator
         var classDeclaration = (ClassDeclarationSyntax)context.TargetNode;
         var isPartial = classDeclaration.Modifiers.Any(m => m.Text == "partial");
 
+        // Detect if any persist entities exist in this compilation
+        var hasPersistEntities = context.SemanticModel.Compilation.SyntaxTrees
+            .Any(t => t.GetRoot(ct).DescendantNodes().OfType<ClassDeclarationSyntax>()
+                .Any(cls => cls.AttributeLists
+                    .SelectMany(al => al.Attributes)
+                    .Any(a => a.Name.ToString().Contains("VKPersistEntity"))));
+
         return new BlockTargetInfo(
             Namespace: symbol.ContainingNamespace.ToDisplayString(),
             ClassName: symbol.Name,
@@ -89,6 +96,7 @@ public sealed class VKBlockGenerator : IIncrementalGenerator
             GenerateToggleableMembers: generateToggleableMembers,
             Toggleable: toggleable,
             HasGeneratedFeature: hasGeneratedFeature,
+            HasPersistEntities: hasPersistEntities,
             IsPartial: isPartial,
             Location: classDeclaration.Identifier.GetLocation()
         );

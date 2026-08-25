@@ -6,9 +6,9 @@ namespace VK.Blocks.AI.Engram;
 
 /// <summary>
 /// Structured entity-relation-entity triple extracted from memory blocks.
-/// Implements <see cref="IVKMultiTenant"/> to satisfy tenant isolation (OR.02).
+/// Implements <see cref="IVKTenantScoped"/> to satisfy tenant isolation (OR.02).
 /// </summary>
-public sealed record VKKnowledgeTriple : IVKMultiTenant
+public sealed record VKKnowledgeTriple : IVKTenantScoped
 {
     /// <summary>
     /// Gets the unique identifier for this triple record.

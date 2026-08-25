@@ -61,5 +61,31 @@ public static class VKDiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Enums in VK.Blocks must explicitly declare an underlying type (: byte, : short, : int) to ensure deterministic memory and storage footprint.");
+
+    private const string PersistCategory = $"{VKBlocksConstants.VKBlocksPrefix}.Persistence";
+
+    /// <summary>
+    /// VK2001: Missing AddGeneratedPersistenceRepositories() call.
+    /// </summary>
+    public static readonly DiagnosticDescriptor MissingPersistenceRepositoriesRegistration = new(
+        id: "VK2001",
+        title: "Missing persistence repository registration",
+        messageFormat: "Assembly '{0}' declares [VKPersistEntity] entities but does not call 'services.AddGeneratedPersistenceRepositories()' in DI setup.",
+        category: PersistCategory,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Assemblies declaring [VKPersistEntity] must register generated strongly-typed repositories via services.AddGeneratedPersistenceRepositories().");
+
+    /// <summary>
+    /// VK2002: Missing AddGeneratedModelContributors() call.
+    /// </summary>
+    public static readonly DiagnosticDescriptor MissingModelContributorsRegistration = new(
+        id: "VK2002",
+        title: "Missing model and convention contributor registration",
+        messageFormat: "Assembly '{0}' declares [VKPersistEntity] entities but does not call 'services.AddGeneratedModelContributors()' in DI setup.",
+        category: PersistCategory,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Assemblies declaring [VKPersistEntity] must register model configuration and type conventions via services.AddGeneratedModelContributors().");
 }
 

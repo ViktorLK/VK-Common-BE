@@ -9,5 +9,6 @@ internal sealed record BlockTargetInfo(
     bool GenerateToggleableMembers,
     bool Toggleable,
     bool HasGeneratedFeature,
+    bool HasPersistEntities,
     bool IsPartial,
     Location Location);

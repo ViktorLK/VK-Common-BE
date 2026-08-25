@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
@@ -35,6 +36,8 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
             return VKResult.Success(string.Empty);
         }
 
+        string currentTag = string.IsNullOrWhiteSpace(currentEntry.XmlTag) ? PsycheConstants.XmlTags.Knowledge : currentEntry.XmlTag;
+
         var siblingFragments = context.Fragments
             .Where(f => f.TierType == VKPromptTierType.Knowledge &&
                         (
@@ -51,7 +54,7 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
                             )
                         ) &&
                         f.Metadata is VKKnowledgeEntry siblingEntry &&
-                        siblingEntry.XmlTag == currentEntry.XmlTag)
+                        (string.IsNullOrWhiteSpace(siblingEntry.XmlTag) ? PsycheConstants.XmlTags.Knowledge : siblingEntry.XmlTag) == currentTag)
             .OrderByDescending(f => f.Segment!.DepthPriority)
             .ToList();
 
@@ -72,7 +75,7 @@ internal sealed class DefaultKnowledgeFormatter : IVKPromptFormatter
             Span<char> initialBuffer = stackalloc char[512];
             using var sb = new VKValueStringBuilder(initialBuffer);
             var firstEntry = (VKKnowledgeEntry)firstFragment.Metadata!;
-            string tag = firstEntry.XmlTag;
+            string tag = string.IsNullOrWhiteSpace(firstEntry.XmlTag) ? PsycheConstants.XmlTags.Knowledge : firstEntry.XmlTag;
 
             sb.AppendLine($"<{tag}>");
 
