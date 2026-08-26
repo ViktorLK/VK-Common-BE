@@ -4,8 +4,8 @@ namespace VK.Blocks.Core;
 /// Narrow, read-only projection contract for resolving the current tenant identifier from execution context.
 /// Designed for components that only require <see cref="VKTenantId"/> coordinates without user awareness (e.g. EF Core filters, logging, diagnostics).
 /// <para>
-/// <b>Architecture SSoT Note:</b> This is an ISP projection of <see cref="IVKIdentityContext.TenantId"/>.
-/// Implementations MUST project from <see cref="IVKIdentityContextAccessor"/> or active tenant resolution rather than maintaining a divergent resolution pipeline.
+/// <b>Architecture SSoT Note:</b> This is an ISP projection of <see cref="IVKTenantCoordinate.TenantId"/>.
+/// Implementations MUST project from <see cref="IVKAmbientContextAccessor"/> or active tenant resolution rather than maintaining a divergent resolution pipeline.
 /// </para>
 /// Follows AP.01, CS.01.
 /// </summary>

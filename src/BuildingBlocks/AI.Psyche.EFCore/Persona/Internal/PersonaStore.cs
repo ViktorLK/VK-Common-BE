@@ -13,24 +13,12 @@ namespace VK.Blocks.AI.Psyche.EFCore.Persona.Internal;
 /// EFCore implementation of Psyche's <see cref="IVKPersonaStore"/>.
 /// Focuses purely on AI runtime persona retrieval for the Psyche pipeline.
 /// </summary>
-internal sealed class PersonaStore : IVKPersonaStore
+internal sealed class PersonaStore(
+    IVKEntityReadRepository<VKPsychePersonaEntity> repository,
+    ILogger<PersonaStore> logger) : IVKPersonaStore
 {
-    private readonly IVKReadRepository<VKPsychePersonaEntity> _repository;
-    private readonly IVKJsonSerializer _serializer;
-    private readonly IVKPsycheModelFactory _modelFactory;
-    private readonly ILogger<PersonaStore> _logger;
-
-    public PersonaStore(
-        IVKReadRepository<VKPsychePersonaEntity> repository,
-        IVKJsonSerializer serializer,
-        IVKPsycheModelFactory modelFactory,
-        ILogger<PersonaStore> logger)
-    {
-        _repository = VKGuard.NotNull(repository);
-        _serializer = VKGuard.NotNull(serializer);
-        _modelFactory = VKGuard.NotNull(modelFactory);
-        _logger = VKGuard.NotNull(logger);
-    }
+    private readonly IVKEntityReadRepository<VKPsychePersonaEntity> _repository = VKGuard.NotNull(repository);
+    private readonly ILogger<PersonaStore> _logger = VKGuard.NotNull(logger);
 
     public async Task<VKResult<IReadOnlyList<VKPersonaAnchor>>> GetPersonasAsync(
         IReadOnlyList<VKPersonaId> personaIds,
@@ -50,7 +38,7 @@ internal sealed class PersonaStore : IVKPersonaStore
                 e => personaIds.Contains(e.Id),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var domainList = entities.Select(MapToDomain).ToList();
+            var domainList = entities.Select(e => e.ToDomain()).ToList();
             return VKResult.Success<IReadOnlyList<VKPersonaAnchor>>(domainList);
         }
         catch (Exception ex)
@@ -58,17 +46,5 @@ internal sealed class PersonaStore : IVKPersonaStore
             _logger.LogGetPersonaError(ex, string.Join(",", personaIds));
             return VKResult.Failure<IReadOnlyList<VKPersonaAnchor>>(VKPersistenceErrors.Database.ExecutionFailed);
         }
-    }
-
-    private VKPersonaAnchor MapToDomain(VKPsychePersonaEntity entity)
-    {
-        var traits = _serializer.DeserializeOrDefault<Dictionary<string, string>>(entity.Traits, []);
-
-        return _modelFactory.CreatePersona(
-            entity.Id,
-            entity.Name,
-            entity.Description ?? string.Empty,
-            traits,
-            entity.DirectiveId?.ToString());
     }
 }

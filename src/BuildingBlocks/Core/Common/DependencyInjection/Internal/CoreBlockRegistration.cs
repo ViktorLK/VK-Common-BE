@@ -2,10 +2,11 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core.Guids.Internal;
-using VK.Blocks.Core.Identity.Internal;
 using VK.Blocks.Core.Serialization.Internal;
 using VK.Blocks.Core.Synchronization.Internal;
 using VK.Blocks.Core.Utilities;
+using VK.Blocks.Core.Context.Internal;
+using VK.Blocks.Core.Tenancy.Internal;
 
 namespace VK.Blocks.Core.Common.DependencyInjection.Internal;
 
@@ -29,15 +30,13 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton<IVKGuidGenerator, SequentialGuidGenerator>();
         services.TryAddSingleton<IVKJsonSerializer, SystemTextJsonSerializer>();
         services.TryAddSingleton<IVKEnvironmentProvider, VKDefaultEnvironmentProvider>();
-        
-        // Level 1: Tenancy with single-AsyncLocal ambient context support, Dynamic Dispatcher and Narrow Provider
-        services.TryAddSingleton<IVKTenantContextAccessor, AmbientTenantContextAccessor>();
-        services.TryAddSingleton<IVKTenantContext, AmbientTenantContextDispatcher>();
-        services.TryAddTransient<IVKTenantProvider, DefaultIdentityTenantProvider>();
-        
-        // Level 2: Identity with Dynamic Dispatcher
-        services.TryAddSingleton<IVKIdentityContextAccessor, AmbientIdentityContextAccessor>();
-        services.TryAddSingleton<IVKIdentityContext, AmbientIdentityContextDispatcher>();
+
+        // Ambient Execution Coordinates & Unified Accessor
+        services.TryAddSingleton<AmbientContextAccessor>();
+        services.TryAddSingleton<IVKAmbientContextAccessor>(sp => sp.GetRequiredService<AmbientContextAccessor>());
+        services.TryAddSingleton<IVKTenantCoordinate>(sp => sp.GetRequiredService<AmbientContextAccessor>());
+        services.TryAddSingleton<IVKUserCoordinate>(sp => sp.GetRequiredService<AmbientContextAccessor>());
+        services.TryAddSingleton<IVKTenantProvider, DefaultIdentityTenantProvider>();
 
         services.TryAddSingleton<IVKSyncStateStore, VKNoOpSyncStateStore>();
         services.TryAddSingleton<IVKDistributedLockProvider, InProcessMemoryLockProvider>();

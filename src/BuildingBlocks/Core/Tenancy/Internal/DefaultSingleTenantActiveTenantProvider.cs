@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VK.Blocks.Core.Identity.Internal;
+namespace VK.Blocks.Core.Tenancy.Internal;
 
 /// <summary>
 /// Default single-tenant fallback implementation for <see cref="IVKActiveTenantProvider"/>.
