@@ -14,7 +14,7 @@ public sealed class VKPsycheProfileEntity : IVKTenantScoped, IVKAuditable
 {
     /// <inheritdoc />
     [VKPersistIndex]
-    public VKTenantId? TenantId { get; set; }
+    public VKTenantId TenantId { get; set; }
 
     /// <summary>
     /// Gets or sets the unique strongly-typed profile identifier (typically 1-to-1 with VKUserId).
@@ -43,7 +43,7 @@ public sealed class VKPsycheProfileEntity : IVKTenantScoped, IVKAuditable
     /// <summary>
     /// Gets or sets arbitrary key-value user preference settings for prompt personalizations.
     /// </summary>
-    [VKPersistColumn(TypeName = "jsonb")]
+    [VKPersistJson(MaxLength = 4000)]
     public IReadOnlyDictionary<string, string> Preferences { get; set; } = new Dictionary<string, string>();
 
     /// <inheritdoc />

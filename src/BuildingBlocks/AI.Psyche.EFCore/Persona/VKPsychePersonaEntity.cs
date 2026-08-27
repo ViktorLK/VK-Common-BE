@@ -14,7 +14,7 @@ public sealed class VKPsychePersonaEntity : IVKTenantScoped, IVKFullAuditable
 {
     /// <inheritdoc />
     [VKPersistIndex(Group = "Tenant_Name", Order = 1)]
-    public VKTenantId? TenantId { get; set; }
+    public VKTenantId TenantId { get; set; }
 
     /// <summary>
     /// Gets or sets the unique strongly-typed persona identifier.
@@ -39,17 +39,16 @@ public sealed class VKPsychePersonaEntity : IVKTenantScoped, IVKFullAuditable
     /// <summary>
     /// Gets or sets the persona personality traits and behavioral nuances.
     /// </summary>
-    [VKPersistColumn(TypeName = "jsonb")]
+    [VKPersistJson(MaxLength = 4000)]
     public IReadOnlyDictionary<string, string> Traits { get; set; } = new Dictionary<string, string>();
 
     /// <summary>
     /// Gets or sets arbitrary JSON metadata extensions for runtime customization.
     /// </summary>
-    [VKPersistColumn(TypeName = "jsonb")]
+    [VKPersistJson(MaxLength = 8000)]
     public IReadOnlyDictionary<string, object> Extensions { get; set; } = new Dictionary<string, object>();
 
     /// <inheritdoc />
-    [VKPersistIndex]
     public bool IsDeleted { get; set; }
 
     /// <inheritdoc />

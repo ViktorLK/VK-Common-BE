@@ -20,7 +20,7 @@ internal sealed class BasicAgent : IVKAgent
     private readonly IVKChatEngine _chatEngine;
     private readonly VKAgentsOptions _options;
     private readonly VKAIOptions _globalOptions;
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly ILogger<BasicAgent> _logger;
     private readonly IReadOnlyList<IVKAtomicToolFilter> _filters;
 
@@ -33,7 +33,7 @@ internal sealed class BasicAgent : IVKAgent
         IVKChatEngine chatEngine,
         IOptions<VKAgentsOptions> options,
         IOptions<VKAIOptions> globalOptions,
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         ILogger<BasicAgent> logger,
         IEnumerable<IVKAtomicToolFilter>? filters = null)
     {
@@ -45,7 +45,7 @@ internal sealed class BasicAgent : IVKAgent
         _chatEngine = VKGuard.NotNull(chatEngine);
         _options = VKGuard.NotNull(options?.Value);
         _globalOptions = VKGuard.NotNull(globalOptions?.Value);
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _logger = VKGuard.NotNull(logger);
         _filters = filters?.ToList() ?? [];
     }
@@ -77,7 +77,7 @@ internal sealed class BasicAgent : IVKAgent
 
         using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.AgentExecution);
         var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
-        var tenantId = _identityContext.TenantId.ToString();
+        var tenantId = _tenantCoordinate.TenantId.ToString();
 
         var sw = Stopwatch.StartNew();
         bool isSuccess = false;

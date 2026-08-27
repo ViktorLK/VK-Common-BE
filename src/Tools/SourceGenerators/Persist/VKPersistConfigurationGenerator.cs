@@ -176,7 +176,26 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
                 }
             }
 
-            if (maxLength.HasValue || isRequired || typeName is not null || precision.HasValue || scale.HasValue || collation is not null || customColumnName is not null || converterTypeName is not null)
+            // 5.5 VKPersistJson
+            bool isJson = false;
+            string? jsonTypeFullName = null;
+            var jsonAttr = propAttrs.FirstOrDefault(a => a.AttributeClass?.Name is "VKPersistJsonAttribute" or "VKPersistJson");
+            if (jsonAttr is not null)
+            {
+                isJson = true;
+                jsonTypeFullName = prop.Type.ToDisplayString();
+                foreach (var na in jsonAttr.NamedArguments)
+                {
+                    if (string.Equals(na.Key, "MaxLength", StringComparison.OrdinalIgnoreCase) && na.Value.Value is int ml && ml > 0)
+                        maxLength = ml;
+                }
+                if (!maxLength.HasValue)
+                {
+                    maxLength = 4000;
+                }
+            }
+
+            if (maxLength.HasValue || isRequired || typeName is not null || precision.HasValue || scale.HasValue || collation is not null || customColumnName is not null || converterTypeName is not null || isJson)
             {
                 columnConfigs.Add(new ColumnPropertyInfo(
                     PropertyName: prop.Name,
@@ -187,7 +206,9 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
                     Scale: scale,
                     Collation: collation,
                     CustomColumnName: customColumnName,
-                    ConverterTypeName: converterTypeName
+                    ConverterTypeName: converterTypeName,
+                    IsJson: isJson,
+                    JsonTypeFullName: jsonTypeFullName
                 ));
             }
 
@@ -221,6 +242,8 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
             }
         }
 
+        bool hasSoftDelete = properties.Any(p => string.Equals(p.Name, "IsDeleted", StringComparison.OrdinalIgnoreCase));
+
         return new EntityConfigInfo(
             Namespace: entitySymbol.ContainingNamespace.ToDisplayString(),
             EntityName: entitySymbol.Name,
@@ -230,7 +253,8 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
             KeyProperties: keyProps.OrderBy(k => k.Order).Select(k => k.Name).Distinct().ToList(),
             Columns: columnConfigs,
             Indices: indexConfigs,
-            IgnoredProperties: ignoredProps
+            IgnoredProperties: ignoredProps,
+            HasSoftDelete: hasSoftDelete
         );
     }
 
@@ -285,6 +309,21 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
         // 4. Column constraints
         foreach (var col in info.Columns)
         {
+            if (col.IsJson && !string.IsNullOrWhiteSpace(col.JsonTypeFullName))
+            {
+                var convVar = $"jsonConverter_{col.PropertyName}";
+                var compVar = $"jsonComparer_{col.PropertyName}";
+                sb.AppendLine($"        var {convVar} = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<{col.JsonTypeFullName}, string>(");
+                sb.AppendLine($"            v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),");
+                sb.AppendLine($"            v => string.IsNullOrWhiteSpace(v) ? default! : (System.Text.Json.JsonSerializer.Deserialize<{col.JsonTypeFullName}>(v, (System.Text.Json.JsonSerializerOptions?)null)!));");
+                sb.AppendLine();
+                sb.AppendLine($"        var {compVar} = new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<{col.JsonTypeFullName}>(");
+                sb.AppendLine($"            (c1, c2) => System.Text.Json.JsonSerializer.Serialize(c1, (System.Text.Json.JsonSerializerOptions?)null) == System.Text.Json.JsonSerializer.Serialize(c2, (System.Text.Json.JsonSerializerOptions?)null),");
+                sb.AppendLine($"            c => c == null ? 0 : System.Text.Json.JsonSerializer.Serialize(c, (System.Text.Json.JsonSerializerOptions?)null).GetHashCode(),");
+                sb.AppendLine($"            c => c == null ? default! : System.Text.Json.JsonSerializer.Deserialize<{col.JsonTypeFullName}>(System.Text.Json.JsonSerializer.Serialize(c, (System.Text.Json.JsonSerializerOptions?)null), (System.Text.Json.JsonSerializerOptions?)null)!);");
+                sb.AppendLine();
+            }
+
             var propChain = new StringBuilder();
             propChain.Append($"        builder.Property(e => e.{col.PropertyName})");
 
@@ -296,32 +335,47 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
             {
                 propChain.Append($".HasColumnType(\"{col.TypeName}\")");
             }
-            if (col.MaxLength.HasValue && col.MaxLength.Value > 0)
+
+            if (col.IsJson && !string.IsNullOrWhiteSpace(col.JsonTypeFullName))
             {
-                propChain.Append($".HasMaxLength({col.MaxLength.Value})");
-            }
-            if (col.IsRequired)
-            {
-                propChain.Append(".IsRequired()");
-            }
-            if (col.Precision.HasValue && col.Precision.Value > 0)
-            {
-                if (col.Scale.HasValue && col.Scale.Value >= 0)
+                var convVar = $"jsonConverter_{col.PropertyName}";
+                var compVar = $"jsonComparer_{col.PropertyName}";
+                propChain.Append($".HasConversion({convVar})");
+                if (col.MaxLength.HasValue && col.MaxLength.Value > 0)
                 {
-                    propChain.Append($".HasPrecision({col.Precision.Value}, {col.Scale.Value})");
+                    propChain.Append($".HasMaxLength({col.MaxLength.Value})");
                 }
-                else
+                propChain.Append($".Metadata.SetValueComparer({compVar})");
+            }
+            else
+            {
+                if (col.MaxLength.HasValue && col.MaxLength.Value > 0)
                 {
-                    propChain.Append($".HasPrecision({col.Precision.Value})");
+                    propChain.Append($".HasMaxLength({col.MaxLength.Value})");
                 }
-            }
-            if (!string.IsNullOrWhiteSpace(col.Collation))
-            {
-                propChain.Append($".UseCollation(\"{col.Collation}\")");
-            }
-            if (!string.IsNullOrWhiteSpace(col.ConverterTypeName))
-            {
-                propChain.Append($".HasConversion<{col.ConverterTypeName}>()");
+                if (col.IsRequired)
+                {
+                    propChain.Append(".IsRequired()");
+                }
+                if (col.Precision.HasValue && col.Precision.Value > 0)
+                {
+                    if (col.Scale.HasValue && col.Scale.Value >= 0)
+                    {
+                        propChain.Append($".HasPrecision({col.Precision.Value}, {col.Scale.Value})");
+                    }
+                    else
+                    {
+                        propChain.Append($".HasPrecision({col.Precision.Value})");
+                    }
+                }
+                if (!string.IsNullOrWhiteSpace(col.Collation))
+                {
+                    propChain.Append($".UseCollation(\"{col.Collation}\")");
+                }
+                if (!string.IsNullOrWhiteSpace(col.ConverterTypeName))
+                {
+                    propChain.Append($".HasConversion<{col.ConverterTypeName}>()");
+                }
             }
 
             propChain.Append(";");
@@ -338,6 +392,10 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
             if (idx.IsUnique)
             {
                 idxCall.Append(".IsUnique()");
+                if (info.HasSoftDelete)
+                {
+                    idxCall.Append(".HasFilter(\"[IsDeleted] = 0\")");
+                }
             }
             idxCall.Append($".HasDatabaseName(\"{idxName}\");");
             sb.AppendLine(idxCall.ToString());
@@ -360,6 +418,10 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
             if (isUnique)
             {
                 idxCall.Append(".IsUnique()");
+                if (info.HasSoftDelete)
+                {
+                    idxCall.Append(".HasFilter(\"[IsDeleted] = 0\")");
+                }
             }
             idxCall.Append($".HasDatabaseName(\"{explicitName}\");");
             sb.AppendLine(idxCall.ToString());
@@ -385,7 +447,8 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
         List<string> KeyProperties,
         List<ColumnPropertyInfo> Columns,
         List<IndexPropertyInfo> Indices,
-        List<string> IgnoredProperties
+        List<string> IgnoredProperties,
+        bool HasSoftDelete
     );
 
     private record ColumnPropertyInfo(
@@ -397,7 +460,9 @@ public sealed class VKPersistConfigurationGenerator : IIncrementalGenerator
         int? Scale,
         string? Collation,
         string? CustomColumnName,
-        string? ConverterTypeName
+        string? ConverterTypeName,
+        bool IsJson = false,
+        string? JsonTypeFullName = null
     );
 
     private record IndexPropertyInfo(

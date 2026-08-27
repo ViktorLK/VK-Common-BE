@@ -18,17 +18,17 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
 {
     private readonly ConcurrentDictionary<VKMemoryId, VKMemoryEntry> _store = new();
     private readonly IVKTokenCounter _tokenCounter;
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly ILogger<InMemoryMemoryStore> _logger;
 
     public InMemoryMemoryStore(
         IVKTokenCounter tokenCounter,
         ILogger<InMemoryMemoryStore> logger,
-        IVKIdentityContext identityContext)
+        IVKTenantCoordinate tenantCoordinate)
     {
         _tokenCounter = VKGuard.NotNull(tokenCounter);
         _logger = VKGuard.NotNull(logger);
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
     }
 
     public Task<VKResult> UpsertAsync(
@@ -40,7 +40,7 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
 
         if (entry.TenantId is null)
         {
-            entry = entry with { TenantId = _identityContext.TenantId };
+            entry = entry with { TenantId = _tenantCoordinate.TenantId };
         }
 
         if (entry.Category == VKMemoryCategory.ShortTerm && !entry.Metadata.ContainsKey("TokenCount"))
@@ -86,7 +86,7 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
 
         if (_store.TryGetValue(id, out var entry))
         {
-            var currentTenantId = _identityContext.TenantId;
+            var currentTenantId = _tenantCoordinate.TenantId;
             if (entry.TenantId != null && entry.TenantId != currentTenantId)
             {
                 return Task.FromResult(VKResult.Success<VKMemoryEntry?>(null));
@@ -104,7 +104,7 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
         cancellationToken.ThrowIfCancellationRequested();
         VKGuard.NotNull(ids);
 
-        var currentTenantId = _identityContext.TenantId;
+        var currentTenantId = _tenantCoordinate.TenantId;
         var idSet = ids.ToHashSet();
 
         var result = _store.Values
@@ -122,7 +122,7 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
         cancellationToken.ThrowIfCancellationRequested();
         VKGuard.NotNull(query);
 
-        var targetTenantId = query.TenantId ?? _identityContext.TenantId;
+        var targetTenantId = query.TenantId ?? _tenantCoordinate.TenantId;
 
         var entries = _store.Values
             .Where(m => m.TenantId is null || m.TenantId == targetTenantId)
@@ -143,7 +143,7 @@ internal sealed class InMemoryMemoryStore : IVKMemoryStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var targetTenant = tenantId ?? _identityContext?.TenantId;
+        var targetTenant = tenantId ?? _tenantCoordinate?.TenantId;
 
         if (_store.TryGetValue(id, out var entry))
         {

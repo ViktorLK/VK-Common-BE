@@ -13,7 +13,7 @@ public sealed class VKPsycheSessionEntity : IVKTenantScoped, IVKAuditable
 {
     /// <inheritdoc />
     [VKPersistIndex]
-    public VKTenantId? TenantId { get; set; }
+    public VKTenantId TenantId { get; set; }
 
     /// <summary>
     /// Gets or sets the unique strongly-typed session identifier.
@@ -56,7 +56,7 @@ public sealed class VKPsycheSessionEntity : IVKTenantScoped, IVKAuditable
     /// <summary>
     /// Gets or sets the dynamic knowledge activation state and token tracking.
     /// </summary>
-    [VKPersistColumn(TypeName = "jsonb")]
+    [VKPersistJson(MaxLength = 8000)]
     public VKSessionKnowledgeState KnowledgeState { get; set; } = new();
 
     /// <inheritdoc />

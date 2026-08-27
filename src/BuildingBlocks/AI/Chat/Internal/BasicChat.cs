@@ -20,20 +20,20 @@ internal sealed partial class BasicChat : IVKChat
     private readonly IVKChatEngine _engine;
     private readonly VKChatOptions _options;
     private readonly VKAIOptions _globalOptions;
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly ILogger<BasicChat> _logger;
 
     public BasicChat(
         IVKChatEngine engine,
         IOptions<VKChatOptions> options,
         IOptions<VKAIOptions> globalOptions,
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         ILogger<BasicChat> logger)
     {
         _engine = VKGuard.NotNull(engine);
         _options = VKGuard.NotNull(options?.Value);
         _globalOptions = VKGuard.NotNull(globalOptions?.Value);
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _logger = VKGuard.NotNull(logger);
     }
 
@@ -48,7 +48,7 @@ internal sealed partial class BasicChat : IVKChat
 
         using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.ChatRequest);
         var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
-        var tenantId = _identityContext.TenantId.ToString();
+        var tenantId = _tenantCoordinate.TenantId.ToString();
 
         var sw = Stopwatch.StartNew();
         bool isSuccess = false;
@@ -115,7 +115,7 @@ internal sealed partial class BasicChat : IVKChat
 
         using var activity = AiDiagnostics.Source.StartActivity(VKAIDiagnosticsConstants.Tracing.ChatRequest);
         var traceId = activity?.TraceId.ToString() ?? Activity.Current?.TraceId.ToString() ?? "none";
-        var tenantId = _identityContext.TenantId.ToString();
+        var tenantId = _tenantCoordinate.TenantId.ToString();
 
         if (_logger.IsEnabled(LogLevel.Information))
         {

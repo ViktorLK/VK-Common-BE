@@ -39,6 +39,7 @@ internal static class CoreBlockRegistration
         services.TryAddSingleton<IVKTenantProvider, DefaultIdentityTenantProvider>();
 
         services.TryAddSingleton<IVKSyncStateStore, VKNoOpSyncStateStore>();
+        services.TryAddSingleton<IVKEventDispatcher, VK.Blocks.Core.Domain.Internal.NoOpEventDispatcher>();
         services.TryAddSingleton<IVKDistributedLockProvider, InProcessMemoryLockProvider>();
         services.TryAddSingleton<IVKActiveTenantProvider, DefaultSingleTenantActiveTenantProvider>();
 
