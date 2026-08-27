@@ -18,7 +18,7 @@ namespace VK.Blocks.AI.Engram.Structured.Internal;
 internal sealed class InMemoryStructuredMemoryStore : IVKStructuredMemoryStore
 {
     private readonly ConcurrentDictionary<string, VKStructuredFact> _facts = new();
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly IVKFactSensitivityPolicy _sensitivityPolicy;
     private readonly IVKFactCapacityPolicy _capacityPolicy;
     private readonly TimeProvider _timeProvider;
@@ -27,14 +27,14 @@ internal sealed class InMemoryStructuredMemoryStore : IVKStructuredMemoryStore
 
     public InMemoryStructuredMemoryStore(
         ILogger<InMemoryStructuredMemoryStore> logger,
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         VKStructuredOptions? options = null,
         IVKFactSensitivityPolicy? sensitivityPolicy = null,
         IVKFactCapacityPolicy? capacityPolicy = null,
         TimeProvider? timeProvider = null)
     {
         _logger = VKGuard.NotNull(logger);
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _options = options ?? new VKStructuredOptions();
         _sensitivityPolicy = sensitivityPolicy ?? new DefaultFactSensitivityPolicy();
         _capacityPolicy = capacityPolicy ?? new DefaultFactCapacityPolicy(_options);
@@ -65,7 +65,7 @@ internal sealed class InMemoryStructuredMemoryStore : IVKStructuredMemoryStore
             }
         }
 
-        var currentTenantId = _identityContext.TenantId;
+        var currentTenantId = _tenantCoordinate.TenantId;
         var scopedKey = BuildScopedKey(key, currentTenantId);
         var now = _timeProvider.GetUtcNow();
 
@@ -118,7 +118,7 @@ internal sealed class InMemoryStructuredMemoryStore : IVKStructuredMemoryStore
         cancellationToken.ThrowIfCancellationRequested();
         VKGuard.NotNullOrWhiteSpace(key);
 
-        var currentTenantId = _identityContext.TenantId;
+        var currentTenantId = _tenantCoordinate.TenantId;
         var scopedKey = BuildScopedKey(key, currentTenantId);
 
         if (_facts.TryGetValue(scopedKey, out var fact))
@@ -147,7 +147,7 @@ internal sealed class InMemoryStructuredMemoryStore : IVKStructuredMemoryStore
         cancellationToken.ThrowIfCancellationRequested();
         VKGuard.NotNullOrWhiteSpace(key);
 
-        var currentTenantId = _identityContext.TenantId;
+        var currentTenantId = _tenantCoordinate.TenantId;
         var scopedKey = BuildScopedKey(key, currentTenantId);
 
         bool exists = _facts.ContainsKey(scopedKey);
@@ -159,7 +159,7 @@ internal sealed class InMemoryStructuredMemoryStore : IVKStructuredMemoryStore
         cancellationToken.ThrowIfCancellationRequested();
         VKGuard.NotNullOrWhiteSpace(key);
 
-        var currentTenantId = _identityContext.TenantId;
+        var currentTenantId = _tenantCoordinate.TenantId;
         var scopedKey = BuildScopedKey(key, currentTenantId);
 
         if (_facts.TryRemove(scopedKey, out _))
@@ -174,7 +174,7 @@ internal sealed class InMemoryStructuredMemoryStore : IVKStructuredMemoryStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var currentTenantId = _identityContext.TenantId;
+        var currentTenantId = _tenantCoordinate.TenantId;
         var tenantPrefix = $"{currentTenantId.Value}:";
         var targetPrefix = string.IsNullOrWhiteSpace(prefix) ? tenantPrefix : $"{tenantPrefix}{prefix}";
 
@@ -197,7 +197,7 @@ internal sealed class InMemoryStructuredMemoryStore : IVKStructuredMemoryStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var currentTenantId = _identityContext.TenantId;
+        var currentTenantId = _tenantCoordinate.TenantId;
 
         var keys = _facts.Values
             .Where(f => f.TenantId == currentTenantId)

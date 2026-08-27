@@ -13,21 +13,12 @@ namespace VK.Blocks.AI.Psyche.EFCore.Pattern.Internal;
 /// EFCore implementation of Psyche's <see cref="IVKPatternStore"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class PatternStore : IVKPatternStore
+internal sealed class PatternStore(
+    IVKEntityReadRepository<VKPsychePatternEntity> repository,
+    ILogger<PatternStore> logger) : IVKPatternStore
 {
-    private readonly IVKReadRepository<VKPsychePatternEntity> _repository;
-    private readonly IVKPsycheModelFactory _modelFactory;
-    private readonly ILogger<PatternStore> _logger;
-
-    public PatternStore(
-        IVKReadRepository<VKPsychePatternEntity> repository,
-        IVKPsycheModelFactory modelFactory,
-        ILogger<PatternStore> logger)
-    {
-        _repository = VKGuard.NotNull(repository);
-        _modelFactory = VKGuard.NotNull(modelFactory);
-        _logger = VKGuard.NotNull(logger);
-    }
+    private readonly IVKEntityReadRepository<VKPsychePatternEntity> _repository = VKGuard.NotNull(repository);
+    private readonly ILogger<PatternStore> _logger = VKGuard.NotNull(logger);
 
     public async Task<VKResult<IReadOnlyList<VKPatternEntry>>> GetPatternsAsync(
         IReadOnlyList<VKPatternId> patternIds,
@@ -47,7 +38,7 @@ internal sealed class PatternStore : IVKPatternStore
                 e => patternIds.Contains(e.Id),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var domainList = entities.Select(MapToDomain).ToList();
+            var domainList = entities.Select(e => e.ToDomain()).ToList();
             return VKResult.Success<IReadOnlyList<VKPatternEntry>>(domainList);
         }
         catch (Exception ex)
@@ -55,19 +46,5 @@ internal sealed class PatternStore : IVKPatternStore
             _logger.LogGetPatternsStoreError(ex, string.Join(",", patternIds));
             return VKResult.Failure<IReadOnlyList<VKPatternEntry>>(VKPersistenceErrors.Database.ExecutionFailed);
         }
-    }
-
-    private VKPatternEntry MapToDomain(VKPsychePatternEntity entity)
-    {
-        var segment = _modelFactory.CreateSegment(
-            entity.Content,
-            entity.Name,
-            entity.IsEnabled,
-            entity.Role,
-            entity.AbsoluteDepth,
-            entity.RelativeDepth,
-            entity.DepthPriority);
-
-        return _modelFactory.CreatePattern(entity.Id, segment);
     }
 }

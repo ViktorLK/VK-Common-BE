@@ -11,27 +11,14 @@ namespace VK.Blocks.AI.Psyche.EFCore.Session.Internal;
 /// EFCore implementation of Psyche's <see cref="IVKSessionStore"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class SessionStore : IVKSessionStore
+internal sealed class SessionStore(
+    IVKEntityRepository<VKPsycheSessionEntity> sessionRepository,
+    IVKUnitOfWork unitOfWork,
+    ILogger<SessionStore> logger) : IVKSessionStore
 {
-    private readonly IVKBaseRepository<VKPsycheSessionEntity> _sessionRepository;
-    private readonly IVKUnitOfWork _unitOfWork;
-    private readonly IVKPsycheModelFactory _modelFactory;
-    private readonly IVKJsonSerializer _jsonSerializer;
-    private readonly ILogger<SessionStore> _logger;
-
-    public SessionStore(
-        IVKBaseRepository<VKPsycheSessionEntity> sessionRepository,
-        IVKUnitOfWork unitOfWork,
-        IVKPsycheModelFactory modelFactory,
-        IVKJsonSerializer jsonSerializer,
-        ILogger<SessionStore> logger)
-    {
-        _sessionRepository = VKGuard.NotNull(sessionRepository);
-        _unitOfWork = VKGuard.NotNull(unitOfWork);
-        _modelFactory = VKGuard.NotNull(modelFactory);
-        _jsonSerializer = VKGuard.NotNull(jsonSerializer);
-        _logger = VKGuard.NotNull(logger);
-    }
+    private readonly IVKEntityRepository<VKPsycheSessionEntity> _sessionRepository = VKGuard.NotNull(sessionRepository);
+    private readonly IVKUnitOfWork _unitOfWork = VKGuard.NotNull(unitOfWork);
+    private readonly ILogger<SessionStore> _logger = VKGuard.NotNull(logger);
 
     public async Task<VKResult<VKSessionThread?>> GetSessionAsync(
         VKSessionId sessionId,
@@ -49,12 +36,7 @@ internal sealed class SessionStore : IVKSessionStore
                 e => e.Id == sessionId,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            if (entity is null)
-            {
-                return VKResult.Success<VKSessionThread?>(null);
-            }
-
-            return VKResult.Success<VKSessionThread?>(MapToDomain(entity));
+            return VKResult.Success(entity?.ToDomain());
         }
         catch (Exception ex)
         {
@@ -81,15 +63,7 @@ internal sealed class SessionStore : IVKSessionStore
                 return VKResult.Failure(VKPersistenceErrors.Repository.EntityNotFound);
             }
 
-            existing.Mode = session.Mode;
-            existing.ParentSessionId = session.ParentSessionId;
-            existing.ForkSourceSessionId = session.ForkSourceSessionId;
-            existing.ForkPointRef = session.ForkPointRef;
-            existing.Status = session.Status;
-            existing.TurnCount = session.TurnCount;
-            existing.UpdatedAt = session.UpdatedAt;
-            existing.LastActivityAt = session.LastActivityAt;
-            existing.KnowledgeStateJson = _jsonSerializer.Serialize(session.KnowledgeState);
+            session.MapOnto(existing);
 
             await _sessionRepository.UpdateAsync(existing, cancellationToken: cancellationToken).ConfigureAwait(false);
             await _unitOfWork.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -100,22 +74,5 @@ internal sealed class SessionStore : IVKSessionStore
             _logger.LogSaveSessionError(ex, session.Id.ToString());
             return VKResult.Failure(VKPersistenceErrors.Database.ExecutionFailed);
         }
-    }
-
-    private VKSessionThread MapToDomain(VKPsycheSessionEntity entity)
-    {
-        return _modelFactory.CreateSession(
-            entity.Id,
-            entity.Mode,
-            entity.ParentSessionId,
-            entity.ForkSourceSessionId,
-            entity.ForkPointRef,
-            entity.Status,
-            entity.TurnCount,
-            entity.CreatedAt,
-            entity.UpdatedAt,
-            entity.LastActivityAt,
-            entity.ToKnowledgeState(_jsonSerializer)
-        );
     }
 }

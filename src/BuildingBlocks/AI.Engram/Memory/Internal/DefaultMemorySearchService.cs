@@ -19,7 +19,7 @@ namespace VK.Blocks.AI.Engram.Memory.Internal;
 internal sealed class DefaultMemorySearchService : IVKMemorySearchService
 {
     private readonly IVKMemoryStore _memoryStore;
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly IVKGuidGenerator _guidGenerator;
     private readonly TimeProvider _timeProvider;
     private readonly VKMemoryOptions _options;
@@ -29,7 +29,7 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
 
     public DefaultMemorySearchService(
         IVKMemoryStore memoryStore,
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         IVKGuidGenerator guidGenerator,
         TimeProvider timeProvider,
         Microsoft.Extensions.Options.IOptions<VKMemoryOptions> options,
@@ -38,7 +38,7 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
         IVKEmbeddingsEngine? embeddingsEngine = null)
     {
         _memoryStore = VKGuard.NotNull(memoryStore);
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
         _timeProvider = VKGuard.NotNull(timeProvider);
         _options = VKGuard.NotNull(options?.Value);
@@ -61,7 +61,7 @@ internal sealed class DefaultMemorySearchService : IVKMemorySearchService
 
         var effectiveTopK = query.TopK > 0 ? query.TopK : (_options.DefaultTopK ?? 5);
         var effectiveMinScore = query.MinScore > 0f ? query.MinScore : (_options.DefaultMinScore ?? 0.7f);
-        var targetTenantId = query.TenantId ?? _identityContext.TenantId;
+        var targetTenantId = query.TenantId ?? _tenantCoordinate.TenantId;
 
         // If a semantic query is present and vector search capabilities are registered, perform real embedding + vector search
         if (!string.IsNullOrWhiteSpace(query.SemanticQuery) &&

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -12,24 +11,12 @@ namespace VK.Blocks.AI.Psyche.EFCore.Profile.Internal;
 /// EFCore implementation of Psyche's <see cref="IVKProfileStore"/>.
 /// Focuses purely on AI runtime profile retrieval for the Psyche pipeline.
 /// </summary>
-internal sealed class ProfileStore : IVKProfileStore
+internal sealed class ProfileStore(
+    IVKEntityReadRepository<VKPsycheProfileEntity> repository,
+    ILogger<ProfileStore> logger) : IVKProfileStore
 {
-    private readonly IVKReadRepository<VKPsycheProfileEntity> _repository;
-    private readonly IVKJsonSerializer _serializer;
-    private readonly IVKPsycheModelFactory _modelFactory;
-    private readonly ILogger<ProfileStore> _logger;
-
-    public ProfileStore(
-        IVKReadRepository<VKPsycheProfileEntity> repository,
-        IVKJsonSerializer serializer,
-        IVKPsycheModelFactory modelFactory,
-        ILogger<ProfileStore> logger)
-    {
-        _repository = VKGuard.NotNull(repository);
-        _serializer = VKGuard.NotNull(serializer);
-        _modelFactory = VKGuard.NotNull(modelFactory);
-        _logger = VKGuard.NotNull(logger);
-    }
+    private readonly IVKEntityReadRepository<VKPsycheProfileEntity> _repository = VKGuard.NotNull(repository);
+    private readonly ILogger<ProfileStore> _logger = VKGuard.NotNull(logger);
 
     public async Task<VKResult<VKProfilePresence?>> GetProfileAsync(
         VKProfileId profileId,
@@ -47,31 +34,12 @@ internal sealed class ProfileStore : IVKProfileStore
                 e => e.Id == profileId,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            if (entity is null)
-            {
-                return VKResult.Success<VKProfilePresence?>(null);
-            }
-
-            return VKResult.Success<VKProfilePresence?>(MapToDomain(entity));
+            return VKResult.Success(entity?.ToDomain());
         }
         catch (Exception ex)
         {
             _logger.LogGetProfileError(ex, profileId.ToString());
             return VKResult.Failure<VKProfilePresence?>(VKPersistenceErrors.Database.ExecutionFailed);
         }
-    }
-
-    private VKProfilePresence MapToDomain(VKPsycheProfileEntity entity)
-    {
-        var prefs = !string.IsNullOrWhiteSpace(entity.PreferencesJson)
-            ? _serializer.DeserializeOrDefault<Dictionary<string, string>>(entity.PreferencesJson, [])
-            : null;
-
-        return _modelFactory.CreateProfile(
-            entity.Id,
-            entity.DisplayName,
-            entity.PreferredLanguage,
-            entity.TimeZone,
-            prefs);
     }
 }

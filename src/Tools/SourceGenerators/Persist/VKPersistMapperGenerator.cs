@@ -266,10 +266,6 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
                 {
                     sb.AppendLine($"            Id = domain.Id,");
                 }
-                else if (entityProp.Type.ToDisplayString() == "System.Guid")
-                {
-                    sb.AppendLine($"            Id = Guid.NewGuid(),");
-                }
                 continue;
             }
 
@@ -294,23 +290,19 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
 
                         foreach (var ecp in entChildProps)
                         {
-                            if (string.Equals(ecp.Name, "Id", StringComparison.OrdinalIgnoreCase))
+                            var matchingChildDomainProp = domChildProps.FirstOrDefault(p => string.Equals(p.Name, ecp.Name, StringComparison.OrdinalIgnoreCase));
+                            if (matchingChildDomainProp is not null)
                             {
-                                sb.AppendLine($"                    Id = Guid.NewGuid(),");
+                                sb.AppendLine($"                    {ecp.Name} = child.{matchingChildDomainProp.Name},");
                                 continue;
                             }
+
                             if (string.Equals(ecp.Name, $"{info.EntityType.Name.Replace("Entity", "")}Id", StringComparison.OrdinalIgnoreCase) ||
                                 string.Equals(ecp.Name, $"{info.DomainType.Name.Replace("Entry", "").Replace("Aggregate", "")}Id", StringComparison.OrdinalIgnoreCase) ||
                                 (ecp.Name.EndsWith("Id") && !ecp.Name.StartsWith("Tenant")))
                             {
                                 sb.AppendLine($"                    {ecp.Name} = domain.Id,");
                                 continue;
-                            }
-
-                            var matchingChildDomainProp = domChildProps.FirstOrDefault(p => string.Equals(p.Name, ecp.Name, StringComparison.OrdinalIgnoreCase));
-                            if (matchingChildDomainProp is not null)
-                            {
-                                sb.AppendLine($"                    {ecp.Name} = child.{matchingChildDomainProp.Name},");
                             }
                         }
                         sb.AppendLine("                }).ToList(),");
@@ -421,6 +413,38 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             return $"({targetType.ToDisplayString()})entity.{entityProp.Name}";
         }
 
+        // Single-Value Object: check if targetType has [VKValueObject] or has Create(entityProp.Type)
+        if (targetType is INamedTypeSymbol namedTargetType)
+        {
+            var isVo = namedTargetType.HasAttribute("VK.Blocks.Core.VKValueObjectAttribute") ||
+                       namedTargetType.GetMembers("Value").OfType<IPropertySymbol>().Any();
+
+            if (isVo)
+            {
+                var createMethod = namedTargetType.GetMembers("Create")
+                    .OfType<IMethodSymbol>()
+                    .FirstOrDefault(m => m.IsStatic && m.Parameters.Length == 1);
+
+                if (createMethod is not null)
+                {
+                    if (createMethod.ReturnType.Name.Contains("Result"))
+                    {
+                        return $"{namedTargetType.ToDisplayString()}.Create(entity.{entityProp.Name}).Value!";
+                    }
+
+                    return $"{namedTargetType.ToDisplayString()}.Create(entity.{entityProp.Name})";
+                }
+
+                var ctor = namedTargetType.Constructors
+                    .FirstOrDefault(c => c.Parameters.Length == 1 &&
+                                         SymbolEqualityComparer.Default.Equals(c.Parameters[0].Type, entityProp.Type));
+                if (ctor is not null)
+                {
+                    return $"new {namedTargetType.ToDisplayString()}(entity.{entityProp.Name})";
+                }
+            }
+        }
+
         return $"entity.{entityProp.Name}";
     }
 
@@ -434,6 +458,20 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
         if (domainProp.Type.TypeKind == TypeKind.Enum && targetEntityType.SpecialType == SpecialType.System_Byte)
         {
             return $"(byte){domainPrefix}.{domainProp.Name}";
+        }
+
+        // Single-Value Object: check if domainProp.Type has [VKValueObject] or .Value property
+        if (domainProp.Type is INamedTypeSymbol namedDomainType)
+        {
+            var valueProp = namedDomainType.GetMembers("Value")
+                .OfType<IPropertySymbol>()
+                .FirstOrDefault();
+
+            if (valueProp is not null && (namedDomainType.HasAttribute("VK.Blocks.Core.VKValueObjectAttribute") ||
+                                          SymbolEqualityComparer.Default.Equals(valueProp.Type, targetEntityType)))
+            {
+                return $"{domainPrefix}.{domainProp.Name}.{valueProp.Name}";
+            }
         }
 
         return $"{domainPrefix}.{domainProp.Name}";
