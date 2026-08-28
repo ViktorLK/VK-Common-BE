@@ -11,17 +11,17 @@ namespace VK.Blocks.AI.Synapse.Routing.Internal;
 internal sealed class DefaultAIProviderPool : IVKAIProviderPool
 {
     private readonly IVKAIConnectionStore? _connectionStore;
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly IVKAISynapseModelFactory _modelFactory;
     private readonly IEnumerable<IVKAIProviderOptions> _staticProviders;
 
     public DefaultAIProviderPool(
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         IVKAISynapseModelFactory modelFactory,
         IEnumerable<IVKAIProviderOptions>? staticProviders = null,
         IVKAIConnectionStore? connectionStore = null)
     {
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _modelFactory = VKGuard.NotNull(modelFactory);
         _staticProviders = staticProviders ?? Enumerable.Empty<IVKAIProviderOptions>();
         _connectionStore = connectionStore;
@@ -52,7 +52,7 @@ internal sealed class DefaultAIProviderPool : IVKAIProviderPool
             var connectionsResult = await _connectionStore.GetConnectionListAsync(cancellationToken).ConfigureAwait(false);
             if (connectionsResult.IsSuccess)
             {
-                var currentTenantId = _identityContext.TenantId;
+                var currentTenantId = _tenantCoordinate.TenantId;
                 foreach (var conn in connectionsResult.Value)
                 {
                     if (conn.TenantId.IsEmpty || conn.TenantId == currentTenantId)

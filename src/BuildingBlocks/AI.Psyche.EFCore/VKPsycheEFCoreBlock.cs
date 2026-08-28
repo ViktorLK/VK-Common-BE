@@ -25,8 +25,11 @@ public sealed partial class VKAIPsycheEFCoreBlock
     {
         var services = builder.Services;
 
-        // AI.Psyche Domain Stores (EFCore Backed)
-        services.TryAddScoped<IVKDirectiveStore, DirectiveStore>();
+        // AI.Psyche Domain Repositories & Stores (EFCore Backed)
+        services.TryAddScoped<EFCoreDirectiveRepository>();
+        services.TryAddScoped<IVKDirectiveRepository>(sp => sp.GetRequiredService<EFCoreDirectiveRepository>());
+        services.TryAddScoped<IVKDirectiveStore>(sp => sp.GetRequiredService<EFCoreDirectiveRepository>());
+        services.TryAddScoped<IVKReadRepository<VKDirectiveCharter, VKDirectiveId>>(sp => sp.GetRequiredService<EFCoreDirectiveRepository>());
         services.TryAddScoped<IVKKnowledgeStore, KnowledgeStore>();
         services.TryAddScoped<IVKPatternStore, PatternStore>();
         services.TryAddScoped<IVKPersonaStore, PersonaStore>();

@@ -4,7 +4,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Defines the operational lifecycle status of a chat session.
 /// Follows AP.03 (One file, one type).
 /// </summary>
-public enum VKSessionStatus
+public enum VKSessionStatus : byte
 {
     /// <summary>
     /// Active session allowing ongoing dialogue and memory updates.

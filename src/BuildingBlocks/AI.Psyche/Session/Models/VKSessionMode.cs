@@ -4,7 +4,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Specifies the session operational mode for dialogue boundary handling and memory inheritance.
 /// Located in VK.Blocks.AI.Psyche as Psyche is the single source of truth for session and dialogue context management.
 /// </summary>
-public enum VKSessionMode
+public enum VKSessionMode : byte
 {
     /// <summary>
     /// Isolated session (default): L1 echo history and L2 summary memories are strictly isolated within this SessionId.

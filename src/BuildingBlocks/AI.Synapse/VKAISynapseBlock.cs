@@ -1,9 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
-using VK.Blocks.Core;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Synapse.Security.Internal;
-using VK.Blocks.Resilience;
 using VK.Blocks.AI.Synapse.Common.Internal;
+using VK.Blocks.AI.Synapse.Resilience.Internal;
+using VK.Blocks.AI.Synapse.Security.Internal;
+using VK.Blocks.Core;
+using VK.Blocks.Resilience;
 
 namespace VK.Blocks.AI.Synapse;
 
@@ -18,5 +19,7 @@ public sealed partial class VKAISynapseBlock
     {
         builder.Services.TryAddScoped<IVKAISynapseModelFactory, DefaultAISynapseModelFactory>();
         builder.Services.TryAddSingleton<IVKConnectionValidator, DefaultConnectionValidator>();
+        builder.Services.TryAddSingleton(new VKAIResilienceOptions());
+        builder.Services.TryAddSingleton<IVKAIResilienceProvider, LocalAIResilienceProvider>();
     }
 }

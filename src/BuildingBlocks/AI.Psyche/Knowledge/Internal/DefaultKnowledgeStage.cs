@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -13,6 +14,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
     private readonly VKKnowledgeOptions _options;
     private readonly IVKKnowledgeStore _store;
     private readonly VKWeavingOptions _weavingOptions;
+    private readonly TimeProvider _timeProvider;
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledge;
     public bool IsActive => _options.Enabled;
@@ -20,11 +22,13 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
     public DefaultKnowledgeStage(
         VKKnowledgeOptions options,
         IVKKnowledgeStore store,
-        VKWeavingOptions weavingOptions)
+        VKWeavingOptions weavingOptions,
+        TimeProvider? timeProvider = null)
     {
         _options = VKGuard.NotNull(options);
         _store = VKGuard.NotNull(store);
         _weavingOptions = VKGuard.NotNull(weavingOptions);
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken ct)
@@ -123,7 +127,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
 
             if (sessionThread is not null)
             {
-                context.SetState(sessionThread with { KnowledgeState = updatedKnowledgeState });
+                sessionThread.AdvanceKnowledgeState(updatedKnowledgeState, _timeProvider.GetUtcNow());
             }
             context.SetState(updatedKnowledgeState);
 

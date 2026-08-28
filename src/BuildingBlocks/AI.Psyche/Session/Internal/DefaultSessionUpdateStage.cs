@@ -50,19 +50,13 @@ internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
             }
 
             var now = _timeProvider.GetUtcNow();
-            var updatedSession = session with
+            var incResult = session.IncrementTurn(now);
+            if (incResult.IsFailure)
             {
-                TurnCount = session.TurnCount + 1,
-                LastActivityAt = now,
-                UpdatedAt = now
-            };
-
-            var saveResult = await _sessionStore.UpdateSessionAsync(updatedSession, cancellationToken).ConfigureAwait(false);
-            if (saveResult.IsSuccess)
-            {
-                context.SetState(updatedSession);
+                return incResult;
             }
 
+            var saveResult = await _sessionStore.UpdateSessionAsync(session, cancellationToken).ConfigureAwait(false);
             return saveResult;
         }
         finally
