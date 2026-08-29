@@ -40,8 +40,7 @@ public class ResultTTests
         VKResult<string> result = value;
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(value);
+        result.Should().BeSuccessWithValue(value);
     }
 
     [Fact]
@@ -54,7 +53,6 @@ public class ResultTTests
         VKResult<string> result = error;
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.FirstError.Should().Be(error);
+        result.Should().BeFailure(error);
     }
 }

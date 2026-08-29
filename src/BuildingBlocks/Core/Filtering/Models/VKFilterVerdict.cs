@@ -3,7 +3,7 @@ namespace VK.Blocks.Core;
 /// <summary>
 /// Represents the evaluation verdict of an entry filter.
 /// </summary>
-public enum VKFilterVerdict
+public enum VKFilterVerdict : byte
 {
     /// <summary>
     /// The entry is rejected by the filter.

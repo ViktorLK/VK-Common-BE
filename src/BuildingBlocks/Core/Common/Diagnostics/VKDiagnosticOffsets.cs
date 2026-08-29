@@ -29,6 +29,8 @@ public static class VKDiagnosticOffsets
     public const int AI_Psyche_Knowledge = 74000;
     public const int AI_Psyche_Echo = 75000;
     public const int AI_Psyche_Weaving = 76000;
+    public const int AI_Psyche_Profile = 77000;
+    public const int AI_Psyche_Session = 78000;
 
     // ==========================================
     // AI.Cognitive Block (90000 - 99999)

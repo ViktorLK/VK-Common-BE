@@ -78,17 +78,7 @@ internal sealed class DefaultPsycheModelFactory(
         IReadOnlyDictionary<string, string>? traits = null,
         IReadOnlyDictionary<string, object>? extensions = null)
     {
-        VKGuard.NotNull(name);
-        VKGuard.NotNull(description);
-
-        return new VKPersonaAnchor
-        {
-            Id = id,
-            Name = name,
-            Description = description,
-            Traits = traits ?? new Dictionary<string, string>(),
-            Extensions = extensions ?? new Dictionary<string, object>()
-        };
+        return VKPersonaAnchor.Create(id, name, description, traits, extensions).Value;
     }
 
     // --- Directive ---
@@ -111,14 +101,7 @@ internal sealed class DefaultPsycheModelFactory(
         string? safetyRules = null,
         string? outputConstraints = null)
     {
-        return new VKDirectiveCharter
-        {
-            Id = id,
-            Overview = overview,
-            BehaviorRules = behaviorRules,
-            SafetyRules = safetyRules,
-            OutputConstraints = outputConstraints
-        };
+        return VKDirectiveCharter.Create(id, overview, behaviorRules, safetyRules, outputConstraints).Value;
     }
 
     // --- Knowledge ---
@@ -143,17 +126,7 @@ internal sealed class DefaultPsycheModelFactory(
         string? xmlTag = null,
         IReadOnlyList<VKKnowledgeKey>? keys = null)
     {
-        VKGuard.NotNull(segment);
-
-        return new VKKnowledgeEntry
-        {
-            Id = id,
-            Segment = segment,
-            TriggerType = triggerType,
-            FilterLogic = filterLogic,
-            XmlTag = xmlTag,
-            Keys = keys ?? []
-        };
+        return VKKnowledgeEntry.Create(id, segment, triggerType, filterLogic, xmlTag, keys).Value;
     }
 
     // --- Pattern ---
@@ -167,13 +140,7 @@ internal sealed class DefaultPsycheModelFactory(
     /// <inheritdoc />
     public VKPatternEntry CreatePattern(VKPatternId id, VKPromptSegment segment)
     {
-        VKGuard.NotNull(segment);
-
-        return new VKPatternEntry
-        {
-            Id = id,
-            Segment = segment
-        };
+        return VKPatternEntry.Create(id, segment).Value;
     }
 
     // --- Session ---
@@ -203,21 +170,18 @@ internal sealed class DefaultPsycheModelFactory(
         VKSessionKnowledgeState? knowledgeState = null)
     {
         var now = _timeProvider.GetUtcNow();
-
-        return new VKSessionThread
-        {
-            Id = id,
-            Mode = mode,
-            ParentSessionId = parentSessionId,
-            ForkSourceSessionId = forkSourceSessionId,
-            ForkPointRef = forkPointRef,
-            Status = status,
-            TurnCount = turnCount,
-            CreatedAt = createdAt ?? now,
-            UpdatedAt = updatedAt ?? now,
-            LastActivityAt = lastActivityAt,
-            KnowledgeState = knowledgeState ?? new VKSessionKnowledgeState()
-        };
+        return VKSessionThread.Rehydrate(
+            id: id,
+            mode: mode,
+            parentSessionId: parentSessionId,
+            forkSourceSessionId: forkSourceSessionId,
+            forkPointRef: forkPointRef,
+            status: status,
+            turnCount: turnCount,
+            knowledgeState: knowledgeState ?? new VKSessionKnowledgeState(),
+            createdAt: createdAt ?? now,
+            updatedAt: updatedAt ?? now,
+            lastActivityAt: lastActivityAt);
     }
 
     // --- Profile ---
@@ -240,14 +204,7 @@ internal sealed class DefaultPsycheModelFactory(
         string? timeZone = null,
         IReadOnlyDictionary<string, string>? preferences = null)
     {
-        return new VKProfilePresence
-        {
-            Id = id,
-            DisplayName = displayName,
-            PreferredLanguage = preferredLanguage,
-            TimeZone = timeZone,
-            Preferences = preferences ?? new Dictionary<string, string>()
-        };
+        return VKProfilePresence.Create(id, displayName, preferredLanguage, timeZone, preferences).Value;
     }
 
     // --- Echo ---

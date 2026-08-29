@@ -7,43 +7,47 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche.Pattern.Internal;
 
 /// <summary>
-/// In-memory implementation of <see cref="IVKPatternStore"/> for testing or basic scenarios.
-/// Offers thread-safe in-memory backing storage.
+/// Thread-safe in-memory implementation of <see cref="IVKPsychePatternRepository"/>.
+/// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class InMemoryPatternStore : IVKPatternStore
+internal sealed class InMemoryPatternStore : IVKPsychePatternRepository
 {
     private readonly ConcurrentDictionary<VKPatternId, VKPatternEntry> _patterns = new();
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="InMemoryPatternStore"/>.
-    /// </summary>
     public InMemoryPatternStore()
     {
     }
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="InMemoryPatternStore"/> with initial patterns.
-    /// </summary>
     public InMemoryPatternStore(IEnumerable<VKPatternEntry> patterns)
     {
         Seed(patterns);
     }
 
-    /// <inheritdoc />
-    public Task<VKResult<IReadOnlyList<VKPatternEntry>>> GetPatternsAsync(
-        IReadOnlyList<VKPatternId> patternIds,
-        CancellationToken cancellationToken = default)
+    public Task<VKResult<VKPatternEntry>> FindByIdAsync(VKPatternId id, CancellationToken ct = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (patternIds.Count == 0)
+        ct.ThrowIfCancellationRequested();
+        if (id.IsEmpty)
         {
-            IReadOnlyList<VKPatternEntry> all = [.. _patterns.Values];
-            return Task.FromResult(VKResult.Success(all));
+            return Task.FromResult(VKResult.Failure<VKPatternEntry>(VKPatternErrors.NotFound));
         }
 
-        var list = new List<VKPatternEntry>(patternIds.Count);
-        foreach (var id in patternIds)
+        if (_patterns.TryGetValue(id, out var pattern))
+        {
+            return Task.FromResult(VKResult.Success(pattern));
+        }
+
+        return Task.FromResult(VKResult.Failure<VKPatternEntry>(VKPatternErrors.NotFound));
+    }
+
+    public Task<VKResult<IReadOnlyList<VKPatternEntry>>> ListByIdsAsync(
+        IReadOnlyList<VKPatternId> ids,
+        CancellationToken ct = default)
+    {
+        VKGuard.NotNull(ids);
+        ct.ThrowIfCancellationRequested();
+
+        var list = new List<VKPatternEntry>(ids.Count);
+        foreach (var id in ids)
         {
             if (_patterns.TryGetValue(id, out var pattern))
             {
@@ -54,9 +58,51 @@ internal sealed class InMemoryPatternStore : IVKPatternStore
         return Task.FromResult(VKResult.Success<IReadOnlyList<VKPatternEntry>>(list));
     }
 
-    /// <summary>
-    /// Seeds a single pattern entry into the store.
-    /// </summary>
+    public Task<bool> ExistsAsync(VKPatternId id, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.FromResult(!id.IsEmpty && _patterns.ContainsKey(id));
+    }
+
+    public Task<VKResult> AddAsync(VKPatternEntry item, CancellationToken ct = default)
+    {
+        VKGuard.NotNull(item);
+        ct.ThrowIfCancellationRequested();
+
+        if (!_patterns.TryAdd(item.Id, item))
+        {
+            return Task.FromResult(VKResult.Failure(VKPatternErrors.AlreadyExists));
+        }
+
+        return Task.FromResult(VKResult.Success());
+    }
+
+    public Task<VKResult> UpdateAsync(VKPatternEntry item, CancellationToken ct = default)
+    {
+        VKGuard.NotNull(item);
+        ct.ThrowIfCancellationRequested();
+
+        if (!_patterns.ContainsKey(item.Id))
+        {
+            return Task.FromResult(VKResult.Failure(VKPatternErrors.NotFound));
+        }
+
+        _patterns[item.Id] = item;
+        return Task.FromResult(VKResult.Success());
+    }
+
+    public Task<VKResult> DeleteAsync(VKPatternId id, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (id.IsEmpty || !_patterns.TryRemove(id, out _))
+        {
+            return Task.FromResult(VKResult.Failure(VKPatternErrors.NotFound));
+        }
+
+        return Task.FromResult(VKResult.Success());
+    }
+
+
     public InMemoryPatternStore Seed(VKPatternEntry pattern)
     {
         VKGuard.NotNull(pattern);
@@ -64,9 +110,6 @@ internal sealed class InMemoryPatternStore : IVKPatternStore
         return this;
     }
 
-    /// <summary>
-    /// Seeds a collection of pattern entries into the store.
-    /// </summary>
     public InMemoryPatternStore Seed(IEnumerable<VKPatternEntry> patterns)
     {
         VKGuard.NotNull(patterns);
@@ -77,20 +120,12 @@ internal sealed class InMemoryPatternStore : IVKPatternStore
         return this;
     }
 
-    /// <summary>
-    /// Removes a pattern entry from the store.
-    /// </summary>
     public InMemoryPatternStore Remove(VKPatternId id)
     {
-        VKGuard.NotEmptyGuid(id.Value);
-
         _patterns.TryRemove(id, out _);
         return this;
     }
 
-    /// <summary>
-    /// Clears all patterns from the store.
-    /// </summary>
     public InMemoryPatternStore Clear()
     {
         _patterns.Clear();

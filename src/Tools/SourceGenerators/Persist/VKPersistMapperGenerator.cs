@@ -5,34 +5,39 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using VK.Tools.SourceGenerators.Diagnostics;
 using VK.Tools.SourceGenerators.Extensions;
+using VK.Tools.SourceGenerators.Utilities;
 
 namespace VK.Tools.SourceGenerators.Persist;
 
 /// <summary>
-/// Universal Incremental Source Generator that produces industrial-grade Domain ↔ Persistence Entity mappers.
-/// Pure meta-programming: ZERO hardcoded business class names.
-/// Supports FlattenProperties and ChildCollections projection.
+/// Incremental Source Generator that produces zero-reflection persistence mappers for [VKPersistEntity]:
+/// 1. ToDomain(this Entity entity) -> Rehydrates or instantiates Domain Aggregate.
+/// 2. ToEntity(this Domain domain) -> Projections for INSERT operations.
+/// 3. MapOnto(this Domain domain, Entity trackedEntity) -> In-place update with 3-phase differential synchronization for collections.
+/// Follows AP.01, CS.01, CS.05, CS.08.
 /// </summary>
 [Generator]
 public sealed class VKPersistMapperGenerator : IIncrementalGenerator
 {
-    private const string PersistEntityAttributeFullName = "VK.Blocks.Core.VKPersistEntityAttribute";
+    private const string AttributeName = "VKPersistEntityAttribute";
+    private const string AttributeFullName = $"VK.Blocks.Core.{AttributeName}";
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var persistEntityTargets = context.SyntaxProvider
+        var targets = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                PersistEntityAttributeFullName,
+                AttributeFullName,
                 predicate: static (node, _) => node is ClassDeclarationSyntax,
-                transform: static (ctx, _) => TransformEntityTarget(ctx))
+                transform: static (ctx, _) => TransformTarget(ctx))
             .Where(static t => t is not null);
 
-        context.RegisterSourceOutput(persistEntityTargets, (ctx, target) => EmitSource(ctx, target!));
+        context.RegisterSourceOutput(targets, static (ctx, info) => EmitSource(ctx, info!));
     }
 
-    private static PersistenceMappingInfo? TransformEntityTarget(GeneratorAttributeSyntaxContext ctx)
+    private static PersistenceMappingInfo? TransformTarget(GeneratorAttributeSyntaxContext ctx)
     {
         var entitySymbol = (INamedTypeSymbol)ctx.TargetSymbol;
         var attr = ctx.Attributes[0];
@@ -103,6 +108,12 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
 
     private static void EmitSource(SourceProductionContext ctx, PersistenceMappingInfo info)
     {
+        var domainProps = GetAllProperties(info.DomainType);
+        var entityProps = GetAllProperties(info.EntityType);
+
+        // Run Guardrail Validations (VK2010 ~ VK2013)
+        ValidateMappingGuards(ctx, info, domainProps, entityProps);
+
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using System;");
         sb.AppendLine("using System.Linq;");
@@ -113,9 +124,6 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine($"{info.Modifiers} class {info.ClassName}");
         sb.AppendLine("{");
-
-        var domainProps = info.DomainType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer).ToImmutableArray();
-        var entityProps = info.EntityType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer).ToImmutableArray();
 
         // 1. Generate ToDomain(this Entity entity)
         GenerateToDomain(sb, info, domainProps, entityProps);
@@ -129,6 +137,183 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
         sb.AppendLine("}");
 
         ctx.AddSource($"{info.ClassName}.g.cs", sb.ToString());
+    }
+
+    private static void ValidateMappingGuards(
+        SourceProductionContext ctx,
+        PersistenceMappingInfo info,
+        ImmutableArray<IPropertySymbol> domainProps,
+        ImmutableArray<IPropertySymbol> entityProps)
+    {
+        var entityLocation = info.EntityType.Locations.FirstOrDefault() ?? Location.None;
+
+        // 1. Validate FlattenBy (VK2010, VK2013)
+        foreach (var flatName in info.FlattenBy)
+        {
+            var parentProp = domainProps.FirstOrDefault(p => string.Equals(p.Name, flatName, StringComparison.OrdinalIgnoreCase));
+            if (parentProp?.Type is INamedTypeSymbol nestedType)
+            {
+                if (HasNestedComplexTypesOrCollections(nestedType, info.DomainType))
+                {
+                    ctx.ReportDiagnostic(Diagnostic.Create(
+                        VKDiagnosticDescriptors.NestingDepthExceedsLimit,
+                        entityLocation,
+                        $"{info.DomainType.Name}.{parentProp.Name}"));
+                }
+
+                var voProps = nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer);
+                foreach (var vp in voProps)
+                {
+                    if (!entityProps.Any(ep => string.Equals(ep.Name, vp.Name, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(
+                            VKDiagnosticDescriptors.FlattenByPropertyMissingOnEntity,
+                            entityLocation,
+                            nestedType.Name,
+                            vp.Name,
+                            info.EntityType.Name));
+                    }
+                }
+            }
+        }
+
+        // 2. Validate ProjectBy (VK2010, VK2011, VK2012)
+        foreach (var projName in info.ProjectBy)
+        {
+            var entityProp = entityProps.FirstOrDefault(p => string.Equals(p.Name, projName, StringComparison.OrdinalIgnoreCase));
+            var domainProp = domainProps.FirstOrDefault(p => string.Equals(p.Name, projName, StringComparison.OrdinalIgnoreCase));
+
+            if (entityProp?.Type is INamedTypeSymbol entCollType && domainProp?.Type is INamedTypeSymbol domCollType)
+            {
+                var entElemType = entCollType.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
+                var domElemType = domCollType.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
+
+                if (entElemType is not null && domElemType is not null)
+                {
+                    if (HasNestedComplexTypesOrCollections(domElemType, info.DomainType) || HasNestedComplexTypesOrCollections(entElemType, info.EntityType))
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(
+                            VKDiagnosticDescriptors.NestingDepthExceedsLimit,
+                            entityLocation,
+                            $"{info.DomainType.Name}.{domainProp.Name}"));
+                    }
+
+                    var foreignKeyProp = FindParentForeignKey(entElemType, info);
+                    if (foreignKeyProp is null)
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(
+                            VKDiagnosticDescriptors.ProjectByMissingForeignKey,
+                            entityLocation,
+                            entElemType.Name,
+                            projName,
+                            info.EntityType.Name));
+                    }
+
+                    var discriminatorKeys = GetDiscriminatorKeys(entElemType, foreignKeyProp);
+                    if (discriminatorKeys.Length == 0)
+                    {
+                        ctx.ReportDiagnostic(Diagnostic.Create(
+                            VKDiagnosticDescriptors.ProjectByMissingKey,
+                            entityLocation,
+                            entElemType.Name,
+                            projName));
+                    }
+                }
+            }
+        }
+    }
+
+    private static bool HasNestedComplexTypesOrCollections(INamedTypeSymbol typeSymbol, INamedTypeSymbol? parentType = null)
+    {
+        foreach (var prop in typeSymbol.GetMembers().OfType<IPropertySymbol>())
+        {
+            if (prop.IsStatic || prop.IsIndexer) continue;
+
+            // Skip parent navigation reference
+            if (parentType is not null && SymbolEqualityComparer.Default.Equals(prop.Type, parentType))
+            {
+                continue;
+            }
+
+            // Check if collection (IEnumerable and not string)
+            if (prop.Type.AllInterfaces.Any(i => i.Name == "IEnumerable") && prop.Type.SpecialType != SpecialType.System_String)
+            {
+                return true;
+            }
+
+            // Check if nested custom class/record (not primitive, enum, datetime, guid, string, or strongly-typed ID)
+            if (prop.Type.TypeKind == TypeKind.Class &&
+                prop.Type.SpecialType == SpecialType.None &&
+                prop.Type.ToDisplayString() != "System.DateTimeOffset" &&
+                prop.Type.ToDisplayString() != "System.DateTime" &&
+                prop.Type.ToDisplayString() != "System.TimeSpan" &&
+                prop.Type.ToDisplayString() != "System.Guid" &&
+                !prop.Type.Name.EndsWith("Id"))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static IPropertySymbol? FindParentForeignKey(INamedTypeSymbol childEntity, PersistenceMappingInfo info)
+    {
+        var childProps = GetAllProperties(childEntity);
+        var expectedEntityFk = $"{info.EntityType.Name.Replace("Entity", "")}Id";
+        var expectedDomainFk = $"{info.DomainType.Name.Replace("Entry", "").Replace("Aggregate", "")}Id";
+
+        return childProps.FirstOrDefault(p =>
+            string.Equals(p.Name, expectedEntityFk, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(p.Name, expectedDomainFk, StringComparison.OrdinalIgnoreCase) ||
+            (p.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase) && !p.Name.StartsWith("Tenant", StringComparison.OrdinalIgnoreCase) && !string.Equals(p.Name, "Id", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static ImmutableArray<IPropertySymbol> GetDiscriminatorKeys(INamedTypeSymbol childEntity, IPropertySymbol? parentFk)
+    {
+        var childProps = GetAllProperties(childEntity);
+        var persistKeyProps = childProps
+            .Where(p => p.GetAttributes().Any(a => a.AttributeClass?.Name.Contains("VKPersistKey") == true))
+            .ToList();
+
+        if (persistKeyProps.Count > 0)
+        {
+            if (parentFk is not null)
+            {
+                persistKeyProps.RemoveAll(p => string.Equals(p.Name, parentFk.Name, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (persistKeyProps.Count > 0)
+            {
+                return persistKeyProps.ToImmutableArray();
+            }
+        }
+
+        var idProp = childProps.FirstOrDefault(p => string.Equals(p.Name, "Id", StringComparison.OrdinalIgnoreCase));
+        if (idProp is not null)
+        {
+            return ImmutableArray.Create(idProp);
+        }
+
+        return ImmutableArray<IPropertySymbol>.Empty;
+    }
+
+    private static ImmutableArray<IPropertySymbol> GetAllProperties(INamedTypeSymbol symbol)
+    {
+        var list = new List<IPropertySymbol>();
+        var current = symbol;
+        while (current is not null && current.SpecialType != SpecialType.System_Object)
+        {
+            foreach (var member in current.GetMembers().OfType<IPropertySymbol>())
+            {
+                if (!member.IsStatic && !member.IsIndexer && !list.Any(p => p.Name == member.Name))
+                {
+                    list.Add(member);
+                }
+            }
+            current = current.BaseType;
+        }
+        return list.ToImmutableArray();
     }
 
     private static void GenerateToDomain(
@@ -147,6 +332,31 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
         sb.AppendLine("        VKGuard.NotNull(entity);");
         sb.AppendLine();
+
+        var rehydrateMethod = info.DomainType.GetMembers("Rehydrate")
+            .OfType<IMethodSymbol>()
+            .FirstOrDefault(m => m.IsStatic);
+
+        if (rehydrateMethod is not null)
+        {
+            sb.AppendLine($"        var domain = {domainName}.Rehydrate(");
+            var args = new List<string>();
+            foreach (var param in rehydrateMethod.Parameters)
+            {
+                args.Add($"            {FormatDomainPropertyRehydrateArg(param, info, entityProps)}");
+            }
+            sb.AppendLine(string.Join(",\n", args));
+            sb.AppendLine("        );");
+            sb.AppendLine();
+            sb.AppendLine($"        OnToDomainCustom(entity, domain);");
+            sb.AppendLine("        return domain;");
+            sb.AppendLine("    }");
+            sb.AppendLine();
+            sb.AppendLine($"    static partial void OnToDomainCustom({entityName} entity, {domainName} domain);");
+            sb.AppendLine();
+            return;
+        }
+
         sb.AppendLine($"        var domain = new {domainName}");
         sb.AppendLine("        {");
 
@@ -156,7 +366,7 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
                 continue;
 
             // 1. Flattened Value Object
-            if (info.FlattenBy.Contains(domainProp.Name) && domainProp.Type is INamedTypeSymbol nestedType)
+            if (info.FlattenBy.Any(f => string.Equals(f, domainProp.Name, StringComparison.OrdinalIgnoreCase)) && domainProp.Type is INamedTypeSymbol nestedType)
             {
                 sb.AppendLine($"            {domainProp.Name} = new {nestedType.ToDisplayString()}");
                 sb.AppendLine("            {");
@@ -172,7 +382,7 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
                 sb.AppendLine("            },");
             }
             // 2. Child Collection Projection
-            else if (info.ProjectBy.Contains(domainProp.Name))
+            else if (info.ProjectBy.Any(p => string.Equals(p, domainProp.Name, StringComparison.OrdinalIgnoreCase)))
             {
                 var matchingEntityProp = entityProps.FirstOrDefault(p => string.Equals(p.Name, domainProp.Name, StringComparison.OrdinalIgnoreCase));
                 if (matchingEntityProp is not null && domainProp.Type is INamedTypeSymbol domCollType && matchingEntityProp.Type is INamedTypeSymbol entCollType)
@@ -244,7 +454,7 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
         var flattenLookup = new Dictionary<string, (string ParentPropName, IPropertySymbol NestedProp)>(StringComparer.OrdinalIgnoreCase);
         foreach (var flatName in info.FlattenBy)
         {
-            var parentProp = domainProps.FirstOrDefault(p => p.Name == flatName);
+            var parentProp = domainProps.FirstOrDefault(p => string.Equals(p.Name, flatName, StringComparison.OrdinalIgnoreCase));
             if (parentProp?.Type is INamedTypeSymbol nestedType)
             {
                 foreach (var np in nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer))
@@ -270,16 +480,18 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             }
 
             // 1. Child collection
-            if (info.ProjectBy.Contains(entityProp.Name))
+            if (info.ProjectBy.Any(p => string.Equals(p, entityProp.Name, StringComparison.OrdinalIgnoreCase)))
             {
                 var matchingDomainProp = domainProps.FirstOrDefault(p => string.Equals(p.Name, entityProp.Name, StringComparison.OrdinalIgnoreCase));
                 if (matchingDomainProp is not null && matchingDomainProp.Type is INamedTypeSymbol domCollType && entityProp.Type is INamedTypeSymbol entCollType)
                 {
-                    var domElemType = domCollType.TypeArguments.FirstOrDefault();
-                    var entElemType = entCollType.TypeArguments.FirstOrDefault();
+                    var domElemType = domCollType.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
+                    var entElemType = entCollType.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
 
                     if (domElemType is not null && entElemType is not null)
                     {
+                        var foreignKeyProp = FindParentForeignKey(entElemType, info);
+
                         sb.AppendLine($"            {entityProp.Name} = domain.{matchingDomainProp.Name} is null or {{ Count: 0 }}");
                         sb.AppendLine($"                ? new List<{entElemType.ToDisplayString()}>()");
                         sb.AppendLine($"                : domain.{matchingDomainProp.Name}.Select(child => new {entElemType.ToDisplayString()}");
@@ -290,19 +502,16 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
 
                         foreach (var ecp in entChildProps)
                         {
+                            if (foreignKeyProp is not null && string.Equals(ecp.Name, foreignKeyProp.Name, StringComparison.OrdinalIgnoreCase))
+                            {
+                                sb.AppendLine($"                    {ecp.Name} = domain.Id,");
+                                continue;
+                            }
+
                             var matchingChildDomainProp = domChildProps.FirstOrDefault(p => string.Equals(p.Name, ecp.Name, StringComparison.OrdinalIgnoreCase));
                             if (matchingChildDomainProp is not null)
                             {
                                 sb.AppendLine($"                    {ecp.Name} = child.{matchingChildDomainProp.Name},");
-                                continue;
-                            }
-
-                            if (string.Equals(ecp.Name, $"{info.EntityType.Name.Replace("Entity", "")}Id", StringComparison.OrdinalIgnoreCase) ||
-                                string.Equals(ecp.Name, $"{info.DomainType.Name.Replace("Entry", "").Replace("Aggregate", "")}Id", StringComparison.OrdinalIgnoreCase) ||
-                                (ecp.Name.EndsWith("Id") && !ecp.Name.StartsWith("Tenant")))
-                            {
-                                sb.AppendLine($"                    {ecp.Name} = domain.Id,");
-                                continue;
                             }
                         }
                         sb.AppendLine("                }).ToList(),");
@@ -355,7 +564,7 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
         var flattenLookup = new Dictionary<string, (string ParentPropName, IPropertySymbol NestedProp)>(StringComparer.OrdinalIgnoreCase);
         foreach (var flatName in info.FlattenBy)
         {
-            var parentProp = domainProps.FirstOrDefault(p => p.Name == flatName);
+            var parentProp = domainProps.FirstOrDefault(p => string.Equals(p.Name, flatName, StringComparison.OrdinalIgnoreCase));
             if (parentProp?.Type is INamedTypeSymbol nestedType)
             {
                 foreach (var np in nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer))
@@ -365,6 +574,7 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             }
         }
 
+        // 1. Scalar and Flattened Properties update
         foreach (var entityProp in entityProps)
         {
             if (entityProp.IsReadOnly || entityProp.SetMethod is null)
@@ -373,7 +583,7 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             if (string.Equals(entityProp.Name, "Id", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(entityProp.Name, "CreatedAt", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(entityProp.Name, "CreatedBy", StringComparison.OrdinalIgnoreCase) ||
-                info.ProjectBy.Contains(entityProp.Name))
+                info.ProjectBy.Any(p => string.Equals(p, entityProp.Name, StringComparison.OrdinalIgnoreCase)))
             {
                 continue;
             }
@@ -389,11 +599,186 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             }
         }
 
+        // 2. 3-Phase Differential Synchronization for ProjectBy Collections
+        foreach (var projName in info.ProjectBy)
+        {
+            var entityProp = entityProps.FirstOrDefault(p => string.Equals(p.Name, projName, StringComparison.OrdinalIgnoreCase));
+            var domainProp = domainProps.FirstOrDefault(p => string.Equals(p.Name, projName, StringComparison.OrdinalIgnoreCase));
+
+            if (entityProp?.Type is INamedTypeSymbol entCollType && domainProp?.Type is INamedTypeSymbol domCollType)
+            {
+                var entElemType = entCollType.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
+                var domElemType = domCollType.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
+
+                if (entElemType is not null && domElemType is not null)
+                {
+                    var foreignKeyProp = FindParentForeignKey(entElemType, info);
+                    var discriminatorKeys = GetDiscriminatorKeys(entElemType, foreignKeyProp);
+
+                    if (foreignKeyProp is not null && discriminatorKeys.Length > 0)
+                    {
+                        GenerateCollectionDiffSync(sb, domainProp.Name, entityProp.Name, entElemType, domElemType, foreignKeyProp, discriminatorKeys);
+                    }
+                }
+            }
+        }
+
         sb.AppendLine();
         sb.AppendLine($"        OnMapOntoCustom(domain, trackedEntity);");
         sb.AppendLine("    }");
         sb.AppendLine();
         sb.AppendLine($"    static partial void OnMapOntoCustom({domainName} domain, {entityName} trackedEntity);");
+    }
+
+    private static void GenerateCollectionDiffSync(
+        StringBuilder sb,
+        string domainCollName,
+        string entityCollName,
+        INamedTypeSymbol entElemType,
+        INamedTypeSymbol domElemType,
+        IPropertySymbol parentFk,
+        ImmutableArray<IPropertySymbol> discriminatorKeys)
+    {
+        sb.AppendLine();
+        sb.AppendLine($"        // Differential Synchronization for child collection: {entityCollName}");
+        sb.AppendLine($"        if (trackedEntity.{entityCollName} is not null)");
+        sb.AppendLine("        {");
+        sb.AppendLine($"            var domainItems = domain.{domainCollName} ?? [];");
+        sb.AppendLine();
+
+        // Build comparison predicate (e.K1 == d.K1 && e.K2 == d.K2)
+        var matchConditions = discriminatorKeys.Select(k => $"e.{k.Name} == d.{k.Name}");
+        var matchExpr = string.Join(" && ", matchConditions);
+
+        // Phase 1: Delete
+        sb.AppendLine($"            // Phase 1: Delete items no longer present in domain");
+        sb.AppendLine($"            var toRemove = trackedEntity.{entityCollName}");
+        sb.AppendLine($"                .Where(e => !domainItems.Any(d => {matchExpr}))");
+        sb.AppendLine($"                .ToList();");
+        sb.AppendLine($"            foreach (var item in toRemove)");
+        sb.AppendLine("            {");
+        sb.AppendLine($"                trackedEntity.{entityCollName}.Remove(item);");
+        sb.AppendLine("            }");
+        sb.AppendLine();
+
+        // Phase 2 & 3: Update & Insert
+        sb.AppendLine($"            // Phase 2 & 3: Update existing items or Insert new items");
+        sb.AppendLine($"            foreach (var d in domainItems)");
+        sb.AppendLine("            {");
+        sb.AppendLine($"                var existing = trackedEntity.{entityCollName}");
+        sb.AppendLine($"                    .FirstOrDefault(e => {matchExpr});");
+        sb.AppendLine();
+        sb.AppendLine("                if (existing is not null)");
+        sb.AppendLine("                {");
+
+        // Update mutable non-key properties
+        var domChildProps = domElemType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer);
+        var entChildProps = entElemType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer && p.SetMethod is not null);
+
+        var mutableNonKeyProps = entChildProps.Where(ep =>
+            !string.Equals(ep.Name, parentFk.Name, StringComparison.OrdinalIgnoreCase) &&
+            !discriminatorKeys.Any(dk => string.Equals(dk.Name, ep.Name, StringComparison.OrdinalIgnoreCase)) &&
+            !string.Equals(ep.Name, "CreatedAt", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(ep.Name, "CreatedBy", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(ep.Name, "IsDeleted", StringComparison.OrdinalIgnoreCase));
+
+        foreach (var ecp in mutableNonKeyProps)
+        {
+            var matchingChildDomainProp = domChildProps.FirstOrDefault(p => string.Equals(p.Name, ecp.Name, StringComparison.OrdinalIgnoreCase));
+            if (matchingChildDomainProp is not null)
+            {
+                sb.AppendLine($"                    existing.{ecp.Name} = d.{matchingChildDomainProp.Name};");
+            }
+        }
+
+        sb.AppendLine("                }");
+        sb.AppendLine("                else");
+        sb.AppendLine("                {");
+        sb.AppendLine($"                    trackedEntity.{entityCollName}.Add(new {entElemType.ToDisplayString()}");
+        sb.AppendLine("                    {");
+        sb.AppendLine($"                        {parentFk.Name} = domain.Id,");
+
+        foreach (var ecp in entChildProps)
+        {
+            if (string.Equals(ecp.Name, parentFk.Name, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var matchingChildDomainProp = domChildProps.FirstOrDefault(p => string.Equals(p.Name, ecp.Name, StringComparison.OrdinalIgnoreCase));
+            if (matchingChildDomainProp is not null)
+            {
+                sb.AppendLine($"                        {ecp.Name} = d.{matchingChildDomainProp.Name},");
+            }
+        }
+
+        sb.AppendLine("                    });");
+        sb.AppendLine("                }");
+        sb.AppendLine("            }");
+        sb.AppendLine("        }");
+    }
+
+    private static string FormatDomainPropertyRehydrateArg(
+        IParameterSymbol param,
+        PersistenceMappingInfo info,
+        ImmutableArray<IPropertySymbol> entityProps)
+    {
+        // 1. Flattened Value Object
+        if (info.FlattenBy.Any(f => string.Equals(f, param.Name, StringComparison.OrdinalIgnoreCase)) && param.Type is INamedTypeSymbol nestedType)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"new {nestedType.ToDisplayString()}");
+            sb.AppendLine("            {");
+            var nestedProps = nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer && p.SetMethod is not null);
+            foreach (var np in nestedProps)
+            {
+                var matchingEntityProp = entityProps.FirstOrDefault(p => string.Equals(p.Name, np.Name, StringComparison.OrdinalIgnoreCase));
+                if (matchingEntityProp is not null)
+                {
+                    sb.AppendLine($"                {np.Name} = {FormatEntityToDomainParam(matchingEntityProp, np.Type)},");
+                }
+            }
+            sb.Append("            }");
+            return sb.ToString();
+        }
+
+        // 2. Child Collection Projection
+        if (info.ProjectBy.Any(p => string.Equals(p, param.Name, StringComparison.OrdinalIgnoreCase)))
+        {
+            var matchingEntityProp = entityProps.FirstOrDefault(p => string.Equals(p.Name, param.Name, StringComparison.OrdinalIgnoreCase));
+            if (matchingEntityProp is not null && param.Type is INamedTypeSymbol domCollType && matchingEntityProp.Type is INamedTypeSymbol entCollType)
+            {
+                var domElemType = domCollType.TypeArguments.FirstOrDefault();
+                var entElemType = entCollType.TypeArguments.FirstOrDefault();
+                if (domElemType is not null && entElemType is not null)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine($"entity.{matchingEntityProp.Name} is null or {{ Count: 0 }}");
+                    sb.AppendLine($"                ? Array.Empty<{domElemType.ToDisplayString()}>()");
+                    sb.AppendLine($"                : entity.{matchingEntityProp.Name}.Select(child => new {domElemType.ToDisplayString()}");
+                    sb.AppendLine("                {");
+                    var domChildProps = domElemType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer && p.SetMethod is not null);
+                    var entChildProps = entElemType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer);
+                    foreach (var dcp in domChildProps)
+                    {
+                        var matchingChildEntityProp = entChildProps.FirstOrDefault(p => string.Equals(p.Name, dcp.Name, StringComparison.OrdinalIgnoreCase));
+                        if (matchingChildEntityProp is not null)
+                        {
+                            sb.AppendLine($"                    {dcp.Name} = child.{matchingChildEntityProp.Name},");
+                        }
+                    }
+                    sb.Append("                }).ToList()");
+                    return sb.ToString();
+                }
+            }
+        }
+
+        // 3. Direct matching property
+        var matchingDirect = entityProps.FirstOrDefault(p => string.Equals(p.Name, param.Name, StringComparison.OrdinalIgnoreCase));
+        if (matchingDirect is not null)
+        {
+            return FormatEntityToDomainParam(matchingDirect, param.Type);
+        }
+
+        return "default!";
     }
 
     private static string FormatEntityToDomainParam(IPropertySymbol entityProp, ITypeSymbol targetType)
@@ -433,14 +818,6 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
                     }
 
                     return $"{namedTargetType.ToDisplayString()}.Create(entity.{entityProp.Name})";
-                }
-
-                var ctor = namedTargetType.Constructors
-                    .FirstOrDefault(c => c.Parameters.Length == 1 &&
-                                         SymbolEqualityComparer.Default.Equals(c.Parameters[0].Type, entityProp.Type));
-                if (ctor is not null)
-                {
-                    return $"new {namedTargetType.ToDisplayString()}(entity.{entityProp.Name})";
                 }
             }
         }

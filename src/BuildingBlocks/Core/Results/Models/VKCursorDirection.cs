@@ -3,15 +3,15 @@ namespace VK.Blocks.Core;
 /// <summary>
 /// Specifies the direction of pagination when using cursors.
 /// </summary>
-public enum VKCursorDirection
+public enum VKCursorDirection : byte
 {
     /// <summary>
     /// Paginate forward from the current cursor.
     /// </summary>
-    Forward,
+    Forward = 0,
 
     /// <summary>
     /// Paginate backward from the current cursor.
     /// </summary>
-    Backward
+    Backward = 1
 }

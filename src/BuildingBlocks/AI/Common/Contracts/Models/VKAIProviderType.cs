@@ -1,6 +1,6 @@
 namespace VK.Blocks.AI;
 
-public enum VKAIProviderType
+public enum VKAIProviderType : byte
 {
     OpenAI = 1,
     AzureOpenAI = 2,

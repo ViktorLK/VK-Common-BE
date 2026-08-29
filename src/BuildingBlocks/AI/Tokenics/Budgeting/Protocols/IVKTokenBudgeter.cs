@@ -35,20 +35,20 @@ public interface IVKTokenBudgeter
 /// <summary>
 /// Defines strategies for handling token budget overflows.
 /// </summary>
-public enum VKTokenBudgetStrategy
+public enum VKTokenBudgetStrategy : byte
 {
     /// <summary>
     /// Removes the oldest messages first.
     /// </summary>
-    OldestFirst,
+    OldestFirst = 0,
 
     /// <summary>
     /// Summarizes the oldest messages.
     /// </summary>
-    Summarize,
+    Summarize = 1,
 
     /// <summary>
     /// Throws an error if the budget is exceeded.
     /// </summary>
-    Error
+    Error = 2
 }

@@ -4,7 +4,7 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Defines the semantic layout tiers for prompt weaving assembly.
 /// </summary>
-public enum VKPromptTierType
+public enum VKPromptTierType : byte
 {
     /// <summary>
     /// Directive-level instructions (e.g., system prompts, core rules).

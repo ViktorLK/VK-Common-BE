@@ -4,7 +4,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Defines the logical combination rules used when matching multiple trigger keys.
 /// Follows AP.03.
 /// </summary>
-public enum VKKnowledgeFilterLogic
+public enum VKKnowledgeFilterLogic : byte
 {
     /// <summary>
     /// Matches if any of the keyword tokens in the trigger are present.

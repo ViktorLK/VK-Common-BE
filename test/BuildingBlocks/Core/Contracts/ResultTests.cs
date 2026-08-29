@@ -11,8 +11,7 @@ public class ResultTests
         var result = VKResult.Success();
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.IsFailure.Should().BeFalse();
+        result.Should().BeSuccess();
         result.Errors.Should().BeEmpty();
         result.FirstError.Should().Be(VKError.None);
     }
@@ -27,10 +26,8 @@ public class ResultTests
         var result = VKResult.Failure(error);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.IsFailure.Should().BeTrue();
+        result.Should().BeFailure(error);
         result.Errors.Should().ContainSingle().Which.Should().Be(error);
-        result.FirstError.Should().Be(error);
     }
 
     [Fact]
@@ -47,8 +44,7 @@ public class ResultTests
         var result = VKResult.Failure(errors);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.IsFailure.Should().BeTrue();
+        result.Should().BeFailure("Err1");
         result.Errors.Should().BeEquivalentTo(errors);
         result.FirstError.Should().Be(errors[0]);
     }
@@ -63,8 +59,7 @@ public class ResultTests
         var result = VKResult.Success(value);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(value);
+        result.Should().BeSuccessWithValue(value);
         result.FirstError.Should().Be(VKError.None);
     }
 
@@ -78,8 +73,7 @@ public class ResultTests
         var result = VKResult.Failure<string>(error);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.FirstError.Should().Be(error);
+        result.Should().BeFailure(error);
         Action act = () => { var v = result.Value; };
         act.Should().Throw<InvalidOperationException>();
     }
@@ -94,8 +88,7 @@ public class ResultTests
         var result = VKResult.Create(value);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().Be(value);
+        result.Should().BeSuccessWithValue(value);
     }
 
     [Fact]
@@ -105,8 +98,7 @@ public class ResultTests
         var result = VKResult.Create<string>(null);
 
         // Assert
-        result.IsSuccess.Should().BeFalse();
-        result.FirstError.Should().Be(VKError.NullValue);
+        result.Should().BeFailure(VKError.NullValue);
     }
 
     [Fact]

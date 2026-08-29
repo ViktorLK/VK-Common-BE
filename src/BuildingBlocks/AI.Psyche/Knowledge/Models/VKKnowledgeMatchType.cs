@@ -4,7 +4,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Defines the logical matching strategy used when evaluating trigger keys.
 /// Follows AP.03.
 /// </summary>
-public enum VKKnowledgeMatchType
+public enum VKKnowledgeMatchType : byte
 {
     /// <summary>
     /// Performs a simple substring containment check.

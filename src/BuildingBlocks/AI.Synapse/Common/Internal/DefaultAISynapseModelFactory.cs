@@ -12,16 +12,16 @@ namespace VK.Blocks.AI.Synapse.Common.Internal;
 /// </summary>
 internal sealed class DefaultAISynapseModelFactory : IVKAISynapseModelFactory
 {
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly IVKGuidGenerator _guidGenerator;
     private readonly TimeProvider _timeProvider;
 
     public DefaultAISynapseModelFactory(
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         IVKGuidGenerator guidGenerator,
         TimeProvider timeProvider)
     {
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
         _timeProvider = VKGuard.NotNull(timeProvider);
     }
@@ -71,7 +71,7 @@ internal sealed class DefaultAISynapseModelFactory : IVKAISynapseModelFactory
         return new VKAIConnection
         {
             Id = id,
-            TenantId = tenantId ?? _identityContext.TenantId,
+            TenantId = tenantId ?? _tenantCoordinate.TenantId,
             Name = name,
             Provider = provider,
             ModelId = modelId,

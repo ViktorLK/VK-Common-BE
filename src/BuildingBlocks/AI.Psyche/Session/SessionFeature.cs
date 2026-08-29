@@ -21,7 +21,9 @@ internal sealed partial class SessionFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddScoped<IVKSessionStore, InMemorySessionStore>();
+        services.TryAddScoped<InMemorySessionStore>();
+        services.TryAddScoped<IVKPsycheSessionRepository>(sp => sp.GetRequiredService<InMemorySessionStore>());
+        services.TryAddScoped<IVKReadRepository<VKSessionThread, VKSessionId>>(sp => sp.GetRequiredService<InMemorySessionStore>());
         services.AddScoped<IVKPsychePipelineStage, DefaultSessionResolveStage>();
         services.AddScoped<IVKPsychePipelineStage, DefaultSessionUpdateStage>();
     }

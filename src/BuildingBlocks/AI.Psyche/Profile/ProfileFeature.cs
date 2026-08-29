@@ -19,7 +19,9 @@ internal sealed partial class ProfileFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddScoped<IVKProfileStore, InMemoryProfileStore>();
+        services.TryAddScoped<InMemoryProfileStore>();
+        services.TryAddScoped<IVKPsycheProfileRepository>(sp => sp.GetRequiredService<InMemoryProfileStore>());
+        services.TryAddScoped<IVKReadRepository<VKProfilePresence, VKProfileId>>(sp => sp.GetRequiredService<InMemoryProfileStore>());
         services.AddScoped<IVKPsychePipelineStage, DefaultProfileStage>();
     }
 

@@ -17,7 +17,7 @@ internal sealed class DefaultAIRouteDispatcher : IVKAIRouteDispatcher
     private readonly IVKAIRouter _router;
     private readonly IVKAIProviderTracker _tracker;
     private readonly IVKAIProviderPool _providerPool;
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly VKRoutingOptions _routingOptions;
     private readonly IVKAICostCalculator? _costCalculator;
     private readonly IVKAITokenBudgetManager? _tokenBudgetManager;
@@ -28,7 +28,7 @@ internal sealed class DefaultAIRouteDispatcher : IVKAIRouteDispatcher
         IVKAIRouter router,
         IVKAIProviderTracker tracker,
         IVKAIProviderPool providerPool,
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         VKRoutingOptions routingOptions,
         IVKAICostCalculator? costCalculator = null,
         IVKAITokenBudgetManager? tokenBudgetManager = null,
@@ -38,7 +38,7 @@ internal sealed class DefaultAIRouteDispatcher : IVKAIRouteDispatcher
         _router = VKGuard.NotNull(router);
         _tracker = VKGuard.NotNull(tracker);
         _providerPool = VKGuard.NotNull(providerPool);
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _routingOptions = VKGuard.NotNull(routingOptions);
         _costCalculator = costCalculator;
         _tokenBudgetManager = tokenBudgetManager;
@@ -127,7 +127,7 @@ internal sealed class DefaultAIRouteDispatcher : IVKAIRouteDispatcher
                     AISynapseDiagnostics.RecordRequest(providerName, modelId, true, stopwatch.Elapsed.TotalMilliseconds);
 
                     // Record tokens and cost if response provides usage
-                    await TryRecordUsageAndCostAsync(result.Value, providerName, modelId, _identityContext.TenantId.ToString(), cancellationToken).ConfigureAwait(false);
+                    await TryRecordUsageAndCostAsync(result.Value, providerName, modelId, _tenantCoordinate.TenantId.ToString(), cancellationToken).ConfigureAwait(false);
 
                     return result;
                 }

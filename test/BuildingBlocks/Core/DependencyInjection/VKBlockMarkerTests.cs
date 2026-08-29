@@ -60,7 +60,7 @@ public class VKBlockMarkerTests
         public MockMarker(string id, IEnumerable<IVKBlockMarker>? dependencies = null)
         {
             Identifier = id;
-            _dependencies = dependencies != null ? new List<IVKBlockMarker>(dependencies) : new List<IVKBlockMarker>();
+            _dependencies = dependencies is not null ? new List<IVKBlockMarker>(dependencies) : new List<IVKBlockMarker>();
         }
 
         public string Name => Identifier;

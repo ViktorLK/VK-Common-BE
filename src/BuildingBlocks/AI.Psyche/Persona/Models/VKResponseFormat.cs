@@ -3,7 +3,7 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Defines the expected format of the AI's response.
 /// </summary>
-public enum VKResponseFormat
+public enum VKResponseFormat : byte
 {
     /// <summary>
     /// The response should be plain text without any markup.

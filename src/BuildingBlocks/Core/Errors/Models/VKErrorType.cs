@@ -3,7 +3,7 @@ namespace VK.Blocks.Core;
 /// <summary>
 /// Defines the types of errors that can occur.
 /// </summary>
-public enum VKErrorType
+public enum VKErrorType : sbyte
 {
     /// <summary>Represents no error.</summary>
     None = -1,

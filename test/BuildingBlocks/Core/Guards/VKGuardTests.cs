@@ -48,7 +48,7 @@ public class VKGuardTests
         Action act = () => VKGuard.NotNullOrWhiteSpace(value!);
 
         // Assert
-        if (value == null)
+        if (value is null)
             act.Should().Throw<ArgumentNullException>();
         else
             act.Should().Throw<ArgumentException>();

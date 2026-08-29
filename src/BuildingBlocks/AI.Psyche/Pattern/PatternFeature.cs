@@ -19,7 +19,9 @@ internal sealed partial class PatternFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddSingleton<IVKPatternStore, InMemoryPatternStore>();
+        services.TryAddSingleton<InMemoryPatternStore>();
+        services.TryAddSingleton<IVKPsychePatternRepository>(sp => sp.GetRequiredService<InMemoryPatternStore>());
+        services.TryAddSingleton<IVKReadRepository<VKPatternEntry, VKPatternId>>(sp => sp.GetRequiredService<InMemoryPatternStore>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPatternStage>());
     }
 
