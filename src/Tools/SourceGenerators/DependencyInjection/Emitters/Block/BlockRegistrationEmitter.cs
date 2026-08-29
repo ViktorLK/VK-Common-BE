@@ -68,7 +68,7 @@ internal static class BlockRegistrationEmitter
         {
             sb.AppendLine("        // 5b. Auto-Generated Persistence Pipeline");
             sb.AppendLine("        services.AddGeneratedModelContributors();");
-            sb.AppendLine("        services.AddGeneratedPersistenceRepositories();");
+            sb.AppendLine("        services.AddGeneratedAggregateRepositories();");
             sb.AppendLine();
         }
 

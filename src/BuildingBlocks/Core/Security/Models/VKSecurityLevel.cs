@@ -4,7 +4,7 @@ namespace VK.Blocks.Core;
 /// Defines the security level of a data property.
 /// Complies with AP.03.
 /// </summary>
-public enum VKSecurityLevel
+public enum VKSecurityLevel : byte
 {
     /// <summary>No special security handling required.</summary>
     None = 0,

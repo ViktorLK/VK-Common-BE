@@ -3,7 +3,7 @@ namespace VK.Blocks.Core;
 /// <summary>
 /// Execution phase within a composite pipeline (Unspecified vs Before Terminal/Middleware vs After Terminal/Middleware).
 /// </summary>
-public enum VKPipelinePhase
+public enum VKPipelinePhase : byte
 {
     /// <summary>
     /// Phase is unspecified or irrelevant (default for generic composite tasks/jobs).

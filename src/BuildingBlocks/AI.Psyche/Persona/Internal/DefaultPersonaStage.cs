@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -10,22 +9,24 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 
 /// <summary>
 /// Pipeline stage for injecting persona configuration into the context.
+/// Follows BB.01, AP.01, and OR.01.
 /// </summary>
+[VKTrace("psyche.stage.persona")]
 internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
 {
     private readonly VKPersonaOptions _options;
-    private readonly IVKPersonaStore _store;
+    private readonly IVKPsychePersonaRepository _personaRepository;
     private readonly VKWeavingOptions _weavingOptions;
     private readonly ILogger<DefaultPersonaStage> _logger;
 
     public DefaultPersonaStage(
         VKPersonaOptions options,
-        IVKPersonaStore store,
+        IVKPsychePersonaRepository personaRepository,
         VKWeavingOptions weavingOptions,
         ILogger<DefaultPersonaStage> logger)
     {
         _options = VKGuard.NotNull(options);
-        _store = VKGuard.NotNull(store);
+        _personaRepository = VKGuard.NotNull(personaRepository);
         _weavingOptions = VKGuard.NotNull(weavingOptions);
         _logger = VKGuard.NotNull(logger);
     }
@@ -37,54 +38,50 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var stopwatch = Stopwatch.StartNew();
-        try
+        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
+        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Persona))
         {
-            var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-            if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Persona))
-            {
-                return VKResult.Success();
-            }
-
-            if (context.Request.PersonaIds.Count == 0)
-            {
-                return VKResult.Success();
-            }
-
-            var personasResult = await _store.GetPersonasAsync(context.Request.PersonaIds, cancellationToken).ConfigureAwait(false); // [CS.03]
-            if (personasResult.IsFailure)
-            {
-                return VKResult.Failure(personasResult.Errors); // [CS.01]
-            }
-
-            var tierType = VKPromptTierType.Persona;
-            var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-                ? idx * PsycheConstants.Layout.TierCoordinateGap
-                : PromptLayout.DefaultRenderOrders[tierType];
-
-            foreach (var persona in personasResult.Value)
-            {
-                context.SetState(persona);
-                _logger.PersonaResolved(persona.Id, persona.Name);
-
-                context.AddFragment(new VKPromptFragment()
-                {
-                    TierType = tierType,
-                    RenderOrder = baseRenderOrder,
-                    Metadata = persona,
-                    Segment = new VKPromptSegment
-                    {
-                        Role = VKChatRole.System
-                    }
-                });
-            }
-
             return VKResult.Success();
         }
-        finally
+
+        if (context.Request.PersonaIds.Count == 0)
         {
-            stopwatch.Stop();
-            context.ResponseBuilder.ProfilingMetrics[VKPsycheProfilingKeys.PersonaStage] = stopwatch.Elapsed.TotalMilliseconds;
+            return VKResult.Success();
         }
+
+        var personasResult = await _personaRepository.ListByIdsAsync(context.Request.PersonaIds, cancellationToken).ConfigureAwait(false); // [CS.03]
+        if (personasResult.IsFailure)
+        {
+            return VKResult.Failure(personasResult.Errors); // [CS.01]
+        }
+
+        var tierType = VKPromptTierType.Persona;
+        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
+            ? idx * PsycheConstants.Layout.TierCoordinateGap
+            : PromptLayout.DefaultRenderOrders[tierType];
+
+        foreach (var persona in personasResult.Value)
+        {
+            context.SetState(persona);
+            _logger.PersonaResolved(persona.Id, persona.Name);
+
+            context.AddFragment(new VKPromptFragment()
+            {
+                TierType = tierType,
+                RenderOrder = baseRenderOrder,
+                Metadata = persona,
+                Segment = new VKPromptSegment
+                {
+                    Role = VKChatRole.System
+                }
+            });
+        }
+
+        if (personasResult.Value.Count > 0)
+        {
+            PersonaDiagnostics.RecordPersonasResolved(personasResult.Value.Count, "Persona");
+        }
+
+        return VKResult.Success();
     }
 }

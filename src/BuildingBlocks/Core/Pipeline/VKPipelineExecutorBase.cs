@@ -88,7 +88,7 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
             GetAbortResult,
             CheckCompleted,
             c => c.Schedule.IsParallel,
-            (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
+            ExecuteComponentAsync,
             cancellationToken).ConfigureAwait(false);
 
         if (beforeResult.IsFailure)
@@ -133,7 +133,7 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
             GetAbortResult,
             CheckCompleted,
             c => c.Schedule.IsParallel,
-            (c, ctx, ct) => c.ExecuteAsync(ctx, ct),
+            ExecuteComponentAsync,
             cancellationToken).ConfigureAwait(false);
 
         if (afterResult.IsFailure)
@@ -142,5 +142,16 @@ public abstract class VKPipelineExecutorBase<TContext, TResponse> : IVKPipelineE
         }
 
         return VKResult.Success(BuildResponse(context));
+    }
+
+    /// <summary>
+    /// Executes an individual pipeline component. Can be overridden in derived executors for automated tracing and profiling.
+    /// </summary>
+    protected virtual Task<VKResult> ExecuteComponentAsync(
+        IVKPipelineComponent<TContext> component,
+        TContext context,
+        CancellationToken cancellationToken)
+    {
+        return component.ExecuteAsync(context, cancellationToken);
     }
 }

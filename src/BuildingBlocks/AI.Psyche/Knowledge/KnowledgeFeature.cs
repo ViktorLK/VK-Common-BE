@@ -19,7 +19,9 @@ internal sealed partial class KnowledgeFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddSingleton<IVKKnowledgeStore, InMemoryKnowledgeStore>();
+        services.TryAddSingleton<InMemoryKnowledgeStore>();
+        services.TryAddSingleton<IVKPsycheKnowledgeRepository>(sp => sp.GetRequiredService<InMemoryKnowledgeStore>());
+        services.TryAddSingleton<IVKReadRepository<VKKnowledgeEntry, VKKnowledgeId>>(sp => sp.GetRequiredService<InMemoryKnowledgeStore>());
         services.TryAddSingleton<IVKKnowledgeRenderer, DefaultKnowledgeRenderer>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultKnowledgeStage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultKnowledgeFinalizerStage>());

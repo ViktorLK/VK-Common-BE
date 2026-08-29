@@ -22,7 +22,7 @@ public sealed class VKPersistRegistrationCodeFixProvider : CodeFixProvider
     /// <inheritdoc />
     public override ImmutableArray<string> FixableDiagnosticIds
         => [
-            VKDiagnosticDescriptors.MissingPersistenceRepositoriesRegistration.Id,
+            VKDiagnosticDescriptors.MissingAggregateRepositoriesRegistration.Id,
             VKDiagnosticDescriptors.MissingModelContributorsRegistration.Id
         ];
 
@@ -45,13 +45,13 @@ public sealed class VKPersistRegistrationCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (diagnostic.Id == VKDiagnosticDescriptors.MissingPersistenceRepositoriesRegistration.Id)
+            if (diagnostic.Id == VKDiagnosticDescriptors.MissingAggregateRepositoriesRegistration.Id)
             {
                 context.RegisterCodeFix(
                     CodeAction.Create(
-                        title: "Register generated persistence repositories (AddGeneratedPersistenceRepositories)",
-                        createChangedDocument: c => AddInvocationAsync(context.Document, candidateMethod, "services.AddGeneratedPersistenceRepositories();", c),
-                        equivalenceKey: "AddPersistenceRepositories"),
+                        title: "Register generated aggregate repositories (AddGeneratedAggregateRepositories)",
+                        createChangedDocument: c => AddInvocationAsync(context.Document, candidateMethod, "services.AddGeneratedAggregateRepositories();", c),
+                        equivalenceKey: "AddAggregateRepositories"),
                     diagnostic);
             }
             else if (diagnostic.Id == VKDiagnosticDescriptors.MissingModelContributorsRegistration.Id)

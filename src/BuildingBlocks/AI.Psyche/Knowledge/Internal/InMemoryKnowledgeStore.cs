@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
@@ -9,76 +7,123 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 
 /// <summary>
-/// Basic concrete implementation of <see cref="IVKKnowledgeStore"/>.
+/// Thread-safe in-memory implementation of <see cref="IVKPsycheKnowledgeRepository"/>.
+/// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class InMemoryKnowledgeStore : IVKKnowledgeStore
+internal sealed class InMemoryKnowledgeStore : IVKPsycheKnowledgeRepository
 {
-    private readonly ConcurrentDictionary<string, List<VKKnowledgeEntry>> _store = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<VKKnowledgeId, VKKnowledgeEntry> _store = new();
 
     public InMemoryKnowledgeStore()
     {
     }
 
-    public Task<VKResult<IReadOnlyList<VKKnowledgeEntry>>> GetKnowledgeEntriesAsync(
-        IReadOnlyList<VKKnowledgeId> knowledgeIds,
-        CancellationToken cancellationToken = default)
+    public Task<VKResult<VKKnowledgeEntry>> FindByIdAsync(VKKnowledgeId id, CancellationToken ct = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var resultList = new List<VKKnowledgeEntry>();
-
-        if (knowledgeIds.Count == 0)
+        ct.ThrowIfCancellationRequested();
+        if (id.IsEmpty)
         {
-            foreach (var list in _store.Values)
-            {
-                resultList.AddRange(list);
-            }
-            return Task.FromResult(VKResult.Success<IReadOnlyList<VKKnowledgeEntry>>(resultList));
+            return Task.FromResult(VKResult.Failure<VKKnowledgeEntry>(VKKnowledgeErrors.NotFound));
         }
 
-        foreach (var kId in knowledgeIds)
+        if (_store.TryGetValue(id, out var entry))
         {
-            if (_store.TryGetValue(kId.ToString(), out var entries))
-            {
-                resultList.AddRange(entries);
-            }
+            return Task.FromResult(VKResult.Success(entry));
         }
 
-        return Task.FromResult(VKResult.Success<IReadOnlyList<VKKnowledgeEntry>>(resultList));
+        return Task.FromResult(VKResult.Failure<VKKnowledgeEntry>(VKKnowledgeErrors.NotFound));
     }
+
+    public Task<VKResult<IReadOnlyList<VKKnowledgeEntry>>> ListByIdsAsync(
+        IReadOnlyList<VKKnowledgeId> ids,
+        CancellationToken ct = default)
+    {
+        VKGuard.NotNull(ids);
+        ct.ThrowIfCancellationRequested();
+
+        var list = new List<VKKnowledgeEntry>(ids.Count);
+        foreach (var id in ids)
+        {
+            if (_store.TryGetValue(id, out var entry))
+            {
+                list.Add(entry);
+            }
+        }
+
+        return Task.FromResult(VKResult.Success<IReadOnlyList<VKKnowledgeEntry>>(list));
+    }
+
+    public Task<bool> ExistsAsync(VKKnowledgeId id, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.FromResult(!id.IsEmpty && _store.ContainsKey(id));
+    }
+
+    public Task<VKResult> AddAsync(VKKnowledgeEntry item, CancellationToken ct = default)
+    {
+        VKGuard.NotNull(item);
+        ct.ThrowIfCancellationRequested();
+
+        if (!_store.TryAdd(item.Id, item))
+        {
+            return Task.FromResult(VKResult.Failure(VKKnowledgeErrors.AlreadyExists));
+        }
+
+        return Task.FromResult(VKResult.Success());
+    }
+
+    public Task<VKResult> UpdateAsync(VKKnowledgeEntry item, CancellationToken ct = default)
+    {
+        VKGuard.NotNull(item);
+        ct.ThrowIfCancellationRequested();
+
+        if (!_store.ContainsKey(item.Id))
+        {
+            return Task.FromResult(VKResult.Failure(VKKnowledgeErrors.NotFound));
+        }
+
+        _store[item.Id] = item;
+        return Task.FromResult(VKResult.Success());
+    }
+
+    public Task<VKResult> DeleteAsync(VKKnowledgeId id, CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (id.IsEmpty || !_store.TryRemove(id, out _))
+        {
+            return Task.FromResult(VKResult.Failure(VKKnowledgeErrors.NotFound));
+        }
+
+        return Task.FromResult(VKResult.Success());
+    }
+
 
     public InMemoryKnowledgeStore Seed(VKKnowledgeEntry knowledgeEntry)
     {
         VKGuard.NotNull(knowledgeEntry);
-        var list = _store.GetOrAdd(knowledgeEntry.Id.ToString(), _ => []);
-        list.Add(knowledgeEntry);
-
+        _store[knowledgeEntry.Id] = knowledgeEntry;
         return this;
     }
 
     public InMemoryKnowledgeStore Seed(IEnumerable<VKKnowledgeEntry> knowledgeEntries)
     {
         VKGuard.NotNull(knowledgeEntries);
-        foreach (var groupKnowledge in knowledgeEntries.GroupBy(x => x.Id))
+        foreach (var entry in knowledgeEntries)
         {
-            var list = _store.GetOrAdd(groupKnowledge.Key.ToString(), _ => []);
-            list.AddRange([.. groupKnowledge]);
+            _store[entry.Id] = entry;
         }
-
         return this;
     }
 
     public InMemoryKnowledgeStore Remove(VKKnowledgeId knowledgeEntryId)
     {
-        _store.TryRemove(knowledgeEntryId.ToString(), out _);
-
+        _store.TryRemove(knowledgeEntryId, out _);
         return this;
     }
 
     public InMemoryKnowledgeStore Clear()
     {
         _store.Clear();
-
         return this;
     }
 }

@@ -4,6 +4,7 @@ namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Public diagnostics constants for Psyche execution and the pipeline.
+/// Follows BB.04 and OR.01.
 /// </summary>
 public static class VKPipelineDiagnosticsConstants
 {
@@ -20,7 +21,17 @@ public static class VKPipelineDiagnosticsConstants
 
     public static class Metrics
     {
-        public const string ExecutionDuration = "vk.ai.psyche.pipeline.execution.duration";
+        public const string PipelineExecutionDuration = "vk.ai.psyche.pipeline.execution.duration";
         public const string PipelineDuration = "vk.ai.psyche.pipeline.duration";
+        public const string StageDuration = "vk.ai.psyche.pipeline.stage.duration";
+        public const string LLMInvocationDuration = "vk.ai.psyche.pipeline.llm.duration";
+    }
+
+    public static class Tags
+    {
+        public const string StageName = "ai.psyche.stage";
+        public const string IsSuccess = "ai.psyche.is_success";
+        public const string ErrorCode = "error.code";
+        public const string Model = "gen_ai.request.model";
     }
 }

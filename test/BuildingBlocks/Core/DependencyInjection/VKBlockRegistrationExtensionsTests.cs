@@ -956,6 +956,109 @@ public sealed class VKBlockRegistrationExtensionsTests
 
     #endregion
 
+    #region Keyed Options Registration Tests
+
+    [Fact]
+    public void AddVKBlockOptions_Keyed_FromConfiguration_ShouldBindAndRegister()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Validated:RequiredValue"] = "KeyedValue",
+                ["Validated:NumberValue"] = "100"
+            })
+            .Build();
+
+        // Act
+        var options = _services.AddVKBlockOptions<ValidatedOptions>(config, "my-key");
+
+        // Assert
+        options.RequiredValue.Should().Be("KeyedValue");
+        options.NumberValue.Should().Be(100);
+
+        var provider = _services.BuildServiceProvider();
+        provider.GetRequiredKeyedService<ValidatedOptions>("my-key").Should().BeSameAs(options);
+        provider.GetRequiredService<IOptionsMonitor<ValidatedOptions>>().Get("my-key").Should().BeSameAs(options);
+        provider.GetRequiredService<IOptionsSnapshot<ValidatedOptions>>().Get("my-key").Should().BeSameAs(options);
+    }
+
+    [Fact]
+    public void AddVKBlockOptions_Keyed_WithTransform_ShouldConfigureAndRegister()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder().Build();
+
+        // Act
+        var options = _services.AddVKBlockOptions<ValidatedOptions>(config, "my-key", o => o with { RequiredValue = "Transformed" });
+
+        // Assert
+        options.RequiredValue.Should().Be("Transformed");
+
+        var provider = _services.BuildServiceProvider();
+        provider.GetRequiredKeyedService<ValidatedOptions>("my-key").Should().BeSameAs(options);
+        provider.GetRequiredService<IOptionsMonitor<ValidatedOptions>>().Get("my-key").Should().BeSameAs(options);
+    }
+
+    [Fact]
+    public void AddVKBlockOptions_Keyed_IsIdempotent()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder().Build();
+
+        // Act
+        _services.AddVKBlockOptions<ValidatedOptions>(config, "my-key");
+        var countBefore = _services.Count;
+        _services.AddVKBlockOptions<ValidatedOptions>(config, "my-key");
+
+        // Assert
+        _services.Count.Should().Be(countBefore);
+    }
+
+    [Fact]
+    public void AddVKBlockOptions_Keyed_WithTransform_OnReRegistration_ReplacesInstance()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder().Build();
+
+        // Act
+        var first = _services.AddVKBlockOptions<ValidatedOptions>(config, "my-key");
+        var second = _services.AddVKBlockOptions<ValidatedOptions>(config, "my-key", o => o with { RequiredValue = "ReRegistered" });
+
+        // Assert
+        second.RequiredValue.Should().Be("ReRegistered");
+        var provider = _services.BuildServiceProvider();
+        provider.GetRequiredKeyedService<ValidatedOptions>("my-key").Should().BeSameAs(second);
+        provider.GetRequiredService<IOptionsMonitor<ValidatedOptions>>().Get("my-key").Should().BeSameAs(second);
+    }
+
+    [Fact]
+    public void AddVKBlockOptions_Keyed_ValidateOnStart_TriggersValidationOnHostStartup()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Validated:RequiredValue"] = "" // Violates the [Required] field constraint
+            })
+            .Build();
+
+        var host = Microsoft.Extensions.Hosting.Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
+            {
+                services.AddVKBlockOptions<ValidatedOptions>(config, "my-key");
+            })
+            .Build();
+
+        // Act
+        Func<Task> act = () => host.StartAsync();
+
+        // Assert
+        act.Should().ThrowAsync<OptionsValidationException>();
+    }
+
+    #endregion
+
     #region Helper Classes & Mocks
 
     private sealed record ValidatedOptions : IVKBlockOptions

@@ -5,7 +5,7 @@ namespace VK.Blocks.Core;
 /// <summary>
 /// Marks a persistence entity class to trigger compile-time Source Generation of:
 /// 1. Domain ↔ Entity Mapper (ToDomain, ToEntity, MapOnto).
-/// 2. Global Repository Type Aliases (e.g. IVK{Entity}Repository -> IVKEntityRepository{TEntity}).
+/// 2. Domain Aggregate Repositories (FindByIdAsync, ListByIdsAsync, AddAsync, UpdateAsync, DeleteAsync).
 /// 3. EF Core EntityTypeConfiguration (Schema, Table, Keys, Columns, Indices).
 /// 4. Query Objects &amp; Specifications.
 /// Follows AP.01, AP.03, BB.01.
@@ -15,7 +15,7 @@ public sealed class VKPersistEntityAttribute : Attribute
 {
     /// <summary>
     /// Gets the optional pure domain model or aggregate root type.
-    /// If provided, Domain ↔ Entity mapper extension methods are generated.
+    /// If provided, Domain ↔ Entity mapper extension methods and Domain Aggregate Repositories are generated.
     /// </summary>
     public Type? DomainType { get; }
 
@@ -41,10 +41,16 @@ public sealed class VKPersistEntityAttribute : Attribute
     public string[]? ProjectBy { get; init; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether to generate global using repository type aliases for this entity.
-    /// Defaults to true.
+    /// Gets or sets the explicit domain aggregate repository interface to implement.
+    /// If omitted, SG automatically resolves the interface inheriting IVKAggregateRepository<TDomain, TId>.
     /// </summary>
-    public bool GenerateRepositoryAlias { get; init; } = true;
+    public Type? RepositoryInterfaceType { get; init; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether to generate the domain aggregate repository implementation.
+    /// Defaults to true when DomainType is provided.
+    /// </summary>
+    public bool GenerateAggregateRepository { get; init; } = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether to generate EF Core IEntityTypeConfiguration for this entity.

@@ -59,7 +59,7 @@ internal sealed class DefaultPsychePipeline : IVKPsychePipeline
         var result = await _executor.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
 
         var elapsedMs = stopwatch.Elapsed.TotalMilliseconds;
-        PipelineDiagnostics.PipelineDuration?.Record(elapsedMs);
+        PipelineDiagnostics.RecordPipelineExecution(elapsedMs, result.IsSuccess);
 
         if (result.IsFailure)
         {

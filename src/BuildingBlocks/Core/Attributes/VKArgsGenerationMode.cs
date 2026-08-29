@@ -3,7 +3,7 @@ namespace VK.Blocks.Core;
 /// <summary>
 /// Defines the strategy for request-level argument record generation.
 /// </summary>
-public enum VKArgsGenerationMode
+public enum VKArgsGenerationMode : byte
 {
     /// <summary>
     /// Do not generate a request-level args record.

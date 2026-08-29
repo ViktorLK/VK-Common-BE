@@ -20,7 +20,7 @@ public sealed class VKPersistRegistrationAnalyzer : DiagnosticAnalyzer
 
     /// <inheritdoc />
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        => [VKDiagnosticDescriptors.MissingPersistenceRepositoriesRegistration, VKDiagnosticDescriptors.MissingModelContributorsRegistration];
+        => [VKDiagnosticDescriptors.MissingAggregateRepositoriesRegistration, VKDiagnosticDescriptors.MissingModelContributorsRegistration];
 
     /// <inheritdoc />
     public override void Initialize(AnalysisContext context)
@@ -63,8 +63,8 @@ public sealed class VKPersistRegistrationAnalyzer : DiagnosticAnalyzer
             .ToImmutableHashSet();
 
         bool hasRepositoriesCall = allInvocationTexts.Any(txt =>
-            txt.EndsWith("AddGeneratedPersistenceRepositories", System.StringComparison.Ordinal) ||
-            txt.Contains("AddGeneratedPersistenceRepositories("));
+            txt.EndsWith("AddGeneratedAggregateRepositories", System.StringComparison.Ordinal) ||
+            txt.Contains("AddGeneratedAggregateRepositories("));
 
         bool hasModelContributorsCall = allInvocationTexts.Any(txt =>
             txt.EndsWith("AddGeneratedModelContributors", System.StringComparison.Ordinal) ||
@@ -76,7 +76,7 @@ public sealed class VKPersistRegistrationAnalyzer : DiagnosticAnalyzer
         if (!hasRepositoriesCall)
         {
             context.ReportDiagnostic(Diagnostic.Create(
-                VKDiagnosticDescriptors.MissingPersistenceRepositoriesRegistration,
+                VKDiagnosticDescriptors.MissingAggregateRepositoriesRegistration,
                 targetLocation,
                 assemblyName));
         }

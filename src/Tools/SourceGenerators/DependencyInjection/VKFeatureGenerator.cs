@@ -91,6 +91,10 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
             {
                 argsGenerationMode = modeVal;
             }
+            else if (argsModeArg.Value.Value is byte byteModeVal)
+            {
+                argsGenerationMode = byteModeVal;
+            }
 
             // Check if optionsTypeSymbol has [VKOptions] attribute overriding settings
             if (optionsTypeSymbol is not null)
@@ -106,6 +110,10 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
                     if (optArgsMode.Value.Value is int optModeVal)
                     {
                         argsGenerationMode = optModeVal;
+                    }
+                    else if (optArgsMode.Value.Value is byte optByteModeVal)
+                    {
+                        argsGenerationMode = optByteModeVal;
                     }
                     var optArgsBase = vkOptionsAttr.NamedArguments.FirstOrDefault(n => n.Key == "ArgsBaseType").Value.Value as INamedTypeSymbol;
                     if (optArgsBase is not null)

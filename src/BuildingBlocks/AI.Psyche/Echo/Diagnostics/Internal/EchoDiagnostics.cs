@@ -4,10 +4,53 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Echo.Diagnostics.Internal;
 
+/// <summary>
+/// Source-generated logger messages and metrics for Psyche Echo feature.
+/// Follows BB.04 and OR.01.
+/// </summary>
 [ExcludeFromCodeCoverage(Justification = "Source-generated diagnostics logger declarations containing no business logic.")]
 [VKBlockDiagnostics<VKAIPsycheBlock>]
 internal static partial class EchoDiagnostics
 {
+    // --- Source Generated Metrics (v1.5) ---
+
+    [VKMetricHistogram(
+        VKEchoDiagnosticsConstants.Metrics.EchoExtractDuration,
+        Unit = "ms",
+        Description = "Duration of dialogue echo extraction and pruning in milliseconds.")]
+    public static partial void RecordExtract(
+        double durationMs,
+        [VKMetricTag(VKEchoDiagnosticsConstants.Tags.StageName)] string stage,
+        [VKMetricTag(VKEchoDiagnosticsConstants.Tags.RetainedCount)] int retainedCount,
+        [VKMetricTag(VKEchoDiagnosticsConstants.Tags.TrimmedCount)] int trimmedCount);
+
+    [VKMetricCounter(
+        VKEchoDiagnosticsConstants.Metrics.ActiveEchoesCount,
+        Unit = "echoes",
+        Description = "Total number of dialogue echoes retained in context.")]
+    public static partial void RecordActiveEchoes(
+        long count,
+        [VKMetricTag(VKEchoDiagnosticsConstants.Tags.StageName)] string stage);
+
+    [VKMetricCounter(
+        VKEchoDiagnosticsConstants.Metrics.TrimmedEchoesCount,
+        Unit = "echoes",
+        Description = "Total number of dialogue echoes pruned due to turn or token limits.")]
+    public static partial void RecordTrimmedEchoes(
+        long count,
+        [VKMetricTag(VKEchoDiagnosticsConstants.Tags.StageName)] string stage);
+
+    [VKMetricHistogram(
+        VKEchoDiagnosticsConstants.Metrics.EchoSaveDuration,
+        Unit = "ms",
+        Description = "Duration of dialogue echo persistence in milliseconds.")]
+    public static partial void RecordSave(
+        double durationMs,
+        [VKMetricTag(VKEchoDiagnosticsConstants.Tags.StageName)] string stage,
+        [VKMetricTag(VKPsycheDiagnosticsConstants.Tags.IsSuccess)] bool success);
+
+    // --- [LoggerMessage] Generators (OR.01) ---
+
     [LoggerMessage(
         EventId = VKEchoDiagnosticsConstants.Logs.EchoInitialized,
         Level = LogLevel.Information,
