@@ -26,7 +26,7 @@ public class ResultTTests
         Action act = () => { var v = result.Value; };
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<VKResultException>()
            .WithMessage("*Cannot access Value on a failed VKResult*");
     }
 

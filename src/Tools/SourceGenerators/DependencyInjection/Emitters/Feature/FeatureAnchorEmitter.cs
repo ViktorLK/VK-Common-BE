@@ -38,7 +38,7 @@ internal static class FeatureAnchorEmitter
         {
             rootNamespace = rootNamespace.Substring(8);
         }
-        
+
         sb.AppendLine($"namespace {rootNamespace};");
         sb.AppendLine();
         var featureClassName = isBlockOptions ? $"{target.Identity.FeatureName}Block" : $"{target.Identity.FeatureName}Feature";
@@ -67,7 +67,7 @@ internal static class FeatureAnchorEmitter
         sb.AppendLine($"    public string ParentBlockIdentifier => {target.Parent.BlockTypeFullName}.BlockIdentifier;");
         sb.AppendLine("    public bool IsOptional => true;");
         sb.AppendLine();
-        sb.AppendLine($"    public IReadOnlyList<IVKBlockMarker> Dependencies => (IVKBlockMarker[])[{target.Parent.BlockTypeFullName}.Instance];");
+        sb.AppendLine($"    public IReadOnlyList<IVKBlockMarker> Dependencies => [{target.Parent.BlockTypeFullName}.Instance];");
         sb.AppendLine();
         sb.AppendLine("    public string ActivitySourceName => FeatureIdentifier;");
         sb.AppendLine("    public string MeterName => FeatureIdentifier;");

@@ -53,6 +53,13 @@ internal sealed class InMemoryPersonaStore : IVKPsychePersonaRepository
         return Task.FromResult(VKResult.Success<IReadOnlyList<VKPersonaAnchor>>(list));
     }
 
+    public Task<VKResult<IReadOnlyList<VKPersonaAnchor>>> ListAllAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        IReadOnlyList<VKPersonaAnchor> list = [.. _store.Values];
+        return Task.FromResult(VKResult.Success(list));
+    }
+
     public Task<bool> ExistsAsync(VKPersonaId id, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

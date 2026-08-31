@@ -53,6 +53,13 @@ internal sealed class InMemoryProfileStore : IVKPsycheProfileRepository
         return Task.FromResult(VKResult.Success<IReadOnlyList<VKProfilePresence>>(list));
     }
 
+    public Task<VKResult<IReadOnlyList<VKProfilePresence>>> ListAllAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        IReadOnlyList<VKProfilePresence> list = [.. _presences.Values];
+        return Task.FromResult(VKResult.Success(list));
+    }
+
     public Task<bool> ExistsAsync(VKProfileId id, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

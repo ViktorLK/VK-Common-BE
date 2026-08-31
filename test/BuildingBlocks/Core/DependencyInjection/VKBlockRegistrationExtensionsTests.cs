@@ -48,6 +48,47 @@ public sealed class VKBlockRegistrationExtensionsTests
     }
 
     [Fact]
+    public void AddVKBlockOptions_FromAction_BridgeShouldConfigureAndRegister()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["MutableTest:Value"] = "FromConfig"
+            })
+            .Build();
+
+        // Act - Using standard Action<TOptions> bridge
+        Action<MutableTestOptions> configure = opt => opt.Value = "BridgedActionValue";
+        var options = _services.AddVKBlockOptions<MutableTestOptions>(config, configure);
+
+        // Assert
+        options.Value.Should().Be("BridgedActionValue");
+
+        var provider = _services.BuildServiceProvider();
+        provider.GetRequiredService<IOptions<MutableTestOptions>>().Value.Value.Should().Be("BridgedActionValue");
+        provider.GetRequiredService<MutableTestOptions>().Value.Should().Be("BridgedActionValue");
+    }
+
+    [Fact]
+    public void AddVKBlockOptions_Keyed_FromAction_BridgeShouldConfigureAndRegister()
+    {
+        // Arrange
+        var config = new ConfigurationBuilder().Build();
+
+        // Act - Using standard Keyed Action<TOptions> bridge
+        Action<MutableTestOptions> configure = opt => opt.Value = "KeyedActionValue";
+        var options = _services.AddVKBlockOptions<MutableTestOptions>(config, "CustomKey", configure);
+
+        // Assert
+        options.Value.Should().Be("KeyedActionValue");
+
+        var provider = _services.BuildServiceProvider();
+        provider.GetRequiredKeyedService<MutableTestOptions>("CustomKey").Value.Should().Be("KeyedActionValue");
+        provider.GetRequiredService<IOptionsMonitor<MutableTestOptions>>().Get("CustomKey").Value.Should().Be("KeyedActionValue");
+    }
+
+    [Fact]
     public void AddVKBlockOptions_IsIdempotent()
     {
         // Arrange
@@ -197,6 +238,12 @@ public sealed class VKBlockRegistrationExtensionsTests
     {
         public static string SectionName => "Test";
         public string Value { get; init; } = "";
+    }
+
+    private sealed class MutableTestOptions : IVKBlockOptions
+    {
+        public static string SectionName => "MutableTest";
+        public string Value { get; set; } = "";
     }
 
     private interface ITestService;

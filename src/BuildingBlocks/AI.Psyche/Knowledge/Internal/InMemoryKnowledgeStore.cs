@@ -53,6 +53,13 @@ internal sealed class InMemoryKnowledgeStore : IVKPsycheKnowledgeRepository
         return Task.FromResult(VKResult.Success<IReadOnlyList<VKKnowledgeEntry>>(list));
     }
 
+    public Task<VKResult<IReadOnlyList<VKKnowledgeEntry>>> ListAllAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        IReadOnlyList<VKKnowledgeEntry> list = [.. _store.Values];
+        return Task.FromResult(VKResult.Success(list));
+    }
+
     public Task<bool> ExistsAsync(VKKnowledgeId id, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

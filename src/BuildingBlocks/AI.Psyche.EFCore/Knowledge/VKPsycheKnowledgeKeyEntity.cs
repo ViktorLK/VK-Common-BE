@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using VK.Blocks.Core;
 
@@ -11,7 +10,6 @@ namespace VK.Blocks.AI.Psyche.EFCore;
 [VKPersistEntity(
     typeof(VKKnowledgeKey),
     TableName = "VK_AI_Psyche_Knowledge_Key",
-    GenerateRepositoryAlias = false,
     GenerateQueriesAndSpecs = false)]
 public sealed class VKPsycheKnowledgeKeyEntity
 {

@@ -82,7 +82,7 @@ When a block requires custom service registration or complex options validation,
 ### BB.05 — Options Architecture
 
 - **Immutability**: MUST be a `sealed record` with `init` properties.
-- **Functional Transformation (ADR-016)**: ANY code-based configuration MUST use the **`Func<T, T> configure`** pattern (instead of `Action<T>`) to support immutability via `with` expressions.
+- **Functional Transformation (ADR-016)**: ANY code-based configuration MUST use the **`Func<T, T> transform`** pattern (instead of mutating `Action<T>`) to support immutability via `with` expressions. (A backward-compatible `Action<T> configure` bridge wrapper MAY be provided by `AddVKBlockOptions`).
 - **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions` or `VKXxxDefaultsOptions`).
 - **Interface**: MUST implement `IVKBlockOptions` (or its variant `IVKToggleableBlockOptions` for blocks supporting feature toggles with an `Enabled` property).
 - **SectionName**: Formatted according to AP.04.

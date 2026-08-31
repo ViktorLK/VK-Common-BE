@@ -106,12 +106,13 @@ public static class VKBlockRegistrationExtensions
     /// </para>
     /// <para>
     /// <b>PRIORITY 2: Idempotent Dual-Registration Pattern</b><br/>
-    /// Ensures same instance is available via both <c>IOptions&lt;T&gt;</c> and direct <c>Singleton</c>.
-    /// </para>
-    /// </remarks>
-    /// <typeparam name="TOptions">The type of options to configure.</typeparam>
-    /// <param name="services">The service collection.</param>
-    /// <param name="configuration">The root configuration.</param>
+    /// [AP.04 / BB.05: Immutable Options Registration Pattern]
+    /// Binds and registers an <see cref="IVKBlockOptions"/> instance using zero-reflection and immutable records.
+    /// Following ADR-016: Supports fluent mutation via 'with' expressions without runtime reflection or post-configuration mutation.
+    /// </summary>
+    /// <typeparam name="TOptions">The concrete options type implementing <see cref="IVKBlockOptions"/>.</typeparam>
+    /// <param name="services">The service collection to register into.</param>
+    /// <param name="configuration">The configuration to bind against (Section: <see cref="IVKBlockOptions.SectionName"/>).</param>
     /// <param name="transform">Optional transformation function to modify the options using 'with' expressions.</param>
     /// <returns>The options instance bound at registration time.</returns>
     public static TOptions AddVKBlockOptions<TOptions>(
@@ -124,7 +125,7 @@ public static class VKBlockRegistrationExtensions
         VKGuard.NotNull(configuration);
         VKGuard.Against(string.IsNullOrWhiteSpace(TOptions.SectionName), "Options SectionName cannot be null or empty.");
 
-        // [IDEMPOTENCY CHECK] 窶・Avoid unnecessary Bind and DI registration when already registered
+        // [IDEMPOTENCY CHECK] – Avoid unnecessary Bind and DI registration when already registered
         if (services.IsVKServiceRegistered<TOptions>())
         {
             var existingOptions = services.GetVKServiceInstance<TOptions>()
@@ -177,6 +178,34 @@ public static class VKBlockRegistrationExtensions
         services.AddOptions<TOptions>().ValidateDataAnnotations().ValidateOnStart();
 
         return options;
+    }
+
+    /// <summary>
+    /// [WRAPPER] Bridge overload for standard <see cref="Action{TOptions}"/> configuration delegate.
+    /// Converts the mutating action into the immutable <c>Func&lt;TOptions, TOptions&gt;</c> transformation pipeline per ADR-016.
+    /// </summary>
+    /// <typeparam name="TOptions">The type of options to configure.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The root configuration.</param>
+    /// <param name="configure">Optional standard Action-based configuration delegate.</param>
+    /// <returns>The options instance bound at registration time.</returns>
+    public static TOptions AddVKBlockOptions<TOptions>(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        Action<TOptions>? configure)
+        where TOptions : class, IVKBlockOptions, new()
+    {
+        Func<TOptions, TOptions>? transform = configure is null
+            ? null
+            : options =>
+            {
+                configure(options);
+                return options;
+            };
+
+        return services.AddVKBlockOptions<TOptions>(
+            configuration,
+            transform);
     }
 
     /// <summary>
@@ -245,6 +274,37 @@ public static class VKBlockRegistrationExtensions
         services.AddOptions<TOptions>(key).ValidateDataAnnotations().ValidateOnStart();
 
         return options;
+    }
+
+    /// <summary>
+    /// [WRAPPER] Bridge overload for keyed <see cref="Action{TOptions}"/> configuration delegate.
+    /// Converts the mutating action into the immutable <c>Func&lt;TOptions, TOptions&gt;</c> transformation pipeline per ADR-016.
+    /// </summary>
+    /// <typeparam name="TOptions">The type of options to configure.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The root configuration.</param>
+    /// <param name="key">The unique key identifying this options instance.</param>
+    /// <param name="configure">Optional standard Action-based configuration delegate.</param>
+    /// <returns>The options instance bound at registration time.</returns>
+    public static TOptions AddVKBlockOptions<TOptions>(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        string key,
+        Action<TOptions>? configure)
+        where TOptions : class, IVKBlockOptions, new()
+    {
+        Func<TOptions, TOptions>? transform = configure is null
+            ? null
+            : options =>
+            {
+                configure(options);
+                return options;
+            };
+
+        return services.AddVKBlockOptions<TOptions>(
+            configuration,
+            key,
+            transform);
     }
 
     private static BlockOptionsRegistry<TOptions> GetOrCreateRegistry<TOptions>(IServiceCollection services)

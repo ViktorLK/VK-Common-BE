@@ -56,6 +56,13 @@ internal sealed class InMemorySessionStore : IVKPsycheSessionRepository
         return Task.FromResult(VKResult.Success<IReadOnlyList<VKSessionThread>>(list));
     }
 
+    public Task<VKResult<IReadOnlyList<VKSessionThread>>> ListAllAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        IReadOnlyList<VKSessionThread> list = [.. _sessions.Values];
+        return Task.FromResult(VKResult.Success(list));
+    }
+
     public Task<bool> ExistsAsync(VKSessionId id, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

@@ -8,7 +8,7 @@
 Implement a new MCP tool 'vk_get_architectural_rule' that allows the AI to fetch detailed rule specifications (CS.xx, OR.xx, etc.) from the .agents/rules/ directory by ID. This enables a thinner system prompt where only the index (checklist) is stored, while the full 'Industrial DNA' is fetched on-demand.
 
 ## ✅ DoD (Definition of Done)
-- [ ] Implement Architectural Rule Retrieval Tool in MCP Server
-- [ ] **Assess if an ADR is required (Rule 11)**
-- [ ] Verify changes
-- [ ] Run tests
+- [x] Implement Architectural Rule Retrieval Tool in MCP Server
+- [x] **Assess if an ADR is required (Rule 11)**
+- [x] Verify changes
+- [x] Run tests

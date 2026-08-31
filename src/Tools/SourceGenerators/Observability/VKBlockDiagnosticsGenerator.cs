@@ -338,7 +338,7 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
                     ? string.Join(", ", block.DependencyTypes.Select(t => $"{t}.Instance"))
                     : string.Empty;
                 sb.AppendLine("    /// <inheritdoc />");
-                sb.AppendLine($"    public IReadOnlyList<IVKBlockMarker> Dependencies => (IVKBlockMarker[])[{deps}];");
+                sb.AppendLine($"    public IReadOnlyList<IVKBlockMarker> Dependencies => [{deps}];");
                 sb.AppendLine();
             }
             else if (info is FeatureMarkerInfo feature)
@@ -350,7 +350,7 @@ public sealed class VKBlockDiagnosticsGenerator : IIncrementalGenerator
                 // Actually, the simplest way is to use the info.ParentIdentifier and replace ".BlockIdentifier" with ".Instance".
                 var parentInstance = feature.ParentIdentifier.Replace(".BlockIdentifier", ".Instance");
                 sb.AppendLine("    /// <inheritdoc />");
-                sb.AppendLine($"    public IReadOnlyList<IVKBlockMarker> Dependencies => (IVKBlockMarker[])[{parentInstance}];");
+                sb.AppendLine($"    public IReadOnlyList<IVKBlockMarker> Dependencies => [{parentInstance}];");
                 sb.AppendLine();
             }
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace VK.Blocks.Core.UnitTests.DependencyInjection;
 
@@ -51,6 +51,53 @@ public class VKBlockMarkerTests
         // Act & Assert
         var action = () => ((IVKBlockMarker)markerA).EnsureDependenciesRegistered(_services, "App");
         action.Should().NotThrow();
+    }
+
+    [Fact]
+    public void Dependencies_SupportsCovariantReturnTypes_InConcreteMarkers()
+    {
+        // Arrange
+        var concreteDep = new MockConcreteMarker("ConcreteChild");
+        var parentMarker = new CovariantMockMarker("ConcreteParent", [concreteDep]);
+
+        // Act - strongly typed access to concrete dependency array without casting
+        MockConcreteMarker[] directDeps = parentMarker.Dependencies;
+        IReadOnlyList<IVKBlockMarker> interfaceDeps = ((IVKBlockMarker)parentMarker).Dependencies;
+
+        // Assert
+        directDeps.Should().ContainSingle().Which.Should().BeSameAs(concreteDep);
+        interfaceDeps.Should().ContainSingle().Which.Should().BeSameAs(concreteDep);
+    }
+
+    private sealed class MockConcreteMarker : IVKBlockMarker
+    {
+        public MockConcreteMarker(string id) => Identifier = id;
+        public string Name => Identifier;
+        public string Identifier { get; }
+        public string Version => "1.0.0";
+        public IReadOnlyList<IVKBlockMarker> Dependencies => [];
+        public string ActivitySourceName => Identifier;
+        public string MeterName => Identifier;
+    }
+
+    private sealed class CovariantMockMarker : IVKBlockMarker
+    {
+        private readonly MockConcreteMarker[] _dependencies;
+
+        public CovariantMockMarker(string id, MockConcreteMarker[] dependencies)
+        {
+            Identifier = id;
+            _dependencies = dependencies;
+        }
+
+        public string Name => Identifier;
+        public string Identifier { get; }
+        public string Version => "1.0.0";
+        // C# Covariant Return Type: concrete array return narrowed from IReadOnlyList<IVKBlockMarker>
+        public MockConcreteMarker[] Dependencies => _dependencies;
+        IReadOnlyList<IVKBlockMarker> IVKBlockMarker.Dependencies => _dependencies;
+        public string ActivitySourceName => Identifier;
+        public string MeterName => Identifier;
     }
 
     private sealed class MockMarker : IVKBlockMarker

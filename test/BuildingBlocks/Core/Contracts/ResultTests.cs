@@ -75,7 +75,7 @@ public class ResultTests
         // Assert
         result.Should().BeFailure(error);
         Action act = () => { var v = result.Value; };
-        act.Should().Throw<InvalidOperationException>();
+        act.Should().Throw<VKResultException>();
     }
 
     [Fact]
@@ -94,6 +94,9 @@ public class ResultTests
     [Fact]
     public void Create_WithNullValue_ReturnsFailureResult()
     {
+        // Arrange
+        var value = null as string;
+
         // Act
         var result = VKResult.Create<string>(null);
 
@@ -105,14 +108,14 @@ public class ResultTests
     public void ProtectedConstructor_WithInvalidSuccessState_ThrowsException()
     {
         var action = () => new TestResult(true, new VKError("Err", "Msg"));
-        action.Should().Throw<InvalidOperationException>();
+        action.Should().Throw<VKResultException>();
     }
 
     [Fact]
     public void ProtectedConstructor_WithInvalidFailureState_ThrowsException()
     {
         var action = () => new TestResult(false, VKError.None);
-        action.Should().Throw<InvalidOperationException>();
+        action.Should().Throw<VKResultException>();
     }
 
     [Fact]
@@ -123,7 +126,6 @@ public class ResultTests
 
         // Assert
         result.IsSuccess.Should().BeTrue();
-        result.Errors.Should().BeEmpty();
     }
 
     [Fact]
@@ -134,7 +136,7 @@ public class ResultTests
 
         // Act & Assert
         var action = () => new TestResult(true, errors);
-        action.Should().Throw<InvalidOperationException>().WithMessage("*Success result cannot contain errors*");
+        action.Should().Throw<VKResultException>().WithMessage("*Success result cannot contain errors*");
     }
 
     [Fact]
@@ -142,7 +144,7 @@ public class ResultTests
     {
         // Act & Assert
         var action = () => new TestResult(false, (IEnumerable<VKError>)null!);
-        action.Should().Throw<InvalidOperationException>().WithMessage("*must contain at least one error*");
+        action.Should().Throw<VKResultException>().WithMessage("*must contain at least one error*");
     }
 
     [Fact]

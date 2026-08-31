@@ -37,6 +37,11 @@ public interface IVKBlockMarker
     /// <summary>
     /// Gets the collection of building blocks that this block depends on.
     /// </summary>
+    /// <remarks>
+    /// Concrete implementations and specialized markers can leverage <b>C# Covariant Return Types</b>
+    /// (e.g. returning a specific array type <c>IVKBlockMarker[]</c> or <c>TMarker[]</c>) to provide
+    /// compile-time type safety without requiring explicit upcasts.
+    /// </remarks>
     IReadOnlyList<IVKBlockMarker> Dependencies { get; }
 
     /// <summary>

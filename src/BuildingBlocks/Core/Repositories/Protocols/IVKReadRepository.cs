@@ -29,6 +29,13 @@ public interface IVKReadRepository<T, in TId> where TId : notnull
     Task<VKResult<IReadOnlyList<T>>> ListByIdsAsync(IReadOnlyList<TId> ids, CancellationToken ct = default);
 
     /// <summary>
+    /// Lists all items in the repository.
+    /// </summary>
+    /// <param name="ct">The cancellation token.</param>
+    /// <returns>A <see cref="VKResult{T}"/> containing all items.</returns>
+    Task<VKResult<IReadOnlyList<T>>> ListAllAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Checks whether an item with the specified identifier exists.
     /// </summary>
     /// <param name="id">The unique identifier.</param>

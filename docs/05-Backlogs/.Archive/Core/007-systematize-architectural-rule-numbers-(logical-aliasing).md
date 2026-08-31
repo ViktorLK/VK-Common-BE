@@ -1,4 +1,4 @@
-﻿# Task: Systematize Architectural Rule Numbers (Logical Aliasing)
+# Task: Systematize Architectural Rule Numbers (Logical Aliasing)
 **ID**: CORE-007
 **Status**: 🔵 Low | #Debt
 **Target**: `.agents/rules/`
@@ -13,7 +13,7 @@
 4. 既存コード内コメントの段階的なリファクタリング。
 
 ## ✅ DoD (Definition of Done)
-- [ ] Systematize Architectural Rule Numbers (Logical Aliasing)
-- [ ] **Assess if an ADR is required (DL.03)**
-- [ ] Verify changes
-- [ ] Run tests
+- [x] Systematize Architectural Rule Numbers (Logical Aliasing)
+- [x] **Assess if an ADR is required (DL.03)**
+- [x] Verify changes
+- [x] Run tests

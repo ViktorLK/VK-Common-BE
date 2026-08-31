@@ -8,7 +8,7 @@
 Perform a comprehensive audit and refactoring of all internal 'throw' statements within the 'VK.Blocks.Core' library. Replace generic 'Exception' or 'InvalidOperationException' calls with appropriate 'VKBaseException' derivatives (e.g., 'VKDependencyException', 'VKValidationException') to ensure consistency with ADR-011.
 
 ## ✅ DoD (Definition of Done)
-- [ ] Refactor Legacy Exception Throw Sites in Core Library
-- [ ] **Assess if an ADR is required (DL.03)**
-- [ ] Verify changes
-- [ ] Run tests
+- [x] Refactor Legacy Exception Throw Sites in Core Library
+- [x] **Assess if an ADR is required (DL.03)**
+- [x] Verify changes
+- [x] Run tests

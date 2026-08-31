@@ -58,6 +58,13 @@ internal sealed class InMemoryPatternStore : IVKPsychePatternRepository
         return Task.FromResult(VKResult.Success<IReadOnlyList<VKPatternEntry>>(list));
     }
 
+    public Task<VKResult<IReadOnlyList<VKPatternEntry>>> ListAllAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        IReadOnlyList<VKPatternEntry> list = [.. _patterns.Values];
+        return Task.FromResult(VKResult.Success(list));
+    }
+
     public Task<bool> ExistsAsync(VKPatternId id, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

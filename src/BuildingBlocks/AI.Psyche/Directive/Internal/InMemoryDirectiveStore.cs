@@ -60,6 +60,13 @@ internal sealed class InMemoryDirectiveStore : IVKPsycheDirectiveRepository
         return Task.FromResult(VKResult.Success<IReadOnlyList<VKDirectiveCharter>>(list));
     }
 
+    public Task<VKResult<IReadOnlyList<VKDirectiveCharter>>> ListAllAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        IReadOnlyList<VKDirectiveCharter> list = [.. _store.Values];
+        return Task.FromResult(VKResult.Success(list));
+    }
+
     public Task<bool> ExistsAsync(VKDirectiveId id, CancellationToken ct = default)
     {
         ct.ThrowIfCancellationRequested();

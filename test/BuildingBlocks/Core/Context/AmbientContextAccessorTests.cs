@@ -42,7 +42,7 @@ public sealed class AmbientContextAccessorTests
 
         // Act & Assert
         var act = () => tenantCoord.TenantId;
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<VKContextException>()
             .WithMessage("*active ambient tenant coordinate*");
     }
 
@@ -54,7 +54,7 @@ public sealed class AmbientContextAccessorTests
 
         // Act & Assert
         var act = () => userCoord.UserId;
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<VKContextException>()
             .WithMessage("*active ambient user coordinate*");
     }
 
