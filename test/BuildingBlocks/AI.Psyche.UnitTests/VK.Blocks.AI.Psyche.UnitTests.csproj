@@ -22,11 +22,13 @@
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="FluentAssertions" />
+    <Using Include="VK.Blocks.Testing" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\BuildingBlocks\Core\VK.Blocks.Core.csproj" />
     <ProjectReference Include="..\..\..\src\BuildingBlocks\AI.Psyche\VK.Blocks.AI.Psyche.csproj" />
+    <ProjectReference Include="..\..\Tools\Testing\Core\VK.Blocks.Testing.Core.csproj" />
     <ProjectReference Include="..\..\Tools\Testing\Builders\VK.Blocks.Testing.Builders.csproj" />
   </ItemGroup>
 

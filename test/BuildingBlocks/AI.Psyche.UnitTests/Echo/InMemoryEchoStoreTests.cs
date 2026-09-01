@@ -1,37 +1,26 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Moq;
 using VK.Blocks.AI.Psyche.Echo.Internal;
-using VK.Blocks.Core;
-using Xunit;
+using VK.Blocks.AI.Psyche.UnitTests.Builders;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Echo;
 
-public sealed class InMemoryEchoStoreTests
+public sealed class InMemoryEchoStoreTests : VKUnitTestBase
 {
     [Fact]
     public async Task SaveTraceAsync_And_GetHistoryAsync_ReturnsTraces()
     {
         // Arrange
         var store = new InMemoryEchoStore();
-        var sessionId = new VKSessionId(Guid.NewGuid());
-        var trace1 = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = sessionId,
-            Role = VKChatRole.User,
-            Content = "Msg 1"
-        };
-        var trace2 = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = sessionId,
-            Role = VKChatRole.Assistant,
-            Content = "Msg 2"
-        };
+        var sessionId = new VKSessionThreadBuilder().Build().Id;
+        var trace1 = new VKEchoTraceBuilder()
+            .WithSessionId(sessionId)
+            .WithRole(VKChatRole.User)
+            .WithContent("Msg 1")
+            .Build();
+        var trace2 = new VKEchoTraceBuilder()
+            .WithSessionId(sessionId)
+            .WithRole(VKChatRole.Assistant)
+            .WithContent("Msg 2")
+            .Build();
 
         store.Seed(sessionId, [trace1, trace2]);
 
@@ -39,7 +28,7 @@ public sealed class InMemoryEchoStoreTests
         var result = await store.GetHistoryAsync(sessionId, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         result.Value.Should().HaveCount(2);
     }
 
@@ -48,14 +37,12 @@ public sealed class InMemoryEchoStoreTests
     {
         // Arrange
         var store = new InMemoryEchoStore();
-        var sessionId = new VKSessionId(Guid.NewGuid());
-        var trace = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = sessionId,
-            Role = VKChatRole.User,
-            Content = "Msg 1"
-        };
+        var sessionId = new VKSessionThreadBuilder().Build().Id;
+        var trace = new VKEchoTraceBuilder()
+            .WithSessionId(sessionId)
+            .WithRole(VKChatRole.User)
+            .WithContent("Msg 1")
+            .Build();
 
         store.Seed(sessionId, trace);
 
@@ -68,7 +55,9 @@ public sealed class InMemoryEchoStoreTests
         var res2 = await store.GetHistoryAsync(sessionId, CancellationToken.None);
 
         // Assert
+        res1.Should().BeSuccess();
         res1.Value.Should().BeEmpty();
+        res2.Should().BeSuccess();
         res2.Value.Should().BeEmpty();
     }
 }

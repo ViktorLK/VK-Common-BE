@@ -1,16 +1,10 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Moq;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
 using VK.Blocks.AI.Psyche.Weaving.Internal;
-using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Weaving;
 
-public sealed class DefaultCoordinateResolveTaskTests
+public sealed class DefaultCoordinateResolveTaskTests : VKUnitTestBase
 {
     [Fact]
     public async Task ExecuteAsync_AssignsRenderOrderToFragments()
@@ -20,11 +14,10 @@ public sealed class DefaultCoordinateResolveTaskTests
         var task = new DefaultCoordinateResolveTask(options);
 
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
-        var metadataMock = new Mock<IVKFragmentMetadata>();
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Directive,
-            Metadata = metadataMock.Object,
+            Metadata = GetMockObject<IVKFragmentMetadata>(),
             Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Rule" }
         };
         context.AddFragment(fragment);
@@ -33,7 +26,7 @@ public sealed class DefaultCoordinateResolveTaskTests
         var result = await task.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         fragment.RenderOrder.Should().NotBeNull();
     }
 }

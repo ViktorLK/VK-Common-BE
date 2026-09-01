@@ -23,12 +23,12 @@ internal sealed class AmbientContextAccessor : IVKAmbientContextAccessor, IVKTen
     /// <inheritdoc />
     VKTenantId IVKTenantCoordinate.TenantId =>
         CurrentTenantCoordinate?.TenantId
-        ?? throw new InvalidOperationException("Execution requires an active ambient tenant coordinate, but none is set in the active async context.");
+        ?? throw VKContextException.MissingTenantCoordinate();
 
     /// <inheritdoc />
     VKUserId IVKUserCoordinate.UserId =>
         CurrentUserCoordinate?.UserId
-        ?? throw new InvalidOperationException("Execution requires an active ambient user coordinate, but none is set in the active async context.");
+        ?? throw VKContextException.MissingUserCoordinate();
 
     /// <inheritdoc />
     public IDisposable BeginScope(VKTenantId tenantId) =>

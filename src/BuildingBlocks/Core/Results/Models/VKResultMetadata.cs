@@ -16,7 +16,7 @@ public static class VKResultMetadata
 
     private static readonly MethodInfo _genericResultFailureMethodInfo = typeof(VKResult)
         .GetMethod(nameof(VKResult.Failure), genericParameterCount: 1, types: [typeof(IEnumerable<VKError>)])
-        ?? throw new InvalidOperationException("CRITICAL ERROR: Method VKResult.Failure<T>(IEnumerable<VKError>) not found. API Contract broken.");
+        ?? throw new VKResultException("CRITICAL ERROR: Method VKResult.Failure<T>(IEnumerable<VKError>) not found. API Contract broken.");
 
     /// <summary>
     /// Creates a failed <see cref="VKResult{T}"/> instance for the specified result type.

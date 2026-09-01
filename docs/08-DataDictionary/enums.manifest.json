@@ -1,0 +1,1283 @@
+﻿[
+  {
+    "Name": "FileStatus",
+    "UnderlyingType": "int",
+    "SourceFile": "Labs/BlobMatterNebula/Domain/Files/FileStatus.cs",
+    "Members": [
+      {
+        "Name": "Active",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Deleted",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "PwpInteractionPhase",
+    "UnderlyingType": "int",
+    "SourceFile": "Labs/PersonaWeavePulsar/backup/Orchestration/PwpInteractionPhase.cs",
+    "Members": [
+      {
+        "Name": "Standard",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "ThemedAssistant",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "FullRP",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "PwpInteractionPhase",
+    "UnderlyingType": "int",
+    "SourceFile": "Labs/PersonaWeavePulsar/Features/Chat/Engine/PwpInteractionPhase.cs",
+    "Members": [
+      {
+        "Name": "Standard",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "ThemedAssistant",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "FullRP",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "ShareLinkStatus",
+    "UnderlyingType": "int",
+    "SourceFile": "Labs/BlobMatterNebula/Domain/Shares/ShareLinkStatus.cs",
+    "Members": [
+      {
+        "Name": "Active",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Expired",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Revoked",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "SharePermission",
+    "UnderlyingType": "int",
+    "SourceFile": "Labs/BlobMatterNebula/Domain/Shares/SharePermission.cs",
+    "Members": [
+      {
+        "Name": "ReadOnly",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "ReadWrite",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "FullControl",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKAIEidosChunkType",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Eidos/Parsing/Models/VKAIEidosChunkType.cs",
+    "Members": [
+      {
+        "Name": "TextPart",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "ToolPart",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "DeltaPart",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKAIEidosExpressionMode",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Eidos/Negotiation/Models/VKAIEidosExpressionMode.cs",
+    "Members": [
+      {
+        "Name": "StructuredOutput",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "ToolCall",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "PromptJson",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKAIProviderType",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI/Common/Contracts/Models/VKAIProviderType.cs",
+    "Members": [
+      {
+        "Name": "OpenAI",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "AzureOpenAI",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Google",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "Anthropic",
+        "Value": 4,
+        "Summary": ""
+      },
+      {
+        "Name": "Ollama",
+        "Value": 5,
+        "Summary": ""
+      },
+      {
+        "Name": "Custom",
+        "Value": 99,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKAIRoutingStrategy",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Synapse/Routing/Models/VKAIRoutingStrategy.cs",
+    "Members": [
+      {
+        "Name": "Preference",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "WeightedRoundRobin",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "CostOptimized",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "LatencyOptimized",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKArgsGenerationMode",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Core/Attributes/VKArgsGenerationMode.cs",
+    "Members": [
+      {
+        "Name": "None",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Explicit",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Implicit",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKChatRole",
+    "UnderlyingType": "byte",
+    "SourceFile": "BuildingBlocks/AI/Chat/Messages/Models/VKChatRole.cs",
+    "Members": [
+      {
+        "Name": "System",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "User",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Assistant",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Tool",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKChunkingStrategy",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.RAG/KnowledgeBase/Models/VKChunkingStrategy.cs",
+    "Members": [
+      {
+        "Name": "TokenFixedSize",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "CharacterOverlap",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "SemanticShift",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "DocumentLayout",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKCloudDetectionMode",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Observability.OpenTelemetry/VKCloudDetectionMode.cs",
+    "Members": [
+      {
+        "Name": "Auto",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Azure",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Container",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Disabled",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKCompressionStrategyType",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Engram/Compression/Models/VKCompressionStrategyType.cs",
+    "Members": [
+      {
+        "Name": "LlmSummary",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "KeyValueExtraction",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "HierarchicalSummary",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "TopicSegmentation",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKContradictionKind",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Engram/Revision/Models/VKContradictionKind.cs",
+    "Members": [
+      {
+        "Name": "None",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "ExplicitCorrection",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "SemanticDrift",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "UnresolvedContradiction",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "NoOpIdempotent",
+        "Value": 4,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKDecayMode",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Engram/Reclamation/Models/VKDecayMode.cs",
+    "Members": [
+      {
+        "Name": "Exponential",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Linear",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Stepped",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKEmployeeRank",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Authorization/MinimumRank/Models/VKEmployeeRank.cs",
+    "Members": [
+      {
+        "Name": "Junior",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Mid",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Senior",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Lead",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "Principal",
+        "Value": 4,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKEnterprisePositions",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.RAG/KnowledgeBase/Models/VKEnterprisePositions.cs",
+    "Members": [
+      {
+        "Name": "SystemHeader",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "SystemFooter",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "RetrievedContext",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "ContextHistory",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "TailDirective",
+        "Value": 4,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKEntityCapability",
+    "UnderlyingType": "byte",
+    "SourceFile": "BuildingBlocks/Core/Domain/Models/VKEntityCapability.cs",
+    "Members": [
+      {
+        "Name": "None",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Auditable",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "SoftDelete",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "MultiTenant",
+        "Value": 4,
+        "Summary": ""
+      },
+      {
+        "Name": "MultiTenantEntity",
+        "Value": 8,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKErrorType",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Core/Errors/Models/VKErrorType.cs",
+    "Members": [
+      {
+        "Name": "None",
+        "Value": -1,
+        "Summary": ""
+      },
+      {
+        "Name": "Failure",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Validation",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "NotFound",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Conflict",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "Unauthorized",
+        "Value": 4,
+        "Summary": ""
+      },
+      {
+        "Name": "Forbidden",
+        "Value": 5,
+        "Summary": ""
+      },
+      {
+        "Name": "TooManyRequests",
+        "Value": 6,
+        "Summary": ""
+      },
+      {
+        "Name": "PreconditionFailed",
+        "Value": 7,
+        "Summary": ""
+      },
+      {
+        "Name": "ServiceUnavailable",
+        "Value": 8,
+        "Summary": ""
+      },
+      {
+        "Name": "Timeout",
+        "Value": 9,
+        "Summary": ""
+      },
+      {
+        "Name": "ExternalError",
+        "Value": 10,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKExternalCallStatus",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Workflow/Recovery/Protocols/IVKExternalCallStatusChecker.cs",
+    "Members": [
+      {
+        "Name": "Unknown",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "InProgress",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Succeeded",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Failed",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKFilterVerdict",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Core/Filtering/Models/VKFilterVerdict.cs",
+    "Members": [
+      {
+        "Name": "Reject",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Keep",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "ForceKeep",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKIntent",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Cognitive/Reasoning/Models/VKIntent.cs",
+    "Members": [
+      {
+        "Name": "Unknown",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Chat",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Roleplay",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Consulting",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "Task",
+        "Value": 4,
+        "Summary": ""
+      },
+      {
+        "Name": "System",
+        "Value": 5,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKJwtAuthMode",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Authentication/Jwt/Models/VKJwtAuthMode.cs",
+    "Members": [
+      {
+        "Name": "Symmetric",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "OidcDiscovery",
+        "Value": 1,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKKnowledgeApprovalStatus",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Corpus/Common/Models/VKKnowledgeApprovalStatus.cs",
+    "Members": [
+      {
+        "Name": "Approved",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Draft",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "PendingReview",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Rejected",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKKnowledgeFilterLogic",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Psyche/Knowledge/Models/VKKnowledgeFilterLogic.cs",
+    "Members": [
+      {
+        "Name": "AndAny",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "AndAll",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "NotAny",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "NotAll",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKKnowledgeMatchType",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Psyche/Knowledge/Models/VKKnowledgeMatchType.cs",
+    "Members": [
+      {
+        "Name": "Contains",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "WholeWord",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Regex",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKKnowledgeProvenance",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Corpus/Common/Models/VKKnowledgeProvenance.cs",
+    "Members": [
+      {
+        "Name": "Manual",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "AIExtracted",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Imported",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKKnowledgeTriggerType",
+    "UnderlyingType": "byte",
+    "SourceFile": "BuildingBlocks/AI.Psyche/Knowledge/Models/VKKnowledgeTriggerType.cs",
+    "Members": [
+      {
+        "Name": "Constant",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Keyword",
+        "Value": 1,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKMemoryCategory",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Engram/Memory/Models/VKMemoryCategory.cs",
+    "Members": [
+      {
+        "Name": "ShortTerm",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "MediumTerm",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "LongTerm",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKPipelinePhase",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Core/Pipeline/Models/VKPipelinePhase.cs",
+    "Members": [
+      {
+        "Name": "None",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Before",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "After",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKProcessorMode",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Observability.OpenTelemetry/VKProcessorMode.cs",
+    "Members": [
+      {
+        "Name": "Batch",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Simple",
+        "Value": 1,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKPromptRelativeDepth",
+    "UnderlyingType": "byte",
+    "SourceFile": "BuildingBlocks/AI.Psyche/Common/Models/VKPromptRelativeDepth.cs",
+    "Members": [
+      {
+        "Name": "BeforeDirective",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "AfterDirective",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "BeforePersona",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "AfterPersona",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "BeforeEcho",
+        "Value": 4,
+        "Summary": ""
+      },
+      {
+        "Name": "AfterEcho",
+        "Value": 5,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKPromptTierType",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Psyche/Common/Models/VKPromptTierType.cs",
+    "Members": [
+      {
+        "Name": "Directive",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Persona",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Echo",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "Knowledge",
+        "Value": 100,
+        "Summary": ""
+      },
+      {
+        "Name": "Pattern",
+        "Value": 101,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKPruneAction",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Engram/Reclamation/Models/VKPruneAction.cs",
+    "Members": [
+      {
+        "Name": "Delete",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Archive",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Flag",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKQueryTracking",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Persistence/Repositories/Models/VKQueryTracking.cs",
+    "Members": [
+      {
+        "Name": "Default",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "NoTracking",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Tracked",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKResponseFormat",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Psyche/Persona/Models/VKResponseFormat.cs",
+    "Members": [
+      {
+        "Name": "PlainText",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Markdown",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "JsonObject",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "JsonSchema",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKRevisionSourceType",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Engram/Revision/Models/VKRevisionSourceType.cs",
+    "Members": [
+      {
+        "Name": "LLMInferred",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "UserExplicitOverride",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "SystemRule",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKSamplerStrategy",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Observability.OpenTelemetry/VKSamplerStrategy.cs",
+    "Members": [
+      {
+        "Name": "ParentBasedAlwaysOn",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "AlwaysOn",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "AlwaysOff",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "TraceIdRatioBased",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKSecurityLevel",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Core/Security/Models/VKSecurityLevel.cs",
+    "Members": [
+      {
+        "Name": "None",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Sensitive",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Redacted",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKSessionMode",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Psyche/Session/Models/VKSessionMode.cs",
+    "Members": [
+      {
+        "Name": "Isolated",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Continuous",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Sandbox",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKSessionStatus",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Psyche/Session/Models/VKSessionStatus.cs",
+    "Members": [
+      {
+        "Name": "Active",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Archived",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Closed",
+        "Value": 2,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKSignalType",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.Somatic/Impulse/VKSignalType.cs",
+    "Members": [
+      {
+        "Name": "None",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "LateNightWorking",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "TaskDeadlineApproaching",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "MilestoneReached",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "SystemAnomaly",
+        "Value": 4,
+        "Summary": ""
+      },
+      {
+        "Name": "UserInactivity",
+        "Value": 5,
+        "Summary": ""
+      },
+      {
+        "Name": "ScheduledRoutine",
+        "Value": 6,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKStorageDeleteMode",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Storage/Abstractions/Contracts/VKStorageDeleteMode.cs",
+    "Members": [
+      {
+        "Name": "SoftDelete",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "PermanentDelete",
+        "Value": 1,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKStoragePermissions",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Storage/Abstractions/Contracts/VKStoragePermissions.cs",
+    "Members": [
+      {
+        "Name": "None",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Read",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Write",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Delete",
+        "Value": 4,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKTaskStatus",
+    "UnderlyingType": "int",
+    "SourceFile": "Labs/TaskNexusOrbit/Domain/Tasks/VKTaskStatus.cs",
+    "Members": [
+      {
+        "Name": "Todo",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "InProgress",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Review",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Done",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKTokenBudgetStrategy",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/AI.RAG/KnowledgeBase/Models/VKTokenBudgetStrategy.cs",
+    "Members": [
+      {
+        "Name": "Fail",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "TruncateLowScore",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "SummarizeRemaining",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "MetadataFallback",
+        "Value": 3,
+        "Summary": ""
+      }
+    ]
+  },
+  {
+    "Name": "VKWorkflowState",
+    "UnderlyingType": "int",
+    "SourceFile": "BuildingBlocks/Workflow.Abstractions/Models/VKWorkflowState.cs",
+    "Members": [
+      {
+        "Name": "Pending",
+        "Value": 0,
+        "Summary": ""
+      },
+      {
+        "Name": "Processing",
+        "Value": 1,
+        "Summary": ""
+      },
+      {
+        "Name": "Completed",
+        "Value": 2,
+        "Summary": ""
+      },
+      {
+        "Name": "Compensating",
+        "Value": 3,
+        "Summary": ""
+      },
+      {
+        "Name": "Failed",
+        "Value": 4,
+        "Summary": ""
+      },
+      {
+        "Name": "CompensationFailed",
+        "Value": 5,
+        "Summary": ""
+      },
+      {
+        "Name": "TimeoutFailed",
+        "Value": 6,
+        "Summary": ""
+      },
+      {
+        "Name": "Suspended",
+        "Value": 7,
+        "Summary": ""
+      }
+    ]
+  }
+]

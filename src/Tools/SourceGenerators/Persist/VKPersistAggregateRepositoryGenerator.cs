@@ -168,8 +168,10 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
 
     private static void EmitAggregateRepository(SourceProductionContext ctx, AggregateRepositoryInfo info)
     {
-        var domainLower = info.DomainName.ToLowerInvariant();
-        var traceName = $"vk.persist.repository.{domainLower}";
+        var rawDomain = info.DomainName.StartsWith("VK") ? info.DomainName.Substring(2) : info.DomainName;
+        var entitySnake = IdentifierUtilities.ToSnakeCase(rawDomain);
+        var moduleName = IdentifierUtilities.ExtractModuleName(info.Namespace);
+        var traceName = $"{moduleName}.repository.{entitySnake}";
 
         var sb = SourceCodeBuilder.CreateWithHeader();
         sb.AppendLine("using System;");
@@ -192,7 +194,7 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
         sb.AppendLine("/// </summary>");
         sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]");
         sb.AppendLine($"[VKTrace(\"{traceName}\")]");
-        sb.AppendLine($"internal sealed class {info.ImplementationName}(");
+        sb.AppendLine($"internal sealed partial class {info.ImplementationName}(");
         sb.AppendLine($"    IVKEntityRepository<{info.EntityFullName}> repository,");
         sb.AppendLine("    IVKUnitOfWork unitOfWork,");
         sb.AppendLine($"    ILogger<{info.ImplementationName}> logger) : {info.InterfaceFullName}");
@@ -218,7 +220,7 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
         sb.AppendLine($"            return VKResult.Failure<{info.DomainFullName}>(VKPersistenceErrors.Repository.EntityNotFound);");
         sb.AppendLine("        }");
         sb.AppendLine();
-        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{domainLower}.find_by_id\") : null;");
+        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{entitySnake}.find_by_id\") : null;");
         sb.AppendLine("        activity?.SetTag(\"db.system\", \"efcore\");");
         sb.AppendLine($"        activity?.SetTag(\"db.entity\", \"{info.DomainName}\");");
         sb.AppendLine("        activity?.SetTag(\"db.operation\", \"FindById\");");
@@ -257,7 +259,7 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
         sb.AppendLine($"            return VKResult.Success<IReadOnlyList<{info.DomainFullName}>>([]);");
         sb.AppendLine("        }");
         sb.AppendLine();
-        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{domainLower}.list_by_ids\") : null;");
+        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{entitySnake}.list_by_ids\") : null;");
         sb.AppendLine("        activity?.SetTag(\"db.system\", \"efcore\");");
         sb.AppendLine($"        activity?.SetTag(\"db.entity\", \"{info.DomainName}\");");
         sb.AppendLine("        activity?.SetTag(\"db.operation\", \"ListByIds\");");
@@ -274,6 +276,33 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
         sb.AppendLine("        {");
         sb.AppendLine("            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);");
         sb.AppendLine($"            _logger.LogError(ex, \"Failed to list aggregates {info.DomainName} for IDs: {{Ids}}\", string.Join(\",\", ids));");
+        sb.AppendLine($"            return VKResult.Failure<IReadOnlyList<{info.DomainFullName}>>(VKPersistenceErrors.Database.ExecutionFailed);");
+        sb.AppendLine("        }");
+        sb.AppendLine("    }");
+        sb.AppendLine();
+
+        // ListAllAsync
+        sb.AppendLine($"    public async Task<VKResult<IReadOnlyList<{info.DomainFullName}>>> ListAllAsync(CancellationToken ct = default)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        ct.ThrowIfCancellationRequested();");
+        sb.AppendLine();
+        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{entitySnake}.list_all\") : null;");
+        sb.AppendLine("        activity?.SetTag(\"db.system\", \"efcore\");");
+        sb.AppendLine($"        activity?.SetTag(\"db.entity\", \"{info.DomainName}\");");
+        sb.AppendLine("        activity?.SetTag(\"db.operation\", \"ListAll\");");
+        sb.AppendLine();
+        sb.AppendLine("        try");
+        sb.AppendLine("        {");
+        sb.AppendLine($"            var entities = await _repository.GetListAsync(predicate: d => true{includeClause}, cancellationToken: ct).ConfigureAwait(false);");
+        sb.AppendLine("            var domainList = entities.Select(e => e.ToDomain()).ToList().AsReadOnly();");
+        sb.AppendLine("            activity?.SetTag(\"db.result.count\", domainList.Count);");
+        sb.AppendLine("            activity?.SetStatus(ActivityStatusCode.Ok);");
+        sb.AppendLine($"            return VKResult.Success<IReadOnlyList<{info.DomainFullName}>>(domainList);");
+        sb.AppendLine("        }");
+        sb.AppendLine("        catch (Exception ex)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);");
+        sb.AppendLine($"            _logger.LogError(ex, \"Failed to list all aggregates of {info.DomainName}\");");
         sb.AppendLine($"            return VKResult.Failure<IReadOnlyList<{info.DomainFullName}>>(VKPersistenceErrors.Database.ExecutionFailed);");
         sb.AppendLine("        }");
         sb.AppendLine("    }");
@@ -296,7 +325,7 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
         sb.AppendLine("    {");
         sb.AppendLine("        VKGuard.NotNull(item);");
         sb.AppendLine();
-        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{domainLower}.add\") : null;");
+        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{entitySnake}.add\") : null;");
         sb.AppendLine("        activity?.SetTag(\"db.system\", \"efcore\");");
         sb.AppendLine($"        activity?.SetTag(\"db.entity\", \"{info.DomainName}\");");
         sb.AppendLine("        activity?.SetTag(\"db.operation\", \"Add\");");
@@ -323,7 +352,7 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
         sb.AppendLine("    {");
         sb.AppendLine("        VKGuard.NotNull(item);");
         sb.AppendLine();
-        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{domainLower}.update\") : null;");
+        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{entitySnake}.update\") : null;");
         sb.AppendLine("        activity?.SetTag(\"db.system\", \"efcore\");");
         sb.AppendLine($"        activity?.SetTag(\"db.entity\", \"{info.DomainName}\");");
         sb.AppendLine("        activity?.SetTag(\"db.operation\", \"Update\");");
@@ -375,7 +404,7 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
         // DeleteAsync
         sb.AppendLine($"    public async Task<VKResult> DeleteAsync({info.IdTypeFullName} id, CancellationToken ct = default)");
         sb.AppendLine("    {");
-        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{domainLower}.delete\") : null;");
+        sb.AppendLine($"        using var activity = Activity.Current is not null ? Activity.Current.Source.StartActivity(\"db.{entitySnake}.delete\") : null;");
         sb.AppendLine("        activity?.SetTag(\"db.system\", \"efcore\");");
         sb.AppendLine($"        activity?.SetTag(\"db.entity\", \"{info.DomainName}\");");
         sb.AppendLine("        activity?.SetTag(\"db.operation\", \"Delete\");");
@@ -440,7 +469,7 @@ public sealed class VKPersistAggregateRepositoryGenerator : IIncrementalGenerato
 
         foreach (var info in validRepos)
         {
-            sb.AppendLine($"        services.TryAddScoped<{info.InterfaceFullName}, {info.ImplementationName}>();");
+            sb.AppendLine($"        services.AddScoped<{info.InterfaceFullName}, {info.ImplementationName}>();");
         }
 
         sb.AppendLine();

@@ -1,5 +1,3 @@
-using System;
-using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 using VK.Blocks.Testing.Builders;
 
@@ -12,8 +10,10 @@ public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry
 {
     private VKKnowledgeId _id = new(Guid.NewGuid());
     private VKKnowledgeTriggerType _triggerType = VKKnowledgeTriggerType.Constant;
+    private VKKnowledgeFilterLogic _filterLogic = VKKnowledgeFilterLogic.AndAny;
     private VKPromptSegment _segment = new() { Role = VKChatRole.System, Content = "Knowledge Content", IsEnabled = true };
-    private string _xmlTag = "knowledge";
+    private string? _xmlTag = "knowledge";
+    private List<VKKnowledgeKey> _keys = [];
 
     public VKKnowledgeEntryBuilder WithId(VKKnowledgeId id)
     {
@@ -27,26 +27,50 @@ public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry
         return this;
     }
 
+    public VKKnowledgeEntryBuilder WithFilterLogic(VKKnowledgeFilterLogic filterLogic)
+    {
+        _filterLogic = filterLogic;
+        return this;
+    }
+
     public VKKnowledgeEntryBuilder WithContent(string content, VKChatRole role = VKChatRole.System)
     {
         _segment = new VKPromptSegment { Role = role, Content = content, IsEnabled = true };
         return this;
     }
 
-    public VKKnowledgeEntryBuilder WithXmlTag(string xmlTag)
+    public VKKnowledgeEntryBuilder WithSegment(VKPromptSegment segment)
+    {
+        _segment = segment;
+        return this;
+    }
+
+    public VKKnowledgeEntryBuilder WithXmlTag(string? xmlTag)
     {
         _xmlTag = xmlTag;
         return this;
     }
 
+    public VKKnowledgeEntryBuilder WithKey(VKKnowledgeKey key)
+    {
+        _keys.Add(key);
+        return this;
+    }
+
+    public VKKnowledgeEntryBuilder WithKeys(IEnumerable<VKKnowledgeKey> keys)
+    {
+        _keys.AddRange(keys);
+        return this;
+    }
+
     protected override VKKnowledgeEntry CreateDefault()
     {
-        return new VKKnowledgeEntry
-        {
-            Id = _id,
-            TriggerType = _triggerType,
-            Segment = _segment,
-            XmlTag = _xmlTag
-        };
+        return VKGuard.NotNull(VKKnowledgeEntry.Create(
+            _id,
+            _segment,
+            _triggerType,
+            _filterLogic,
+            _xmlTag,
+            _keys.Count > 0 ? _keys : null).Value);
     }
 }

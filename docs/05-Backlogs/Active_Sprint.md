@@ -4,22 +4,20 @@
 
 - [x] [CORE-001: Seal VKBlockBuilder (REJECTED)](./.Archive/Core/001-seal-vkblockbuilder.md)
 - [x] [CORE-002: Error Alignment](./.Archive/Core/002-vkerrortype-alignment.md)
-- [ ] [CORE-003: Unify Configure Parameter](./Core/003-unify-configure-parameter.md)
+- [x] [CORE-003: Unify Options Parameter to transform](./.Archive/Core/003-unify-configure-parameter.md)
 - [x] [CORE-004: VKResult.FirstError Documentation](./.Archive/Core/004-vkresult-firsterror-docs.md)
 - [x] [CORE-005: Architecture: Folder Consistency](./.Archive/Core/005-folder-consistency.md)
 - [x] [CORE-006: Optimization: Frozen Collections](./.Archive/Core/006-frozen-collections-metadata.md)
-
-- [ ] [CORE-007: Systematize Architectural Rule Numbers (Logical Aliasing)](<./Core/007-systematize-architectural-rule-numbers-(logical-aliasing).md>)
-- [ ] [CORE-008: Implement Architectural Rule Retrieval Tool in MCP Server](./Core/008-implement-architectural-rule-retrieval-tool-in-mcp-server.md)
+- [x] [CORE-007: Systematize Architectural Rule Numbers (Logical Aliasing)](<./.Archive/Core/007-systematize-architectural-rule-numbers-(logical-aliasing).md>)
+- [x] [CORE-008: Implement Architectural Rule Retrieval Tool in MCP Server](./.Archive/Core/008-implement-architectural-rule-retrieval-tool-in-mcp-server.md)
 - [ ] [CORE-009: Validate .agents/rules Effectiveness (Model Decision Pattern)](./Core/009-validate-model-decision-rule-effectiveness.md)
 - [ ] [CORE-010: Implement VKGuard Source Generator for CallerInfo](./Core/010-implement-vkguard-source-generator-for-callerinfo.md)
-- [ ] [CORE-011: Refactor IVKBlockMarker.Dependencies using Covariant Return Types](./Core/011-refactor-ivkblockmarkerdependencies-using-covariant-return-types.md)
+- [x] [CORE-011: Refactor IVKBlockMarker.Dependencies using Covariant Return Types](./.Archive/Core/011-refactor-ivkblockmarkerdependencies-using-covariant-return-types.md)
 - [x] [CORE-012: Provide VKBaseExceptionExtensions for Unified Error Mapping](./.Archive/Core/012-provide-vkbaseexceptionextensions-for-unified-error-mapping.md)
-- [ ] [CORE-013: Implement standard IOptions Bridge Wrapper for ADR-016](./Core/013-implement-standard-ioptions-bridge-wrapper-for-adr-016.md)
-- [ ] [CORE-014: Refactor Legacy Exception Throw Sites in Core Library](./Core/014-refactor-legacy-exception-throw-sites-in-core-library.md)
-- [ ] [CORE-015: Refactor Configuration Section Naming to Namespace-Underscore Pattern](./Core/015-refactor-configuration-section-naming-to-namespace-underscore-pattern.md)
+- [x] [CORE-013: Implement standard IOptions Bridge Wrapper for ADR-016](./.Archive/Core/013-implement-standard-ioptions-bridge-wrapper-for-adr-016.md)
+- [x] [CORE-014: Refactor Legacy Exception Throw Sites in Core Library](./.Archive/Core/014-refactor-legacy-exception-throw-sites-in-core-library.md)
+- [x] [CORE-015: Refactor Configuration Section Naming to Namespace-Underscore Pattern (OBSOLETE)](./.Archive/Core/015-refactor-configuration-section-naming-to-namespace-underscore-pattern.md)
 - [ ] [CORE-016: Optimize configuration path resolution in VKFeatureGenerator](./Core/016-optimize-configuration-path-resolution-in-vkfeaturegenerator.md)
-
 - [ ] [CORE-017: Migrate all BuildingBlock Options to VKOptionsAttribute](./Core/017-migrate-all-buildingblock-options-to-vkoptionsattribute.md)
 - [x] [CORE-018: Migrate StringBuilder usages across BuildingBlocks to VKValueStringBuilder](./.Archive/Core/018-migrate-stringbuilder-usages-across-buildingblocks-to-vkvaluestringbuilder.md)
 ## 🧠 AI Tasks
@@ -94,6 +92,7 @@
 
 - [ ] [WEB-002: Standardize Web Options with IVKToggleableBlockOptions](./Web/002-standardize-web-options-with-ivktoggleableblockoptions.md)
 
+- [ ] [WEB-003: Security Pipeline Integration Package (Turnkey Security Solution)](./Web/003-security-pipeline-integration-package-(turnkey-security-solution).md)
 ## 📋 Validation Tasks
 
 - [ ] [VALIDATION-001: Standardize Validation Options with IVKToggleableBlockOptions](./Validation/001-standardize-validation-options-with-ivktoggleableblockoptions.md)
@@ -162,3 +161,9 @@
 
 ## 📋 VectorSearch Tasks
 - [ ] [VECTORSEARCH-001: AI.MemoryGraph / GraphRAG Relationship Graph Module](./VectorSearch/001-aimemorygraph---graphrag-relationship-graph-module.md)
+
+## 📋 Persistence.EFCore Tasks
+- [ ] [PERSISTENCE.EFCORE-001: Implement Read-Write Splitting and Read Replica Connection Routing](./Persistence.EFCore/001-implement-read-write-splitting-and-read-replica-connection-routing.md)
+- [ ] [PERSISTENCE.EFCORE-002: Enhance Database Migration Lifecycle Hooks and SQL Contributor](./Persistence.EFCore/002-enhance-database-migration-lifecycle-hooks-and-sql-contributor.md)
+- [ ] [PERSISTENCE.EFCORE-003: Provide Multi-Database Provider Dynamic Configuration Engine](./Persistence.EFCore/003-provide-multi-database-provider-dynamic-configuration-engine.md)
+- [ ] [PERSISTENCE.EFCORE-004: Explore Distributed Database Sharding Capabilities](./Persistence.EFCore/004-explore-distributed-database-sharding-capabilities.md)

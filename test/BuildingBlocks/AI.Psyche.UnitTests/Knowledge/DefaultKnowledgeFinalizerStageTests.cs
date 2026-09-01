@@ -1,16 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
 using VK.Blocks.AI.Psyche.Knowledge.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 
-public sealed class DefaultKnowledgeFinalizerStageTests
+public sealed class DefaultKnowledgeFinalizerStageTests : VKUnitTestBase
 {
     [Fact]
     public async Task ExecuteAsync_WithCandidatesState_AddsKnowledgeFragmentsToContext()
@@ -19,16 +12,12 @@ public sealed class DefaultKnowledgeFinalizerStageTests
         var stage = new DefaultKnowledgeFinalizerStage();
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
 
-        var entry1 = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Content = "Doc 1" }
-        };
-        var entry2 = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Content = "Doc 2" }
-        };
+        var entry1 = new VKKnowledgeEntryBuilder()
+            .WithContent("Doc 1")
+            .Build();
+        var entry2 = new VKKnowledgeEntryBuilder()
+            .WithContent("Doc 2")
+            .Build();
 
         var state = new VKKnowledgeCandidatesState();
         state.Candidates.Add(entry1);
@@ -39,7 +28,7 @@ public sealed class DefaultKnowledgeFinalizerStageTests
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         context.Fragments.Should().HaveCount(2);
         context.Fragments.Should().OnlyContain(f => f.TierType == VKPromptTierType.Knowledge);
     }
@@ -55,7 +44,7 @@ public sealed class DefaultKnowledgeFinalizerStageTests
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         context.Fragments.Should().BeEmpty();
     }
 }

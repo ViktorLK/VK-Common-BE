@@ -78,7 +78,7 @@ public sealed class VKPersistConventionGenerator : IIncrementalGenerator
         sb.AppendLine($"/// Auto-generated Model and Convention Contributor for {assemblyName}.");
         sb.AppendLine($"/// </summary>");
         sb.AppendLine($"[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Auto-generated EF Core model and convention contributor.\")]");
-        sb.AppendLine($"internal sealed class {safePrefix}ModelContributor : IVKModelCreatingContributor, IVKModelConventionContributor");
+        sb.AppendLine($"internal sealed partial class {safePrefix}ModelContributor : IVKModelCreatingContributor, IVKModelConventionContributor");
         sb.AppendLine("{");
         sb.AppendLine("    public void ConfigureModel(ModelBuilder modelBuilder)");
         sb.AppendLine("    {");

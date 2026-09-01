@@ -1,26 +1,19 @@
-using System;
-using FluentAssertions;
 using VK.Blocks.AI.Psyche.Echo.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Echo;
 
-public sealed class EchoRenderersTests
+public sealed class EchoRenderersTests : VKUnitTestBase
 {
     [Fact]
     public void BracketEchoRenderer_RendersWithBracketFormat()
     {
         // Arrange
         var renderer = new BracketEchoRenderer();
-        var trace = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            Role = VKChatRole.User,
-            Content = "Hello"
-        };
+        var trace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.User)
+            .WithContent("Hello")
+            .Build();
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
 
         // Act
@@ -31,17 +24,40 @@ public sealed class EchoRenderersTests
     }
 
     [Fact]
+    public void BracketEchoRenderer_WithCustomProfileAndPersona_RendersNames()
+    {
+        // Arrange
+        var renderer = new BracketEchoRenderer();
+        var userTrace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.User)
+            .WithContent("User question")
+            .Build();
+        var assistantTrace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.Assistant)
+            .WithContent("Bot reply")
+            .Build();
+        var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
+        context.SetState(new VKProfilePresenceBuilder().WithDisplayName("Alice").Build());
+        context.SetState(new VKPersonaAnchorBuilder().WithName("Jarvis").Build());
+
+        // Act
+        var userResult = renderer.Render(userTrace, context);
+        var assistantResult = renderer.Render(assistantTrace, context);
+
+        // Assert
+        userResult.Should().Be("[Alice]: User question");
+        assistantResult.Should().Be("[Jarvis]: Bot reply");
+    }
+
+    [Fact]
     public void ChatMLEchoRenderer_RendersWithChatMLFormat()
     {
         // Arrange
         var renderer = new ChatMLEchoRenderer();
-        var trace = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            Role = VKChatRole.Assistant,
-            Content = "Hi there"
-        };
+        var trace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.Assistant)
+            .WithContent("Hi there")
+            .Build();
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
 
         // Act
@@ -58,13 +74,10 @@ public sealed class EchoRenderersTests
     {
         // Arrange
         var renderer = new HeaderEchoRenderer();
-        var trace = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            Role = VKChatRole.User,
-            Content = "Prompt"
-        };
+        var trace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.User)
+            .WithContent("Prompt")
+            .Build();
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
 
         // Act
@@ -75,17 +88,40 @@ public sealed class EchoRenderersTests
     }
 
     [Fact]
+    public void HeaderEchoRenderer_WithCustomProfileAndPersona_RendersNames()
+    {
+        // Arrange
+        var renderer = new HeaderEchoRenderer();
+        var userTrace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.User)
+            .WithContent("User question")
+            .Build();
+        var assistantTrace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.Assistant)
+            .WithContent("Bot reply")
+            .Build();
+        var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
+        context.SetState(new VKProfilePresenceBuilder().WithDisplayName("Bob").Build());
+        context.SetState(new VKPersonaAnchorBuilder().WithName("HAL").Build());
+
+        // Act
+        var userResult = renderer.Render(userTrace, context);
+        var assistantResult = renderer.Render(assistantTrace, context);
+
+        // Assert
+        userResult.Should().Be("Bob: User question");
+        assistantResult.Should().Be("HAL: Bot reply");
+    }
+
+    [Fact]
     public void RawEchoRenderer_RendersContentOnly()
     {
         // Arrange
         var renderer = new RawEchoRenderer();
-        var trace = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            Role = VKChatRole.User,
-            Content = "Raw content"
-        };
+        var trace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.User)
+            .WithContent("Raw content")
+            .Build();
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
 
         // Act
@@ -100,13 +136,10 @@ public sealed class EchoRenderersTests
     {
         // Arrange
         var renderer = new XmlEchoRenderer();
-        var trace = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            Role = VKChatRole.User,
-            Content = "Xml payload"
-        };
+        var trace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.User)
+            .WithContent("Xml payload")
+            .Build();
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
 
         // Act

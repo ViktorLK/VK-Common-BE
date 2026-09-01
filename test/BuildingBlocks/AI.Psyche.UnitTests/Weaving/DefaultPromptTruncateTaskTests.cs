@@ -1,13 +1,7 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using VK.Blocks.AI.Psyche.UnitTests.Builders;
 using VK.Blocks.AI.Psyche.Weaving.Internal;
-using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Weaving;
 
@@ -15,39 +9,18 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Weaving;
 /// Unit tests for the <see cref="DefaultPromptTruncateTask"/> class.
 /// Follows AP.01, CS.01, CS.03, and DL.01 rules.
 /// </summary>
-public sealed class DefaultPromptTruncateTaskTests
+public sealed class DefaultPromptTruncateTaskTests : VKUnitTestBase
 {
-    private static (VKPsycheContext Context, IServiceProvider Services) CreateTestContext(
-        string userInput = "hello")
-    {
-        var services = new ServiceCollection().BuildServiceProvider();
-        var request = new VKPsycheRequest
-        {
-            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            UserInput = "hello"
-        };
-
-        var context = new VKPsycheContext
-        {
-            Request = request,
-            CorrelationId = Guid.NewGuid().ToString(),
-            CreatedAt = DateTimeOffset.UtcNow,
-            Services = services
-        };
-
-        return (context, services);
-    }
-
     [Fact]
     public async Task ExecuteAsync_WhenHistoryExceedsBudget_TruncatesHistory()
     {
         // Arrange
-        var tokenCounterMock = new Mock<IVKTokenCounter>();
-        tokenCounterMock.Setup(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string>())).Returns(30);
+        GetMock<IVKTokenCounter>()
+            .Setup(c => c.CountTokens(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(30);
 
-        var modelCatalogMock = new Mock<IVKModelCatalog>();
-        modelCatalogMock.Setup(m => m.GetModelMetadata(It.IsAny<string>()))
+        GetMock<IVKModelCatalog>()
+            .Setup(m => m.GetModelMetadata(It.IsAny<string>()))
             .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 20, ContextWindowSize = 50 });
 
         var options = new VKWeavingOptions
@@ -55,11 +28,14 @@ public sealed class DefaultPromptTruncateTaskTests
             MaxContextBudget = 50
         };
 
-        var loggerMock = new Mock<ILogger<DefaultPromptTruncateTask>>();
-        var task = new DefaultPromptTruncateTask(tokenCounterMock.Object, modelCatalogMock.Object, options, loggerMock.Object);
+        var task = new DefaultPromptTruncateTask(
+            GetMockObject<IVKTokenCounter>(),
+            GetMockObject<IVKModelCatalog>(),
+            options,
+            GetMockObject<ILogger<DefaultPromptTruncateTask>>());
 
-        var (context, _) = CreateTestContext();
-        var mockMetadata = new Mock<IVKFragmentMetadata>().Object;
+        var (context, _) = new VKPsycheRequestBuilder().BuildContext();
+        var mockMetadata = GetMockObject<IVKFragmentMetadata>();
 
         var f1 = new VKPromptFragment
         {
@@ -91,7 +67,7 @@ public sealed class DefaultPromptTruncateTaskTests
         var result = await task.ExecuteAsync(context);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
 
         // Allowed budget is Math.Min(100 - 20 - 0, 50) = 50 tokens.
         // We can only fit one 30-token history fragment (f1).

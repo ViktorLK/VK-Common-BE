@@ -1,31 +1,24 @@
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
 using VK.Blocks.AI.Psyche.Persona.Internal;
-using VK.Blocks.Core;
-using Xunit;
+using VK.Blocks.AI.Psyche.UnitTests.Builders;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Persona;
 
-public sealed class DefaultPersonaRendererTests
+public sealed class DefaultPersonaRendererTests : VKUnitTestBase
 {
     [Fact]
     public void Render_RendersNameDescriptionAndTraits()
     {
         // Arrange
         var renderer = new DefaultPersonaRenderer();
-        var persona = new VKPersonaAnchor
-        {
-            Id = new VKPersonaId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
-            Name = "Aegis",
-            Description = "Guardian AI",
-            Traits = new Dictionary<string, string>
+        var persona = new VKPersonaAnchorBuilder()
+            .WithName("Aegis")
+            .WithDescription("Guardian AI")
+            .WithTraits(new Dictionary<string, string>
             {
                 ["Tone"] = "Professional",
                 ["Role"] = "Advisor"
-            }
-        };
+            })
+            .Build();
 
         // Act
         var result = renderer.Render(persona);

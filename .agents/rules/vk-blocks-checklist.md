@@ -29,7 +29,7 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 | **OR.01**   | 🔴  | `[LoggerMessage]` SG only. No `logger.LogXxx()`. Structured templates. TraceId mandatory.         |
 | **OR.02**   |     | `TenantId` via EF Global Filter. No bypass. PII masked in logs.                                   |
 | **OR.03**   |     | Polly on ALL external calls. Retry(3x) + CircuitBreaker + explicit Timeout.                       |
-| **DL.01**   |     | Tests: Happy / NotFound / PermissionFail / InfraFailure. `{Method}_{Scenario}_{Expected}`.        |
+| **DL.01**   | 🔴  | Testing: `VKUnitTestBase` + `VKTestDataBuilder<T>` + `VKFakeGuidGenerator`. 4 paths (Happy/NotFound/Permission/Infra). `{Method}_{Scenario}_{Expected}`. |
 | **DL.02**   | 🟡  | No placeholder code. No `// TODO`. Must compile immediately.                                      |
 | **DL.03**   | 🟡  | Interface/pattern change detected → prompt ADR before continuing.                                 |
 | **DL.04**   | 🟡  | `// TODO` or roadmap detected → prompt backlog sync via `vk_be_add_backlog_item`.                       |
@@ -61,12 +61,12 @@ This master checklist governs all architectural decisions using a **Tiered Strat
 
 > Rules marked 🔴 (Type A) and 🟡 (Type B) are the core constraints. They follow this enforcement logic:
 
-1. **Type A (Logic Bottom Line - 🔴)**: **Zero Tolerance, No Exceptions**. These govern stability and determinism (CS.01, CS.03, CS.06, CS.07, CS.08, OR.01, AP.01, AP.06, AP.07, PS.04, PS.05). They MUST be followed even in Labs or experimental contexts.
+1. **Type A (Logic Bottom Line - 🔴)**: **Zero Tolerance, No Exceptions**. These govern stability and determinism (CS.01, CS.03, CS.06, CS.07, CS.08, OR.01, DL.01, AP.01, AP.06, AP.07, PS.04, PS.05). They MUST be followed even in Labs or experimental contexts.
 2. **Type B (Industrial Habits - 🟡)**: **Zero Tolerance by Default**. These govern naming, organization, and process (AP.03, BB.03, BB.07, BB.08, DL.02, DL.03, DL.04, DL.05). They can be **waived** only in `src/Labs` or when a Layer 2/3 prompt explicitly grants permission to deviate.
 3. **Audit Flagging**: Every violation MUST produce `🚩 [RuleID] {rationale}`. For Type B wavers, the rationale should cite the permission (e.g., `🚩 [AP.03] Bypassed per LAB01`).
 4. **Immediate Correction**: If a non-waived violation is detected, stop and fix it immediately.
 
-**Type A IDs**: CS.01, CS.03, CS.06, CS.07, CS.08, OR.01, AP.01, AP.06, AP.07, PS.04, PS.05
+**Type A IDs**: CS.01, CS.03, CS.06, CS.07, CS.08, OR.01, DL.01, AP.01, AP.06, AP.07, PS.04, PS.05
 **Type B IDs**: AP.03, BB.03, BB.07, BB.08, DL.02, DL.03, DL.04, DL.05
 
 ---

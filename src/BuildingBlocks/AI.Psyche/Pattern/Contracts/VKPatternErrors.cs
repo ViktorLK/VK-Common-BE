@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -5,6 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Standard error constants for the Pattern feature.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static error definitions and constant descriptors.")]
 public static class VKPatternErrors
 {
     /// <summary>

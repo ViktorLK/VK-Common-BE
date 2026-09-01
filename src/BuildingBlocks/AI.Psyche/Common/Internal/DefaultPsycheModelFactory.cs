@@ -78,7 +78,7 @@ internal sealed class DefaultPsycheModelFactory(
         IReadOnlyDictionary<string, string>? traits = null,
         IReadOnlyDictionary<string, object>? extensions = null)
     {
-        return VKPersonaAnchor.Create(id, name, description, traits, extensions).Value;
+        return VKGuard.NotNull(VKPersonaAnchor.Create(id, name, description, traits, extensions).Value);
     }
 
     // --- Directive ---
@@ -101,7 +101,7 @@ internal sealed class DefaultPsycheModelFactory(
         string? safetyRules = null,
         string? outputConstraints = null)
     {
-        return VKDirectiveCharter.Create(id, overview, behaviorRules, safetyRules, outputConstraints).Value;
+        return VKGuard.NotNull(VKDirectiveCharter.Create(id, overview, behaviorRules, safetyRules, outputConstraints).Value);
     }
 
     // --- Knowledge ---
@@ -126,7 +126,7 @@ internal sealed class DefaultPsycheModelFactory(
         string? xmlTag = null,
         IReadOnlyList<VKKnowledgeKey>? keys = null)
     {
-        return VKKnowledgeEntry.Create(id, segment, triggerType, filterLogic, xmlTag, keys).Value;
+        return VKGuard.NotNull(VKKnowledgeEntry.Create(id, segment, triggerType, filterLogic, xmlTag, keys).Value);
     }
 
     // --- Pattern ---
@@ -140,7 +140,7 @@ internal sealed class DefaultPsycheModelFactory(
     /// <inheritdoc />
     public VKPatternEntry CreatePattern(VKPatternId id, VKPromptSegment segment)
     {
-        return VKPatternEntry.Create(id, segment).Value;
+        return VKGuard.NotNull(VKPatternEntry.Create(id, segment).Value);
     }
 
     // --- Session ---
@@ -204,7 +204,7 @@ internal sealed class DefaultPsycheModelFactory(
         string? timeZone = null,
         IReadOnlyDictionary<string, string>? preferences = null)
     {
-        return VKProfilePresence.Create(id, displayName, preferredLanguage, timeZone, preferences).Value;
+        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, timeZone, preferences).Value);
     }
 
     // --- Echo ---

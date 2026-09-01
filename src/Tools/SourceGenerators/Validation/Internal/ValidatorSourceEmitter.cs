@@ -31,7 +31,7 @@ internal static class ValidatorSourceEmitter
         var isStopCascade = target.CascadeMode == 1;
 
         sb.AppendLine($"[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated compile-time validator.\")]");
-        sb.AppendLine($"public sealed class {validatorClassName} : global::VK.Blocks.Validation.IVKValidator<{target.FullTypeName}>");
+        sb.AppendLine($"public sealed partial class {validatorClassName} : global::VK.Blocks.Validation.IVKValidator<{target.FullTypeName}>");
         sb.AppendLine("{");
 
         // Collect all regexes needed
