@@ -1,22 +1,17 @@
-using System;
-using FluentAssertions;
 using Moq;
 using VK.Blocks.AI.Psyche.Echo.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Echo;
 
-public sealed class DefaultEchoFormatterTests
+public sealed class DefaultEchoFormatterTests : VKUnitTestBase
 {
     [Fact]
     public void CanFormat_ReturnsTrue_OnlyForEchoTier()
     {
         // Arrange
-        var rendererMock = new Mock<IVKEchoRenderer>();
-        var formatter = new DefaultEchoFormatter(rendererMock.Object);
-        var mockMetadata = new Mock<IVKFragmentMetadata>().Object;
+        var formatter = new DefaultEchoFormatter(GetMockObject<IVKEchoRenderer>());
+        var mockMetadata = GetMockObject<IVKFragmentMetadata>();
 
         // Act & Assert
         formatter.CanFormat(new VKPromptFragment
@@ -38,18 +33,15 @@ public sealed class DefaultEchoFormatterTests
     public void Format_WithValidTrace_RendersAndReturnsSuccess()
     {
         // Arrange
-        var rendererMock = new Mock<IVKEchoRenderer>();
-        rendererMock.Setup(r => r.Render(It.IsAny<VKEchoTrace>(), It.IsAny<VKPsycheContext>()))
+        GetMock<IVKEchoRenderer>()
+            .Setup(r => r.Render(It.IsAny<VKEchoTrace>(), It.IsAny<VKPsycheContext>()))
             .Returns("[User]: Hello");
 
-        var formatter = new DefaultEchoFormatter(rendererMock.Object);
-        var trace = new VKEchoTrace
-        {
-            Id = new VKEchoId(Guid.NewGuid()),
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            Role = VKChatRole.User,
-            Content = "Hello"
-        };
+        var formatter = new DefaultEchoFormatter(GetMockObject<IVKEchoRenderer>());
+        var trace = new VKEchoTraceBuilder()
+            .WithRole(VKChatRole.User)
+            .WithContent("Hello")
+            .Build();
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Echo,
@@ -62,7 +54,7 @@ public sealed class DefaultEchoFormatterTests
         var result = formatter.Format(fragment, context);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         result.Value.Should().Be("[User]: Hello");
     }
 
@@ -70,9 +62,8 @@ public sealed class DefaultEchoFormatterTests
     public void Format_WithInvalidMetadata_ReturnsFailure()
     {
         // Arrange
-        var rendererMock = new Mock<IVKEchoRenderer>();
-        var formatter = new DefaultEchoFormatter(rendererMock.Object);
-        var mockMetadata = new Mock<IVKFragmentMetadata>().Object;
+        var formatter = new DefaultEchoFormatter(GetMockObject<IVKEchoRenderer>());
+        var mockMetadata = GetMockObject<IVKFragmentMetadata>();
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Echo,
@@ -85,6 +76,6 @@ public sealed class DefaultEchoFormatterTests
         var result = formatter.Format(fragment, context);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
+        result.Should().BeFailure();
     }
 }

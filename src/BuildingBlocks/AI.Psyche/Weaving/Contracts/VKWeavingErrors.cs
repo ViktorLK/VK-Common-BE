@@ -1,10 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Standard error constants for the Weaving feature.
+/// Standard error constants for prompt weaving operations.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static error definitions and constant descriptors.")]
 public static class VKWeavingErrors
 {
     public static readonly VKError FormatterNotFound = new("AI.Weaving.FormatterNotFound", "No suitable formatter found for the given prompt segment.");

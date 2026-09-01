@@ -1,13 +1,8 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.AI.Psyche.Persona.Internal;
+using VK.Blocks.AI.Psyche.UnitTests.Builders;
 using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Persona;
 
@@ -15,56 +10,39 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Persona;
 /// Unit tests for the <see cref="DefaultPersonaStage"/> class.
 /// Follows AP.01, CS.01, CS.03, and DL.01 rules.
 /// </summary>
-public sealed class DefaultPersonaStageTests
+public sealed class DefaultPersonaStageTests : VKUnitTestBase
 {
-    private static (VKPsycheContext Context, IServiceProvider Services) CreateTestContext(
-        string personaId = "test-persona")
-    {
-        var services = new ServiceCollection().BuildServiceProvider();
-        var request = new VKPsycheRequest
-        {
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            UserInput = "hello"
-        };
-
-        var context = new VKPsycheContext
-        {
-            Request = request,
-            Services = services
-        };
-
-        return (context, services);
-    }
-
     [Fact]
     public async Task ExecuteAsync_HappyPath_AddsPersonaFragment()
     {
         // Arrange
-        var storeMock = new Mock<IVKPersonaStore>();
+        var persona = new VKPersonaAnchorBuilder()
+            .WithName("Tester")
+            .WithDescription("Friendly bot")
+            .Build();
+
+        GetMock<IVKPsychePersonaRepository>()
+            .Setup(s => s.ListByIdsAsync(It.IsAny<IReadOnlyList<VKPersonaId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success<IReadOnlyList<VKPersonaAnchor>>([persona]));
+
         var personaOptions = new VKPersonaOptions { Enabled = true };
         var weavingOptions = new VKWeavingOptions();
+        var stage = new DefaultPersonaStage(
+            personaOptions,
+            GetMockObject<IVKPsychePersonaRepository>(),
+            weavingOptions,
+            GetMockObject<ILogger<DefaultPersonaStage>>());
 
-        var personaId = new VKPersonaId(Guid.NewGuid());
-        var persona = new VKPersonaAnchor
-        {
-            TenantId = VKTenantId.Default,
-            Id = personaId,
-            Name = "Tester",
-            Description = "Friendly bot"
-        };
-        storeMock.Setup(s => s.GetPersonaAsync(It.IsAny<VKPersonaId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success(persona));
-
-        var loggerMock = new Mock<ILogger<DefaultPersonaStage>>();
-        var stage = new DefaultPersonaStage(personaOptions, storeMock.Object, weavingOptions, loggerMock.Object);
-        var (context, _) = CreateTestContext();
+        var (context, _) = new VKPsycheRequestBuilder()
+            .WithPersonaId(persona.Id)
+            .WithUserInput("hello")
+            .BuildContext();
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         var fragment = context.Fragments.Should().ContainSingle(f => f.TierType == VKPromptTierType.Persona).Subject;
         fragment.Metadata.Should().Be(persona);
     }

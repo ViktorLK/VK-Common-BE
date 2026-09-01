@@ -1,11 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core.Diagnostics;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Public diagnostic tokens for the Directive feature.
+/// Public diagnostics constants for the Directive feature.
 /// Follows BB.04 and OR.01.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static diagnostics and telemetry constants.")]
 public static class VKDirectiveDiagnosticsConstants
 {
     // Logs (Event IDs: 72000 - 72999)

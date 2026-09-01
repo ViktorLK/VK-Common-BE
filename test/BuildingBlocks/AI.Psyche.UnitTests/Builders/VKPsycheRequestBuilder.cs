@@ -1,7 +1,4 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
-using VK.Blocks.AI.Psyche;
-using VK.Blocks.Core;
 using VK.Blocks.Testing.Builders;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Builders;
@@ -11,14 +8,50 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Builders;
 /// </summary>
 public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
 {
-    private VKPersonaId _personaId = new(Guid.NewGuid());
+    private readonly List<VKPersonaId> _personaIds = [];
+    private readonly List<VKDirectiveId> _directiveIds = [];
+    private readonly List<VKPatternId> _patternIds = [];
     private VKSessionId _sessionId = new(Guid.NewGuid());
     private VKProfileId? _profileId;
+    private readonly List<VKKnowledgeId> _knowledgeIds = [];
     private string _userInput = "hello";
+    private bool _weaveOnly;
+    private string? _correlationId;
+    private readonly List<Func<VKPsycheRequest, VKPsycheRequest>> _argsConfigurators = [];
 
     public VKPsycheRequestBuilder WithPersonaId(VKPersonaId personaId)
     {
-        _personaId = personaId;
+        _personaIds.Add(personaId);
+        return this;
+    }
+
+    public VKPsycheRequestBuilder WithPersonaIds(IEnumerable<VKPersonaId> personaIds)
+    {
+        _personaIds.AddRange(personaIds);
+        return this;
+    }
+
+    public VKPsycheRequestBuilder WithDirectiveId(VKDirectiveId directiveId)
+    {
+        _directiveIds.Add(directiveId);
+        return this;
+    }
+
+    public VKPsycheRequestBuilder WithDirectiveIds(IEnumerable<VKDirectiveId> directiveIds)
+    {
+        _directiveIds.AddRange(directiveIds);
+        return this;
+    }
+
+    public VKPsycheRequestBuilder WithPatternId(VKPatternId patternId)
+    {
+        _patternIds.Add(patternId);
+        return this;
+    }
+
+    public VKPsycheRequestBuilder WithPatternIds(IEnumerable<VKPatternId> patternIds)
+    {
+        _patternIds.AddRange(patternIds);
         return this;
     }
 
@@ -34,21 +67,63 @@ public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
         return this;
     }
 
+    public VKPsycheRequestBuilder WithKnowledgeId(VKKnowledgeId knowledgeId)
+    {
+        _knowledgeIds.Add(knowledgeId);
+        return this;
+    }
+
+    public VKPsycheRequestBuilder WithKnowledgeIds(IEnumerable<VKKnowledgeId> knowledgeIds)
+    {
+        _knowledgeIds.AddRange(knowledgeIds);
+        return this;
+    }
+
     public VKPsycheRequestBuilder WithUserInput(string userInput)
     {
         _userInput = userInput;
         return this;
     }
 
+    public VKPsycheRequestBuilder WithWeaveOnly(bool weaveOnly = true)
+    {
+        _weaveOnly = weaveOnly;
+        return this;
+    }
+
+    public VKPsycheRequestBuilder WithCorrelationId(string correlationId)
+    {
+        _correlationId = correlationId;
+        return this;
+    }
+
+    public VKPsycheRequestBuilder WithRequestArgs<TArgs>(TArgs args) where TArgs : class
+    {
+        _argsConfigurators.Add(req => req.WithArgs(args));
+        return this;
+    }
+
     protected override VKPsycheRequest CreateDefault()
     {
-        return new VKPsycheRequest
+        var req = new VKPsycheRequest
         {
-            PersonaIds = [_personaId],
+            PersonaIds = _personaIds.Count > 0 ? [.. _personaIds] : [new VKPersonaId(Guid.NewGuid())],
+            DirectiveIds = [.. _directiveIds],
+            PatternIds = [.. _patternIds],
             SessionId = _sessionId,
             ProfileId = _profileId,
-            UserInput = _userInput
+            KnowledgeIds = [.. _knowledgeIds],
+            UserInput = _userInput,
+            WeaveOnly = _weaveOnly,
+            CorrelationId = _correlationId
         };
+
+        foreach (var configure in _argsConfigurators)
+        {
+            req = configure(req);
+        }
+
+        return req;
     }
 
     /// <summary>

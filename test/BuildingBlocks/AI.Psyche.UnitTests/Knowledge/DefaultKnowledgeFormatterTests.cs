@@ -1,10 +1,6 @@
-using System;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using VK.Blocks.AI.Psyche.Knowledge.Internal;
-using VK.Blocks.Core;
-using Xunit;
+using VK.Blocks.AI.Psyche.UnitTests.Builders;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 
@@ -12,54 +8,26 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 /// Unit tests for the <see cref="DefaultKnowledgeFormatter"/> class.
 /// Follows AP.01, CS.01, CS.03, and DL.01 rules.
 /// </summary>
-public sealed class DefaultKnowledgeFormatterTests
+public sealed class DefaultKnowledgeFormatterTests : VKUnitTestBase
 {
-    private readonly Mock<IVKKnowledgeRenderer> _rendererMock;
-    private readonly DefaultKnowledgeFormatter _formatter;
-
-    public DefaultKnowledgeFormatterTests()
-    {
-        _rendererMock = new Mock<IVKKnowledgeRenderer>();
-        _formatter = new DefaultKnowledgeFormatter(_rendererMock.Object);
-    }
-
-    private static VKPsycheContext CreateTestContext()
-    {
-        var services = new ServiceCollection().BuildServiceProvider();
-        var request = new VKPsycheRequest
-        {
-            PersonaIds = [new VKPersonaId(Guid.NewGuid())],
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            UserInput = "test-user-input"
-        };
-
-        return new VKPsycheContext
-        {
-            Request = request,
-            CorrelationId = Guid.NewGuid().ToString(),
-            CreatedAt = DateTimeOffset.UtcNow,
-            Services = services
-        };
-    }
+    private static VKPsycheContext CreateTestContext() =>
+        new VKPsycheRequestBuilder().WithUserInput("test-user-input").BuildContext().Context;
 
     [Fact]
     public void CanFormat_WhenTierIsKnowledge_ReturnsTrue()
     {
         // Arrange
+        var formatter = new DefaultKnowledgeFormatter(GetMockObject<IVKKnowledgeRenderer>());
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Knowledge,
             RenderOrder = 0,
             Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "test" },
-            Metadata = new VKKnowledgeEntry
-            {
-                Id = new VKKnowledgeId(Guid.NewGuid()),
-                Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "test" }
-            }
+            Metadata = new VKKnowledgeEntryBuilder().WithContent("test").Build()
         };
 
         // Act
-        var result = _formatter.CanFormat(fragment);
+        var result = formatter.CanFormat(fragment);
 
         // Assert
         result.Should().BeTrue();
@@ -69,14 +37,15 @@ public sealed class DefaultKnowledgeFormatterTests
     public void Format_WhenSingleEntry_WrapsInKnowledgeTag()
     {
         // Arrange
-        var entry = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Apples are red." }
-        };
+        var entry = new VKKnowledgeEntryBuilder()
+            .WithContent("Apples are red.")
+            .Build();
 
-        _rendererMock.Setup(r => r.Render(entry)).Returns("Apples are red.");
+        GetMock<IVKKnowledgeRenderer>()
+            .Setup(r => r.Render(entry))
+            .Returns("Apples are red.");
 
+        var formatter = new DefaultKnowledgeFormatter(GetMockObject<IVKKnowledgeRenderer>());
         var context = CreateTestContext();
         var fragment = new VKPromptFragment
         {
@@ -93,10 +62,10 @@ public sealed class DefaultKnowledgeFormatterTests
             $"</knowledge>";
 
         // Act
-        var result = _formatter.Format(fragment, context);
+        var result = formatter.Format(fragment, context);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         result.Value.Should().Be(expected);
     }
 
@@ -104,15 +73,16 @@ public sealed class DefaultKnowledgeFormatterTests
     public void Format_WhenSinglePinnedEntry_UsesEntryTagRegardlessOfDepth()
     {
         // Arrange
-        var entry = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            XmlTag = "lore",
-            Segment = new VKPromptSegment { Role = VKChatRole.User, Content = "Apples are red." }
-        };
+        var entry = new VKKnowledgeEntryBuilder()
+            .WithContent("Apples are red.", VKChatRole.User)
+            .WithXmlTag("lore")
+            .Build();
 
-        _rendererMock.Setup(r => r.Render(entry)).Returns("Apples are red.");
+        GetMock<IVKKnowledgeRenderer>()
+            .Setup(r => r.Render(entry))
+            .Returns("Apples are red.");
 
+        var formatter = new DefaultKnowledgeFormatter(GetMockObject<IVKKnowledgeRenderer>());
         var context = CreateTestContext();
         var fragment = new VKPromptFragment
         {
@@ -129,10 +99,10 @@ public sealed class DefaultKnowledgeFormatterTests
             $"</lore>";
 
         // Act
-        var result = _formatter.Format(fragment, context);
+        var result = formatter.Format(fragment, context);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         result.Value.Should().Be(expected);
     }
 
@@ -140,20 +110,13 @@ public sealed class DefaultKnowledgeFormatterTests
     public void Format_WhenMultipleEntriesInSameSlot_GroupsIntoSingleTagAndYieldsEmptyForOthers()
     {
         // Arrange
-        var entry1 = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Apples are red." }
-        };
-        var entry2 = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Bananas are yellow." }
-        };
+        var entry1 = new VKKnowledgeEntryBuilder().WithContent("Apples are red.").Build();
+        var entry2 = new VKKnowledgeEntryBuilder().WithContent("Bananas are yellow.").Build();
 
-        _rendererMock.Setup(r => r.Render(entry1)).Returns("Apples are red.");
-        _rendererMock.Setup(r => r.Render(entry2)).Returns("Bananas are yellow.");
+        GetMock<IVKKnowledgeRenderer>().Setup(r => r.Render(entry1)).Returns("Apples are red.");
+        GetMock<IVKKnowledgeRenderer>().Setup(r => r.Render(entry2)).Returns("Bananas are yellow.");
 
+        var formatter = new DefaultKnowledgeFormatter(GetMockObject<IVKKnowledgeRenderer>());
         var context = CreateTestContext();
         var frag1 = new VKPromptFragment
         {
@@ -180,14 +143,14 @@ public sealed class DefaultKnowledgeFormatterTests
             $"</knowledge>";
 
         // Act
-        var result1 = _formatter.Format(frag1, context);
-        var result2 = _formatter.Format(frag2, context);
+        var result1 = formatter.Format(frag1, context);
+        var result2 = formatter.Format(frag2, context);
 
         // Assert
-        result1.IsSuccess.Should().BeTrue();
+        result1.Should().BeSuccess();
         result1.Value.Should().Be(expected);
 
-        result2.IsSuccess.Should().BeTrue();
+        result2.Should().BeSuccess();
         result2.Value.Should().BeEmpty();
     }
 
@@ -195,20 +158,17 @@ public sealed class DefaultKnowledgeFormatterTests
     public void Format_WhenEntriesInDifferentSlots_DoesNotGroupThem()
     {
         // Arrange
-        var entryBefore = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "Before fact.", AbsoluteDepth = 1 }
-        };
-        var entryAfter = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Role = VKChatRole.System, Content = "After fact.", AbsoluteDepth = 2 }
-        };
+        var entryBefore = new VKKnowledgeEntryBuilder()
+            .WithSegment(new VKPromptSegment { Role = VKChatRole.System, Content = "Before fact.", AbsoluteDepth = 1 })
+            .Build();
+        var entryAfter = new VKKnowledgeEntryBuilder()
+            .WithSegment(new VKPromptSegment { Role = VKChatRole.System, Content = "After fact.", AbsoluteDepth = 2 })
+            .Build();
 
-        _rendererMock.Setup(r => r.Render(entryBefore)).Returns("Before fact.");
-        _rendererMock.Setup(r => r.Render(entryAfter)).Returns("After fact.");
+        GetMock<IVKKnowledgeRenderer>().Setup(r => r.Render(entryBefore)).Returns("Before fact.");
+        GetMock<IVKKnowledgeRenderer>().Setup(r => r.Render(entryAfter)).Returns("After fact.");
 
+        var formatter = new DefaultKnowledgeFormatter(GetMockObject<IVKKnowledgeRenderer>());
         var context = CreateTestContext();
         var fragBefore = new VKPromptFragment
         {
@@ -238,14 +198,14 @@ public sealed class DefaultKnowledgeFormatterTests
             $"</knowledge>";
 
         // Act
-        var resultBefore = _formatter.Format(fragBefore, context);
-        var resultAfter = _formatter.Format(fragAfter, context);
+        var resultBefore = formatter.Format(fragBefore, context);
+        var resultAfter = formatter.Format(fragAfter, context);
 
         // Assert
-        resultBefore.IsSuccess.Should().BeTrue();
+        resultBefore.Should().BeSuccess();
         resultBefore.Value.Should().Be(expectedBefore);
 
-        resultAfter.IsSuccess.Should().BeTrue();
+        resultAfter.Should().BeSuccess();
         resultAfter.Value.Should().Be(expectedAfter);
     }
 }

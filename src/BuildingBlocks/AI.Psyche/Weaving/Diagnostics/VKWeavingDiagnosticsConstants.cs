@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core.Diagnostics;
 
 namespace VK.Blocks.AI.Psyche;
@@ -6,6 +7,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Public diagnostics constants for the Weaving Engine.
 /// Follows BB.04 and OR.01.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static diagnostics and telemetry constants.")]
 public static class VKWeavingDiagnosticsConstants
 {
     public static class Logs

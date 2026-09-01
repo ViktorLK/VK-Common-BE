@@ -1,43 +1,33 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Moq;
 using VK.Blocks.AI.Psyche.Session.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
 using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Session;
 
-public sealed class DefaultSessionResolveStageTests
+public sealed class DefaultSessionResolveStageTests : VKUnitTestBase
 {
     [Fact]
     public async Task ExecuteAsync_WithActiveSessionId_AttachesSessionState()
     {
         // Arrange
-        var storeMock = new Mock<IVKSessionStore>();
-        var sessionId = new VKSessionId(Guid.NewGuid());
-        var session = new VKSessionThread
-        {
-            Id = sessionId,
-            Status = VKSessionStatus.Active
-        };
-        storeMock.Setup(s => s.GetSessionAsync(sessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<VKSessionThread?>(session));
+        var repoMock = GetMock<IVKPsycheSessionRepository>();
+        var session = new VKSessionThreadBuilder().Build();
+        repoMock.Setup(s => s.FindByIdAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success(session));
 
         var options = new VKSessionOptions { Enabled = true };
-        var stage = new DefaultSessionResolveStage(options, storeMock.Object);
+        var stage = new DefaultSessionResolveStage(options, repoMock.Object);
         var (context, _) = new VKPsycheRequestBuilder()
             .WithUserInput("hello")
-            .WithSessionId(sessionId)
+            .WithSessionId(session.Id)
             .BuildContext();
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         context.State<VKSessionThread>().Should().Be(session);
     }
 
@@ -45,48 +35,43 @@ public sealed class DefaultSessionResolveStageTests
     public async Task ExecuteAsync_WhenSessionInactive_ReturnsFailure()
     {
         // Arrange
-        var storeMock = new Mock<IVKSessionStore>();
-        var sessionId = new VKSessionId(Guid.NewGuid());
-        var session = new VKSessionThread
-        {
-            Id = sessionId,
-            Status = VKSessionStatus.Closed
-        };
-        storeMock.Setup(s => s.GetSessionAsync(sessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<VKSessionThread?>(session));
+        var repoMock = GetMock<IVKPsycheSessionRepository>();
+        var session = new VKSessionThreadBuilder().Build();
+        session.Close(DateTimeOffset.UtcNow);
+        repoMock.Setup(s => s.FindByIdAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success(session));
 
         var options = new VKSessionOptions { Enabled = true };
-        var stage = new DefaultSessionResolveStage(options, storeMock.Object);
+        var stage = new DefaultSessionResolveStage(options, repoMock.Object);
         var (context, _) = new VKPsycheRequestBuilder()
             .WithUserInput("hello")
-            .WithSessionId(sessionId)
+            .WithSessionId(session.Id)
             .BuildContext();
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Errors.Should().Contain(VKSessionErrors.SessionNotActive);
+        result.Should().BeFailure(VKSessionErrors.SessionNotActive);
     }
 
     [Fact]
     public async Task ExecuteAsync_WithEmptySessionId_ReturnsSuccessWithoutState()
     {
         // Arrange
-        var storeMock = new Mock<IVKSessionStore>();
-        storeMock.Setup(s => s.GetSessionAsync(It.IsAny<VKSessionId>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Failure<VKSessionThread?>(VKSessionErrors.NotFound));
+        var repoMock = GetMock<IVKPsycheSessionRepository>();
+        repoMock.Setup(s => s.FindByIdAsync(It.IsAny<VKSessionId>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Failure<VKSessionThread>(VKSessionErrors.NotFound));
 
         var options = new VKSessionOptions { Enabled = true };
-        var stage = new DefaultSessionResolveStage(options, storeMock.Object);
+        var stage = new DefaultSessionResolveStage(options, repoMock.Object);
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         context.State<VKSessionThread>().Should().BeNull();
     }
 }

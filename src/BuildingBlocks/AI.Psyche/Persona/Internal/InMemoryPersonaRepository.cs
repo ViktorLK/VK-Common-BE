@@ -10,11 +10,11 @@ namespace VK.Blocks.AI.Psyche.Persona.Internal;
 /// Thread-safe in-memory implementation of <see cref="IVKPsychePersonaRepository"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class InMemoryPersonaStore : IVKPsychePersonaRepository
+internal sealed class InMemoryPersonaRepository : IVKPsychePersonaRepository
 {
     private readonly ConcurrentDictionary<VKPersonaId, VKPersonaAnchor> _store = new();
 
-    public InMemoryPersonaStore()
+    public InMemoryPersonaRepository()
     {
     }
 
@@ -105,14 +105,14 @@ internal sealed class InMemoryPersonaStore : IVKPsychePersonaRepository
     }
 
 
-    public InMemoryPersonaStore Seed(VKPersonaAnchor persona)
+    public InMemoryPersonaRepository Seed(VKPersonaAnchor persona)
     {
         VKGuard.NotNull(persona);
         _store[persona.Id] = persona;
         return this;
     }
 
-    public InMemoryPersonaStore Seed(IEnumerable<VKPersonaAnchor> personas)
+    public InMemoryPersonaRepository Seed(IEnumerable<VKPersonaAnchor> personas)
     {
         VKGuard.NotNull(personas);
         foreach (var p in personas)
@@ -122,13 +122,13 @@ internal sealed class InMemoryPersonaStore : IVKPsychePersonaRepository
         return this;
     }
 
-    public InMemoryPersonaStore Remove(VKPersonaId personaId)
+    public InMemoryPersonaRepository Remove(VKPersonaId personaId)
     {
         _store.TryRemove(personaId, out _);
         return this;
     }
 
-    public InMemoryPersonaStore Clear()
+    public InMemoryPersonaRepository Clear()
     {
         _store.Clear();
         return this;

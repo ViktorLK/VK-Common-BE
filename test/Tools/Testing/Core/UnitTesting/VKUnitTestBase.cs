@@ -3,10 +3,9 @@ using Moq;
 namespace VK.Blocks.Testing;
 
 /// <summary>
-/// Lightweight Base class for Unit Tests supporting System Under Test (SUT) instantiation and Mock management.
+/// Lightweight Base class for Unit Tests supporting Mock management.
 /// </summary>
-/// <typeparam name="TSut">The type of the System Under Test.</typeparam>
-public abstract class VKUnitTestBase<TSut> where TSut : class
+public abstract class VKUnitTestBase
 {
     private readonly Dictionary<Type, Mock> _mocks = [];
 
@@ -44,4 +43,12 @@ public abstract class VKUnitTestBase<TSut> where TSut : class
             mock.VerifyAll();
         }
     }
+}
+
+/// <summary>
+/// Lightweight Base class for Unit Tests supporting System Under Test (SUT) instantiation and Mock management.
+/// </summary>
+/// <typeparam name="TSut">The type of the System Under Test.</typeparam>
+public abstract class VKUnitTestBase<TSut> : VKUnitTestBase where TSut : class
+{
 }

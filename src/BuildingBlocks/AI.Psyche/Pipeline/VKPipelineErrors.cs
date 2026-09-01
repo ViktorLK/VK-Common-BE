@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -5,6 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Standard error constants for the Psyche Pipeline.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static error definitions and constant descriptors.")]
 public static class VKPipelineErrors
 {
     public static readonly VKError EmptyTapestry = new("AI.Psyche.Pipeline.EmptyTapestry", "Tapestry was not assembled by the pipeline stages.");

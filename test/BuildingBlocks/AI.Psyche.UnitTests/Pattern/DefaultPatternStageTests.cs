@@ -1,40 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Moq;
 using VK.Blocks.AI.Psyche.Pattern.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
 using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Pattern;
 
-public sealed class DefaultPatternStageTests
+public sealed class DefaultPatternStageTests : VKUnitTestBase
 {
     [Fact]
     public async Task ExecuteAsync_WithPatternsInStore_AddsPatternFragments()
     {
         // Arrange
-        var storeMock = new Mock<IVKPatternStore>();
-        var pattern = new VKPatternEntry
-        {
-            Id = new VKPatternId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Content = "JSON Format Rule" }
-        };
-        storeMock.Setup(s => s.GetCurrentPatternsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IEnumerable<VKPatternEntry>>([pattern]));
+        var pattern = new VKPatternEntryBuilder()
+            .WithContent("JSON Format Rule")
+            .Build();
+
+        GetMock<IVKPsychePatternRepository>()
+            .Setup(s => s.ListByIdsAsync(It.IsAny<IReadOnlyList<VKPatternId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success<IReadOnlyList<VKPatternEntry>>([pattern]));
 
         var options = new VKPatternOptions { Enabled = true };
-        var stage = new DefaultPatternStage(options, storeMock.Object, new VKWeavingOptions());
-        var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
+        var stage = new DefaultPatternStage(options, GetMockObject<IVKPsychePatternRepository>(), new VKWeavingOptions());
+        var (context, _) = new VKPsycheRequestBuilder()
+            .WithUserInput("test")
+            .WithPatternId(pattern.Id)
+            .BuildContext();
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         context.Fragments.Should().ContainSingle(f => f.TierType == VKPromptTierType.Pattern);
     }
 
@@ -42,19 +38,21 @@ public sealed class DefaultPatternStageTests
     public async Task ExecuteAsync_WhenStoreFails_ReturnsFailure()
     {
         // Arrange
-        var storeMock = new Mock<IVKPatternStore>();
-        storeMock.Setup(s => s.GetCurrentPatternsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Failure<IEnumerable<VKPatternEntry>>(VKPatternErrors.NotFound));
+        GetMock<IVKPsychePatternRepository>()
+            .Setup(s => s.ListByIdsAsync(It.IsAny<IReadOnlyList<VKPatternId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Failure<IReadOnlyList<VKPatternEntry>>(VKPatternErrors.NotFound));
 
         var options = new VKPatternOptions { Enabled = true };
-        var stage = new DefaultPatternStage(options, storeMock.Object, new VKWeavingOptions());
-        var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
+        var stage = new DefaultPatternStage(options, GetMockObject<IVKPsychePatternRepository>(), new VKWeavingOptions());
+        var (context, _) = new VKPsycheRequestBuilder()
+            .WithUserInput("test")
+            .WithPatternId(new VKPatternEntryBuilder().Build().Id)
+            .BuildContext();
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsFailure.Should().BeTrue();
-        result.Errors.Should().Contain(VKPatternErrors.NotFound);
+        result.Should().BeFailure(VKPatternErrors.NotFound);
     }
 }

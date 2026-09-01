@@ -1,22 +1,16 @@
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
 using Moq;
 using VK.Blocks.AI.Psyche.Persona.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Persona;
 
-public sealed class DefaultPersonaFormatterTests
+public sealed class DefaultPersonaFormatterTests : VKUnitTestBase
 {
     [Fact]
     public void CanFormat_ReturnsTrue_OnlyForPersonaTier()
     {
-        var rendererMock = new Mock<IVKPersonaRenderer>();
-        var formatter = new DefaultPersonaFormatter(rendererMock.Object);
-        var mockMetadata = new Mock<IVKFragmentMetadata>().Object;
+        var formatter = new DefaultPersonaFormatter(GetMockObject<IVKPersonaRenderer>());
+        var mockMetadata = GetMockObject<IVKFragmentMetadata>();
 
         formatter.CanFormat(new VKPromptFragment { TierType = VKPromptTierType.Persona, Metadata = mockMetadata, Segment = new VKPromptSegment() }).Should().BeTrue();
         formatter.CanFormat(new VKPromptFragment { TierType = VKPromptTierType.Directive, Metadata = mockMetadata, Segment = new VKPromptSegment() }).Should().BeFalse();
@@ -25,17 +19,16 @@ public sealed class DefaultPersonaFormatterTests
     [Fact]
     public void Format_WithValidPersona_ReturnsFormattedXml()
     {
-        var rendererMock = new Mock<IVKPersonaRenderer>();
-        rendererMock.Setup(r => r.Render(It.IsAny<VKPersonaAnchor>())).Returns("## Name\nAssistant");
+        GetMock<IVKPersonaRenderer>()
+            .Setup(r => r.Render(It.IsAny<VKPersonaAnchor>()))
+            .Returns("## Name\nAssistant");
 
-        var formatter = new DefaultPersonaFormatter(rendererMock.Object);
-        var persona = new VKPersonaAnchor
-        {
-            Id = new VKPersonaId(Guid.NewGuid()),
-            TenantId = VKTenantId.Default,
-            Name = "Assistant",
-            Description = "Test AI"
-        };
+        var formatter = new DefaultPersonaFormatter(GetMockObject<IVKPersonaRenderer>());
+        var persona = new VKPersonaAnchorBuilder()
+            .WithName("Assistant")
+            .WithDescription("Test AI")
+            .Build();
+
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Persona,
@@ -46,7 +39,7 @@ public sealed class DefaultPersonaFormatterTests
 
         var result = formatter.Format(fragment, context);
 
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         result.Value.Should().Contain("<persona>");
         result.Value.Should().Contain("## Name\nAssistant");
         result.Value.Should().Contain("</persona>");
@@ -55,9 +48,8 @@ public sealed class DefaultPersonaFormatterTests
     [Fact]
     public void Format_WithInvalidMetadata_ReturnsFailure()
     {
-        var rendererMock = new Mock<IVKPersonaRenderer>();
-        var formatter = new DefaultPersonaFormatter(rendererMock.Object);
-        var mockMetadata = new Mock<IVKFragmentMetadata>().Object;
+        var formatter = new DefaultPersonaFormatter(GetMockObject<IVKPersonaRenderer>());
+        var mockMetadata = GetMockObject<IVKFragmentMetadata>();
         var fragment = new VKPromptFragment
         {
             TierType = VKPromptTierType.Persona,
@@ -68,6 +60,6 @@ public sealed class DefaultPersonaFormatterTests
 
         var result = formatter.Format(fragment, context);
 
-        result.IsFailure.Should().BeTrue();
+        result.Should().BeFailure();
     }
 }

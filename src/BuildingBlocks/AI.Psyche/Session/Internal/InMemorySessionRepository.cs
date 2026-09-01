@@ -11,12 +11,12 @@ namespace VK.Blocks.AI.Psyche.Session.Internal;
 /// Thread-safe in-memory implementation of <see cref="IVKPsycheSessionRepository"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class InMemorySessionStore : IVKPsycheSessionRepository
+internal sealed class InMemorySessionRepository : IVKPsycheSessionRepository
 {
     private readonly ConcurrentDictionary<VKSessionId, VKSessionThread> _sessions = new();
     private readonly TimeProvider _timeProvider;
 
-    public InMemorySessionStore(TimeProvider? timeProvider = null)
+    public InMemorySessionRepository(TimeProvider? timeProvider = null)
     {
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
@@ -108,7 +108,7 @@ internal sealed class InMemorySessionStore : IVKPsycheSessionRepository
     }
 
 
-    public InMemorySessionStore Seed(VKSessionThread session)
+    public InMemorySessionRepository Seed(VKSessionThread session)
     {
         VKGuard.NotNull(session);
         _sessions[session.Id] = session;

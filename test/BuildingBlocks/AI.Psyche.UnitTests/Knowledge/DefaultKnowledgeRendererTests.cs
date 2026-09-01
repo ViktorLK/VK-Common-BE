@@ -1,23 +1,18 @@
-using System;
-using FluentAssertions;
 using VK.Blocks.AI.Psyche.Knowledge.Internal;
-using VK.Blocks.Core;
-using Xunit;
+using VK.Blocks.AI.Psyche.UnitTests.Builders;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 
-public sealed class DefaultKnowledgeRendererTests
+public sealed class DefaultKnowledgeRendererTests : VKUnitTestBase
 {
     [Fact]
     public void Render_ReturnsSegmentContent()
     {
         // Arrange
         var renderer = new DefaultKnowledgeRenderer();
-        var entry = new VKKnowledgeEntry
-        {
-            Id = new VKKnowledgeId(Guid.NewGuid()),
-            Segment = new VKPromptSegment { Content = "Rendered knowledge text" }
-        };
+        var entry = new VKKnowledgeEntryBuilder()
+            .WithSegment(new VKPromptSegment { Content = "Rendered knowledge text" })
+            .Build();
 
         // Act
         var result = renderer.Render(entry);

@@ -24,6 +24,10 @@ Generate production-ready unit tests for a user-specified C# class, handler, or 
     - Determine which interfaces need to be mocked.
 
 4. **Generate Tests (DL.01) 🔴**:
+    - Inherit `VKUnitTestBase` for all unit test classes (`public sealed class {TargetClass}Tests : VKUnitTestBase`).
+    - Use `GetMock<T>()` / `GetMockObject<T>()` for mock dependencies; do not use raw `new Mock<T>()`.
+    - Use `VKTestDataBuilder<T>` for domain entities/aggregates and `VKFakeGuidGenerator` for deterministic GUIDs.
+    - Use `VKResultAssertionExtensions` (`.Should().BeSuccess()`, `.Should().BeFailure(errorCode)`).
     - For each public method, generate tests covering the following scenarios as required by **DL.01**:
         - ✅ **Happy Path**: Core success scenario.
         - ✅ **Not Found / Empty Result**: Cases where the operation returns no data.
@@ -33,7 +37,7 @@ Generate production-ready unit tests for a user-specified C# class, handler, or 
     - Use `[Theory]` with `[InlineData]` when the same logic has multiple input combinations.
     - Method naming (DL.01): `{MethodName}_{Condition}_{ExpectedResult}`.
     - **Async Hygiene (CS.03)**: **PROHIBITED** to use `.ConfigureAwait(false)` in test code.
-    - **Determinism (CS.06)**: Mock/Inject `TimeProvider` or `IVKGuidGenerator`.
+    - **Determinism (CS.06)**: Use `TimeProvider` or `VKFakeGuidGenerator`.
     - Use `// Arrange`, `// Act`, `// Assert` comments to clearly separate sections.
 
 5. **Save and Report (Audit by Exception)**:

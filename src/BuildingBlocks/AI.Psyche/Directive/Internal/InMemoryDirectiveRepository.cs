@@ -12,12 +12,12 @@ namespace VK.Blocks.AI.Psyche.Directive.Internal;
 /// Thread-safe in-memory implementation of <see cref="IVKPsycheDirectiveRepository"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class InMemoryDirectiveStore : IVKPsycheDirectiveRepository
+internal sealed class InMemoryDirectiveRepository : IVKPsycheDirectiveRepository
 {
     private readonly ConcurrentDictionary<VKDirectiveId, VKDirectiveCharter> _store = new();
-    private readonly ILogger<InMemoryDirectiveStore> _logger;
+    private readonly ILogger<InMemoryDirectiveRepository> _logger;
 
-    public InMemoryDirectiveStore(ILogger<InMemoryDirectiveStore> logger)
+    public InMemoryDirectiveRepository(ILogger<InMemoryDirectiveRepository> logger)
     {
         _logger = VKGuard.NotNull(logger);
         _logger.DirectiveInitialized();
@@ -112,14 +112,14 @@ internal sealed class InMemoryDirectiveStore : IVKPsycheDirectiveRepository
     }
 
 
-    public InMemoryDirectiveStore Seed(VKDirectiveCharter directive)
+    public InMemoryDirectiveRepository Seed(VKDirectiveCharter directive)
     {
         VKGuard.NotNull(directive);
         _store[directive.Id] = directive;
         return this;
     }
 
-    public InMemoryDirectiveStore Seed(IEnumerable<VKDirectiveCharter> directives)
+    public InMemoryDirectiveRepository Seed(IEnumerable<VKDirectiveCharter> directives)
     {
         VKGuard.NotNull(directives);
         foreach (var d in directives)
@@ -129,13 +129,13 @@ internal sealed class InMemoryDirectiveStore : IVKPsycheDirectiveRepository
         return this;
     }
 
-    public InMemoryDirectiveStore Remove(VKDirectiveId directiveId)
+    public InMemoryDirectiveRepository Remove(VKDirectiveId directiveId)
     {
         _store.TryRemove(directiveId, out _);
         return this;
     }
 
-    public InMemoryDirectiveStore Clear()
+    public InMemoryDirectiveRepository Clear()
     {
         _store.Clear();
         return this;

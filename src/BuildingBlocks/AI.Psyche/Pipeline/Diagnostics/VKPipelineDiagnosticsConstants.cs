@@ -1,11 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using VK.Blocks.Core.Diagnostics;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Public diagnostics constants for Psyche execution and the pipeline.
+/// Public diagnostics constants for the Psyche pipeline.
 /// Follows BB.04 and OR.01.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static diagnostics and telemetry constants.")]
 public static class VKPipelineDiagnosticsConstants
 {
     public static class Logs

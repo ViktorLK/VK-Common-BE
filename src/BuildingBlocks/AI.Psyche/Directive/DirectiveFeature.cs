@@ -19,9 +19,9 @@ internal sealed partial class DirectiveFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddScoped<InMemoryDirectiveStore>();
-        services.TryAddScoped<IVKPsycheDirectiveRepository>(sp => sp.GetRequiredService<InMemoryDirectiveStore>());
-        services.TryAddScoped<IVKReadRepository<VKDirectiveCharter, VKDirectiveId>>(sp => sp.GetRequiredService<InMemoryDirectiveStore>());
+        services.TryAddScoped<InMemoryDirectiveRepository>();
+        services.TryAddScoped<IVKPsycheDirectiveRepository>(sp => sp.GetRequiredService<InMemoryDirectiveRepository>());
+        services.TryAddScoped<IVKReadRepository<VKDirectiveCharter, VKDirectiveId>>(sp => sp.GetRequiredService<InMemoryDirectiveRepository>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultDirectiveStage>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultDirectiveFormatter>());
     }

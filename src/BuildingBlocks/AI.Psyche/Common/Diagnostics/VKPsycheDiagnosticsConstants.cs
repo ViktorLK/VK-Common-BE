@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
 /// Public cross-cutting diagnostics constants and OpenTelemetry GenAI semantic tokens for AI.Psyche.
 /// Follows BB.04 and OR.01.
 /// </summary>
+[ExcludeFromCodeCoverage(Justification = "Static diagnostics and telemetry constants.")]
 public static class VKPsycheDiagnosticsConstants
 {
     /// <summary>

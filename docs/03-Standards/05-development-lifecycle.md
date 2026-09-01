@@ -1,10 +1,11 @@
-﻿# Standard 05: Development Lifecycle
+# Standard 05: Development Lifecycle
 
 ## 1. Testing Protocol (DL.01)
-- **Unit Tests**: Mock all dependencies. Cover Happy Path, Not Found, Failure Mapping, and Tenant Isolation.
-- **Integration Tests**: Use Testcontainers.
+- **Unit Tests**: Inherit `VKUnitTestBase`. Mock dependencies via `GetMock<T>()`. Use `VKTestDataBuilder<T>` for domain models/aggregates and `VKFakeGuidGenerator` for deterministic GUIDs. Use `VKResultAssertionExtensions` (`.Should().BeSuccess()`, `.Should().BeFailure(errorCode)`).
+- **Coverage Paths**: ALL public handlers/stages MUST cover: Happy Path, Not Found / Empty, Permission / Tenant Isolation Failure, and Infrastructure Failure -> Result.Failure.
+- **Integration Tests**: Use Testcontainers for DB and external infrastructure dependencies.
 - **Naming**: `Method_Scenario_ExpectedResult`.
-- **Async**: Prohibit `.ConfigureAwait(false)` in test methods.
+- **Async (CS.03)**: Prohibit `.ConfigureAwait(false)` in test methods.
 
 ## 2. ADR (Architecture Decision Record)
 Significant architectural shifts MUST be documented in `docs/02-ArchitectureDecisionRecords/`.

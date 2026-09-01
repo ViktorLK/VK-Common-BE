@@ -10,11 +10,11 @@ namespace VK.Blocks.AI.Psyche.Profile.Internal;
 /// Thread-safe in-memory implementation of <see cref="IVKPsycheProfileRepository"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class InMemoryProfileStore : IVKPsycheProfileRepository
+internal sealed class InMemoryProfileRepository : IVKPsycheProfileRepository
 {
     private readonly ConcurrentDictionary<VKProfileId, VKProfilePresence> _presences = new();
 
-    public InMemoryProfileStore()
+    public InMemoryProfileRepository()
     {
     }
 
@@ -105,20 +105,20 @@ internal sealed class InMemoryProfileStore : IVKPsycheProfileRepository
     }
 
 
-    public InMemoryProfileStore Seed(VKProfilePresence presence)
+    public InMemoryProfileRepository Seed(VKProfilePresence presence)
     {
         VKGuard.NotNull(presence);
         _presences[presence.Id] = presence;
         return this;
     }
 
-    public InMemoryProfileStore Remove(VKProfileId profileId)
+    public InMemoryProfileRepository Remove(VKProfileId profileId)
     {
         _presences.TryRemove(profileId, out _);
         return this;
     }
 
-    public InMemoryProfileStore Clear()
+    public InMemoryProfileRepository Clear()
     {
         _presences.Clear();
         return this;

@@ -10,15 +10,15 @@ namespace VK.Blocks.AI.Psyche.Pattern.Internal;
 /// Thread-safe in-memory implementation of <see cref="IVKPsychePatternRepository"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class InMemoryPatternStore : IVKPsychePatternRepository
+internal sealed class InMemoryPatternRepository : IVKPsychePatternRepository
 {
     private readonly ConcurrentDictionary<VKPatternId, VKPatternEntry> _patterns = new();
 
-    public InMemoryPatternStore()
+    public InMemoryPatternRepository()
     {
     }
 
-    public InMemoryPatternStore(IEnumerable<VKPatternEntry> patterns)
+    public InMemoryPatternRepository(IEnumerable<VKPatternEntry> patterns)
     {
         Seed(patterns);
     }
@@ -110,14 +110,14 @@ internal sealed class InMemoryPatternStore : IVKPsychePatternRepository
     }
 
 
-    public InMemoryPatternStore Seed(VKPatternEntry pattern)
+    public InMemoryPatternRepository Seed(VKPatternEntry pattern)
     {
         VKGuard.NotNull(pattern);
         _patterns[pattern.Id] = pattern;
         return this;
     }
 
-    public InMemoryPatternStore Seed(IEnumerable<VKPatternEntry> patterns)
+    public InMemoryPatternRepository Seed(IEnumerable<VKPatternEntry> patterns)
     {
         VKGuard.NotNull(patterns);
         foreach (var pattern in patterns)
@@ -127,13 +127,13 @@ internal sealed class InMemoryPatternStore : IVKPsychePatternRepository
         return this;
     }
 
-    public InMemoryPatternStore Remove(VKPatternId id)
+    public InMemoryPatternRepository Remove(VKPatternId id)
     {
         _patterns.TryRemove(id, out _);
         return this;
     }
 
-    public InMemoryPatternStore Clear()
+    public InMemoryPatternRepository Clear()
     {
         _patterns.Clear();
         return this;

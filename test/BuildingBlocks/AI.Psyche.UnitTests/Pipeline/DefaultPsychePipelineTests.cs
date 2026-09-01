@@ -1,13 +1,8 @@
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using VK.Blocks.AI.Psyche;
 using VK.Blocks.AI.Psyche.Pipeline.Internal;
+using VK.Blocks.AI.Psyche.UnitTests.Builders;
 using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Pipeline;
 
@@ -15,16 +10,16 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Pipeline;
 /// Unit tests for the <see cref="DefaultPsychePipeline"/> class.
 /// Follows AP.01, CS.01, CS.03, and DL.01 rules.
 /// </summary>
-public sealed class DefaultPsychePipelineTests
+public sealed class DefaultPsychePipelineTests : VKUnitTestBase
 {
     [Fact]
     public async Task RunAsync_HappyPath_DelegatesToExecutorAndReturnsSuccess()
     {
         // Arrange
-        var mockExecutor = new Mock<IVKPsychePipelineExecutor>();
-        var mockServices = new Mock<IServiceProvider>();
-        var mockGuidGenerator = new Mock<IVKGuidGenerator>();
-        var mockLogger = new Mock<ILogger<DefaultPsychePipeline>>();
+        var mockExecutor = GetMock<IVKPsychePipelineExecutor>();
+        var mockServices = GetMock<IServiceProvider>();
+        var mockGuidGenerator = GetMock<IVKGuidGenerator>();
+        var mockLogger = GetMock<ILogger<DefaultPsychePipeline>>();
 
         var generatedGuid = Guid.NewGuid();
         mockGuidGenerator.Setup(g => g.Create()).Returns(generatedGuid);
@@ -33,7 +28,8 @@ public sealed class DefaultPsychePipelineTests
         {
             Messages = [],
             ChatResponse = null,
-            Usage = null
+            Usage = null,
+            CorrelationId = generatedGuid.ToString()
         };
 
         mockExecutor
@@ -43,27 +39,24 @@ public sealed class DefaultPsychePipelineTests
         var pipeline = new DefaultPsychePipeline(
             mockExecutor.Object,
             mockGuidGenerator.Object,
+            TimeProvider.System,
             mockLogger.Object,
             mockServices.Object);
 
-        var request = new VKPsycheRequest
-        {
-            TenantId = VKTenantId.Default,
-            PersonaId = new VKPersonaId(Guid.NewGuid()),
-            SessionId = new VKSessionId(Guid.NewGuid()),
-            UserInput = "hello"
-        };
+        var request = new VKPsycheRequestBuilder()
+            .WithUserInput("hello")
+            .Build();
 
         // Act
         var result = await pipeline.ExecuteAsync(request);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         result.Value.Should().Be(expectedResponse);
 
         mockExecutor.Verify(e => e.ExecuteAsync(
             It.Is<VKPsycheContext>(ctx =>
-                ctx.Request.CorrelationId == generatedGuid.ToString() &&
+                ctx.CorrelationId == generatedGuid.ToString() &&
                 ctx.Services == mockServices.Object),
             It.IsAny<CancellationToken>()), Times.Once);
     }

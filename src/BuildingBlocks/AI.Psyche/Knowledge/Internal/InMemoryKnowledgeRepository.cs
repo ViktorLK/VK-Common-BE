@@ -10,11 +10,11 @@ namespace VK.Blocks.AI.Psyche.Knowledge.Internal;
 /// Thread-safe in-memory implementation of <see cref="IVKPsycheKnowledgeRepository"/>.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
-internal sealed class InMemoryKnowledgeStore : IVKPsycheKnowledgeRepository
+internal sealed class InMemoryKnowledgeRepository : IVKPsycheKnowledgeRepository
 {
     private readonly ConcurrentDictionary<VKKnowledgeId, VKKnowledgeEntry> _store = new();
 
-    public InMemoryKnowledgeStore()
+    public InMemoryKnowledgeRepository()
     {
     }
 
@@ -105,14 +105,14 @@ internal sealed class InMemoryKnowledgeStore : IVKPsycheKnowledgeRepository
     }
 
 
-    public InMemoryKnowledgeStore Seed(VKKnowledgeEntry knowledgeEntry)
+    public InMemoryKnowledgeRepository Seed(VKKnowledgeEntry knowledgeEntry)
     {
         VKGuard.NotNull(knowledgeEntry);
         _store[knowledgeEntry.Id] = knowledgeEntry;
         return this;
     }
 
-    public InMemoryKnowledgeStore Seed(IEnumerable<VKKnowledgeEntry> knowledgeEntries)
+    public InMemoryKnowledgeRepository Seed(IEnumerable<VKKnowledgeEntry> knowledgeEntries)
     {
         VKGuard.NotNull(knowledgeEntries);
         foreach (var entry in knowledgeEntries)
@@ -122,13 +122,13 @@ internal sealed class InMemoryKnowledgeStore : IVKPsycheKnowledgeRepository
         return this;
     }
 
-    public InMemoryKnowledgeStore Remove(VKKnowledgeId knowledgeEntryId)
+    public InMemoryKnowledgeRepository Remove(VKKnowledgeId knowledgeEntryId)
     {
         _store.TryRemove(knowledgeEntryId, out _);
         return this;
     }
 
-    public InMemoryKnowledgeStore Clear()
+    public InMemoryKnowledgeRepository Clear()
     {
         _store.Clear();
         return this;

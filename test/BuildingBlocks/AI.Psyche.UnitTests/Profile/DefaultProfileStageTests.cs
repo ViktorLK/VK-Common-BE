@@ -1,40 +1,31 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using FluentAssertions;
 using Moq;
 using VK.Blocks.AI.Psyche.Profile.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
 using VK.Blocks.Core;
-using Xunit;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Profile;
 
-public sealed class DefaultProfileStageTests
+public sealed class DefaultProfileStageTests : VKUnitTestBase
 {
     [Fact]
     public async Task ExecuteAsync_WithProfileInStore_InjectsPreferredLanguageAndTimeZoneFragments()
     {
         // Arrange
-        var storeMock = new Mock<IVKProfileStore>();
-        var profileId = new VKProfileId(Guid.NewGuid());
+        var profile = new VKProfilePresenceBuilder()
+            .WithPreferredLanguage("zh-CN")
+            .WithTimeZone("UTC")
+            .WithPreference("Format", "Markdown")
+            .Build();
 
-        var profile = new VKProfilePresence
-        {
-            Id = profileId,
-            PreferredLanguage = "zh-CN",
-            TimeZone = "UTC",
-            Preferences = new Dictionary<string, string> { ["Format"] = "Markdown" }
-        };
-        storeMock.Setup(s => s.GetProfileAsync(profileId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<VKProfilePresence?>(profile));
+        GetMock<IVKPsycheProfileRepository>()
+            .Setup(s => s.FindByIdAsync(profile.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success(profile));
 
         var options = new VKProfileOptions { Enabled = true };
-        var stage = new DefaultProfileStage(options, storeMock.Object, TimeProvider.System);
+        var stage = new DefaultProfileStage(options, GetMockObject<IVKPsycheProfileRepository>(), TimeProvider.System);
 
         var (context, _) = new VKPsycheRequestBuilder()
-            .WithProfileId(profileId)
+            .WithProfileId(profile.Id)
             .WithUserInput("hello")
             .BuildContext();
 
@@ -42,7 +33,7 @@ public sealed class DefaultProfileStageTests
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         context.State<VKProfilePresence>().Should().Be(profile);
         context.Fragments.Should().Contain(f => f.Segment.Content.Contains("zh-CN"));
         context.Fragments.Should().Contain(f => f.Segment.Content.Contains("UTC"));
@@ -53,9 +44,8 @@ public sealed class DefaultProfileStageTests
     public async Task ExecuteAsync_WhenNoProfileId_ReturnsSuccessWithoutFragments()
     {
         // Arrange
-        var storeMock = new Mock<IVKProfileStore>();
         var options = new VKProfileOptions { Enabled = true };
-        var stage = new DefaultProfileStage(options, storeMock.Object);
+        var stage = new DefaultProfileStage(options, GetMockObject<IVKPsycheProfileRepository>());
 
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
 
@@ -63,7 +53,7 @@ public sealed class DefaultProfileStageTests
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
-        result.IsSuccess.Should().BeTrue();
+        result.Should().BeSuccess();
         context.Fragments.Should().BeEmpty();
     }
 }
