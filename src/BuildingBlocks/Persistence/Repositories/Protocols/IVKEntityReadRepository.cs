@@ -13,7 +13,7 @@ namespace VK.Blocks.Persistence;
 /// Follows AP.01, CS.01, and CS.04 (AsNoTracking by default).
 /// </summary>
 /// <typeparam name="TEntity">The entity type. Must be a class.</typeparam>
-public interface IVKReadRepository<TEntity> where TEntity : class
+public interface IVKEntityReadRepository<TEntity> where TEntity : class
 {
     // =========================================================================
     // 1. Basic Single/Exists & Key-based Lookup
@@ -142,6 +142,23 @@ public interface IVKReadRepository<TEntity> where TEntity : class
     /// Asynchronously retrieves the first entity matching the specified specification with change tracking enabled.
     /// </summary>
     Task<TEntity?> GetTrackedFirstOrDefaultAsync(
+        IVKSpecification<TEntity> specification,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously retrieves a single entity matching the specified predicate with change tracking enabled.
+    /// Throws if more than one matching entity is found.
+    /// </summary>
+    Task<TEntity?> GetTrackedSingleOrDefaultAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Asynchronously retrieves a single entity matching the specified specification with change tracking enabled.
+    /// Throws if more than one matching entity is found.
+    /// </summary>
+    Task<TEntity?> GetTrackedSingleOrDefaultAsync(
         IVKSpecification<TEntity> specification,
         CancellationToken cancellationToken = default);
 
@@ -298,3 +315,7 @@ public interface IVKReadRepository<TEntity> where TEntity : class
         CancellationToken cancellationToken = default)
         where TCursor : IComparable<TCursor>;
 }
+
+/// <summary>
+/// Backward-compatible alias for <see cref="IVKEntityReadRepository{TEntity}"/>.
+/// </summary>

@@ -4,11 +4,11 @@ namespace VK.Blocks.BackgroundJobs.Shared;
 
 internal sealed class TenantContextRestorer
 {
-    private readonly IVKSecurityContext? _userContext;
+    private readonly IVKTenantCoordinate? _tenantCoordinate;
 
-    public TenantContextRestorer(IVKSecurityContext? userContext = null)
+    public TenantContextRestorer(IVKTenantCoordinate? tenantCoordinate = null)
     {
-        _userContext = userContext;
+        _tenantCoordinate = tenantCoordinate;
     }
 
     public void RestoreContext(string? tenantId)

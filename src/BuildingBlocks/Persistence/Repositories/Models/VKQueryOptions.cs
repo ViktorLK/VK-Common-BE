@@ -22,11 +22,6 @@ public sealed record VKQueryOptions
     /// </summary>
     public TimeSpan? Timeout { get; init; }
 
-    /// <summary>
-    /// When <c>true</c>, bypasses global query filters (such as soft-delete, multi-tenancy).
-    /// Default is <c>false</c>.
-    /// </summary>
-    public bool IgnoreQueryFilters { get; init; }
 
     /// <summary>
     /// Diagnostic tag attached to the query for tracing or logging purposes.

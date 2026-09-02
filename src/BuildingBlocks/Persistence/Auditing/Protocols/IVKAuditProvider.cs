@@ -1,4 +1,6 @@
 using System;
+using VK.Blocks.Core;
+
 namespace VK.Blocks.Persistence;
 
 /// <summary>
@@ -9,7 +11,7 @@ public interface IVKAuditProvider
     /// <summary>
     /// Gets the unique identifier of the current user.
     /// </summary>
-    string CurrentUserId { get; }
+    VKUserId? CurrentUserId { get; }
 
     /// <summary>
     /// Gets the current UTC date and time.

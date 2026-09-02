@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 namespace VK.Blocks.Persistence;
 
 /// <summary>
-/// Generic repository interface for write-only data operations.
+/// Generic repository interface for write-only data operations on database entities.
 /// </summary>
 /// <typeparam name="TEntity">The entity type. Must be a class.</typeparam>
-public interface IVKWriteRepository<TEntity> where TEntity : class
+public interface IVKEntityWriteRepository<TEntity> where TEntity : class
 {
     /// <summary>
     /// Asynchronously adds a new entity to the repository.
@@ -31,52 +31,54 @@ public interface IVKWriteRepository<TEntity> where TEntity : class
     /// </summary>
     /// <param name="entity">The entity to update.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     ValueTask UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates a range of existing entities in the repository.
+    /// Updates a range of entities in the repository.
     /// </summary>
     /// <param name="entities">The entities to update.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     ValueTask UpdateRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Adds a new entity or updates an existing entity.
-    /// <para>
-    /// Note: In RDBMS (like SQL Server via EF Core), this operation does not guarantee atomic upsert semantics unless implemented with specific database features (e.g., MERGE). It may result in race conditions under high concurrency.
-    /// In NoSQL databases (like Cosmos DB), this maps directly to a native atomic Upsert operation.
-    /// </para>
+    /// Upserts an entity into the database (updates if exists, adds otherwise).
     /// </summary>
     /// <param name="entity">The entity to upsert.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The upserted entity.</returns>
+    /// <returns>The added or updated entity.</returns>
     Task<TEntity> UpsertAsync(TEntity entity, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes an entity from the repository using the default system policy (soft delete if supported).
+    /// Deletes an entity from the repository (performs soft delete if supported).
     /// </summary>
     /// <param name="entity">The entity to delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     ValueTask DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes a range of entities from the repository using the default system policy (soft delete if supported).
+    /// Deletes a range of entities from the repository (performs soft delete if supported).
     /// </summary>
     /// <param name="entities">The entities to delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     ValueTask DeleteRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Forcefully physically deletes an entity from the repository, bypassing soft delete.
+    /// Performs a permanent (hard) delete, ignoring any soft delete mechanisms.
     /// </summary>
-    /// <param name="entity">The entity to physically delete.</param>
+    /// <param name="entity">The entity to permanently delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     ValueTask HardDeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Forcefully physically deletes a range of entities from the repository, bypassing soft delete.
+    /// Performs a permanent (hard) delete on a range of entities, ignoring soft delete mechanisms.
     /// </summary>
-    /// <param name="entities">The entities to physically delete.</param>
+    /// <param name="entities">The entities to permanently delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     ValueTask HardDeleteRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken = default);
 }

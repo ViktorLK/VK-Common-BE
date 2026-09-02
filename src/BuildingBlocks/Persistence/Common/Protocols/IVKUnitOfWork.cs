@@ -54,6 +54,12 @@ public interface IVKUnitOfWork : IDisposable, IAsyncDisposable
     /// </summary>
     /// <typeparam name="TEntity">The type of the entity.</typeparam>
     /// <returns>The repository instance for the specified entity type.</returns>
-    IVKBaseRepository<TEntity> Repository<TEntity>() where TEntity : class;
+    IVKEntityRepository<TEntity> Repository<TEntity>() where TEntity : class;
 
+    /// <summary>
+    /// Gets the entity repository for the specified entity type.
+    /// </summary>
+    /// <typeparam name="TEntity">The type of the entity.</typeparam>
+    /// <returns>The entity repository instance for the specified entity type.</returns>
+    IVKEntityRepository<TEntity> EntityRepository<TEntity>() where TEntity : class => Repository<TEntity>();
 }

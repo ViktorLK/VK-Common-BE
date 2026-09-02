@@ -23,7 +23,8 @@ public sealed class DefaultEchoSaveStageTests : VKUnitTestBase
 
         var options = new VKEchoOptions { Enabled = true, AutoSaveHistory = true };
         var loggerMock = GetMock<ILogger<DefaultEchoSaveStage>>();
-        var stage = new DefaultEchoSaveStage(storeMock.Object, modelFactoryMock.Object, options, loggerMock.Object);
+        var tokenCounterMock = GetMock<IVKTokenCounter>();
+        var stage = new DefaultEchoSaveStage(storeMock.Object, modelFactoryMock.Object, tokenCounterMock.Object, options, loggerMock.Object);
 
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
         context.SetState(session);
@@ -40,8 +41,7 @@ public sealed class DefaultEchoSaveStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        storeMock.Verify(s => s.SaveHistoryAsync(userTrace, It.IsAny<CancellationToken>()), Times.Once);
-        storeMock.Verify(s => s.SaveHistoryAsync(assistantTrace, It.IsAny<CancellationToken>()), Times.Once);
+        storeMock.Verify(s => s.SaveHistoryBatchAsync(It.Is<IReadOnlyCollection<VKEchoTrace>>(c => c.Count == 2), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -50,9 +50,10 @@ public sealed class DefaultEchoSaveStageTests : VKUnitTestBase
         // Arrange
         var storeMock = GetMock<IVKEchoStore>();
         var modelFactoryMock = GetMock<IVKPsycheModelFactory>();
+        var tokenCounterMock = GetMock<IVKTokenCounter>();
         var options = new VKEchoOptions { Enabled = true, AutoSaveHistory = true };
         var loggerMock = GetMock<ILogger<DefaultEchoSaveStage>>();
-        var stage = new DefaultEchoSaveStage(storeMock.Object, modelFactoryMock.Object, options, loggerMock.Object);
+        var stage = new DefaultEchoSaveStage(storeMock.Object, modelFactoryMock.Object, tokenCounterMock.Object, options, loggerMock.Object);
 
         var (context, _) = new VKPsycheRequestBuilder()
             .WithUserInput("hello")
@@ -64,6 +65,6 @@ public sealed class DefaultEchoSaveStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        storeMock.Verify(s => s.SaveHistoryAsync(It.IsAny<VKEchoTrace>(), It.IsAny<CancellationToken>()), Times.Never);
+        storeMock.Verify(s => s.SaveHistoryBatchAsync(It.IsAny<IReadOnlyCollection<VKEchoTrace>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }
