@@ -1,4 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.AI.Psyche.Echo.Internal;
@@ -13,6 +16,29 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Echo;
 /// </summary>
 public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
 {
+    private void SetupEchoStore(VKSessionId sessionId, List<VKEchoTrace> traces)
+    {
+        var metas = traces.Select(t => new VKEchoMetadata
+        {
+            Id = t.Id,
+            SessionId = t.SessionId,
+            Role = t.Role,
+            TokenCount = t.TokenCount,
+            CreatedAt = t.CreatedAt
+        }).ToList();
+
+        GetMock<IVKEchoStore>()
+            .Setup(s => s.GetMetadataAsync(sessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoMetadata>>(metas));
+
+        GetMock<IVKEchoStore>()
+            .Setup(s => s.GetTracesByIdsAsync(It.IsAny<IReadOnlyCollection<VKEchoId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<VKEchoId> ids, CancellationToken _) =>
+            {
+                var idSet = new HashSet<VKEchoId>(ids);
+                return VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(traces.Where(t => idSet.Contains(t.Id)).ToList());
+            });
+    }
 
     [Fact]
     public async Task ExecuteAsync_WhenHistoryExists_InjectsEchoFragments()
@@ -33,9 +59,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             new VKEchoTraceBuilder().WithSessionId(sessionId).WithRole(VKChatRole.User).WithContent("Message 3").Build()
         };
 
-        GetMock<IVKEchoStore>()
-            .Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(history));
+        SetupEchoStore(sessionId, history);
 
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
@@ -67,9 +91,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var weavingOptions = new VKWeavingOptions();
 
         var sessionId = new VKSessionThreadBuilder().Build().Id;
-        GetMock<IVKEchoStore>()
-            .Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>([]));
+        SetupEchoStore(sessionId, []);
 
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
@@ -116,7 +138,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        GetMock<IVKEchoStore>().Verify(s => s.GetHistoryAsync(It.IsAny<VKSessionId>(), It.IsAny<CancellationToken>()), Times.Never);
+        GetMock<IVKEchoStore>().Verify(s => s.GetMetadataAsync(It.IsAny<VKSessionId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -144,7 +166,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        GetMock<IVKEchoStore>().Verify(s => s.GetHistoryAsync(It.IsAny<VKSessionId>(), It.IsAny<CancellationToken>()), Times.Never);
+        GetMock<IVKEchoStore>().Verify(s => s.GetMetadataAsync(It.IsAny<VKSessionId>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -176,13 +198,27 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             .WithContent("Child Msg")
             .Build();
 
-        GetMock<IVKEchoStore>()
-            .Setup(s => s.GetHistoryAsync(childSession.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>([childTrace]));
+        var allTraces = new List<VKEchoTrace> { parentTrace, childTrace };
 
         GetMock<IVKEchoStore>()
-            .Setup(s => s.GetHistoryAsync(parentSession.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>([parentTrace]));
+            .Setup(s => s.GetMetadataAsync(childSession.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoMetadata>>([
+                new VKEchoMetadata { Id = childTrace.Id, SessionId = childTrace.SessionId, Role = childTrace.Role, TokenCount = 10, CreatedAt = childTrace.CreatedAt }
+            ]));
+
+        GetMock<IVKEchoStore>()
+            .Setup(s => s.GetMetadataAsync(parentSession.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoMetadata>>([
+                new VKEchoMetadata { Id = parentTrace.Id, SessionId = parentTrace.SessionId, Role = parentTrace.Role, TokenCount = 10, CreatedAt = parentTrace.CreatedAt }
+            ]));
+
+        GetMock<IVKEchoStore>()
+            .Setup(s => s.GetTracesByIdsAsync(It.IsAny<IReadOnlyCollection<VKEchoId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<VKEchoId> ids, CancellationToken _) =>
+            {
+                var idSet = new HashSet<VKEchoId>(ids);
+                return VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(allTraces.Where(t => idSet.Contains(t.Id)).ToList());
+            });
 
         GetMock<IVKPsycheSessionRepository>()
             .Setup(s => s.FindByIdAsync(parentSession.Id, It.IsAny<CancellationToken>()))
@@ -231,9 +267,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             new VKEchoTraceBuilder().WithSessionId(sessionId).WithRole(VKChatRole.User).WithContent("User Question").Build()
         };
 
-        GetMock<IVKEchoStore>()
-            .Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(history));
+        SetupEchoStore(sessionId, history);
 
         var echoOptions = new VKEchoOptions { Enabled = true, IncludeSystemMessages = false };
         var weavingOptions = new VKWeavingOptions();
@@ -274,9 +308,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             .WithContent($"Msg {i}")
             .Build()).ToList();
 
-        GetMock<IVKEchoStore>()
-            .Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(history));
+        SetupEchoStore(sessionId, history);
 
         var echoOptions = new VKEchoOptions { Enabled = true, MaxWindowSize = 3 };
         var weavingOptions = new VKWeavingOptions();
@@ -321,9 +353,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             new VKEchoTraceBuilder().WithSessionId(sessionId).WithRole(VKChatRole.Assistant).WithContent("T2 Assistant").Build()
         };
 
-        GetMock<IVKEchoStore>()
-            .Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(history));
+        SetupEchoStore(sessionId, history);
 
         var echoOptions = new VKEchoOptions
         {
@@ -369,9 +399,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             new VKEchoTraceBuilder().WithSessionId(sessionId).WithRole(VKChatRole.User).WithContent("Msg").Build()
         };
 
-        GetMock<IVKEchoStore>()
-            .Setup(s => s.GetHistoryAsync(sessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(history));
+        SetupEchoStore(sessionId, history);
 
         var echoOptions = new VKEchoOptions { Enabled = true };
         var weavingOptions = new VKWeavingOptions();

@@ -76,7 +76,7 @@ internal sealed class SecureCursorSerializer : IVKCursorSerializer
 
         var json = _jsonSerializer.Serialize(payload);
         var jsonBytes = Encoding.UTF8.GetBytes(json);
-        
+
         Span<byte> signatureBuffer = stackalloc byte[32];
         ComputeHmac(jsonBytes, signatureBuffer);
 
@@ -101,7 +101,7 @@ internal sealed class SecureCursorSerializer : IVKCursorSerializer
 
             var jsonBytes = Convert.FromBase64String(token[..dotIndex]);
             var providedSignature = Convert.FromBase64String(token[(dotIndex + 1)..]);
-            
+
             Span<byte> expectedSignature = stackalloc byte[32];
             ComputeHmac(jsonBytes, expectedSignature);
 

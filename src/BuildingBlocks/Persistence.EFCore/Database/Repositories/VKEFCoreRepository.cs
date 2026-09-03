@@ -13,12 +13,13 @@ namespace VK.Blocks.Persistence.EFCore;
 /// Implementation of the generic repository base class for EF Core.
 /// </summary>
 /// <typeparam name="TEntity">The entity type.</typeparam>
-public sealed partial class VKEFCoreRepository<TEntity>(
+public partial class VKEFCoreRepository<TEntity>(
     DbContext context,
     ILogger<VKEFCoreRepository<TEntity>> logger,
     IVKCursorSerializer cursorSerializer,
-    IVKEntityLifecycleProcessor processor
-) : VKEFCoreReadRepository<TEntity>(context, logger, cursorSerializer), IVKBaseRepository<TEntity>, IVKBulkRepository<TEntity>
+    IVKEntityLifecycleProcessor processor,
+    IEnumerable<IVKQueryContributor>? queryContributors = null
+) : VKEFCoreReadRepository<TEntity>(context, logger, cursorSerializer, queryContributors), IVKEntityRepository<TEntity>, IVKEntityBulkRepository<TEntity>
     where TEntity : class
 {
     private readonly ILogger<VKEFCoreRepository<TEntity>> _logger = VKGuard.NotNull(logger);

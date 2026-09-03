@@ -23,12 +23,6 @@ public sealed partial record VKPersistenceOptions : IVKToggleableBlockOptions
     public bool EnableSoftDelete { get; init; } = true;
 
     /// <summary>
-    /// Gets a value indicating whether multi-tenancy is enabled.
-    /// Default is <c>false</c>.
-    /// </summary>
-    public bool EnableMultiTenancy { get; init; } = false;
-
-    /// <summary>
     /// Default command timeout in seconds. Providers MUST respect this value.
     /// Default is 30 seconds.
     /// </summary>

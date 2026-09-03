@@ -58,19 +58,17 @@ public static partial class VKPersistenceEFCoreBlockExtensions
         });
 
         // Register lifecycle processors
-        if (defaultsOptions.EnableAuditing == true || defaultsOptions.EnableSoftDelete == true || defaultsOptions.EnableMultiTenancy == true)
+        if (defaultsOptions.EnableAuditing || defaultsOptions.EnableSoftDelete)
         {
             builder.Services.TryAddScoped<IVKEntityLifecycleProcessor, DefaultEntityLifecycleProcessor>();
         }
         builder.Services.TryAddScoped<IVKEntityLifecycleProcessor, NoOpEntityLifecycleProcessor>();
 
         // Register fallback audit provider if auditing is enabled
-        var globalPersistenceOptions = builder.Services.GetVKServiceInstance<VKPersistenceOptions>();
-        var enableAuditing = defaultsOptions.EnableAuditing ?? globalPersistenceOptions?.EnableAuditing ?? true;
-        if (enableAuditing)
+        if (defaultsOptions.EnableAuditing)
         {
             var currentDescriptor = builder.Services.FirstOrDefault(d => d.ServiceType == typeof(IVKAuditProvider));
-            if (currentDescriptor == null || currentDescriptor.ImplementationType?.FullName == "VK.Blocks.Persistence.Auditing.Internal.NoOpAuditProvider")
+            if (currentDescriptor is null || currentDescriptor.ImplementationType?.FullName == "VK.Blocks.Persistence.Auditing.Internal.NoOpAuditProvider")
             {
                 builder.Services.Replace(ServiceDescriptor.Scoped<IVKAuditProvider, BasicAuditProvider>());
             }
@@ -100,22 +98,23 @@ public static partial class VKPersistenceEFCoreBlockExtensions
 
     private static void ApplyFeatureInterceptors(DbContextOptionsBuilder builder, IServiceProvider sp, VKPersistenceEFCoreOptions options)
     {
-        if (options.EnableAuditing == true)
+        if (options.EnableAuditing)
         {
             var auditInterceptor = sp.GetRequiredService<VKAuditingInterceptor>();
             builder.AddInterceptors(auditInterceptor);
         }
 
-        if (options.EnableSoftDelete == true)
+        if (options.EnableSoftDelete)
         {
             var softDeleteInterceptor = sp.GetRequiredService<VKSoftDeleteInterceptor>();
             builder.AddInterceptors(softDeleteInterceptor);
         }
 
-        if (options.EnableMultiTenancy == true)
+        // Apply all registered interceptors dynamically (e.g. MultiTenancy VKTenantInterceptor)
+        var customInterceptors = sp.GetServices<Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor>();
+        foreach (var interceptor in customInterceptors)
         {
-            var tenantInterceptor = sp.GetRequiredService<VKTenantInterceptor>();
-            builder.AddInterceptors(tenantInterceptor);
+            builder.AddInterceptors(interceptor);
         }
     }
 
@@ -124,10 +123,10 @@ public static partial class VKPersistenceEFCoreBlockExtensions
         services.TryAddScoped<DbContext>(sp => sp.GetRequiredService<TContext>());
         services.TryAddScoped<IVKUnitOfWork, VKUnitOfWork<TContext>>();
         services.TryAddScoped<IVKUnitOfWork<TContext>, VKUnitOfWork<TContext>>();
-        services.TryAddScoped(typeof(IVKReadRepository<>), typeof(VKEFCoreReadRepository<>));
-        services.TryAddScoped(typeof(IVKWriteRepository<>), typeof(VKEFCoreRepository<>));
-        services.TryAddScoped(typeof(IVKBaseRepository<>), typeof(VKEFCoreRepository<>));
-        services.TryAddScoped(typeof(IVKBulkRepository<>), typeof(VKEFCoreRepository<>));
-        services.TryAddScoped(typeof(IVKSystemRepository<>), typeof(VKEFCoreSystemRepository<>));
+        services.TryAddScoped(typeof(IVKEntityRepository<>), typeof(VKEFCoreRepository<>));
+        services.TryAddScoped(typeof(IVKEntityReadRepository<>), typeof(VKEFCoreReadRepository<>));
+        services.TryAddScoped(typeof(IVKEntityWriteRepository<>), typeof(VKEFCoreRepository<>));
+        services.TryAddScoped(typeof(IVKEntityBulkRepository<>), typeof(VKEFCoreRepository<>));
+        services.TryAddScoped(typeof(IVKEntitySystemRepository<>), typeof(VKEFCoreSystemRepository<>));
     }
 }

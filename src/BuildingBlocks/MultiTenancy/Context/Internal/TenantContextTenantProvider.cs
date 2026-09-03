@@ -12,6 +12,6 @@ internal sealed class TenantContextTenantProvider(IVKTenantContext tenantContext
     /// <inheritdoc />
     public VKTenantId? GetCurrentTenantId()
     {
-        return _tenantContext.CurrentTenant?.Id;
+        return _tenantContext.IsResolved ? _tenantContext.TenantId : null;
     }
 }

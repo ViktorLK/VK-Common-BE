@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Web.CorrelationId.Internal;
 using VK.Blocks.Web.ProblemDetails.Internal;
-using VK.Blocks.Web.UserContext.Internal;
 
 namespace VK.Blocks.Web;
 
@@ -106,12 +105,6 @@ public sealed partial class VKWebBlock
 
         // TODO: [Mapping SG] Remove this manual registration once Source Generator auto-registration is implemented.
         services.TryAddSingleton<IVKMapper<VKErrorResponse, VKWebProblemDetails>, ExceptionProblemDetailsMapper>();
-
-        // User / Security Context (Override Core's fallback DefaultSecurityContext/DefaultIdentityContext)
-        services.RemoveAll<IVKSecurityContext>();
-        services.RemoveAll<IVKIdentityContext>();
-        services.AddScoped<IVKSecurityContext, HttpContextUserContext>();
-        services.AddScoped<IVKIdentityContext>(sp => sp.GetRequiredService<IVKSecurityContext>());
     }
 
     public static void RegisterRequestBodyLimitServices(IServiceCollection services, VKRequestBodyLimitOptions options)

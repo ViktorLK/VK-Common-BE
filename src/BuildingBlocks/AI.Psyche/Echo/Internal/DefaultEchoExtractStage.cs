@@ -13,8 +13,9 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 
 /// <summary>
 /// Default implementation of the dialogue echo stage.
-/// Retains and sliding-window trims short-term dialogue history.
-/// Respects physical model limits dynamically via <see cref="IVKModelCatalog"/>.
+/// Retains and sliding-window trims short-term dialogue history using a 2-phase DDD retrieval model:
+/// Phase 1: Queries lightweight metadata (VKEchoMetadata) to compute token/turn budgets in memory.
+/// Phase 2: Fetches full dialogue content (VKEchoTrace) only for the retained message IDs.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
 internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
@@ -64,8 +65,8 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             return VKResult.Success();
         }
 
-        // 1. Fetch history (supports Continuous multi-level parent ancestry tracing)
-        var allEchoes = new List<VKEchoTrace>();
+        // 1. Phase 1: Fetch lightweight metadata (supports Continuous multi-level parent ancestry tracing)
+        var allMetas = new List<VKEchoMetadata>();
         var currentSessionId = (VKSessionId?)context.Request.SessionId;
         var mode = context.State<VKSessionThread>()?.Mode ?? VKSessionMode.Isolated;
 
@@ -73,11 +74,11 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
 
         while (currentSessionId.HasValue && visitedSessions.Add(currentSessionId.Value))
         {
-            var historyResult = await _echoStore.GetHistoryAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
-            if (historyResult.IsSuccess && historyResult.Value.Count > 0)
+            var metadataResult = await _echoStore.GetMetadataAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
+            if (metadataResult.IsSuccess && metadataResult.Value.Count > 0)
             {
                 // Prepend parent echoes before child echoes
-                allEchoes.InsertRange(0, historyResult.Value);
+                allMetas.InsertRange(0, metadataResult.Value);
             }
 
             // Only trace parent dynamically if mode is Continuous
@@ -100,30 +101,30 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             }
         }
 
-        if (allEchoes.Count == 0)
+        if (allMetas.Count == 0)
         {
             return VKResult.Success();
         }
 
-        // 1. Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
+        // 2. Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
         var maxWindowSize = context.Args<VKEchoArgs>()?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
-        if (maxWindowSize.HasValue && maxWindowSize.Value > 0 && allEchoes.Count > maxWindowSize.Value)
+        if (maxWindowSize.HasValue && maxWindowSize.Value > 0 && allMetas.Count > maxWindowSize.Value)
         {
-            allEchoes = [.. allEchoes.Skip(allEchoes.Count - maxWindowSize.Value)];
+            allMetas = [.. allMetas.Skip(allMetas.Count - maxWindowSize.Value)];
         }
 
-        // 2. Filter System Messages if disabled
+        // 3. Filter System Messages if disabled
         if (!_echoOptions.IncludeSystemMessages)
         {
-            allEchoes = [.. allEchoes.Where(e => e.Role != VKChatRole.System)];
+            allMetas = [.. allMetas.Where(e => e.Role != VKChatRole.System)];
         }
 
-        if (allEchoes.Count == 0)
+        if (allMetas.Count == 0)
         {
             return VKResult.Success();
         }
 
-        // 3. Resolve Effective Token Budget dynamically based on IVKModelCatalog & MaxContextBudget
+        // 4. Resolve Effective Token Budget dynamically based on IVKModelCatalog & MaxContextBudget
         var modelId = context.Args<VKChatArgs>()?.ModelId ?? string.Empty;
         var modelMetadata = _modelCatalog.GetModelMetadata(modelId);
 
@@ -141,19 +142,19 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         int dynamicLimit = (int)(totalLimit * _echoOptions.TokenBudgetRatio);
         effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
 
-        // 4. Trim dialogue history (from oldest to newest)
-        var retained = new List<VKEchoTrace>();
+        // 5. Trim dialogue metadata in-memory (from oldest to newest)
+        var retainedMetas = new List<VKEchoMetadata>();
 
         if (_echoOptions.PruneUnit == VKEchoPruneUnit.Turn)
         {
             // Prune by whole Turns (alternating user dialog steps)
-            var turns = GroupIntoTurns([.. allEchoes]);
+            var turns = GroupIntoTurns([.. allMetas]);
             int currentTokensSum = 0;
             int retainedTurnsCount = 0;
 
             foreach (var turn in turns)
             {
-                int turnTokens = turn.Sum(GetEchoTokens);
+                int turnTokens = turn.Sum(GetMetaTokens);
 
                 var maxTurns = context.Args<VKEchoArgs>()?.MaxTurns ?? _echoOptions.MaxTurns;
                 if (maxTurns.HasValue && retainedTurnsCount >= maxTurns.Value)
@@ -163,7 +164,7 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
 
                 if (currentTokensSum + turnTokens <= effectiveBudget)
                 {
-                    retained.InsertRange(0, turn); // Maintain oldest-first chronological order and intra-turn order
+                    retainedMetas.InsertRange(0, turn); // Maintain oldest-first chronological order and intra-turn order
                     currentTokensSum += turnTokens;
                     retainedTurnsCount++;
                 }
@@ -178,14 +179,14 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             // Prune message-by-message
             int currentTokensSum = 0;
 
-            for (int i = allEchoes.Count - 1; i >= 0; i--)
+            for (int i = allMetas.Count - 1; i >= 0; i--)
             {
-                var item = allEchoes[i];
-                int itemTokens = GetEchoTokens(item);
+                var item = allMetas[i];
+                int itemTokens = GetMetaTokens(item);
 
                 if (currentTokensSum + itemTokens <= effectiveBudget)
                 {
-                    retained.Insert(0, item); // Prepend to preserve oldest-first
+                    retainedMetas.Insert(0, item); // Prepend to preserve oldest-first
                     currentTokensSum += itemTokens;
                 }
                 else
@@ -194,6 +195,21 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
                 }
             }
         }
+
+        if (retainedMetas.Count == 0)
+        {
+            return VKResult.Success();
+        }
+
+        // 6. Phase 2: Fetch full dialogue traces for ONLY the retained message IDs
+        var targetIds = retainedMetas.Select(m => m.Id).ToList();
+        var tracesResult = await _echoStore.GetTracesByIdsAsync(targetIds, cancellationToken).ConfigureAwait(false);
+        if (tracesResult.IsFailure)
+        {
+            return VKResult.Failure(tracesResult.Errors);
+        }
+
+        var retained = tracesResult.Value.ToList();
 
         var tierType = VKPromptTierType.Echo;
         var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
@@ -217,10 +233,10 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             });
         }
 
-        var allEchoesCount = allEchoes.Count;
+        var allMetasCount = allMetas.Count;
         var retainedCount = retained.Count;
-        var trimmedCount = Math.Max(0, allEchoesCount - retainedCount);
-        _logger.EchoTrimmed(context.Request.SessionId, allEchoesCount, retainedCount);
+        var trimmedCount = Math.Max(0, allMetasCount - retainedCount);
+        _logger.EchoTrimmed(context.Request.SessionId, allMetasCount, retainedCount);
 
         Activity.Current?.SetPsycheEchoCount(retainedCount, trimmedCount);
         if (retainedCount > 0)
@@ -236,17 +252,17 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
     }
 
     /// <summary>
-    /// Groups dialogue history into turn exchanges (from newest to oldest).
+    /// Groups dialogue metadata into turn exchanges (from newest to oldest).
     /// </summary>
-    private static List<List<VKEchoTrace>> GroupIntoTurns(IReadOnlyList<VKEchoTrace> echoes)
+    private static List<List<VKEchoMetadata>> GroupIntoTurns(IReadOnlyList<VKEchoMetadata> echoes)
     {
-        var turns = new List<List<VKEchoTrace>>();
+        var turns = new List<List<VKEchoMetadata>>();
         if (echoes.Count == 0)
         {
             return turns;
         }
 
-        var currentTurn = new List<VKEchoTrace>();
+        var currentTurn = new List<VKEchoMetadata>();
 
         // Walk backwards from latest to oldest
         for (int i = echoes.Count - 1; i >= 0; i--)
@@ -270,8 +286,8 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         return turns;
     }
 
-    private int GetEchoTokens(VKEchoTrace echo)
+    private static int GetMetaTokens(VKEchoMetadata meta)
     {
-        return echo.TokenCount > 0 ? echo.TokenCount : _tokenCounter.CountTokens(echo.Content);
+        return meta.TokenCount > 0 ? meta.TokenCount : 10;
     }
 }

@@ -6,27 +6,50 @@ namespace VK.Blocks.Persistence.EFCore;
 /// <summary>
 /// A marker type for the VK.Blocks.Persistence.EFCore building block.
 /// </summary>
-[VKBlockMarker(Dependencies = [typeof(VKCoreBlock)])]
+[VKBlockMarker(Dependencies = [typeof(VKCoreBlock), typeof(VKPersistenceBlock)])]
 public sealed partial class VKPersistenceEFCoreBlock
 {
     static partial void RegisterBlockCustom(IVKPersistenceEFCoreBuilder builder)
     {
-        var options = builder.Services.GetVKServiceInstance<VKPersistenceEFCoreOptions>();
-        if (options is null) return;
+        var services = builder.Services;
 
-        if (options.EnableAuditing == true)
+        // Core Model Creating Contributors
+        services.TryAddEnumerable(Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<IVKModelCreatingContributor, Database.Internal.ConcurrencyModelContributor>());
+        services.TryAddEnumerable(Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<IVKModelCreatingContributor, Database.Internal.ColumnOrderingModelContributor>());
+
+        // Core Global Filter Contributors (Soft Delete)
+        services.TryAddEnumerable(Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<IVKGlobalFilterContributor, Database.Internal.SoftDeleteFilterContributor>());
+
+        // DbContext Accessor (Scoped) [AP.02]
+        services.TryAddScoped<IVKDbContextAccessor, Database.Internal.DefaultDbContextAccessor>();
+        services.TryAddScoped(typeof(IVKDbContextAccessor<>), typeof(Database.Internal.DefaultDbContextAccessor<>));
+
+        // Entity Lifecycle Processor (Scoped) [AP.02]
+        services.TryAddScoped<IVKEntityLifecycleProcessor, Interceptors.Internal.DefaultEntityLifecycleProcessor>();
+
+        var options = services.GetVKServiceInstance<VKPersistenceEFCoreOptions>();
+        if (options is null)
+            return;
+
+        if (options.EnableAuditing)
         {
-            builder.Services.TryAddScoped<VKAuditingInterceptor>();
+            services.TryAddScoped<VKAuditingInterceptor>();
         }
 
-        if (options.EnableSoftDelete == true)
+        if (options.EnableSoftDelete)
         {
-            builder.Services.TryAddScoped<VKSoftDeleteInterceptor>();
+            services.TryAddScoped<VKSoftDeleteInterceptor>();
         }
 
-        if (options.EnableMultiTenancy == true)
+        if (options.EnableDomainEvents)
         {
-            builder.Services.TryAddScoped<VKTenantInterceptor>();
+            services.TryAddScoped<VKDomainEventsInterceptor>();
+        }
+
+        if (options.EnableOutbox)
+        {
+            services.TryAddEnumerable(Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<IVKModelCreatingContributor, Database.Internal.OutboxModelContributor>());
+            services.TryAddScoped<IVKOutboxStore, VKEFCoreOutboxStore>();
         }
     }
 }

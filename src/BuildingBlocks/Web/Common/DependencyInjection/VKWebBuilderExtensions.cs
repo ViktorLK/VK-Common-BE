@@ -5,7 +5,6 @@ using VK.Blocks.Web.CorrelationId.Internal;
 using VK.Blocks.Web.Diagnostics.Internal;
 using VK.Blocks.Web.RequestLogging.Internal;
 using VK.Blocks.Web.Security.Internal;
-using VK.Blocks.Web.Tenancy.Internal;
 
 namespace VK.Blocks.Web;
 
@@ -44,7 +43,6 @@ public static class VKWebPipelineBuilderExtensions
         app.UseVKWebDiagnostics();
         app.UseVKSecurityHeaders();
         app.UseVKCorrelationId();
-        app.UseVKTenantIdentification();
         app.UseVKRequestLogging();
 
         return app;
@@ -78,16 +76,6 @@ public static class VKWebPipelineBuilderExtensions
         VKGuard.NotNull(app);
         RecordMiddleware(app, "CorrelationId");
         return app.UseMiddleware<CorrelationIdMiddleware>();
-    }
-
-    /// <summary>
-    /// Adds Tenant Identification middleware to the pipeline.
-    /// </summary>
-    public static IApplicationBuilder UseVKTenantIdentification(this IApplicationBuilder app)
-    {
-        VKGuard.NotNull(app);
-        RecordMiddleware(app, "TenantIdentification");
-        return app.UseMiddleware<TenantIdentificationMiddleware>();
     }
 
     /// <summary>

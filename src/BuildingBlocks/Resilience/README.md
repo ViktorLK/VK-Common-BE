@@ -6,7 +6,7 @@
 
 ## はじめに
 
-**VK.Blocks.Resilience** は、分散システムにおける障害耐性（レジリエンス）を実現するための軽量ビルディングブロックです。外部ライブラリ（Polly 等）に依存せず、VK.Blocks アーキテクチャに完全準拠した自己完結型のレジリエンス戦略を提供します。
+**VK.Blocks.Resilience** は、分散システム、外部 HTTP サービス、および AI / LLM ワークロードにおける障害耐性（レジリエンス）を実現するためのエンタープライズ対応ビルディングブロックです。外部ライブラリ（Polly 等）に依存せず、VK.Blocks アーキテクチャに完全準拠した自己完結型のレジリエンス戦略・複合責任連鎖パイプラインを提供します。
 
 各戦略は独立した垂直スライス（Vertical Slice）として設計されており、Source Generator による自動化された DI 登録、`VKResult<T>` ベースのエラーハンドリング、そして `TimeProvider` 注入によるテスタブルな時間制御を特徴としています。
 
@@ -19,10 +19,10 @@
 | カテゴリ | 適用パターン |
 |:---------|:-------------|
 | **設計原則** | SOLID, KISS, YAGNI, DRY |
-| **設計パターン** | Strategy, Builder, Feature Toggle |
+| **設計パターン** | Strategy, Pipeline (Chain of Responsibility), Builder, Registry, Feature Toggle |
 | **アーキテクチャ原則** | 関心の分離, カプセル化, 高凝集・低結合 |
 | **アーキテクチャスタイル** | Clean Architecture, Vertical Slice Architecture |
-| **エンタープライズパターン** | Circuit Breaker, Retry, Timeout, Rate Limiting, Bulkhead, Fallback |
+| **エンタープライズパターン** | Composite Pipeline, Circuit Breaker, Exponential Retry with Jitter, Optimistic/Pessimistic Timeout, Sliding/Token-Bucket Rate Limiting, Queued Bulkhead, Graceful Fallback, AI Provider/Model Failover, SWR Caching |
 
 ### モジュール構造
 
@@ -32,199 +32,144 @@ graph TB
         direction TB
         Block["VKResilienceBlock<br/>[VKBlockMarker]"]
         
+        subgraph "Pipeline Engine"
+            Pipeline["DefaultResiliencePipeline"]
+            Builder["IVKPolicyBuilder"]
+            Registry["IVKPolicyRegistry"]
+        end
+
         subgraph "Feature Slices"
             direction LR
-            CB["CircuitBreaker"]
-            RT["Retry"]
-            TO["Timeout"]
-            FB["Fallback"]
-            RL["RateLimiting"]
-            BH["Bulkhead"]
+            CB["CircuitBreaker<br/>(3-State StateMachine)"]
+            RT["Retry<br/>(Exp Backoff + Jitter + OnRetry)"]
+            TO["Timeout<br/>(Optimistic + Pessimistic)"]
+            FB["Fallback<br/>(VKResult + Exception)"]
+            RL["RateLimiting<br/>(Sliding + TokenBucket)"]
+            BH["Bulkhead<br/>(Concurrency + Queue)"]
+            AI["AI Resilience<br/>(Provider/Model Failover)"]
+            Cache["Caching SWR<br/>(Stale While Revalidate)"]
         end
         
         subgraph "Common"
             direction TB
-            Diag["Diagnostics"]
-            Models["Models"]
-            Proto["Protocols"]
+            Diag["Diagnostics & LoggerMessage"]
+            Models["Models & Context"]
+            Proto["Protocols & Policy"]
+            Health["VKResilienceHealthCheck"]
         end
     end
 
     Core["VK.Blocks.Core"]
 
+    Block --> Pipeline
     Block --> CB
     Block --> RT
     Block --> TO
     Block --> FB
     Block --> RL
     Block --> BH
+    Block --> AI
+    Block --> Cache
     Block --> Common
     Block -.->|depends on| Core
 ```
 
-### 垂直スライスの内部構造
-
-各 Feature Slice は統一されたパターンで構成されています：
-
-```
-{Feature}/
-├── Protocols/
-│   └── IVK{Feature}.cs          # Public インターフェース
-├── Internal/
-│   └── Local{Feature}.cs        # Internal 実装（Basic 接頭辞）
-├── VK{Feature}Options.cs        # sealed partial record + IVKBlockOptions
-└── {Feature}Feature.cs          # [VKFeature] SG-driven 登録
-```
-
-### DI 登録フロー
-
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant Ext as VKResilienceBlockExtensions
-    participant Reg as ResilienceBlockRegistration
-    participant SG as Source Generator
-
-    App->>Ext: AddVKResilienceBlock(config)
-    Ext->>Reg: Register(services, config, transform)
-    Reg->>Reg: 1. Check-Self (IsVKBlockRegistered)
-    Reg->>Reg: 2. AddVKBlockOptions
-    Reg->>Reg: 3. AddVKBlockMarker
-    Reg->>Reg: 4. Validate Options
-    Reg->>Reg: 5. Feature Toggle
-    Reg->>Reg: 6. Custom Hook (RegisterBlockCustom)
-    Note over SG: [VKFeature] ごとにサービス登録
-```
-
 ---
 
-## 主な機能
+## 主な機能一覧
 
-### 🔄 リトライ（Retry）
+### 1. 🔄 複合パイプライン・集中レジストリ（Pipeline & Registry）
+- **`IVKResiliencePipeline`**: 複数ポリシー（Timeout -> Retry -> CircuitBreaker -> Bulkhead 等）を流水線状に連鎖実行するコア責任連鎖エンジン。
+- **`IVKPolicyBuilder`**: 宣言的な Fluent API によるパイプライン構築。
+- **`IVKPolicyRegistry`**: 名前付きパイプライン（`"http:standard"`, `"ai:chat"` 等）のスレッドセーフな集中登録・解決。
+- **`VKResilienceContext`**: `TraceId`, `TenantId`, `OperationName` 强タイププロパティを内包したコンテキスト。
+
+### 2. 🔄 リトライ（Retry）
 - 指数バックオフ（Exponential Backoff）+ ジッター（Jitter）対応
-- 最大リトライ回数・最大遅延時間の設定可能
-- カスタム `shouldRetry` フィルターによる選択的リトライ
-- `VKResult<T>` による型安全なエラー返却
+- 最大リトライ回数・最大遅延時間・カスタム `shouldRetry` フィルター
+- `OnRetry` コールバック通知（試行回数、待機時間、エラー情報の取得）
+- `VKResult<T>` による型安全なエラーコード判定
 
-### ⏱️ タイムアウト（Timeout）
-- `CancellationTokenSource.CreateLinkedTokenSource` によるリンク型キャンセル
-- 外部キャンセルとタイムアウトキャンセルの明確な区別
-- 値返却型 / void 型の両オーバーロード対応
+### 3. ⏱️ タイムアウト（Timeout）
+- **協調的タイムアウト（Optimistic）**: `CancellationTokenSource.CreateLinkedTokenSource`
+- **悲観的タイムアウト（Pessimistic / Task Abort）**: 応答不能な非協調タスクに対する `Task.WhenAny` 破棄
+- `OnTimeout` コールバック通知
 
-### ⚡ サーキットブレーカー（Circuit Breaker）
-- スライディングウィンドウ方式の失敗率追跡
-- `ConcurrentDictionary` ベースのキー別状態管理
-- `TimeProvider` 注入によるテスタブルなクールダウン制御
+### 4. ⚡ サーキットブレーカー（Circuit Breaker）
+- 三態状態機（`Closed`, `Open`, `HalfOpen`）
+- スライディングサンプリングウィンドウによる失敗率計算
+- **半開試行呼び出し数制御（Trial Executions Limit）**: 回復検証時の突発過負荷を防止
+- `OnBreak` / `OnReset` 状態遷移イベント通知
 
-### 🛡️ フォールバック（Fallback）
-- プライマリアクション失敗時のフォールバック自動実行
-- フォールバック自体の失敗もハンドリング
-- `VKResult<T>` でプライマリ・フォールバック両方の結果を統一
+### 5. 🚦 レート制限（Rate Limiting）
+- **スライディングウィンドウ方式**: `IVKRateLimiter`
+- **トークンバケットアルゴリズム**: `IVKTokenBucketLimiter`（秒間トークン補充とバースト許容制御）
+- キー別（テナント・IP・ユーザー）パーティション制限
 
-### 🚦 レート制限（Rate Limiting）
-- スライディングウィンドウ方式のリクエスト制限
-- キー別（テナント別・エンドポイント別等）の制御
-
-### 📦 バルクヘッド（Bulkhead）
+### 6. 📦 バルクヘッド（Bulkhead）
 - 同時実行数の制御による障害分離
+- **非同期待機キュー（Queue Capacity & Queue Timeout）**: 超過リクエストのバッファリング
 - キー別の並列実行スロット管理
-- Acquire / Release パターンによる明示的なリソース管理
 
-### 🔧 共通基盤
-- **`IVKResiliencePipeline`**: 複合レジリエンスパイプラインの契約定義
-- **`VKResilienceContext`**: 操作コンテキスト（`OperationKey` + カスタムプロパティ）
-- **`ResilienceDiagnostics`**: `[VKBlockDiagnostics]` による OpenTelemetry メトリクス・トレーシング
+### 7. 🛡️ フォールバック（Fallback）
+- プライマリ失敗時のフォールバック自動実行
+- `VKResult<T>` と Exception の両フローに対応
+
+### 8. 🤖 AI / LLM 容錯（AI Resiliency）
+- **`ProviderFallback`**: OpenAI 障害・レート制限時の Gemini / Azure OpenAI への自動フェイルオーバー
+- **`ModelFallback`**: 大規模モデル（GPT-4）過負荷時の軽量モデル（GPT-4o-mini）への自動ダウングレード
+- **`Retry-After` スマートリトライ**: 429 レートリミット応答に対する動的待機リトライ
+
+### 9. ⚡ キャッシュ協調（Caching Resiliency）
+- **Stale While Revalidate (SWR)**: 期限切れキャッシュを即座に返しつつ、バックグラウンドで非同期更新
+
+### 10. 📊 可観測性・健康診断（Observability & Health Checks）
+- `[VKBlockDiagnostics]` による OpenTelemetry メトリクス・トレーシング
+- `[LoggerMessage]` によるゼロアロケーション構造化ログ
+- `VKResilienceHealthCheck`: 熔断器状態の自動ヘルスチェック診断
+
+### 11. 🌐 HTTP 統合（HttpClient Integration）
+- `IHttpClientBuilder.AddVKResiliencePipeline("pipelineName")`
+- `IHttpClientBuilder.AddVKStandardResilienceHandler()`
 
 ---
 
-## 採用技術
+## クイックスタート
 
-| 技術 | 用途 |
-|:-----|:-----|
-| **.NET 10** | ランタイム基盤 |
-| **C# 12+** | `sealed record`, Collection expressions, Primary constructors |
-| **VK.Blocks.Core** | `VKResult<T>`, `VKGuard`, `VKBlockMarker`, `TimeProvider` |
-| **Source Generators** | `[VKBlockMarker]`, `[VKFeature]`, `[VKBlockDiagnostics]` による自動コード生成 |
-| **Microsoft.Extensions.DependencyInjection** | DI コンテナ統合 |
-| **Microsoft.Extensions.Options** | Options パターン + `IValidateOptions<T>` |
-| **System.Diagnostics** | `ActivitySource` / `Meter` / `Counter` による可観測性 |
-
----
-
-## 開始方法
-
-### 前提条件
-
-- .NET 10 SDK
-- VK.Blocks.Core プロジェクトへの参照
-
-### インストール
+### 1. DI 登録
 
 ```csharp
 // Program.cs / Startup.cs
 services.AddVKResilienceBlock(configuration);
 ```
 
-### Feature の有効化（Builder パターン）
+### 2. パイプラインの構築と実行
 
 ```csharp
-services.AddVKResilienceBlock(configuration)
-    .AddRetry()
-    .AddTimeout()
-    .AddCircuitBreaker()
-    .AddFallback()
-    .AddRateLimiting()
-    .AddBulkhead();
-```
-
-### Options のカスタマイズ
-
-```csharp
-services.AddVKResilienceBlock(configuration, options => options with
+// 1. レジストリからパイプラインを定義・登録
+var pipeline = registry.GetOrAddPipeline("ExternalServiceCall", builder =>
 {
-    Enabled = true
-})
-.AddRetry(options => options with
-{
-    MaxRetries = 5,
-    InitialDelay = TimeSpan.FromMilliseconds(500),
-    BackoffMultiplier = 2.0,
-    UseJitter = true
-})
-.AddTimeout(options => options with
-{
-    Duration = TimeSpan.FromSeconds(10)
+    return builder
+        .AddTimeout(TimeSpan.FromSeconds(5))
+        .AddRetry(maxRetries: 3, initialDelay: TimeSpan.FromMilliseconds(200), useJitter: true)
+        .AddCircuitBreaker(circuitBreakerKey: "external-api", durationOfBreak: TimeSpan.FromSeconds(30))
+        .AddBulkhead(bulkheadKey: "external-api", maxParallelization: 20, maxQueuedCount: 10)
+        .Build();
 });
+
+// 2. パイプライン経由での実行
+var result = await pipeline.ExecuteAsync(async (context, ct) =>
+{
+    return await externalClient.CallApiAsync(ct);
+}, VKResilienceContext.Create("CallOrderApi", traceId: "trace-123"));
 ```
 
-### 使用例
+### 3. HttpClient での標準利用
 
 ```csharp
-public sealed class MyService(IVKRetryExecutor retryExecutor)
-{
-    public async Task<VKResult<string>> FetchDataAsync(CancellationToken ct)
-    {
-        return await retryExecutor.ExecuteWithRetryAsync<string>(
-            async token =>
-            {
-                // ビジネスロジック
-                return await httpClient.GetStringAsync("https://api.example.com", token);
-            },
-            cancellationToken: ct);
-    }
-}
+services.AddHttpClient("OrderServiceClient")
+    .AddVKStandardResilienceHandler();
 ```
-
----
-
-## 今後の展望
-
-- [ ] `IVKResiliencePipeline` の具体実装（複合レジリエンスパイプライン）
-- [ ] Redis-backed CircuitBreaker / RateLimiter（分散環境対応）
-- [ ] `[LoggerMessage]` SG によるイベントログ追加
-- [ ] `VKResilienceErrors` 定数クラスの導入
-- [ ] ConcurrentDictionary の TTL / Eviction メカニズム
-- [ ] Polly v8 / `Microsoft.Extensions.Resilience` との統合検討
 
 ---
 

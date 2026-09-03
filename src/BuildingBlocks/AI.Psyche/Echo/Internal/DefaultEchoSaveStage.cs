@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,7 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage
 {
     private readonly IVKEchoStore _echoStore;
     private readonly IVKPsycheModelFactory _modelFactory;
+    private readonly IVKTokenCounter _tokenCounter;
     private readonly VKEchoOptions _options;
     private readonly ILogger<DefaultEchoSaveStage> _logger;
 
@@ -24,11 +26,13 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage
     public DefaultEchoSaveStage(
         IVKEchoStore echoStore,
         IVKPsycheModelFactory modelFactory,
+        IVKTokenCounter tokenCounter,
         VKEchoOptions options,
         ILogger<DefaultEchoSaveStage> logger)
     {
         _echoStore = VKGuard.NotNull(echoStore);
         _modelFactory = VKGuard.NotNull(modelFactory);
+        _tokenCounter = VKGuard.NotNull(tokenCounter);
         _options = VKGuard.NotNull(options);
         _logger = VKGuard.NotNull(logger);
     }
@@ -49,21 +53,29 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage
         }
 
         var sessionId = session.Id;
+        var traces = new List<VKEchoTrace>(2);
 
         // 1. Auto-save User Input trace (from context.Request.UserInput)
         var userInput = context.Request.UserInput;
         if (!string.IsNullOrWhiteSpace(userInput))
         {
-            var userTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.User, userInput, createdAt: context.CreatedAt);
-            await _echoStore.SaveHistoryAsync(userTrace, cancellationToken).ConfigureAwait(false);
+            var userTokens = _tokenCounter.CountTokens(userInput);
+            traces.Add(_modelFactory.CreateEcho(sessionId, VKChatRole.User, userInput, tokenCount: userTokens, createdAt: context.CreatedAt));
         }
 
         // 2. Auto-save Assistant Response trace (from context.Response.ChatResponse.Message.Content)
         var assistantMsgContent = context.ResponseBuilder.ChatResponse?.Message?.Content;
         if (!string.IsNullOrWhiteSpace(assistantMsgContent))
         {
-            var assistantTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.Assistant, assistantMsgContent);
-            await _echoStore.SaveHistoryAsync(assistantTrace, cancellationToken).ConfigureAwait(false);
+            var assistantTokens = context.ResponseBuilder.ChatResponse?.Usage?.OutputTokens > 0
+                ? (int)context.ResponseBuilder.ChatResponse.Usage.OutputTokens
+                : _tokenCounter.CountTokens(assistantMsgContent);
+            traces.Add(_modelFactory.CreateEcho(sessionId, VKChatRole.Assistant, assistantMsgContent, tokenCount: assistantTokens));
+        }
+
+        if (traces.Count > 0)
+        {
+            await _echoStore.SaveHistoryBatchAsync(traces, cancellationToken).ConfigureAwait(false);
         }
 
         return VKResult.Success();

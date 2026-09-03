@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Logging;
 
 namespace VK.Blocks.Persistence.EFCore.Diagnostics.Internal;
@@ -36,4 +37,22 @@ internal static partial class PersistenceEFCoreLog
         Level = LogLevel.Debug,
         Message = "Switching to schema '{Schema}' for tenant '{TenantId}' (Async)")]
     public static partial void LogSwitchingSchemaAsync(this ILogger logger, string schema, string tenantId);
+
+    [LoggerMessage(
+        EventId = 6,
+        Level = LogLevel.Information,
+        Message = "Dispatched {EventCount} domain events after database commit.")]
+    public static partial void LogDomainEventsDispatched(this ILogger logger, int eventCount);
+
+    [LoggerMessage(
+        EventId = 7,
+        Level = LogLevel.Error,
+        Message = "Error occurred while dispatching domain events.")]
+    public static partial void LogDomainEventsDispatchFailed(this ILogger logger, Exception exception);
+
+    [LoggerMessage(
+        EventId = 8,
+        Level = LogLevel.Debug,
+        Message = "Saved outbox message '{MessageId}' of type '{EventType}'.")]
+    public static partial void LogOutboxMessageSaved(this ILogger logger, Guid messageId, string eventType);
 }

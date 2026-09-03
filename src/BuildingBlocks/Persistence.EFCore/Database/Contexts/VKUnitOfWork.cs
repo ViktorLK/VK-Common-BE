@@ -153,11 +153,11 @@ public sealed class VKUnitOfWork<TDbContext>(TDbContext context, IServiceProvide
     }
 
     /// <inheritdoc />
-    public IVKBaseRepository<TEntity> Repository<TEntity>() where TEntity : class
+    public IVKEntityRepository<TEntity> Repository<TEntity>() where TEntity : class
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        return _serviceProvider.GetRequiredService<IVKBaseRepository<TEntity>>();
+        return _serviceProvider.GetRequiredService<IVKEntityRepository<TEntity>>();
     }
 
     /// <inheritdoc />

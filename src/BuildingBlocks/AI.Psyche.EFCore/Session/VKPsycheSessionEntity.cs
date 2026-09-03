@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Psyche.EFCore;
 /// Pure persistence model for Psyche IVKSessionStore. [CS.05] [CS.08]
 /// </summary>
 [VKPersistEntity(typeof(VKSessionThread), TableName = "VK_AI_Psyche_Session")]
-public sealed class VKPsycheSessionEntity : IVKTenantScoped, IVKAuditable
+public sealed class VKPsycheSessionEntity : IVKTenantScoped, IVKAuditable, IVKConcurrency
 {
     /// <inheritdoc />
     [VKPersistIndex]
@@ -75,4 +75,7 @@ public sealed class VKPsycheSessionEntity : IVKTenantScoped, IVKAuditable
     /// Gets or sets the timestamp of the latest interaction or message in this session.
     /// </summary>
     public DateTimeOffset? LastActivityAt { get; set; }
+
+    /// <inheritdoc />
+    public byte[] RowVersion { get; set; } = [];
 }

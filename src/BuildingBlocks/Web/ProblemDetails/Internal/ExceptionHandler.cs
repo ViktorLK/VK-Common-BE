@@ -18,13 +18,13 @@ internal sealed class ExceptionHandler(
     IVKExceptionHandlerPipeline pipeline,
     IVKProblemDetailsFactory factory,
     IVKMapper<VKErrorResponse, VKWebProblemDetails> mapper,
-    IVKSecurityContext userContext,
+    IVKTenantCoordinate tenantCoordinate,
     ILogger<ExceptionHandler> logger) : Microsoft.AspNetCore.Diagnostics.IExceptionHandler
 {
     private readonly IVKExceptionHandlerPipeline _pipeline = VKGuard.NotNull(pipeline);
     private readonly IVKProblemDetailsFactory _factory = VKGuard.NotNull(factory);
     private readonly IVKMapper<VKErrorResponse, VKWebProblemDetails> _mapper = VKGuard.NotNull(mapper);
-    private readonly IVKSecurityContext _userContext = VKGuard.NotNull(userContext);
+    private readonly IVKTenantCoordinate _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
     private readonly ILogger<ExceptionHandler> _logger = VKGuard.NotNull(logger);
 
     /// <inheritdoc />
@@ -39,7 +39,7 @@ internal sealed class ExceptionHandler(
         // 2. Start Activity for tracing (OR.01: Tracing)
         using var activity = VKWebDiagnostics.Source.StartActivity(WebDiagnosticsConstants.ActivityHandleException);
         activity?.SetTag(WebDiagnosticsConstants.TagExceptionType, exception.GetType().FullName);
-        activity?.SetTag(WebDiagnosticsConstants.TagTenantId, _userContext.TenantId != VKTenantId.Default ? _userContext.TenantId.ToString() : "none");
+        activity?.SetTag(WebDiagnosticsConstants.TagTenantId, _tenantCoordinate.TenantId != VKTenantId.Default ? _tenantCoordinate.TenantId.ToString() : "none");
 
         // 3. Map Exception to technical ErrorResponse using the pipeline
         var exceptionContext = new VKExceptionContext(exception)
@@ -73,7 +73,7 @@ internal sealed class ExceptionHandler(
         activity?.SetTag(WebDiagnosticsConstants.TagErrorCode, errorCode);
         activity?.SetTag(WebDiagnosticsConstants.TagStatusCode, problemDetails.Status);
 
-        VKWebDiagnostics.RecordError(errorType, errorCode, _userContext.TenantId != VKTenantId.Default ? _userContext.TenantId.ToString() : null);
+        VKWebDiagnostics.RecordError(errorType, errorCode, _tenantCoordinate.TenantId != VKTenantId.Default ? _tenantCoordinate.TenantId.ToString() : null);
         ProblemDetailsLog.LogProblemDetailsCreated(_logger, errorCode, errorType.ToString(), problemDetails.Status);
 
         // 6. Write response

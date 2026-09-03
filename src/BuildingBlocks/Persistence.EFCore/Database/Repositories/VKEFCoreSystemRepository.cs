@@ -9,7 +9,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.Persistence.EFCore;
 
 /// <summary>
-/// EF Core implementation of <see cref="IVKSystemRepository{TEntity}"/>.
+/// EF Core implementation of <see cref="IVKEntitySystemRepository{TEntity}"/>.
 /// Automatically forces <see cref="EntityFrameworkQueryableExtensions.IgnoreQueryFilters{TEntity}"/> for all read operations
 /// and supports system-level cross-tenant operations. (AP.01)
 /// </summary>
@@ -19,7 +19,7 @@ public sealed class VKEFCoreSystemRepository<TEntity>(
     ILogger<VKEFCoreRepository<TEntity>> logger,
     IVKCursorSerializer cursorSerializer,
     IVKEntityLifecycleProcessor processor
-) : VKEFCoreReadRepository<TEntity>(context, logger, cursorSerializer), IVKSystemRepository<TEntity>
+) : VKEFCoreReadRepository<TEntity>(context, logger, cursorSerializer), IVKEntitySystemRepository<TEntity>
     where TEntity : class
 {
     private readonly VKEFCoreRepository<TEntity> _innerWriteRepository = new(context, logger, cursorSerializer, processor);

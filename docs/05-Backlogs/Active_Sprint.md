@@ -167,3 +167,6 @@
 - [ ] [PERSISTENCE.EFCORE-002: Enhance Database Migration Lifecycle Hooks and SQL Contributor](./Persistence.EFCore/002-enhance-database-migration-lifecycle-hooks-and-sql-contributor.md)
 - [ ] [PERSISTENCE.EFCORE-003: Provide Multi-Database Provider Dynamic Configuration Engine](./Persistence.EFCore/003-provide-multi-database-provider-dynamic-configuration-engine.md)
 - [ ] [PERSISTENCE.EFCORE-004: Explore Distributed Database Sharding Capabilities](./Persistence.EFCore/004-explore-distributed-database-sharding-capabilities.md)
+
+## 📋 Tools.SourceGenerators Tasks
+- [ ] [TOOLS.SOURCEGENERATORS-001: Support Opt-In Compiled Queries Generation in [VKPersistEntity] Source Generator](./Tools.SourceGenerators/001-support-opt-in-compiled-queries-generation-in-[vkpersistentity]-source-generator.md)

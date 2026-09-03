@@ -22,6 +22,7 @@ trigger: manual
 
 - **Idempotency**: All building block registrations MUST be strictly idempotent. Registering the same block multiple times must be safe and have no side effects.
 - **Safe Registration**: Every individual service or provider MUST be registered using the **`TryAdd`** pattern (e.g., `TryAddSingleton`, `TryAddScoped`, `TryAddTransient`). Direct `AddSingleton` is PROHIBITED.
+  - **Exception — Infrastructure Override**: Infrastructure Provider modules (e.g., `AI.Psyche.EFCore`) whose sole purpose is to replace a parent module's default implementation (e.g., InMemory → EFCore) MAY use `AddScoped` / `AddSingleton` to ensure deterministic override regardless of registration order. The parent module MUST use `TryAdd` so that the infrastructure provider's `Add` registration takes precedence.
 - **Marker & Dependency Validation**: Via `[VKBlockMarker]`. See **BB.02** for marker spec, **BB.03** for execution order.
 - **Provider Overrides**: Strongly-typed override interfaces via builder (e.g., `.AddXxxProvider<T>()`). See **BB.03** for implementation.
 

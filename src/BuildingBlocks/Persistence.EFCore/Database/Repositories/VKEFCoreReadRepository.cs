@@ -14,7 +14,7 @@ namespace VK.Blocks.Persistence.EFCore;
 /// Implementation of the generic read-only repository base class for EF Core.
 /// </summary>
 /// <typeparam name="TEntity">The entity type.</typeparam>
-public partial class VKEFCoreReadRepository<TEntity> : IVKReadRepository<TEntity>
+public partial class VKEFCoreReadRepository<TEntity> : IVKEntityReadRepository<TEntity>
     where TEntity : class
 {
     private readonly ILogger _logger;
@@ -34,14 +34,21 @@ public partial class VKEFCoreReadRepository<TEntity> : IVKReadRepository<TEntity
     /// </summary>
     protected readonly IVKCursorSerializer CursorSerializer;
 
+    private readonly List<IVKQueryContributor> _queryContributors;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="VKEFCoreReadRepository{TEntity}"/> class.
     /// </summary>
-    public VKEFCoreReadRepository(DbContext context, ILogger logger, IVKCursorSerializer cursorSerializer)
+    public VKEFCoreReadRepository(
+        DbContext context,
+        ILogger<VKEFCoreReadRepository<TEntity>> logger,
+        IVKCursorSerializer cursorSerializer,
+        IEnumerable<IVKQueryContributor>? queryContributors = null)
     {
         Context = VKGuard.NotNull(context);
         _logger = VKGuard.NotNull(logger);
         CursorSerializer = VKGuard.NotNull(cursorSerializer);
+        _queryContributors = queryContributors?.OrderBy(c => c.Priority).ToList() ?? [];
         DbSet = context.Set<TEntity>();
     }
 
@@ -200,6 +207,19 @@ public partial class VKEFCoreReadRepository<TEntity> : IVKReadRepository<TEntity
             => GetFirstOrDefaultAsync(specification, new VKQueryOptions { Tracking = VKQueryTracking.Tracked }, cancellationToken);
 
     /// <inheritdoc />
+    public Task<TEntity?> GetTrackedSingleOrDefaultAsync(
+        Expression<Func<TEntity, bool>> predicate,
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
+        CancellationToken cancellationToken = default)
+            => GetSingleOrDefaultAsync(predicate, include, new VKQueryOptions { Tracking = VKQueryTracking.Tracked }, cancellationToken);
+
+    /// <inheritdoc />
+    public Task<TEntity?> GetTrackedSingleOrDefaultAsync(
+        IVKSpecification<TEntity> specification,
+        CancellationToken cancellationToken = default)
+            => GetSingleOrDefaultAsync(specification, new VKQueryOptions { Tracking = VKQueryTracking.Tracked }, cancellationToken);
+
+    /// <inheritdoc />
     public Task<IReadOnlyList<TEntity>> GetTrackedListAsync(
         Expression<Func<TEntity, bool>> predicate,
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? include = null,
@@ -257,7 +277,10 @@ public partial class VKEFCoreReadRepository<TEntity> : IVKReadRepository<TEntity
     /// Gets a queryable for the entity, optionally with tracking disabled.
     /// </summary>
     protected virtual IQueryable<TEntity> GetQueryable(bool asNoTracking)
-            => asNoTracking ? DbSet.AsNoTracking() : DbSet.AsTracking();
+    {
+        var query = asNoTracking ? DbSet.AsNoTracking() : DbSet.AsTracking();
+        return ApplyQueryContributors(query);
+    }
 
     /// <summary>
     /// Gets a queryable for the entity, applying the specified query options.
@@ -271,7 +294,26 @@ public partial class VKEFCoreReadRepository<TEntity> : IVKReadRepository<TEntity
             VKQueryTracking.Tracked => query.AsTracking(),
             _ => query.AsNoTracking()
         };
-        return ApplyOptions(query, options);
+        query = ApplyOptions(query, options);
+        return ApplyQueryContributors(query);
+    }
+
+    /// <summary>
+    /// Applies all registered dynamic query contributors to the query pipeline.
+    /// </summary>
+    protected virtual IQueryable<TEntity> ApplyQueryContributors(IQueryable<TEntity> query)
+    {
+        if (_queryContributors.Count == 0)
+        {
+            return query;
+        }
+
+        var result = query;
+        foreach (var contributor in _queryContributors)
+        {
+            result = contributor.Apply(result);
+        }
+        return result;
     }
 
     /// <summary>
@@ -284,10 +326,6 @@ public partial class VKEFCoreReadRepository<TEntity> : IVKReadRepository<TEntity
             return query;
         }
 
-        if (options.IgnoreQueryFilters)
-        {
-            query = query.IgnoreQueryFilters();
-        }
 
         if (!string.IsNullOrWhiteSpace(options.QueryTag))
         {

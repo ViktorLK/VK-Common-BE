@@ -65,6 +65,7 @@ trigger: manual
 - **Tenant Isolation**:
   - `TenantId` in DB MUST be `NOT NULL` (enforce via DbContext conventions/configurations).
   - Multi-tenant high-frequency query indexes MUST use `TenantId` as the leading column (`IX_{Table}_TenantId_{BizKey}`).
+  - **Exception — Normalized Child Tables**: Pure child/junction tables (e.g., composite PK via parent FK + value column) that are accessed exclusively through a parent entity's navigation property are exempt from `IVKTenantScoped`. Tenant isolation is implicitly guaranteed by the parent's EF Core Global Filter. Adding `TenantId` to such tables would introduce redundant data violating normalization principles.
 - **Primary Key**:
   - All entities MUST have an explicit Primary Key `Id`. Use Sequential GUID / UUIDv7 to prevent B-Tree page splits.
 - **Timestamps & Audit Lifecycle**:

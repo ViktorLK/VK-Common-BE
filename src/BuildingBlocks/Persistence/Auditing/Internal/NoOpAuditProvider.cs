@@ -1,4 +1,5 @@
 using System;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Persistence.Auditing.Internal;
 
@@ -10,7 +11,7 @@ internal sealed class NoOpAuditProvider(TimeProvider timeProvider) : IVKAuditPro
     private readonly TimeProvider _timeProvider = timeProvider;
 
     /// <inheritdoc />
-    public string CurrentUserId => string.Empty;
+    public VKUserId? CurrentUserId => null;
 
     /// <inheritdoc />
     // [CS.06]
