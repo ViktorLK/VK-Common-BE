@@ -13,6 +13,8 @@ internal sealed partial class RateLimitingFeature
     {
         _ = options;
         services.TryAddSingleton<IVKRateLimiter, LocalRateLimiter>();
+        services.TryAddSingleton<IVKTokenBucketLimiter, LocalTokenBucketLimiter>();
+        services.TryAddSingleton(new VKTokenBucketOptions());
     }
 
     static partial void ValidateFeatureCustom(VKRateLimiterOptions options, System.Collections.Generic.List<string> failures)

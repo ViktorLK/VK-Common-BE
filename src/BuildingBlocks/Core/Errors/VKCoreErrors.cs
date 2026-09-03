@@ -35,4 +35,15 @@ public static class VKCoreErrors
             "Core.Infrastructure.OperationCancelled",
             "The operation was cancelled.");
     }
+
+    public static class Concurrency
+    {
+        public static readonly VKError ConcurrentUpdate = VKError.Conflict(
+            "Core.Concurrency.ConcurrentUpdate",
+            "The entity has been modified by another process.");
+
+        public static readonly VKError InvalidTokenFormat = VKError.Validation(
+            "Core.Concurrency.InvalidTokenFormat",
+            "The provided concurrency token is not a valid base64 string.");
+    }
 }

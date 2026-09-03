@@ -20,6 +20,7 @@ public interface IVKRetryExecutor
         int? maxRetries = null,
         TimeSpan? initialDelay = null,
         Func<VKError, bool>? shouldRetry = null,
+        Action<int, TimeSpan, VKError>? onRetry = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -30,6 +31,7 @@ public interface IVKRetryExecutor
         int? maxRetries = null,
         TimeSpan? initialDelay = null,
         Func<VKError, bool>? shouldRetry = null,
+        Action<int, TimeSpan, VKError>? onRetry = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -40,6 +42,7 @@ public interface IVKRetryExecutor
         int? maxRetries = null,
         TimeSpan? initialDelay = null,
         Func<Exception, bool>? shouldRetry = null,
+        Action<int, TimeSpan, Exception>? onRetry = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -50,5 +53,6 @@ public interface IVKRetryExecutor
         int? maxRetries = null,
         TimeSpan? initialDelay = null,
         Func<Exception, bool>? shouldRetry = null,
+        Action<int, TimeSpan, Exception>? onRetry = null,
         CancellationToken cancellationToken = default);
 }

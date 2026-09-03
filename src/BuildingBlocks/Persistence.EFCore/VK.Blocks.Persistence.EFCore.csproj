@@ -19,7 +19,6 @@
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
     <ProjectReference Include="..\Persistence\VK.Blocks.Persistence.csproj" />
     <ProjectReference Include="..\Validation\VK.Blocks.Validation.csproj" />
-    <ProjectReference Include="..\MultiTenancy\VK.Blocks.MultiTenancy.csproj" />
   </ItemGroup>
 
 </Project>

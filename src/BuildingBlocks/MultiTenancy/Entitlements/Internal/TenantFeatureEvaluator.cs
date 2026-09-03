@@ -18,47 +18,47 @@ internal sealed class TenantFeatureEvaluator(
     private readonly IVKTenantStore _tenantStore = VKGuard.NotNull(tenantStore);
 
     /// <inheritdoc />
-    public ValueTask<VKResult<bool>> IsFeatureEnabledAsync(string featureName, CancellationToken cancellationToken = default)
+    public Task<VKResult<bool>> IsFeatureEnabledAsync(string featureName, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNullOrWhiteSpace(featureName);
 
         if (!_tenantContext.IsResolved)
         {
-            return ValueTask.FromResult(VKResult.Success(false));
+            return Task.FromResult(VKResult.Success(false));
         }
 
         // Check the current context's metadata directly if possible to avoid redundant store calls
-        if (_tenantContext.CurrentTenant?.Metadata is null)
+        if (_tenantContext.Metadata is null)
         {
-            return ValueTask.FromResult(VKResult.Success(false));
+            return Task.FromResult(VKResult.Success(false));
         }
 
         string key = FeaturePrefix + featureName;
-        bool isEnabled = _tenantContext.CurrentTenant.Metadata.TryGetValue(key, out string? value) &&
+        bool isEnabled = _tenantContext.Metadata.TryGetValue(key, out string? value) &&
                         string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
 
-        return ValueTask.FromResult(VKResult.Success(isEnabled));
+        return Task.FromResult(VKResult.Success(isEnabled));
     }
 
     /// <inheritdoc />
-    public async ValueTask<VKResult<bool>> IsFeatureEnabledAsync(VKTenantId tenantId, string featureName, CancellationToken cancellationToken = default)
+    public async Task<VKResult<bool>> IsFeatureEnabledAsync(VKTenantId tenantId, string featureName, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNullOrWhiteSpace(featureName);
 
         // Check current context first to avoid store lookup if it matches
-        if (_tenantContext.CurrentTenant?.Id == tenantId)
+        if (_tenantContext.IsResolved && _tenantContext.TenantId == tenantId)
         {
             return await IsFeatureEnabledAsync(featureName, cancellationToken).ConfigureAwait(false);
         }
 
         // Otherwise, fetch the tenant from the store
-        VKResult<IVKTenantInfo> tenantResult = await _tenantStore.GetByIdAsync(tenantId, cancellationToken).ConfigureAwait(false);
+        VKResult<VKTenantInfo> tenantResult = await _tenantStore.GetByIdAsync(tenantId, cancellationToken).ConfigureAwait(false);
         if (tenantResult.IsFailure)
         {
             return VKResult.Failure<bool>(tenantResult.FirstError);
         }
 
-        IVKTenantInfo? tenant = tenantResult.Value;
+        VKTenantInfo? tenant = tenantResult.Value;
         if (tenant?.Metadata is null)
         {
             return VKResult.Success(false);

@@ -13,7 +13,7 @@ internal sealed class WebDiagnosticsMiddleware(RequestDelegate next)
 {
     private readonly RequestDelegate _next = VKGuard.NotNull(next);
 
-    public async Task Invoke(HttpContext context, IVKSecurityContext userContext)
+    public async Task Invoke(HttpContext context, IVKTenantCoordinate tenantCoordinate)
     {
         var method = context.Request.Method;
         var path = context.Request.Path.Value ?? "/";
@@ -34,7 +34,7 @@ internal sealed class WebDiagnosticsMiddleware(RequestDelegate next)
         finally
         {
             var elapsed = Stopwatch.GetElapsedTime(startTime);
-            var tenantId = userContext.TenantId != VKTenantId.Default ? userContext.TenantId.ToString() : context.Items[WebConstants.Items.TenantId]?.ToString();
+            var tenantId = tenantCoordinate.TenantId != VKTenantId.Default ? tenantCoordinate.TenantId.ToString() : context.Items[WebConstants.Items.TenantId]?.ToString();
             var statusCode = context.Response.StatusCode;
 
             // 3. Record core metrics

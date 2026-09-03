@@ -24,6 +24,7 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
         int? maxRetries = null,
         TimeSpan? initialDelay = null,
         Func<VKError, bool>? shouldRetry = null,
+        Action<int, TimeSpan, VKError>? onRetry = null,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(action);
@@ -53,6 +54,7 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
                 }
 
                 var delayToWait = CalculateDelay(currentDelay, attempt);
+                onRetry?.Invoke(attempt + 1, delayToWait, result.FirstError);
                 await Task.Delay(delayToWait, _timeProvider, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -61,13 +63,15 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
             }
             catch (Exception ex)
             {
-                if (attempt == attemptsLimit)
+                var error = VKResilienceErrors.CreateExecutionFailed(ex.Message);
+                if (attempt == attemptsLimit || (shouldRetry != null && !shouldRetry(error)))
                 {
                     ResilienceDiagnostics.RecordStrategyExecution("retry", false);
                     return VKResult.Failure<T>(VKResilienceErrors.CreateRetryExhausted(ex.Message));
                 }
 
                 var delayToWait = CalculateDelay(currentDelay, attempt);
+                onRetry?.Invoke(attempt + 1, delayToWait, error);
                 await Task.Delay(delayToWait, _timeProvider, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -82,6 +86,7 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
         int? maxRetries = null,
         TimeSpan? initialDelay = null,
         Func<VKError, bool>? shouldRetry = null,
+        Action<int, TimeSpan, VKError>? onRetry = null,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(action);
@@ -111,6 +116,7 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
                 }
 
                 var delayToWait = CalculateDelay(currentDelay, attempt);
+                onRetry?.Invoke(attempt + 1, delayToWait, result.FirstError);
                 await Task.Delay(delayToWait, _timeProvider, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -119,13 +125,15 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
             }
             catch (Exception ex)
             {
-                if (attempt == attemptsLimit)
+                var error = VKResilienceErrors.CreateExecutionFailed(ex.Message);
+                if (attempt == attemptsLimit || (shouldRetry != null && !shouldRetry(error)))
                 {
                     ResilienceDiagnostics.RecordStrategyExecution("retry", false);
                     return VKResult.Failure(VKResilienceErrors.CreateRetryExhausted(ex.Message));
                 }
 
                 var delayToWait = CalculateDelay(currentDelay, attempt);
+                onRetry?.Invoke(attempt + 1, delayToWait, error);
                 await Task.Delay(delayToWait, _timeProvider, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -140,6 +148,7 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
         int? maxRetries = null,
         TimeSpan? initialDelay = null,
         Func<Exception, bool>? shouldRetry = null,
+        Action<int, TimeSpan, Exception>? onRetry = null,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(action);
@@ -172,6 +181,7 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
                 }
 
                 var delayToWait = CalculateDelay(currentDelay, attempt);
+                onRetry?.Invoke(attempt + 1, delayToWait, ex);
                 await Task.Delay(delayToWait, _timeProvider, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -186,6 +196,7 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
         int? maxRetries = null,
         TimeSpan? initialDelay = null,
         Func<Exception, bool>? shouldRetry = null,
+        Action<int, TimeSpan, Exception>? onRetry = null,
         CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(action);
@@ -218,6 +229,7 @@ internal sealed class LocalRetryExecutor : IVKRetryExecutor
                 }
 
                 var delayToWait = CalculateDelay(currentDelay, attempt);
+                onRetry?.Invoke(attempt + 1, delayToWait, ex);
                 await Task.Delay(delayToWait, _timeProvider, cancellationToken).ConfigureAwait(false);
             }
         }

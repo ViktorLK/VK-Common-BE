@@ -1,4 +1,3 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 using VK.Blocks.Core;
 
@@ -23,20 +22,28 @@ internal sealed class DefaultEntityLifecycleProcessor(IVKAuditProvider auditProv
                 continue;
             }
 
-            // Optimization: Filter early by metadata. Note: entry.VKEntity casting is still required for property access.
-            if (VKEntityMetadata.IsAuditable(entry.Entity.GetType()) && entry.Entity is IVKAuditable auditable)
+            var type = entry.Entity.GetType();
+
+            if (entry.State == EntityState.Added)
             {
-                if (entry.State == EntityState.Added)
+                if (VKEntityMetadata.IsCreationAudited(type) && entry.Entity is IVKCreationAudited creationAudited)
                 {
-                    auditable.CreatedAt = _auditProvider.UtcNow;
-                    auditable.CreatedBy = _auditProvider.CurrentUserId;
+                    creationAudited.CreatedAt = _auditProvider.UtcNow;
+                    creationAudited.CreatedBy = _auditProvider.CurrentUserId;
                 }
-                else // Modified
+            }
+            else // Modified
+            {
+                if (VKEntityMetadata.IsModificationAudited(type) && entry.Entity is IVKModificationAudited modificationAudited)
                 {
-                    auditable.UpdatedAt = _auditProvider.UtcNow;
-                    auditable.UpdatedBy = _auditProvider.CurrentUserId;
-                    entry.Property(nameof(IVKAuditable.CreatedAt)).IsModified = false;
-                    entry.Property(nameof(IVKAuditable.CreatedBy)).IsModified = false;
+                    modificationAudited.UpdatedAt = _auditProvider.UtcNow;
+                    modificationAudited.UpdatedBy = _auditProvider.CurrentUserId;
+                }
+
+                if (VKEntityMetadata.IsCreationAudited(type))
+                {
+                    entry.Property(nameof(IVKCreationAudited.CreatedAt)).IsModified = false;
+                    entry.Property(nameof(IVKCreationAudited.CreatedBy)).IsModified = false;
                 }
             }
         }
@@ -54,7 +61,9 @@ internal sealed class DefaultEntityLifecycleProcessor(IVKAuditProvider auditProv
                 continue;
             }
 
-            if (VKEntityMetadata.IsSoftDelete(entry.Entity.GetType()) && entry.Entity is IVKSoftDelete softDelete)
+            var type = entry.Entity.GetType();
+
+            if (VKEntityMetadata.IsSoftDelete(type))
             {
                 if (PhysicalDeleteRegistry.ShouldPhysicalDelete(entry.Entity))
                 {
@@ -63,13 +72,21 @@ internal sealed class DefaultEntityLifecycleProcessor(IVKAuditProvider auditProv
 
                 entry.State = EntityState.Modified;
 
-                softDelete.IsDeleted = true;
-                softDelete.DeletedAt = _auditProvider.UtcNow;
-
-                if (VKEntityMetadata.IsAuditable(entry.Entity.GetType()) && entry.Entity is IVKAuditable auditable)
+                if (entry.Entity is IVKSoftDeletable softDeletable)
                 {
-                    auditable.UpdatedAt = _auditProvider.UtcNow;
-                    auditable.UpdatedBy = _auditProvider.CurrentUserId;
+                    softDeletable.IsDeleted = true;
+                }
+
+                if (VKEntityMetadata.IsDeletionAudited(type) && entry.Entity is IVKDeletionAudited deletionAudited)
+                {
+                    deletionAudited.DeletedAt = _auditProvider.UtcNow;
+                    deletionAudited.DeletedBy = _auditProvider.CurrentUserId;
+                }
+
+                if (VKEntityMetadata.IsModificationAudited(type) && entry.Entity is IVKModificationAudited modificationAudited)
+                {
+                    modificationAudited.UpdatedAt = _auditProvider.UtcNow;
+                    modificationAudited.UpdatedBy = _auditProvider.CurrentUserId;
                 }
             }
         }
@@ -78,10 +95,10 @@ internal sealed class DefaultEntityLifecycleProcessor(IVKAuditProvider auditProv
     /// <inheritdoc />
     public void ProcessBulkUpdate<TEntity>(IVKPropertySetter<TEntity> setter) where TEntity : class
     {
-        if (VKTypeMetadataCache.IsAuditable<TEntity>())
+        if (VKTypeMetadataCache.IsModificationAudited<TEntity>())
         {
-            setter.SetProperty(e => ((IVKAuditable)e).UpdatedAt, _auditProvider.UtcNow);
-            setter.SetProperty(e => ((IVKAuditable)e).UpdatedBy, _auditProvider.CurrentUserId);
+            setter.SetProperty(e => ((IVKModificationAudited)e).UpdatedAt, _auditProvider.UtcNow);
+            setter.SetProperty(e => ((IVKModificationAudited)e).UpdatedBy, _auditProvider.CurrentUserId);
         }
     }
 
@@ -90,13 +107,18 @@ internal sealed class DefaultEntityLifecycleProcessor(IVKAuditProvider auditProv
     {
         if (VKTypeMetadataCache.IsSoftDelete<TEntity>())
         {
-            setter.SetProperty(e => ((IVKSoftDelete)e).DeletedAt, _auditProvider.UtcNow);
-            setter.SetProperty(e => ((IVKSoftDelete)e).IsDeleted, true);
+            setter.SetProperty(e => ((IVKSoftDeletable)e).IsDeleted, true);
 
-            if (VKTypeMetadataCache.IsAuditable<TEntity>())
+            if (VKTypeMetadataCache.IsDeletionAudited<TEntity>())
             {
-                setter.SetProperty(e => ((IVKAuditable)e).UpdatedAt, _auditProvider.UtcNow);
-                setter.SetProperty(e => ((IVKAuditable)e).UpdatedBy, _auditProvider.CurrentUserId);
+                setter.SetProperty(e => ((IVKDeletionAudited)e).DeletedAt, _auditProvider.UtcNow);
+                setter.SetProperty(e => ((IVKDeletionAudited)e).DeletedBy, _auditProvider.CurrentUserId);
+            }
+
+            if (VKTypeMetadataCache.IsModificationAudited<TEntity>())
+            {
+                setter.SetProperty(e => ((IVKModificationAudited)e).UpdatedAt, _auditProvider.UtcNow);
+                setter.SetProperty(e => ((IVKModificationAudited)e).UpdatedBy, _auditProvider.CurrentUserId);
             }
         }
     }

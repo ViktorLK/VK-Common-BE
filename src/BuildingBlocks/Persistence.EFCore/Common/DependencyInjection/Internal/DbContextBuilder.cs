@@ -16,7 +16,7 @@ internal sealed class DbContextBuilder<TContext>(
     public void ConfigureOptions(Action<DbContextOptionsBuilder, IServiceProvider> configure)
     {
         // [AP.02 Waiver]: Multiple options configurators are intentionally accumulated for execution via GetServices<IVKDbContextOptionsConfigurator>().
-        Services.AddTransient<IVKDbContextOptionsConfigurator>(sp => 
+        Services.AddTransient<IVKDbContextOptionsConfigurator>(sp =>
             new DbContextOptionsConfigurator<TContext>(configure));
     }
 }

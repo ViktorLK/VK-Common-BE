@@ -9,20 +9,25 @@ public sealed partial record VKPersistenceEFCoreOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets a value indicating whether auditing is enabled.
-    /// If null, falls back to the global Persistence options.
+    /// Default is true.
     /// </summary>
-    public bool? EnableAuditing { get; init; }
+    public bool EnableAuditing { get; init; } = true;
 
     /// <summary>
     /// Gets a value indicating whether soft delete is enabled.
-    /// If null, falls back to the global Persistence options.
+    /// Default is true.
     /// </summary>
-    public bool? EnableSoftDelete { get; init; }
+    public bool EnableSoftDelete { get; init; } = true;
 
     /// <summary>
-    /// Gets a value indicating whether multi-tenancy is enabled.
-    /// If null, falls back to the global Persistence options.
+    /// Gets a value indicating whether automatic domain event dispatching is enabled on SaveChanges.
+    /// Default is true.
     /// </summary>
-    public bool? EnableMultiTenancy { get; init; }
+    public bool EnableDomainEvents { get; init; } = true;
 
+    /// <summary>
+    /// Gets a value indicating whether outbox message storage is enabled.
+    /// Default is false.
+    /// </summary>
+    public bool EnableOutbox { get; init; } = false;
 }
