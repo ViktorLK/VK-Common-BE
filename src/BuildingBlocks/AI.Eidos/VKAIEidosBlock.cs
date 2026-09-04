@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI;
-using VK.Blocks.AI.Psyche;
+using VK.Blocks.AI.Eidos.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Eidos;
@@ -14,6 +13,6 @@ public sealed partial class VKAIEidosBlock
 {
     static partial void RegisterBlockCustom(IVKAIEidosBuilder builder)
     {
-        builder.Services.TryAddScoped<IVKPsycheMiddleware, VKAIEidosPsycheMiddleware>();
+        builder.Services.TryAddSingleton<IVKSchemaFactory, DefaultSchemaFactory>();
     }
 }

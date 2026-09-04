@@ -109,16 +109,28 @@ public sealed class VKPsycheContext
 
 
     // ==========================================
-    // 6. Original Request Payload
+    // 6. Request Payload & Argument Overrides
     // ==========================================
 
+    private readonly ConcurrentDictionary<Type, object> _argsOverrides = new();
 
     /// <summary>
-    /// Gets the strongly typed arguments from the request payload.
+    /// Sets or overrides runtime arguments for downstream pipeline stages.
+    /// </summary>
+    /// <typeparam name="T">The type of the arguments.</typeparam>
+    /// <param name="args">The argument instance.</param>
+    public void SetArgs<T>(T args) where T : class
+    {
+        _argsOverrides[typeof(T)] = VKGuard.NotNull(args);
+    }
+
+    /// <summary>
+    /// Gets the strongly typed arguments from runtime overrides or the request payload.
     /// </summary>
     /// <typeparam name="T">The type of the arguments.</typeparam>
     /// <returns>The arguments if present, or null.</returns>
-    public T? Args<T>() where T : class => Request.GetArgs<T>();
+    public T? Args<T>() where T : class
+        => _argsOverrides.TryGetValue(typeof(T), out object? v) ? (T)v : Request.GetArgs<T>();
 
     /// <summary>
     /// Gets a value indicating whether to only run the prompt weaving stages, bypassing the LLM call.

@@ -15,7 +15,6 @@ public sealed partial class VKPersistenceEFCoreBlock
 
         // Core Model Creating Contributors
         services.TryAddEnumerable(Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<IVKModelCreatingContributor, Database.Internal.ConcurrencyModelContributor>());
-        services.TryAddEnumerable(Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<IVKModelCreatingContributor, Database.Internal.ColumnOrderingModelContributor>());
 
         // Core Global Filter Contributors (Soft Delete)
         services.TryAddEnumerable(Microsoft.Extensions.DependencyInjection.ServiceDescriptor.Singleton<IVKGlobalFilterContributor, Database.Internal.SoftDeleteFilterContributor>());

@@ -4,13 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Cortex.Common.Diagnostics.Internal;
-using VK.Blocks.AI.Eidos;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 using VK.Blocks.Resilience;
-using VK.Blocks.Workflow;
 
 namespace VK.Blocks.AI.Cortex.TurnOrchestration.Internal;
 
@@ -26,12 +23,11 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
     private readonly IVKGuidGenerator _guidGenerator;
     private readonly TimeProvider _timeProvider;
     private readonly IVKJsonSerializer _jsonSerializer;
-    private readonly IOptionsSnapshot<VKAICortexOptions> _options;
+    private readonly IOptionsSnapshot<VKTurnOrchestrationOptions> _options;
     private readonly ILogger<DefaultChatTurnOrchestrator> _logger;
     private readonly IVKRetryExecutor? _retryExecutor;
     private readonly IVKTimeoutExecutor? _timeoutExecutor;
     private readonly IVKCircuitBreaker? _circuitBreaker;
-    private readonly IVKContractBinder? _contractBinder;
 
     public DefaultChatTurnOrchestrator(
         IVKPsychePipeline psychePipeline,
@@ -39,12 +35,11 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         IVKGuidGenerator guidGenerator,
         TimeProvider timeProvider,
         IVKJsonSerializer jsonSerializer,
-        IOptionsSnapshot<VKAICortexOptions> options,
+        IOptionsSnapshot<VKTurnOrchestrationOptions> options,
         ILogger<DefaultChatTurnOrchestrator> logger,
         IVKRetryExecutor? retryExecutor = null,
         IVKTimeoutExecutor? timeoutExecutor = null,
-        IVKCircuitBreaker? circuitBreaker = null,
-        IVKContractBinder? contractBinder = null)
+        IVKCircuitBreaker? circuitBreaker = null)
     {
         _psychePipeline = VKGuard.NotNull(psychePipeline);
         _correlationAccessor = VKGuard.NotNull(correlationAccessor);
@@ -56,7 +51,6 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         _retryExecutor = retryExecutor;
         _timeoutExecutor = timeoutExecutor;
         _circuitBreaker = circuitBreaker;
-        _contractBinder = contractBinder;
     }
 
     /// <inheritdoc />
@@ -70,17 +64,17 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         var (correlationContext, traceId) = InitializeCorrelation(request);
         using var scope = _correlationAccessor.BeginScope(correlationContext);
 
-        _logger.TurnOrchestrationStarted(request.SessionId.ToString(), traceId);
+        _logger.TurnOrchestrationStarted(request.PsycheRequest.SessionId.ToString(), traceId);
 
         var stopwatch = Stopwatch.StartNew();
-        var resiliencePolicy = request.ResiliencePolicy ?? VKCortexResilienceProfiles.ChatCompletionProfile;
+        var resiliencePolicy = ResolveResiliencePolicy(request);
 
         var executionResult = await ExecuteWithResilienceAsync(request, correlationContext, resiliencePolicy, cancellationToken).ConfigureAwait(false);
         stopwatch.Stop();
 
         if (executionResult.IsFailure)
         {
-            _logger.TurnOrchestrationFailed(request.SessionId.ToString(), traceId, executionResult.FirstError.Description);
+            _logger.TurnOrchestrationFailed(request.PsycheRequest.SessionId.ToString(), traceId, executionResult.FirstError.Description);
             return VKResult.Failure<VKChatTurnResult>(executionResult.FirstError);
         }
 
@@ -88,12 +82,12 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         var content = psycheResponse.ChatResponse?.Message?.Content ?? string.Empty;
         var tokensUsed = psycheResponse.ChatResponse?.Usage?.TotalTokens ?? 0;
 
-        _logger.TurnOrchestrationCompleted(request.SessionId.ToString(), traceId, stopwatch.Elapsed.TotalMilliseconds, tokensUsed);
+        _logger.TurnOrchestrationCompleted(request.PsycheRequest.SessionId.ToString(), traceId, stopwatch.Elapsed.TotalMilliseconds, tokensUsed);
 
         return VKResult.Success(new VKChatTurnResult
         {
             Content = content,
-            SessionId = request.SessionId,
+            SessionId = request.PsycheRequest.SessionId,
             TraceId = traceId,
             TokensUsed = tokensUsed,
             ExecutionDurationMs = stopwatch.Elapsed.TotalMilliseconds,
@@ -109,41 +103,71 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         VKGuard.NotNull(request);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var baseResult = await ProcessTurnAsync(request, cancellationToken).ConfigureAwait(false);
-        if (baseResult.IsFailure)
+        var (correlationContext, traceId) = InitializeCorrelation(request);
+        using var scope = _correlationAccessor.BeginScope(correlationContext);
+
+        _logger.TurnOrchestrationStarted(request.PsycheRequest.SessionId.ToString(), traceId);
+
+        var stopwatch = Stopwatch.StartNew();
+        var resiliencePolicy = ResolveResiliencePolicy(request);
+
+        var executionResult = await ExecuteWithResilienceAsync(request, correlationContext, resiliencePolicy, cancellationToken).ConfigureAwait(false);
+        stopwatch.Stop();
+
+        if (executionResult.IsFailure)
         {
-            return VKResult.Failure<VKChatTurnResult<TDto>>(baseResult.FirstError);
+            _logger.TurnOrchestrationFailed(request.PsycheRequest.SessionId.ToString(), traceId, executionResult.FirstError.Description);
+            return VKResult.Failure<VKChatTurnResult<TDto>>(executionResult.FirstError);
         }
 
-        var turnResult = baseResult.Value;
+        var psycheResponse = executionResult.Value;
+        var content = psycheResponse.ChatResponse?.Message?.Content ?? string.Empty;
+        var tokensUsed = psycheResponse.ChatResponse?.Usage?.TotalTokens ?? 0;
 
-        // 1. Try adaptive Eidos contract binder first if available (handles markdown fences, schema validation, repairs)
+        // 1. Try get bound model from ModelResult first (set by any structured output middleware like Eidos)
         TDto? boundDto = null;
-        if (_contractBinder is not null)
+        if (psycheResponse.ModelResult is TDto directDto)
         {
-            var bindResult = _contractBinder.Bind<TDto>(turnResult.Content);
-            if (bindResult.IsSuccess)
+            boundDto = directDto;
+        }
+        else if (psycheResponse.ModelResult is not null)
+        {
+            // Handle envelope containers dynamically via Model property if present without referencing concrete Eidos types
+            var modelProp = psycheResponse.ModelResult.GetType().GetProperty("Model");
+            if (modelProp?.GetValue(psycheResponse.ModelResult) is TDto envelopeModel)
             {
-                boundDto = bindResult.Value;
+                boundDto = envelopeModel;
             }
         }
 
-        // 2. Fallback to standard serializer if Eidos is not registered or binding returned null
-        boundDto ??= _jsonSerializer.Deserialize<TDto>(turnResult.Content);
+        // 2. Fallback to standard serializer if no middleware set ModelResult
+        if (boundDto is null && !string.IsNullOrWhiteSpace(content))
+        {
+            try
+            {
+                boundDto = _jsonSerializer.Deserialize<TDto>(content);
+            }
+            catch (Exception)
+            {
+                // Non-JSON content safely handled
+            }
+        }
 
         if (boundDto is null)
         {
             return VKResult.Failure<VKChatTurnResult<TDto>>(VKError.Validation("Cortex.DtoBindingFailed", typeof(TDto).Name));
         }
 
+        _logger.TurnOrchestrationCompleted(request.PsycheRequest.SessionId.ToString(), traceId, stopwatch.Elapsed.TotalMilliseconds, tokensUsed);
+
         return VKResult.Success(new VKChatTurnResult<TDto>
         {
-            Content = turnResult.Content,
-            SessionId = turnResult.SessionId,
-            TraceId = turnResult.TraceId,
-            TokensUsed = turnResult.TokensUsed,
-            ExecutionDurationMs = turnResult.ExecutionDurationMs,
-            ProfilingMetrics = turnResult.ProfilingMetrics,
+            Content = content,
+            SessionId = request.PsycheRequest.SessionId,
+            TraceId = traceId,
+            TokensUsed = tokensUsed,
+            ExecutionDurationMs = stopwatch.Elapsed.TotalMilliseconds,
+            ProfilingMetrics = psycheResponse.ProfilingMetrics,
             Value = boundDto
         });
     }
@@ -159,7 +183,7 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         var (correlationContext, _) = InitializeCorrelation(request);
         using var scope = _correlationAccessor.BeginScope(correlationContext);
 
-        var psycheRequest = BuildPsycheRequest(request, correlationContext, weaveOnly: true);
+        var psycheRequest = request.PsycheRequest.WithArgs(correlationContext) with { WeaveOnly = true };
 
         return await _psychePipeline.ExecuteAsync(psycheRequest, cancellationToken).ConfigureAwait(false);
     }
@@ -170,7 +194,7 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
             ? request.TraceId
             : _guidGenerator.Create().ToString("N");
 
-        var correlationContext = VKCortexCorrelationContext.Create(traceId, request.SessionId);
+        var correlationContext = VKCortexCorrelationContext.Create(traceId, request.PsycheRequest.SessionId);
         return (correlationContext, traceId);
     }
 
@@ -180,7 +204,7 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         VKStepResiliencePolicy resiliencePolicy,
         CancellationToken cancellationToken)
     {
-        var psycheRequest = BuildPsycheRequest(request, correlationContext, weaveOnly: false);
+        var psycheRequest = request.PsycheRequest.WithArgs(correlationContext);
 
         return await resiliencePolicy.ExecuteWithResilienceAsync(
             ct => _psychePipeline.ExecuteAsync(psycheRequest, ct),
@@ -191,35 +215,18 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static VKPsycheRequest BuildPsycheRequest(
-        VKChatTurnRequest request,
-        VKCortexCorrelationContext correlationContext,
-        bool weaveOnly)
+    private VKStepResiliencePolicy ResolveResiliencePolicy(VKChatTurnRequest request)
     {
-        var psycheReq = new VKPsycheRequest
+        if (request.ResiliencePolicy is not null)
         {
-            SessionId = request.SessionId,
-            ProfileId = request.ProfileId,
-            PersonaIds = request.PersonaIds,
-            DirectiveIds = request.DirectiveIds,
-            KnowledgeIds = request.KnowledgeIds,
-            PatternIds = request.PatternIds,
-            UserInput = request.UserInput,
-            CorrelationId = correlationContext.TraceId,
-            WeaveOnly = weaveOnly
-        }.WithArgs(correlationContext);
-
-        if (request.TargetModelId is not null || request.Temperature.HasValue || request.TopP.HasValue || request.MaxTokens.HasValue)
-        {
-            psycheReq = psycheReq.WithArgs(new VKChatArgs
-            {
-                ModelId = request.TargetModelId,
-                Temperature = request.Temperature ?? 0.7f,
-                TopP = request.TopP,
-                MaxTokens = request.MaxTokens
-            });
+            return request.ResiliencePolicy;
         }
 
-        return psycheReq;
+        var orchestrationOptions = _options.Value;
+        var timeout = orchestrationOptions?.Timeout ?? CortexConstants.Resilience.DefaultChatTimeout;
+        var retryCount = orchestrationOptions?.RetryCount ?? CortexConstants.Resilience.DefaultChatMaxRetries;
+        var circuitBreakerKey = orchestrationOptions?.CircuitBreakerKey ?? CortexConstants.Resilience.DefaultLlmCircuitBreakerKey;
+
+        return VKCortexResilienceProfiles.CreateChatProfile(timeout, retryCount, circuitBreakerKey);
     }
 }

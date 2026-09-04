@@ -90,14 +90,10 @@ internal sealed class EgressTextPipelineStage : IVKPsychePipelineStage
 
     private static IReadOnlyList<string>? ExtractSegments(VKPsycheContext context)
     {
-        if (context.ResponseBuilder.ModelResult is IVKNarrativeResponse narrativeResponse && narrativeResponse.NarrativeSegments is { Count: > 0 })
-        {
-            return narrativeResponse.NarrativeSegments;
-        }
-
         if (context.ResponseBuilder.ModelResult is not null)
         {
-            var prop = context.ResponseBuilder.ModelResult.GetType().GetProperty("NarrativeSegments", BindingFlags.Public | BindingFlags.Instance);
+            var prop = context.ResponseBuilder.ModelResult.GetType().GetProperty("DialogueSegments", BindingFlags.Public | BindingFlags.Instance)
+                       ?? context.ResponseBuilder.ModelResult.GetType().GetProperty("NarrativeSegments", BindingFlags.Public | BindingFlags.Instance);
             if (prop?.GetValue(context.ResponseBuilder.ModelResult) is IReadOnlyList<string> list && list.Count > 0)
             {
                 return list;
