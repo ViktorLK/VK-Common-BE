@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Cortex;
 /// <summary>
 /// Top-level coarse-grained orchestrator for executing conversational dialogue turns.
 /// Receives fully-resolved value objects (<see cref="VKChatTurnRequest"/>) from the App layer and encapsulates
-/// pipeline weaving (AI.Psyche), structured negotiation &amp; binding (AI.Eidos), resilience strategies, and idempotent echo persistence.
+/// pipeline weaving (AI.Psyche), structured result binding, resilience strategies, and idempotent echo persistence.
 /// Follows CS.01, CS.03.
 /// </summary>
 public interface IVKChatTurnOrchestrator

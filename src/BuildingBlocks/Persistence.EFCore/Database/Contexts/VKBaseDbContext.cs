@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VK.Blocks.Core;
+using VK.Blocks.Persistence.EFCore.Database.Internal;
 
 namespace VK.Blocks.Persistence.EFCore;
 
@@ -37,6 +39,7 @@ public abstract class VKBaseDbContext : DbContext
     /// </summary>
     public bool IsMultiTenancyEnabled { get; }
 
+    private readonly VKPersistenceEFCoreOptions _options;
     private readonly IEnumerable<IVKModelCreatingContributor> _creatingContributors;
     private readonly IEnumerable<IVKModelConventionContributor> _conventionContributors;
     private readonly IEnumerable<IVKGlobalFilterContributor> _filterContributors;
@@ -60,6 +63,7 @@ public abstract class VKBaseDbContext : DbContext
     {
         _tenantProvider = tenantProvider;
         IsMultiTenancyEnabled = tenantProvider is not null;
+        _options = defaultOptions ?? new VKPersistenceEFCoreOptions();
 
         _creatingContributors = creatingContributors ?? [];
         _conventionContributors = conventionContributors ?? [];
@@ -71,6 +75,7 @@ public abstract class VKBaseDbContext : DbContext
     /// </summary>
     protected VKBaseDbContext()
     {
+        _options = new VKPersistenceEFCoreOptions();
         _creatingContributors = [];
         _conventionContributors = [];
         _filterContributors = [];
@@ -115,7 +120,14 @@ public abstract class VKBaseDbContext : DbContext
             contributor.ConfigureModel(modelBuilder);
         }
 
-        // 3. Execute all dynamic global query filter contributors (soft delete, multi-tenant, row-level security)
+        // 3. Finalize standardized column ordering across ALL registered entities (CS.08)
+        if (_options.EnableColumnOrdering)
+        {
+            // [CS.08]
+            modelBuilder.ApplyColumnOrdering();
+        }
+
+        // 4. Execute all dynamic global query filter contributors (soft delete, multi-tenant, row-level security)
         foreach (var contributor in _filterContributors)
         {
             contributor.ApplyFilter(modelBuilder, this);

@@ -150,9 +150,10 @@ internal sealed class DefaultPsycheModelFactory(
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null)
+        string? forkPointRef = null,
+        VKSessionKnowledgeState? knowledgeState = null)
     {
-        return CreateSession(new VKSessionId(_guidGenerator.Create()), mode, parentSessionId, forkSourceSessionId, forkPointRef);
+        return CreateSession(new VKSessionId(_guidGenerator.Create()), mode, parentSessionId, forkSourceSessionId, forkPointRef, knowledgeState);
     }
 
     /// <inheritdoc />
@@ -162,26 +163,17 @@ internal sealed class DefaultPsycheModelFactory(
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
         string? forkPointRef = null,
-        VKSessionStatus status = VKSessionStatus.Active,
-        int turnCount = 0,
-        DateTimeOffset? createdAt = null,
-        DateTimeOffset? updatedAt = null,
-        DateTimeOffset? lastActivityAt = null,
         VKSessionKnowledgeState? knowledgeState = null)
     {
         var now = _timeProvider.GetUtcNow();
-        return VKSessionThread.Rehydrate(
+        return VKGuard.NotNull(VKSessionThread.Create(
             id: id,
+            now: now,
             mode: mode,
             parentSessionId: parentSessionId,
             forkSourceSessionId: forkSourceSessionId,
             forkPointRef: forkPointRef,
-            status: status,
-            turnCount: turnCount,
-            knowledgeState: knowledgeState ?? new VKSessionKnowledgeState(),
-            createdAt: createdAt ?? now,
-            updatedAt: updatedAt ?? now,
-            lastActivityAt: lastActivityAt);
+            knowledgeState: knowledgeState).Value);
     }
 
     // --- Profile ---
