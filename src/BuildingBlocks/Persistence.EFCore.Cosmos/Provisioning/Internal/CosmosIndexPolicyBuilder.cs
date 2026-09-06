@@ -24,7 +24,7 @@ internal sealed class CosmosIndexPolicyBuilder
 
     public IndexingPolicy WithSpatialIndexes(IndexingPolicy policy, IEnumerable<SpatialIndexDefinition> spatialIndexes)
     {
-        if (policy == null || spatialIndexes == null)
+        if (policy is null || spatialIndexes is null)
         {
             return policy ?? new IndexingPolicy();
         }

@@ -8,6 +8,20 @@ namespace VK.Blocks.Caching;
 /// </summary>
 public static class VKCachingErrors
 {
+    /// <summary>
+    /// Generic cache provider error.
+    /// </summary>
+    public static readonly VKError ProviderError = VKError.Failure(
+        "Caching.Provider.Error",
+        "Cache provider operation failed.");
+
+    /// <summary>
+    /// Distributed lock acquisition failed.
+    /// </summary>
+    public static readonly VKError LockAcquisitionFailed = VKError.Conflict(
+        "Caching.Lock.AcquireFailed",
+        "Failed to acquire distributed lock for the specified key.");
+
     public static class Operation
     {
         public static readonly VKError ReadFailed = VKError.Failure(

@@ -5,9 +5,9 @@ using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Eidos.Schema.Internal;
 
-internal sealed class DefaultSchemaEvolutionAnalyzer(IVKExtractionValidator validator) : IVKSchemaEvolutionAnalyzer
+internal sealed class DefaultSchemaEvolutionAnalyzer(IVKMaterializationValidator validator) : IVKSchemaEvolutionAnalyzer
 {
-    private readonly IVKExtractionValidator _validator = VKGuard.NotNull(validator);
+    private readonly IVKMaterializationValidator _validator = VKGuard.NotNull(validator);
 
     public Task<VKResult<VKSchemaEvolutionAnalysisReport>> AnalyzeEvolutionAsync(
         VKAIEidosSchema sourceSchema,
@@ -45,9 +45,9 @@ internal sealed class DefaultSchemaEvolutionAnalyzer(IVKExtractionValidator vali
                     IsValid = false,
                     Errors =
                     [
-                        new VKExtractionValidationError
+                        new VKMaterializationValidationError
                         {
-                            Category = VKExtractionErrorCategory.Syntax,
+                            Category = VKMaterializationErrorCategory.Syntax,
                             PropertyPath = "$",
                             Message = "Payload sample is empty or whitespace."
                         }

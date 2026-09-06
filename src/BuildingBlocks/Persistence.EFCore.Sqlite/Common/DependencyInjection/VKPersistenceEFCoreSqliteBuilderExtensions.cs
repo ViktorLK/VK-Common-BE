@@ -18,17 +18,17 @@ public static class VKPersistenceEFCoreSqliteBuilderExtensions
     /// </summary>
     /// <typeparam name="TContext">The concrete DbContext type.</typeparam>
     /// <param name="builder">The DbContext builder.</param>
-    /// <param name="configure">Optional options transform delegate.</param>
+    /// <param name="transform">Optional options transform delegate.</param>
     /// <returns>The same builder instance for chaining.</returns>
     public static IVKDbContextBuilder<TContext> UseSqlite<TContext>(
         this IVKDbContextBuilder<TContext> builder,
-        Func<VKPersistenceEFCoreSqliteOptions, VKPersistenceEFCoreSqliteOptions>? configure = null)
+        Func<VKPersistenceEFCoreSqliteOptions, VKPersistenceEFCoreSqliteOptions>? transform = null)
         where TContext : DbContext
     {
         VKGuard.NotNull(builder);
 
         // 1. Register the SQLite Block services (TryAdd ensures idempotency)
-        _ = builder.Services.AddVKPersistenceEFCoreSqliteBlock(builder.Configuration, configure);
+        _ = builder.Services.AddVKPersistenceEFCoreSqliteBlock(builder.Configuration, transform);
 
         // 2. Configure SQLite on this DbContext's options builder
         builder.ConfigureOptions((dbBuilder, sp) =>

@@ -21,5 +21,5 @@ public sealed record VKSchemaEvolutionSampleResult
     /// <summary>
     /// Detailed validation error taxonomy items, if any.
     /// </summary>
-    public IReadOnlyList<VKExtractionValidationError> Errors { get; init; } = [];
+    public IReadOnlyList<VKMaterializationValidationError> Errors { get; init; } = [];
 }

@@ -1,8 +1,9 @@
+using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Eidos;
 
 public interface IVKProviderCapabilityDetector
 {
-    VKAIEidosProviderCapabilities DetectCapabilities(string providerName, string modelId);
+    VKAIEidosProviderCapabilities DetectCapabilities(VKAIProviderType provider, string modelId);
 }

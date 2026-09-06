@@ -24,7 +24,7 @@ Does not assemble prompt text/messages, does not implement provider-specific sch
 
 | Boundary / Constraint | Rule |
 | :--- | :--- |
-| Resolve contract definitions via cascading override hierarchy (e.g. System Default → Scope/Tenant Override → Scenario Override) rather than strict exact-match lookup. | — |
+| Resolve contract definitions via cascading override hierarchy (e.g. System Default → Version / Scenario Override) rather than strict exact-match lookup; host storage implementations may supply scope/tenant-aware registries. | — |
 | Treat version identity and logical contract identity as distinct; a version identifier must never be the sole primary key of a logical contract. | — |
 | Route contract lookups through dedicated contract resolution interfaces that delegate cascading merge logic to the registry. | — |
 | Keep schema/contract migration routines confined to administrative or offline triggers on historical data; never execute migration logic on per-turn request hot paths. | — |

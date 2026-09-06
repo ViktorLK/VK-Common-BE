@@ -33,6 +33,14 @@ public interface IVKJsonSerializer
     T? Deserialize<T>(string json);
 
     /// <summary>
+    /// Deserializes the specified JSON string to an object of the specified <paramref name="returnType"/>.
+    /// </summary>
+    /// <param name="json">The JSON string to deserialize.</param>
+    /// <param name="returnType">The type of the object to deserialize to.</param>
+    /// <returns>The deserialized object, or <c>null</c> if deserialization fails.</returns>
+    object? Deserialize(string json, Type returnType);
+
+    /// <summary>
     /// Deserializes the specified UTF-8 encoded JSON bytes to an object of type <typeparamref name="T"/>.
     /// </summary>
     /// <typeparam name="T">The type of the object to deserialize to.</typeparam>

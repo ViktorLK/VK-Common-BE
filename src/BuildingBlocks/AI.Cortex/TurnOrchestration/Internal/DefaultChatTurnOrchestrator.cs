@@ -124,23 +124,47 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         var content = psycheResponse.ChatResponse?.Message?.Content ?? string.Empty;
         var tokensUsed = psycheResponse.ChatResponse?.Usage?.TotalTokens ?? 0;
 
-        // 1. Try get bound model from ModelResult first (set by any structured output middleware like Eidos)
+        // 1. Try get bound model from Metadata (set by any structured output middleware like Eidos)
         TDto? boundDto = null;
-        if (psycheResponse.ModelResult is TDto directDto)
+        if (psycheResponse.Metadata is { Count: > 0 })
         {
-            boundDto = directDto;
-        }
-        else if (psycheResponse.ModelResult is not null)
-        {
-            // Handle envelope containers dynamically via Model property if present without referencing concrete Eidos types
-            var modelProp = psycheResponse.ModelResult.GetType().GetProperty("Model");
-            if (modelProp?.GetValue(psycheResponse.ModelResult) is TDto envelopeModel)
+            if (psycheResponse.Metadata.TryGetValue("vk.eidos.model", out var modelObj) && modelObj is not null)
             {
-                boundDto = envelopeModel;
+                if (modelObj is TDto directDto)
+                {
+                    boundDto = directDto;
+                }
+                else
+                {
+                    var modelProp = modelObj.GetType().GetProperty("Model");
+                    if (modelProp?.GetValue(modelObj) is TDto envelopeModel)
+                    {
+                        boundDto = envelopeModel;
+                    }
+                }
+            }
+
+            if (boundDto is null)
+            {
+                foreach (var value in psycheResponse.Metadata.Values)
+                {
+                    if (value is TDto metaDto)
+                    {
+                        boundDto = metaDto;
+                        break;
+                    }
+
+                    var rawDtoProp = value?.GetType().GetProperty("RawDto") ?? value?.GetType().GetProperty("Model");
+                    if (rawDtoProp?.GetValue(value) is TDto rawDto)
+                    {
+                        boundDto = rawDto;
+                        break;
+                    }
+                }
             }
         }
 
-        // 2. Fallback to standard serializer if no middleware set ModelResult
+        // 3. Fallback to standard serializer if no middleware set ModelResult
         if (boundDto is null && !string.IsNullOrWhiteSpace(content))
         {
             try
@@ -150,6 +174,22 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
             catch (Exception)
             {
                 // Non-JSON content safely handled
+            }
+
+            if (boundDto is null)
+            {
+                try
+                {
+                    var cleanedJson = ExtractJsonBlock(content);
+                    if (!string.IsNullOrWhiteSpace(cleanedJson) && !string.Equals(cleanedJson, content, StringComparison.Ordinal))
+                    {
+                        boundDto = _jsonSerializer.Deserialize<TDto>(cleanedJson);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Safe fallback
+                }
             }
         }
 
@@ -228,5 +268,37 @@ internal sealed class DefaultChatTurnOrchestrator : IVKChatTurnOrchestrator
         var circuitBreakerKey = orchestrationOptions?.CircuitBreakerKey ?? CortexConstants.Resilience.DefaultLlmCircuitBreakerKey;
 
         return VKCortexResilienceProfiles.CreateChatProfile(timeout, retryCount, circuitBreakerKey);
+    }
+
+    private static string ExtractJsonBlock(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = text.Trim();
+        var fenceStart = trimmed.IndexOf("```", StringComparison.Ordinal);
+        if (fenceStart >= 0)
+        {
+            var lineEnd = trimmed.IndexOf('\n', fenceStart);
+            if (lineEnd >= 0)
+            {
+                var fenceEnd = trimmed.IndexOf("```", lineEnd, StringComparison.Ordinal);
+                if (fenceEnd > lineEnd)
+                {
+                    return trimmed.Substring(lineEnd + 1, fenceEnd - lineEnd - 1).Trim();
+                }
+            }
+        }
+
+        var firstBrace = trimmed.IndexOf('{');
+        var lastBrace = trimmed.LastIndexOf('}');
+        if (firstBrace >= 0 && lastBrace > firstBrace)
+        {
+            return trimmed.Substring(firstBrace, lastBrace - firstBrace + 1);
+        }
+
+        return trimmed;
     }
 }

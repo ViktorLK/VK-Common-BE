@@ -1,3 +1,5 @@
+using System;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
 
@@ -10,21 +12,25 @@ internal sealed class DefaultContractNegotiator(
 
     public VKAIEidosNegotiationResult Negotiate(
         VKAIEidosResponseContract contract,
-        VKAIEidosProviderCapabilities capabilities)
+        VKAIEidosProviderCapabilities capabilities,
+        VKAIEidosExpressionMode? preferredMode = null)
     {
         VKGuard.NotNull(contract);
         VKGuard.NotNull(capabilities);
 
-        if (capabilities.SupportsNativeStructuredOutput && capabilities.SupportsToolCalling)
+        var mode = preferredMode ?? _options.DefaultPreferredMode;
+        var isComplex = IsComplexSchema(contract.Schema);
+
+        // For complex schemas, prevent degraded PromptJson if native structured output is available
+        if (isComplex && _options.DisallowPromptJsonForComplexSchemas && mode == VKAIEidosExpressionMode.PromptJson)
         {
-            return new VKAIEidosNegotiationResult
+            if (capabilities.SupportsNativeStructuredOutput)
             {
-                SelectedMode = _options.DefaultPreferredMode,
-                Contract = contract
-            };
+                mode = VKAIEidosExpressionMode.StructuredOutput;
+            }
         }
 
-        if (capabilities.SupportsNativeStructuredOutput)
+        if (mode == VKAIEidosExpressionMode.StructuredOutput && capabilities.SupportsNativeStructuredOutput)
         {
             return new VKAIEidosNegotiationResult
             {
@@ -33,11 +39,11 @@ internal sealed class DefaultContractNegotiator(
             };
         }
 
-        if (capabilities.SupportsToolCalling)
+        if (capabilities.SupportsNativeStructuredOutput && mode != VKAIEidosExpressionMode.PromptJson)
         {
             return new VKAIEidosNegotiationResult
             {
-                SelectedMode = VKAIEidosExpressionMode.ToolCall,
+                SelectedMode = VKAIEidosExpressionMode.StructuredOutput,
                 Contract = contract
             };
         }
@@ -46,7 +52,54 @@ internal sealed class DefaultContractNegotiator(
         {
             SelectedMode = VKAIEidosExpressionMode.PromptJson,
             Contract = contract,
-            SystemPromptInstruction = $"Respond strictly using JSON matching schema: {contract.Schema.RawJsonSchema}"
+            SystemPromptInstruction = $"{NegotiationConstants.StrictJsonDirectivePrefix}{contract.Schema.RawJsonSchema}"
         };
+    }
+
+    private bool IsComplexSchema(VKAIEidosSchema schema)
+    {
+        if (schema.RequiredProperties.Count > _options.ComplexSchemaPropertyThreshold)
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(schema.RawJsonSchema))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(schema.RawJsonSchema);
+            var root = doc.RootElement;
+
+            // Union discriminator contracts are complex
+            if (root.TryGetProperty("oneOf", out _))
+            {
+                return true;
+            }
+
+            // Check for nested objects in properties
+            if (root.TryGetProperty("properties", out var props) && props.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var prop in props.EnumerateObject())
+                {
+                    if (prop.Value.TryGetProperty("type", out var typeElem))
+                    {
+                        var typeStr = typeElem.GetString();
+                        if (typeStr == "object" || typeStr == "array")
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        catch (JsonException)
+        {
+            // Fallback on JSON parse error
+        }
+
+        return false;
     }
 }

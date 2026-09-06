@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using VK.Blocks.Core;
 
@@ -25,7 +26,7 @@ internal static class SchemaFingerprint
             var node = JsonNode.Parse(rawJsonSchema);
             return node is null ? string.Empty : Compute(node);
         }
-        catch
+        catch (JsonException)
         {
             var hash = SHA256.HashData(Encoding.UTF8.GetBytes(rawJsonSchema));
             return Convert.ToHexString(hash).ToLowerInvariant();

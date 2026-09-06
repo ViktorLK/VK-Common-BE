@@ -18,7 +18,7 @@ public sealed record VKKnowledgeTriple : IVKTenantScoped
     /// <summary>
     /// Gets the tenant identifier for strict multi-tenant isolation.
     /// </summary>
-    public VKTenantId? TenantId { get; init; }
+    public VKTenantId TenantId { get; init; }
 
     /// <summary>
     /// Gets the optional user identifier owning this memory context.

@@ -49,7 +49,7 @@ internal sealed class CosmosBaseRepository<T> : VKEFCoreReadRepository<T>, IVKCo
         return prop?.GetValue(entity)?.ToString() ?? _guidGenerator.Create().ToString();
     }
 
-    // --- IVKWriteRepository ---
+    // --- IVKEntityWriteRepository ---
 
     /// <inheritdoc />
     public async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
