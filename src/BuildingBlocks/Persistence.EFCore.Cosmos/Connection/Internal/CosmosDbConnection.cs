@@ -57,20 +57,20 @@ internal sealed class CosmosDbConnection : IVKCosmosDbConnection, IDisposable
 
             // Try to resolve IAzureCredentialProvider dynamically from service provider
             var providerType = Type.GetType("VK.Blocks.Infrastructure.Azure.Abstractions.IAzureCredentialProvider, VK.Blocks.Infrastructure.Azure");
-            if (providerType == null)
+            if (providerType is null)
             {
                 throw new InvalidOperationException("IAzureCredentialProvider could not be resolved. Ensure Infrastructure.Azure block is registered.");
             }
 
             var provider = serviceProvider.GetService(providerType);
-            if (provider == null)
+            if (provider is null)
             {
                 throw new InvalidOperationException("IAzureCredentialProvider is not registered in the service container.");
             }
 
             var method = providerType.GetMethod("GetCredential");
             var credential = method?.Invoke(provider, null) as Azure.Core.TokenCredential;
-            if (credential == null)
+            if (credential is null)
             {
                 throw new InvalidOperationException("Failed to retrieve TokenCredential from IAzureCredentialProvider.");
             }

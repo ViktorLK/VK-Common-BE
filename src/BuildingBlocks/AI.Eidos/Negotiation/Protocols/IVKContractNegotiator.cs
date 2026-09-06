@@ -9,5 +9,6 @@ public interface IVKContractNegotiator
 {
     VKAIEidosNegotiationResult Negotiate(
         VKAIEidosResponseContract contract,
-        VKAIEidosProviderCapabilities capabilities);
+        VKAIEidosProviderCapabilities capabilities,
+        VKAIEidosExpressionMode? preferredMode = null);
 }

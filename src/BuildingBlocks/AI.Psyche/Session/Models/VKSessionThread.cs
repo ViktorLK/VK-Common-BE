@@ -7,7 +7,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Domain aggregate root representing a conversation session thread, lineage, and lifecycle.
 /// Follows AP.01, CS.01, CS.05.
 /// </summary>
-public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>
+public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurrency
 {
     // =========================================================================
     // Properties
@@ -63,6 +63,9 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>
     /// </summary>
     public DateTimeOffset? LastActivityAt { get; private set; }
 
+    /// <inheritdoc />
+    public byte[] RowVersion { get; set; } = [];
+
     // =========================================================================
     // Constructor (Private)
     // =========================================================================
@@ -78,7 +81,8 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>
         VKSessionKnowledgeState? knowledgeState,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
-        DateTimeOffset? lastActivityAt) : base(id)
+        DateTimeOffset? lastActivityAt,
+        byte[]? rowVersion = null) : base(id)
     {
         Mode = mode;
         ParentSessionId = parentSessionId;
@@ -90,6 +94,7 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         LastActivityAt = lastActivityAt;
+        RowVersion = rowVersion ?? [];
     }
 
     // =========================================================================
@@ -141,7 +146,8 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>
         VKSessionKnowledgeState knowledgeState,
         DateTimeOffset createdAt,
         DateTimeOffset updatedAt,
-        DateTimeOffset? lastActivityAt)
+        DateTimeOffset? lastActivityAt,
+        byte[]? rowVersion = null)
     {
         return new VKSessionThread(
             id,
@@ -154,7 +160,8 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>
             knowledgeState,
             createdAt,
             updatedAt,
-            lastActivityAt);
+            lastActivityAt,
+            rowVersion);
     }
 
     // =========================================================================

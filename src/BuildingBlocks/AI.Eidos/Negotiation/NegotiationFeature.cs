@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.AI.Eidos.Negotiation.Internal;
+using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Eidos;
@@ -12,10 +13,9 @@ internal sealed partial class NegotiationFeature
     {
         services.TryAddSingleton<IVKContractNegotiator, DefaultContractNegotiator>();
         services.TryAddSingleton<IVKProviderCapabilityDetector, BasicProviderCapabilityDetector>();
-        services.TryAddSingleton<IVKContractFallbackPolicy, DefaultContractFallbackPolicy>();
-        services.TryAddSingleton<IVKToolProjection, DefaultToolProjection>();
-        services.TryAddSingleton<IVKSchemaProjection, DefaultSchemaProjection>();
-        services.TryAddSingleton<IVKPromptProjection, DefaultPromptProjection>();
         services.TryAddSingleton<IVKContractProjector, DefaultContractProjector>();
+
+        // Register Before Stage in Psyche Pipeline
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPsychePipelineStage, DefaultNegotiationStage>());
     }
 }

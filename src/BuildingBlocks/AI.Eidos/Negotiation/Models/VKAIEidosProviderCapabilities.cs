@@ -1,11 +1,11 @@
+using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Eidos;
 
 public sealed record VKAIEidosProviderCapabilities
 {
-    public required string ProviderName { get; init; }
+    public VKAIProviderType Provider { get; init; } = VKAIProviderType.OpenAI;
     public required string ModelId { get; init; }
     public bool SupportsNativeStructuredOutput { get; init; } = true;
-    public bool SupportsToolCalling { get; init; } = true;
 }

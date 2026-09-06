@@ -170,3 +170,22 @@
 
 ## 📋 Tools.SourceGenerators Tasks
 - [ ] [TOOLS.SOURCEGENERATORS-001: Support Opt-In Compiled Queries Generation in [VKPersistEntity] Source Generator](./Tools.SourceGenerators/001-support-opt-in-compiled-queries-generation-in-[vkpersistentity]-source-generator.md)
+
+## 📋 AI.Psyche Tasks
+- [ ] [AI.PSYCHE-001: Support Streaming Pipeline (IVKPsycheStreamingPipeline & TTFT Profiling)](./AI.Psyche/001-support-streaming-pipeline-(ivkpsychestreamingpipeline-&-ttft-profiling).md)
+
+## 📋 AI.Eidos Tasks
+- [ ] [AI.EIDOS-001: Implement Streaming Contract Transformer and End-of-Stream Sealing](./AI.Eidos/001-implement-streaming-contract-transformer-and-end-of-stream-sealing.md)
+- [ ] [AI.EIDOS-002: Implement Lenient and Partial ToleranceModes in Materialization Binder](./AI.Eidos/002-implement-lenient-and-partial-tolerancemodes-in-materialization-binder.md)
+- [ ] [AI.EIDOS-003: Integrate OpenTelemetry Native Instrumentation and Metrics Observability](./AI.Eidos/003-integrate-opentelemetry-native-instrumentation-and-metrics-observability.md)
+- [ ] [AI.EIDOS-004: Support Streaming Partial Materialization and JSON Patch Incremental Push](./AI.Eidos/004-support-streaming-partial-materialization-and-json-patch-incremental-push.md)
+- [ ] [AI.EIDOS-005: Adaptive Multi-Model Fallback and Reflective Circuit Breaker Routing](./AI.Eidos/005-adaptive-multi-model-fallback-and-reflective-circuit-breaker-routing.md)
+- [ ] [AI.EIDOS-006: Deep Integration with JSON Schema-Based Guided Decoding Engine](./AI.Eidos/006-deep-integration-with-json-schema-based-guided-decoding-engine.md)
+
+- [ ] [AI.EIDOS-007: Raw Response Audit Storage and Contract Schema Master Registry](./AI.Eidos/007-raw-response-audit-storage-and-contract-schema-master-registry.md)
+## 📋 AI.Efferent Tasks
+- [ ] [AI.EFFERENT-001: Streaming Egress Traffic Shaping and Sentence Chunking](./AI.Efferent/001-streaming-egress-traffic-shaping-and-sentence-chunking.md)
+- [ ] [AI.EFFERENT-002: Multimodal Prosody and Viseme Alignment](./AI.Efferent/002-multimodal-prosody-and-viseme-alignment.md)
+- [ ] [AI.EFFERENT-003: Actuator Idempotency and HITL Confirmation Gate](./AI.Efferent/003-actuator-idempotency-and-hitl-confirmation-gate.md)
+- [ ] [AI.EFFERENT-004: Barge-in Interruption and Delivery Watermark Telemetry](./AI.Efferent/004-barge-in-interruption-and-delivery-watermark-telemetry.md)
+- [ ] [AI.EFFERENT-005: AI Watermarking and Regulatory Compliance Injection](./AI.Efferent/005-ai-watermarking-and-regulatory-compliance-injection.md)

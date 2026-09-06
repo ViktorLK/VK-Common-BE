@@ -6,7 +6,7 @@ namespace VK.Blocks.Persistence.EFCore.Cosmos;
 /// Exposes the native Azure Cosmos SDK client and container along with the standard repository methods.
 /// </summary>
 /// <typeparam name="TEntity">The entity type.</typeparam>
-public interface IVKCosmosRepository<TEntity> : IVKBaseRepository<TEntity> where TEntity : class
+public interface IVKCosmosRepository<TEntity> : IVKEntityRepository<TEntity> where TEntity : class
 {
     /// <summary>
     /// Gets the native Cosmos container for the entity.

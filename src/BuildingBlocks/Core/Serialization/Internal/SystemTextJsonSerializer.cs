@@ -31,5 +31,8 @@ internal sealed class SystemTextJsonSerializer : IVKJsonSerializer
     public T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _defaultOptions);
 
     /// <inheritdoc />
+    public object? Deserialize(string json, Type returnType) => JsonSerializer.Deserialize(json, returnType, _defaultOptions);
+
+    /// <inheritdoc />
     public T? Deserialize<T>(ReadOnlySpan<byte> utf8Json) => JsonSerializer.Deserialize<T>(utf8Json, _defaultOptions);
 }

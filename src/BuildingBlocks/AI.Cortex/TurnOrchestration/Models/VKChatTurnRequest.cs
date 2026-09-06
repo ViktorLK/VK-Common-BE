@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using VK.Blocks.AI.Psyche;
 using VK.Blocks.Resilience;
@@ -7,65 +6,21 @@ namespace VK.Blocks.AI.Cortex;
 
 /// <summary>
 /// Fully-resolved value object representing a dialogue turn request.
-/// Assembled exclusively by the App layer (carrying all resolved Persona, Directive, Knowledge, Pattern, and Model parameters).
+/// Composes the underlying <see cref="VKPsycheRequest"/> and encapsulates workflow orchestration parameters.
 /// Follows AP.01 (sealed record).
 /// </summary>
 public sealed record VKChatTurnRequest
 {
     /// <summary>
-    /// Gets the unique session identifier.
+    /// Gets the underlying Psyche prompt execution request.
+    /// Carries all resolved Persona, Directive, Knowledge, Pattern, Model parameters and extension args.
     /// </summary>
-    public required VKSessionId SessionId { get; init; }
+    public required VKPsycheRequest PsycheRequest { get; init; }
 
     /// <summary>
-    /// Gets the user input message text for this dialogue turn.
+    /// Gets the optional custom resilience policy override. If null, <see cref="VKCortexResilienceProfiles.ChatCompletionProfile"/> is used.
     /// </summary>
-    public required string UserInput { get; init; }
-
-    /// <summary>
-    /// Gets the optional profile identifier.
-    /// </summary>
-    public VKProfileId? ProfileId { get; init; }
-
-    /// <summary>
-    /// Gets the resolved Persona identifiers for prompt anchoring.
-    /// </summary>
-    public IReadOnlyList<VKPersonaId> PersonaIds { get; init; } = [];
-
-    /// <summary>
-    /// Gets the resolved Directive identifiers for behavior and safety enforcement.
-    /// </summary>
-    public IReadOnlyList<VKDirectiveId> DirectiveIds { get; init; } = [];
-
-    /// <summary>
-    /// Gets the resolved Knowledge identifiers attached to this turn.
-    /// </summary>
-    public IReadOnlyList<VKKnowledgeId> KnowledgeIds { get; init; } = [];
-
-    /// <summary>
-    /// Gets the resolved Pattern identifiers attached to this turn.
-    /// </summary>
-    public IReadOnlyList<VKPatternId> PatternIds { get; init; } = [];
-
-    /// <summary>
-    /// Gets the optional target model identifier override.
-    /// </summary>
-    public string? TargetModelId { get; init; }
-
-    /// <summary>
-    /// Gets the optional temperature override.
-    /// </summary>
-    public float? Temperature { get; init; }
-
-    /// <summary>
-    /// Gets the optional TopP override.
-    /// </summary>
-    public float? TopP { get; init; }
-
-    /// <summary>
-    /// Gets the optional MaxTokens limit override.
-    /// </summary>
-    public int? MaxTokens { get; init; }
+    public VKStepResiliencePolicy? ResiliencePolicy { get; init; }
 
     /// <summary>
     /// Gets the optional explicit distributed trace identifier.
@@ -81,11 +36,6 @@ public sealed record VKChatTurnRequest
     /// Gets the optional user identifier for billing and auditing.
     /// </summary>
     public string? UserId { get; init; }
-
-    /// <summary>
-    /// Gets the optional custom resilience policy override. If null, <see cref="VKCortexResilienceProfiles.ChatCompletionProfile"/> is used.
-    /// </summary>
-    public VKStepResiliencePolicy? ResiliencePolicy { get; init; }
 
     /// <summary>
     /// Gets additional request metadata.

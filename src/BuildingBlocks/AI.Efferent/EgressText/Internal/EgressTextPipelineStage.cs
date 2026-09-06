@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -37,26 +35,7 @@ internal sealed class EgressTextPipelineStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var segments = ExtractSegments(context);
-        if (segments is { Count: > 0 })
-        {
-            var combinedText = string.Join(string.Empty, segments);
-            var updatedMsg = new VKChatMessage { Role = VKChatRole.Assistant, Content = combinedText };
-            context.ResponseBuilder.ChatResponse = (context.ResponseBuilder.ChatResponse ?? new VKChatResponse { Message = updatedMsg }) with { Message = updatedMsg };
-
-            if (_options.EnablePacing)
-            {
-                var pacingResult = _pacer.CalculatePacing(segments, _options);
-                if (pacingResult.IsSuccess)
-                {
-                    context.ResponseBuilder.Metadata["VKEgressPacingChunks"] = pacingResult.Value;
-                }
-            }
-
-            return VKResult.Success();
-        }
-
-        var rawContent = ExtractRawContent(context);
+        var rawContent = context.ResponseBuilder.ChatResponse?.Message.Content;
         if (string.IsNullOrWhiteSpace(rawContent))
         {
             return VKResult.Success();
@@ -86,38 +65,5 @@ internal sealed class EgressTextPipelineStage : IVKPsychePipelineStage
         }
 
         return VKResult.Success();
-    }
-
-    private static IReadOnlyList<string>? ExtractSegments(VKPsycheContext context)
-    {
-        if (context.ResponseBuilder.ModelResult is IVKNarrativeResponse narrativeResponse && narrativeResponse.NarrativeSegments is { Count: > 0 })
-        {
-            return narrativeResponse.NarrativeSegments;
-        }
-
-        if (context.ResponseBuilder.ModelResult is not null)
-        {
-            var prop = context.ResponseBuilder.ModelResult.GetType().GetProperty("NarrativeSegments", BindingFlags.Public | BindingFlags.Instance);
-            if (prop?.GetValue(context.ResponseBuilder.ModelResult) is IReadOnlyList<string> list && list.Count > 0)
-            {
-                return list;
-            }
-        }
-
-        return null;
-    }
-
-    private static string? ExtractRawContent(VKPsycheContext context)
-    {
-        if (context.ResponseBuilder.ModelResult is not null)
-        {
-            var prop = context.ResponseBuilder.ModelResult.GetType().GetProperty("NarrativeText", BindingFlags.Public | BindingFlags.Instance);
-            if (prop?.GetValue(context.ResponseBuilder.ModelResult) is string textFromProp && !string.IsNullOrWhiteSpace(textFromProp))
-            {
-                return textFromProp;
-            }
-        }
-
-        return context.ResponseBuilder.ChatResponse?.Message.Content;
     }
 }

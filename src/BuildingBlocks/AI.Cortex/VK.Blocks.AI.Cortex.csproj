@@ -10,7 +10,6 @@
     <ProjectReference Include="..\Workflow.Abstractions\VK.Blocks.Workflow.Abstractions.csproj" />
     <ProjectReference Include="..\AI\VK.Blocks.AI.csproj" />
     <ProjectReference Include="..\AI.Psyche\VK.Blocks.AI.Psyche.csproj" />
-    <ProjectReference Include="..\AI.Eidos\VK.Blocks.AI.Eidos.csproj" />
   </ItemGroup>
 
   <ItemGroup>

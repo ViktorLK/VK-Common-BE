@@ -37,9 +37,9 @@ public sealed partial class VKPersistenceEFCoreCosmosBlock
         });
 
         services.TryAddScoped<DbContext>(sp => sp.GetRequiredService<VKCosmosDbContext>());
-        services.TryAddScoped(typeof(IVKReadRepository<>), typeof(CosmosBaseRepository<>));
-        services.TryAddScoped(typeof(IVKWriteRepository<>), typeof(CosmosBaseRepository<>));
-        services.TryAddScoped(typeof(IVKBaseRepository<>), typeof(CosmosBaseRepository<>));
+        services.TryAddScoped(typeof(IVKEntityReadRepository<>), typeof(CosmosBaseRepository<>));
+        services.TryAddScoped(typeof(IVKEntityWriteRepository<>), typeof(CosmosBaseRepository<>));
+        services.TryAddScoped(typeof(IVKEntityRepository<>), typeof(CosmosBaseRepository<>));
         services.TryAddScoped(typeof(IVKCosmosRepository<>), typeof(CosmosBaseRepository<>));
         services.TryAddSingleton(typeof(IVKCosmosQueryRepository<>), typeof(CosmosQueryRepository<>));
 
@@ -55,8 +55,8 @@ public sealed partial class VKPersistenceEFCoreCosmosBlock
 
         if (options.EnableSessionTokenPropagation)
         {
-            services.TryAddSingleton<SessionTokenManager>();
-            services.TryAddSingleton<IVKCosmosSessionTokenAccessor>(sp => sp.GetRequiredService<SessionTokenManager>());
+            services.TryAddSingleton<AsyncLocalCosmosSessionTokenAccessor>();
+            services.TryAddSingleton<IVKCosmosSessionTokenAccessor>(sp => sp.GetRequiredService<AsyncLocalCosmosSessionTokenAccessor>());
         }
 
         services.TryAddSingleton<IVKCosmosTransactionalBatchFactory, CosmosTransactionalBatchFactory>();

@@ -25,11 +25,6 @@ public sealed class VKPsycheResponseBuilder
     public VKChatResponse? ChatResponse { get; set; }
 
     /// <summary>
-    /// Gets or sets the structured/parsed output processed by the after stages.
-    /// </summary>
-    public object? ModelResult { get; set; }
-
-    /// <summary>
     /// Gets the execution duration profiling metrics in milliseconds per pipeline stage or task.
     /// </summary>
     public Dictionary<string, double> ProfilingMetrics { get; } = new(StringComparer.Ordinal);
@@ -59,7 +54,6 @@ public sealed class VKPsycheResponseBuilder
             Messages = [.. Messages],
             TotalEstimatedTokens = TotalEstimatedTokens,
             ChatResponse = ChatResponse,
-            ModelResult = ModelResult,
             ActiveFragments = context.Fragments,
             EvictedFragments = evictedState?.Evicted ?? [],
             ProfilingMetrics = new Dictionary<string, double>(ProfilingMetrics),

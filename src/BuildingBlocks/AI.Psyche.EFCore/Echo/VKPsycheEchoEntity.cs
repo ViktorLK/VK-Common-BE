@@ -9,7 +9,7 @@ namespace VK.Blocks.AI.Psyche.EFCore;
 /// Follows CS.05, CS.08.
 /// </summary>
 [VKPersistEntity(typeof(VKEchoTrace), TableName = "VK_AI_Psyche_Echo")]
-public sealed class VKPsycheEchoEntity : IVKTenantScoped, IVKAuditable
+public sealed class VKPsycheEchoEntity : IVKTenantScoped
 {
     /// <inheritdoc />
     [VKPersistIndex(Group = "Tenant_Session_Timestamp", Order = 1)]
@@ -47,13 +47,4 @@ public sealed class VKPsycheEchoEntity : IVKTenantScoped, IVKAuditable
     /// <inheritdoc />
     [VKPersistIndex(Group = "Tenant_Session_Timestamp", Order = 3)]
     public DateTimeOffset CreatedAt { get; set; }
-
-    /// <inheritdoc />
-    public VKUserId? CreatedBy { get; set; }
-
-    /// <inheritdoc />
-    public DateTimeOffset? UpdatedAt { get; set; }
-
-    /// <inheritdoc />
-    public VKUserId? UpdatedBy { get; set; }
 }

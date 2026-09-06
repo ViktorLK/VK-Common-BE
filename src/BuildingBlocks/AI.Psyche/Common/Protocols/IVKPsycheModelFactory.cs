@@ -117,10 +117,11 @@ public interface IVKPsycheModelFactory
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null);
+        string? forkPointRef = null,
+        VKSessionKnowledgeState? knowledgeState = null);
 
     /// <summary>
-    /// Creates a new <see cref="VKSessionThread"/> with an explicitly specified ID and optional hydration state.
+    /// Creates a new <see cref="VKSessionThread"/> with an explicitly specified ID.
     /// </summary>
     VKSessionThread CreateSession(
         VKSessionId id,
@@ -128,11 +129,6 @@ public interface IVKPsycheModelFactory
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
         string? forkPointRef = null,
-        VKSessionStatus status = VKSessionStatus.Active,
-        int turnCount = 0,
-        DateTimeOffset? createdAt = null,
-        DateTimeOffset? updatedAt = null,
-        DateTimeOffset? lastActivityAt = null,
         VKSessionKnowledgeState? knowledgeState = null);
 
     // --- Profile ---

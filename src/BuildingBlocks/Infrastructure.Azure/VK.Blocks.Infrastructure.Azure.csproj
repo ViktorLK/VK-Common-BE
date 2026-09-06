@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ 
+  <PropertyGroup>
+    
+    
+    
+    <RootNamespace>VK.Blocks.Infrastructure.Azure</RootNamespace>
+  </PropertyGroup>
+ 
+  <ItemGroup>
+    <PackageReference Include="Azure.Core" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+  </ItemGroup>
+ 
+  <ItemGroup>
+    <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\Infrastructure\VK.Blocks.Infrastructure.csproj" />
+  </ItemGroup>
+ 
+</Project>

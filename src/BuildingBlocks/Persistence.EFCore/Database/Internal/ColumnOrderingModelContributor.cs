@@ -4,13 +4,16 @@ using VK.Blocks.Core;
 namespace VK.Blocks.Persistence.EFCore.Database.Internal;
 
 /// <summary>
-/// Model creating contributor that applies standardized hierarchical column ordering across all database tables.
+/// Extension methods that apply standardized hierarchical column ordering across all database tables.
 /// Follows AP.01, CS.08, AP.03.
 /// </summary>
-internal sealed class ColumnOrderingModelContributor : IVKModelCreatingContributor
+internal static class ColumnOrderingModelContributor
 {
-    /// <inheritdoc />
-    public void ConfigureModel(ModelBuilder modelBuilder)
+    /// <summary>
+    /// Applies standardized column ordering: TenantId (0) -> UserId (1) -> PK (2+) -> Business (10+) -> Audit (100+) -> SoftDelete (104+).
+    /// </summary>
+    /// <param name="modelBuilder">The EF Core model builder.</param>
+    public static void ApplyColumnOrdering(this ModelBuilder modelBuilder)
     {
         VKGuard.NotNull(modelBuilder);
 
