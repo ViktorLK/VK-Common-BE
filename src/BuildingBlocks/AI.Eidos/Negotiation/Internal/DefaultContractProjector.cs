@@ -65,11 +65,13 @@ internal sealed class DefaultContractProjector(
         VKGuard.NotNull(chatArgs);
         VKGuard.NotNull(contract);
 
+        var provider = chatArgs.Provider ?? VKAIModelIds.ResolveProvider(chatArgs.ModelId);
+
         return mode switch
         {
             VKAIEidosExpressionMode.StructuredOutput => chatArgs with
             {
-                ResponseSchema = GetOrBuildProjectedSchema(contract, chatArgs.Provider ?? VKAIProviderType.OpenAI)
+                ResponseSchema = GetOrBuildProjectedSchema(contract, provider)
             },
             _ => chatArgs
         };
@@ -204,13 +206,13 @@ internal sealed class DefaultContractProjector(
         return arr;
     }
 
-    private string GetOrBuildProjectedSchema(VKAIEidosResponseContract contract, VKAIProviderType provider)
+    private string GetOrBuildProjectedSchema(VKAIEidosResponseContract contract, VKAIProviderType? provider)
     {
-        var cacheKey = $"{contract.ContractId}:{contract.Version}:{provider}";
+        var cacheKey = $"{contract.ContractId}:{contract.Version}:{provider?.ToString() ?? "Standard"}";
         return _projectedSchemaCache.GetOrAdd(cacheKey, _ => ProjectSchemaForProvider(contract.Schema.RawJsonSchema, provider));
     }
 
-    private static string ProjectSchemaForProvider(string rawJsonSchema, VKAIProviderType provider)
+    private static string ProjectSchemaForProvider(string rawJsonSchema, VKAIProviderType? provider)
     {
         if (string.IsNullOrWhiteSpace(rawJsonSchema))
         {
@@ -232,7 +234,6 @@ internal sealed class DefaultContractProjector(
                     SanitizeJsonSchemaForOpenAi(root);
                     return root.ToJsonString();
 
-                case VKAIProviderType.Google:
                 default:
                     CleanSchemaHeaders(root);
                     return root.ToJsonString();

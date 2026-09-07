@@ -8,7 +8,7 @@ public sealed class VKPsycheResponseTests : VKUnitTestBase
     }
 
     [Fact]
-    public void GetModelResult_WhenTypeMatches_ReturnsCastedInstance()
+    public void Metadata_WhenPopulated_ReturnsExpectedItems()
     {
         // Arrange
         var expected = new CustomModelResult { Data = "test-payload" };
@@ -16,32 +16,17 @@ public sealed class VKPsycheResponseTests : VKUnitTestBase
         {
             Messages = [],
             CorrelationId = "test-corr-1",
-            ModelResult = expected
+            Metadata = new System.Collections.Generic.Dictionary<string, object>
+            {
+                ["test.key"] = expected
+            }
         };
 
         // Act
-        var result = response.GetModelResult<CustomModelResult>();
+        var result = response.Metadata["test.key"] as CustomModelResult;
 
         // Assert
         result.Should().NotBeNull();
         result!.Data.Should().Be("test-payload");
-    }
-
-    [Fact]
-    public void GetModelResult_WhenTypeMismatchesOrNull_ReturnsNull()
-    {
-        // Arrange
-        var response = new VKPsycheResponse
-        {
-            Messages = [],
-            CorrelationId = "test-corr-1",
-            ModelResult = "a string"
-        };
-
-        // Act
-        var result = response.GetModelResult<CustomModelResult>();
-
-        // Assert
-        result.Should().BeNull();
     }
 }

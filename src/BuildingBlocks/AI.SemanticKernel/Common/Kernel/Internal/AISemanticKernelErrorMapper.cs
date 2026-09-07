@@ -33,7 +33,7 @@ internal static class AISemanticKernelErrorMapper
             HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => VKAIErrors.AuthenticationFailed,
             HttpStatusCode.TooManyRequests => VKAIErrors.QuotaExceeded,
             HttpStatusCode.NotFound => VKAIErrors.InvalidModel,
-            HttpStatusCode.BadRequest => VKAIErrors.InvalidRequest(),
+            HttpStatusCode.BadRequest => VKAIErrors.InvalidRequest(ex.ResponseContent ?? ex.Message),
             _ => VKAIErrors.ProviderError
         };
 
