@@ -10,6 +10,13 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
     <ProjectReference Include="..\AI\VK.Blocks.AI.csproj" />
+    <ProjectReference Include="..\AI.Psyche\VK.Blocks.AI.Psyche.csproj" />
+    <ProjectReference Include="..\AI.Eidos\VK.Blocks.AI.Eidos.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Presence-backup\**" />
+    <None Include="Presence-backup\**" />
   </ItemGroup>
 
   <ItemGroup>

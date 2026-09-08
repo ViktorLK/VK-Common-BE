@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>VK.Blocks.Identity.EFCore</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\Identity\VK.Blocks.Identity.csproj" />
+    <ProjectReference Include="..\Persistence\VK.Blocks.Persistence.csproj" />
+    <ProjectReference Include="..\Persistence.EFCore\VK.Blocks.Persistence.EFCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>VK.Blocks.Identity.EFCore.UnitTests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

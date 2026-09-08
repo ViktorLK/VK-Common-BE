@@ -7,7 +7,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Represents a stored API key record.
 /// </summary>
-public sealed record VKApiKeyRecord : IVKMultiTenant
+public sealed record VKApiKeyRecord : IVKTenantScoped
 {
     /// <summary>
     /// Gets the unique identifier of the API key record.
@@ -20,7 +20,7 @@ public sealed record VKApiKeyRecord : IVKMultiTenant
     public required string OwnerId { get; init; }
 
     /// <inheritdoc />
-    public VKTenantId? TenantId { get; init; }
+    public VKTenantId TenantId { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether the API key is currently enabled.
