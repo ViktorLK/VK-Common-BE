@@ -43,7 +43,7 @@ internal static class JwtEventsFactory
             },
             OnAuthenticationFailed = context =>
             {
-                // Attach a specific header if the token was rejected solely due to expiration
+                System.Console.WriteLine($"[JWT Auth Failed] {context.Exception?.GetType().Name}: {context.Exception?.Message}");
                 if (context.Exception is SecurityTokenExpiredException)
                 {
                     context.Response.Headers.Append(

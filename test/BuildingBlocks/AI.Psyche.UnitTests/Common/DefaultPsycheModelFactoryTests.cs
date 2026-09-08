@@ -120,7 +120,7 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
     }
 
     [Fact]
-    public void CreateSession_WithFullParameters_CreatesRehydratedSession()
+    public void CreateSession_WithExplicitIdAndParameters_CreatesSessionThread()
     {
         // Arrange
         var fakeGuidGen = new VKFakeGuidGenerator();
@@ -128,7 +128,6 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var sessionId = new VKSessionId(Guid.NewGuid());
         var parentSessionId = new VKSessionId(Guid.NewGuid());
         var forkSourceSessionId = new VKSessionId(Guid.NewGuid());
-        var now = DateTimeOffset.UtcNow;
         var kState = new VKSessionKnowledgeState { LastEvaluatedTurn = 5 };
 
         // Act
@@ -138,11 +137,6 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
             parentSessionId,
             forkSourceSessionId,
             forkPointRef: "cp-1",
-            status: VKSessionStatus.Archived,
-            turnCount: 5,
-            createdAt: now.AddHours(-1),
-            updatedAt: now,
-            lastActivityAt: now,
             knowledgeState: kState);
 
         // Assert
@@ -151,8 +145,8 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         session.ParentSessionId.Should().Be(parentSessionId);
         session.ForkSourceSessionId.Should().Be(forkSourceSessionId);
         session.ForkPointRef.Should().Be("cp-1");
-        session.Status.Should().Be(VKSessionStatus.Archived);
-        session.TurnCount.Should().Be(5);
+        session.Status.Should().Be(VKSessionStatus.Active);
+        session.TurnCount.Should().Be(0);
         session.KnowledgeState.Should().BeSameAs(kState);
     }
 

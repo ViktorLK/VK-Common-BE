@@ -33,8 +33,8 @@ internal sealed class DefaultNegotiationStage(
 
         var eidosArgs = context.Args<VKAIEidosRequestArgs>();
         var chatArgs = context.Args<VKChatArgs>() ?? new VKChatArgs();
-        var provider = chatArgs.Provider ?? VKAIProviderType.OpenAI;
         var modelId = chatArgs.ModelId ?? VKAIModelIds.OpenAI.Gpt4O;
+        var provider = chatArgs.Provider ?? VKAIModelIds.ResolveProvider(chatArgs.ModelId) ?? VKAIProviderType.OpenAI;
 
         var capabilities = _capabilityDetector.DetectCapabilities(provider, modelId);
         var negotiationResult = _negotiator.Negotiate(contract, capabilities, eidosArgs?.PreferredMode);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -456,6 +457,14 @@ internal sealed class AISemanticKernelChatEngine : AISemanticKernelEngineBase<VK
                 {
                     openAi.FunctionChoiceBehavior = openAiBehavior;
                 }
+
+                if (!string.IsNullOrWhiteSpace(args?.ResponseSchema))
+                {
+                    openAi.ResponseFormat = OpenAI.Chat.ChatResponseFormat.CreateJsonSchemaFormat(
+                        "structured_output",
+                        BinaryData.FromString(args.ResponseSchema),
+                        jsonSchemaIsStrict: true);
+                }
                 break;
             case GeminiPromptExecutionSettings google:
                 google.Temperature = args?.Temperature ?? FeatureOptions.Temperature;
@@ -467,6 +476,12 @@ internal sealed class AISemanticKernelChatEngine : AISemanticKernelEngineBase<VK
                 if (googleBehavior is not null)
                 {
                     google.FunctionChoiceBehavior = googleBehavior;
+                }
+
+                if (!string.IsNullOrWhiteSpace(args?.ResponseSchema))
+                {
+                    google.ResponseMimeType = "application/json";
+                    google.ResponseSchema = KernelJsonSchema.Parse(args.ResponseSchema);
                 }
                 break;
             case OllamaPromptExecutionSettings ollama:

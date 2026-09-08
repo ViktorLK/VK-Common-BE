@@ -48,4 +48,39 @@ public static class VKAIModelIds
             public const string TextEmbedding004 = "text-embedding-004";
         }
     }
+
+    /// <summary>
+    /// Resolves the corresponding <see cref="VKAIProviderType"/> based on well-known model naming conventions.
+    /// Returns <c>null</c> if the provider cannot be unambiguously inferred.
+    /// </summary>
+    public static VKAIProviderType? ResolveProvider(string? modelId)
+    {
+        if (string.IsNullOrWhiteSpace(modelId))
+        {
+            return null;
+        }
+
+        var m = modelId.ToLowerInvariant();
+        if (m.Contains("gemini"))
+        {
+            return VKAIProviderType.Google;
+        }
+
+        if (m.Contains("claude"))
+        {
+            return VKAIProviderType.Anthropic;
+        }
+
+        if (m.Contains("gpt") || m.Contains("o1") || m.Contains("o3") || m.Contains("o4"))
+        {
+            return VKAIProviderType.OpenAI;
+        }
+
+        if (m.Contains("llama") || m.Contains("mistral") || m.Contains("qwen") || m.Contains("deepseek") || m.Contains("phi"))
+        {
+            return VKAIProviderType.Ollama;
+        }
+
+        return null;
+    }
 }

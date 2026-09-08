@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\AI\VK.Blocks.AI.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\AI.Synapse\VK.Blocks.AI.Synapse.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\Resilience\VK.Blocks.Resilience.csproj" />
+    <ProjectReference Include="..\..\Tools\Testing\Builders\VK.Blocks.Testing.Builders.csproj" />
+    <ProjectReference Include="..\..\Tools\Testing\Core\VK.Blocks.Testing.Core.csproj" />
+  </ItemGroup>
+
+</Project>
