@@ -61,7 +61,7 @@ internal static partial class EchoDiagnostics
         EventId = VKEchoDiagnosticsConstants.Logs.EchoRecorded,
         Level = LogLevel.Debug,
         Message = "Recorded memory echo for session {SessionId}. Sender: {SenderRole}, Content length: {ContentLength}.")]
-    public static partial void EchoRecorded(this ILogger logger, VKSessionId sessionId, string senderRole, int contentLength);
+    public static partial void EchoRecorded(this ILogger logger, VKSessionId sessionId, VKChatRole senderRole, int contentLength);
 
     [LoggerMessage(
         EventId = VKEchoDiagnosticsConstants.Logs.EchoTrimmed,

@@ -7,6 +7,4 @@ namespace VK.Blocks.AI.Psyche;
 /// Inherits full CRUD and batch resolution capabilities from <see cref="IVKAggregateRepository{TAggregate, TId}"/>.
 /// Follows AP.01, CS.01, and CS.03.
 /// </summary>
-public interface IVKPsycheDirectiveRepository : IVKAggregateRepository<VKDirectiveCharter, VKDirectiveId>
-{
-}
+public interface IVKPsycheDirectiveRepository : IVKAggregateRepository<VKDirectiveCharter, VKDirectiveId>;

@@ -19,6 +19,9 @@ public static class VKPipelineDiagnosticsConstants
         public const int PipelineStarted = VKDiagnosticOffsets.AI_Psyche_Behaviors + 11;
         public const int PipelineCompleted = VKDiagnosticOffsets.AI_Psyche_Behaviors + 12;
         public const int PipelineFailed = VKDiagnosticOffsets.AI_Psyche_Behaviors + 13;
+
+        public const int ModelResolved = VKDiagnosticOffsets.AI_Psyche_Behaviors + 21;
+        public const int ModelResolveSkipped = VKDiagnosticOffsets.AI_Psyche_Behaviors + 22;
     }
 
     public static class Metrics

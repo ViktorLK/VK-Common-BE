@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -16,24 +18,21 @@ internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
 {
     private readonly VKDirectiveOptions _options;
     private readonly IVKPsycheDirectiveRepository _directiveRepository;
-    private readonly VKWeavingOptions _weavingOptions;
+    private readonly IVKDirectiveRenderer _directiveRenderer;
     private readonly ILogger<DefaultDirectiveStage> _logger;
 
     public DefaultDirectiveStage(
         VKDirectiveOptions options,
         IVKPsycheDirectiveRepository directiveRepository,
-        VKWeavingOptions weavingOptions,
+        IVKDirectiveRenderer directiveRenderer,
         ILogger<DefaultDirectiveStage> logger)
     {
         _options = VKGuard.NotNull(options);
         _directiveRepository = VKGuard.NotNull(directiveRepository);
-        _weavingOptions = VKGuard.NotNull(weavingOptions);
+        _directiveRenderer = VKGuard.NotNull(directiveRenderer);
         _logger = VKGuard.NotNull(logger);
     }
 
-    /// <summary>
-    /// Executes early in the weaving pipeline to guarantee Directive guardrails are loaded first.
-    /// </summary>
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheDirective;
     public bool IsActive => _options.Enabled;
 
@@ -41,8 +40,8 @@ internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Directive))
+        var isEnabled = context.Args<VKDirectiveArgs>()?.Enabled ?? _options.Enabled;
+        if (!isEnabled)
         {
             return VKResult.Success();
         }
@@ -58,25 +57,36 @@ internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
             return VKResult.Failure(resolveResult.Errors);
         }
 
-        var tierType = VKPromptTierType.Directive;
-        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-            ? idx * PsycheConstants.Layout.TierCoordinateGap
-            : PromptLayout.DefaultRenderOrders[tierType];
+        // Dual-factor deterministic sorting: Priority first (ascending), then request declaration order
+        var requestOrder = context.Request.DirectiveIds
+            .Select((id, index) => (id, index))
+            .ToDictionary(x => x.id, x => x.index);
 
-        foreach (var directive in resolveResult.Value)
+        var sortedDirectives = resolveResult.Value
+            .OrderBy(d => d.Priority)
+            .ThenBy(d => requestOrder.GetValueOrDefault(d.Id, int.MaxValue))
+            .ToList();
+
+        context.SetState(sortedDirectives);
+
+        for (int i = 0; i < sortedDirectives.Count; i++)
         {
-            _logger.DirectiveResolved(directive.Id.Value.ToString());
+            var directive = sortedDirectives[i];
+            _logger.DirectiveResolved(directive.Id);
 
-            context.AddFragment(new VKPromptFragment()
+            var content = _directiveRenderer.Render(directive);
+            if (!string.IsNullOrWhiteSpace(content))
             {
-                TierType = tierType,
-                RenderOrder = baseRenderOrder,
-                Metadata = directive,
-                Segment = new VKPromptSegment
+                context.AddSegment(new VKPromptSegment
                 {
-                    Role = VKChatRole.System
-                }
-            });
+                    Tier = VKPromptTierType.Directive,
+                    TagName = PsycheConstants.XmlTags.SystemDirective,
+                    Content = content,
+                    DepthPriority = i,
+                    Role = VKChatRole.System,
+                    TokenCount = directive.TokenCount
+                });
+            }
         }
 
         if (resolveResult.Value.Count > 0)

@@ -6,7 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// A single pulse of conversation history representing an echo in short-term memory.
 /// Follows AP.01 (sealed record for immutability).
 /// </summary>
-public sealed record VKEchoTrace : IVKFragmentMetadata
+public sealed record VKEchoTrace
 {
     /// <summary>
     /// Gets the session identifier that owns this conversation echo trace.

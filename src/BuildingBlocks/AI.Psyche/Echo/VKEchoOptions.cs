@@ -13,6 +13,7 @@ public sealed partial record VKEchoOptions : IVKToggleableBlockOptions
     /// Gets or sets a value indicating whether Echo feature is enabled.
     /// Defaults to true.
     /// </summary>
+    [VKRequestOverride]
     public bool Enabled { get; init; } = true;
 
     /// <summary>

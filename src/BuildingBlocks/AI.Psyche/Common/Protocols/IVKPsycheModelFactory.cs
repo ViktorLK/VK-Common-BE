@@ -17,11 +17,12 @@ public interface IVKPsycheModelFactory
     VKPromptSegment CreateSegment(
         string content,
         string? name = null,
-        bool isEnabled = true,
+        string? tagName = null,
         VKChatRole role = VKChatRole.System,
         int? absoluteDepth = null,
         VKPromptRelativeDepth? relativeDepth = null,
-        int depthPriority = 0);
+        int depthPriority = 0,
+        int tokenCount = 0);
 
     /// <summary>
     /// Creates a new <see cref="VKKnowledgeKey"/> for knowledge trigger matching.
@@ -40,7 +41,9 @@ public interface IVKPsycheModelFactory
         string name,
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
-        IReadOnlyDictionary<string, object>? extensions = null);
+        IReadOnlyDictionary<string, object>? extensions = null,
+        int priority = 0,
+        int tokenCount = 0);
 
     /// <summary>
     /// Creates a new <see cref="VKPersonaAnchor"/> with an explicitly specified ID.
@@ -50,7 +53,9 @@ public interface IVKPsycheModelFactory
         string name,
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
-        IReadOnlyDictionary<string, object>? extensions = null);
+        IReadOnlyDictionary<string, object>? extensions = null,
+        int priority = 0,
+        int tokenCount = 0);
 
     // --- Directive ---
 
@@ -61,7 +66,9 @@ public interface IVKPsycheModelFactory
         string? overview = null,
         string? behaviorRules = null,
         string? safetyRules = null,
-        string? outputConstraints = null);
+        string? outputConstraints = null,
+        int priority = 0,
+        int tokenCount = 0);
 
     /// <summary>
     /// Creates a new <see cref="VKDirectiveCharter"/> with an explicitly specified ID.
@@ -71,7 +78,9 @@ public interface IVKPsycheModelFactory
         string? overview = null,
         string? behaviorRules = null,
         string? safetyRules = null,
-        string? outputConstraints = null);
+        string? outputConstraints = null,
+        int priority = 0,
+        int tokenCount = 0);
 
     // --- Knowledge ---
 
@@ -82,7 +91,6 @@ public interface IVKPsycheModelFactory
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        string? xmlTag = null,
         IReadOnlyList<VKKnowledgeKey>? keys = null);
 
     /// <summary>
@@ -93,7 +101,6 @@ public interface IVKPsycheModelFactory
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        string? xmlTag = null,
         IReadOnlyList<VKKnowledgeKey>? keys = null);
 
     // --- Pattern ---
@@ -140,7 +147,8 @@ public interface IVKPsycheModelFactory
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null);
+        IReadOnlyDictionary<string, string>? preferences = null,
+        int tokenCount = 0);
 
     /// <summary>
     /// Creates a new <see cref="VKProfilePresence"/> with an explicitly specified ID.
@@ -150,7 +158,8 @@ public interface IVKPsycheModelFactory
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null);
+        IReadOnlyDictionary<string, string>? preferences = null,
+        int tokenCount = 0);
 
     // --- Echo ---
 

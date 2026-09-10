@@ -25,14 +25,9 @@ public sealed record VKPsycheResponse
     public VKChatResponse? ChatResponse { get; init; }
 
     /// <summary>
-    /// Gets all active prompt fragments that were successfully woven into the tapestry.
+    /// Gets any prompt segments that were evicted or truncated during token management.
     /// </summary>
-    public IReadOnlyList<VKPromptFragment> ActiveFragments { get; init; } = [];
-
-    /// <summary>
-    /// Gets any prompt fragments that were evicted or truncated during token management.
-    /// </summary>
-    public IReadOnlyList<VKPromptFragment> EvictedFragments { get; init; } = [];
+    public IReadOnlyList<VKPromptSegment> EvictedFragments { get; init; } = [];
 
     /// <summary>
     /// Gets the execution duration profiling metrics in milliseconds per pipeline stage or task.

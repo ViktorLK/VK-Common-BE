@@ -3,8 +3,13 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Physical capabilities and metadata for a specific AI model.
 /// </summary>
-public sealed record VKModelMetadata
+public sealed record VKAIModelMetadata
 {
+    /// <summary>
+    /// Gets the provider type hosting this model.
+    /// </summary>
+    public required VKAIProviderType Provider { get; init; }
+
     /// <summary>
     /// Gets the unique identifier or alias for the model.
     /// </summary>

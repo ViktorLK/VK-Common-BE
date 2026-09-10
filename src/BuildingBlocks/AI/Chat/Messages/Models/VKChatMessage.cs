@@ -105,6 +105,12 @@ public sealed record VKChatMessage
     public VKToolResult? ToolResult { get; init; }
 
     /// <summary>
+    /// Gets the estimated or precalculated token count for this message.
+    /// Default is 0 (uncalculated).
+    /// </summary>
+    public int TokenCount { get; init; } = 0;
+
+    /// <summary>
     /// Helper to create a simple text-based message.
     /// </summary>
     /// <param name="role">The role of the message.</param>

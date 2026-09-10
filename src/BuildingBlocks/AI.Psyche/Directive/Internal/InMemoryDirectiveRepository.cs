@@ -33,7 +33,7 @@ internal sealed class InMemoryDirectiveRepository : IVKPsycheDirectiveRepository
 
         if (_store.TryGetValue(id, out var directive))
         {
-            _logger.DirectiveResolved(id.ToString());
+            _logger.DirectiveResolved(id);
             return Task.FromResult(VKResult.Success(directive));
         }
 
@@ -53,7 +53,7 @@ internal sealed class InMemoryDirectiveRepository : IVKPsycheDirectiveRepository
             if (_store.TryGetValue(id, out var directive))
             {
                 list.Add(directive);
-                _logger.DirectiveResolved(id.ToString());
+                _logger.DirectiveResolved(id);
             }
         }
 

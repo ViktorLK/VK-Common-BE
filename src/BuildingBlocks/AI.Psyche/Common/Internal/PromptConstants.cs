@@ -5,7 +5,7 @@ internal static class PsycheConstants
 {
     internal static class XmlTags
     {
-        internal const string SystemDirectives = "system_directives";
+        internal const string SystemDirective = "system_directive";
         internal const string Message = "message";
         internal const string Knowledge = "knowledge";
         internal const string ImportantKnowledge = "important_knowledge";
@@ -22,12 +22,5 @@ internal static class PsycheConstants
     {
         internal const string DefaultSegment = "\n\n";
         internal const string DefaultRoleHeader = ": ";
-    }
-
-    internal static class Layout
-    {
-        internal const int RelativeOffset = 1000;
-        internal const int EchoReserve = 10000;
-        internal const int TierCoordinateGap = 10000;
     }
 }

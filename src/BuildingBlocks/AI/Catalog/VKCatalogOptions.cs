@@ -13,5 +13,5 @@ public sealed partial record VKCatalogOptions : IVKBlockOptions
     /// <summary>
     /// Gets or sets custom model metadata definitions registered at startup.
     /// </summary>
-    public IReadOnlyList<VKModelMetadata> CustomModels { get; init; } = [];
+    public IReadOnlyList<VKAIModelMetadata> CustomModels { get; init; } = [];
 }

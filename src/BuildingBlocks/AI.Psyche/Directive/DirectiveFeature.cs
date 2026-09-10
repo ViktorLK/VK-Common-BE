@@ -11,19 +11,19 @@ namespace VK.Blocks.AI.Psyche;
 /// Directive feature marker and registration hub.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKDirectiveOptions))]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKDirectiveOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class DirectiveFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKDirectiveOptions options)
     {
         if (!options.Enabled)
+        {
             return;
+        }
 
-        services.TryAddScoped<InMemoryDirectiveRepository>();
-        services.TryAddScoped<IVKPsycheDirectiveRepository>(sp => sp.GetRequiredService<InMemoryDirectiveRepository>());
-        services.TryAddScoped<IVKReadRepository<VKDirectiveCharter, VKDirectiveId>>(sp => sp.GetRequiredService<InMemoryDirectiveRepository>());
+        services.TryAddScoped<IVKPsycheDirectiveRepository, InMemoryDirectiveRepository>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultDirectiveStage>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultDirectiveFormatter>());
+        services.TryAddSingleton<IVKDirectiveRenderer, DefaultDirectiveRenderer>();
     }
 
     // [SG Hook]

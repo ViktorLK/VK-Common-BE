@@ -11,5 +11,6 @@ public sealed partial record VKDirectiveOptions : IVKToggleableBlockOptions
     /// <summary>
     /// Gets or sets a value indicating whether the Directive feature is enabled.
     /// </summary>
+    [VKRequestOverride]
     public bool Enabled { get; init; } = true;
 }

@@ -18,6 +18,7 @@ internal sealed partial class PipelineFeature
     {
         services.TryAddScoped<IVKPsychePipelineExecutor, DefaultPsychePipelineExecutor>();
         services.TryAddScoped<IVKPsychePipeline, DefaultPsychePipeline>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultModelResolveStage>());
     }
 
     // [SG Hook]
