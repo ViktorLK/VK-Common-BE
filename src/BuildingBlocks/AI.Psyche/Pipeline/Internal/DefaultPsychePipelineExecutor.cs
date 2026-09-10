@@ -36,7 +36,7 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.SessionId, context.Request.SessionId.Value.ToString());
         activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.CorrelationId, context.CorrelationId);
 
-        _logger.ExecutionStarted(context.Request.SessionId.Value.ToString(), context.CorrelationId);
+        _logger.ExecutionStarted(context.Request.SessionId, context.CorrelationId);
         var stopwatch = Stopwatch.StartNew();
 
         var result = await base.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);

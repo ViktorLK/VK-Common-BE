@@ -42,7 +42,6 @@ internal sealed partial class EchoFeature
 
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultEchoExtractStage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultEchoSaveStage>());
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultEchoFormatter>());
     }
 
     // [SG Hook]

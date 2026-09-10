@@ -54,7 +54,6 @@ public sealed class VKPsycheResponseBuilder
             Messages = [.. Messages],
             TotalEstimatedTokens = TotalEstimatedTokens,
             ChatResponse = ChatResponse,
-            ActiveFragments = context.Fragments,
             EvictedFragments = evictedState?.Evicted ?? [],
             ProfilingMetrics = new Dictionary<string, double>(ProfilingMetrics),
             Metadata = new Dictionary<string, object>(Metadata),

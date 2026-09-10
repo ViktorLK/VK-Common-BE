@@ -10,14 +10,22 @@ public sealed record VKPromptSegment
     private readonly int _depthPriority = 0;
 
     /// <summary>
-    /// Gets a value indicating whether this prompt fragment is active and enabled.
+    /// Gets the prompt tier classification for this segment.
+    /// Internal to VK.Blocks.AI.Psyche; external consumers always default to Dynamic and cannot impersonate core tiers.
     /// </summary>
-    public bool IsEnabled { get; init; } = true;
+    internal VKPromptTierType Tier { get; init; } = VKPromptTierType.Dynamic;
 
     /// <summary>
     /// Gets the prompt text content.
     /// </summary>
     public string Content { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the optional XML tag name used to enclose this segment in prompt output.
+    /// Contiguous segments sharing the same TagName are automatically coalesced into a single XML root element during weaving.
+    /// If null, the content is presented as raw text without XML wrapping.
+    /// </summary>
+    public string? TagName { get; init; }
 
     /// <summary>
     /// Gets the optional name of the prompt entry for identification.
@@ -47,4 +55,10 @@ public sealed record VKPromptSegment
         get => _depthPriority;
         init => _depthPriority = VKGuard.InRange(value, 0, 999, nameof(DepthPriority));
     }
+
+    /// <summary>
+    /// Gets the estimated or precalculated token count for this segment content.
+    /// Default is 0 (uncalculated).
+    /// </summary>
+    public int TokenCount { get; init; } = 0;
 }

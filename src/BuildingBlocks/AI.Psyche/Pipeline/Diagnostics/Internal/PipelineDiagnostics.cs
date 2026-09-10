@@ -46,7 +46,7 @@ internal static partial class PipelineDiagnostics
         EventId = VKPipelineDiagnosticsConstants.Logs.ExecutionStarted,
         Level = LogLevel.Information,
         Message = "Psyche pipeline execution started. SessionId: {SessionId}, CorrelationId: {CorrelationId}")]
-    public static partial void ExecutionStarted(this ILogger logger, string sessionId, string correlationId);
+    public static partial void ExecutionStarted(this ILogger logger, VKSessionId sessionId, string correlationId);
 
     [LoggerMessage(
         EventId = VKPipelineDiagnosticsConstants.Logs.ExecutionCompleted,
@@ -77,4 +77,16 @@ internal static partial class PipelineDiagnostics
         Level = LogLevel.Error,
         Message = "Psyche pipeline failed. CorrelationId: {CorrelationId}, ErrorCode: {ErrorCode}, Message: {ErrorMessage}")]
     public static partial void PipelineFailed(this ILogger logger, string correlationId, string errorCode, string errorMessage);
+
+    [LoggerMessage(
+        EventId = VKPipelineDiagnosticsConstants.Logs.ModelResolved,
+        Level = LogLevel.Debug,
+        Message = "AI model resolved. ModelId: {ModelId}, Provider: {Provider}, ContextWindowSize: {ContextWindowSize}")]
+    public static partial void ModelResolved(this ILogger logger, string modelId, string? provider, int contextWindowSize);
+
+    [LoggerMessage(
+        EventId = VKPipelineDiagnosticsConstants.Logs.ModelResolveSkipped,
+        Level = LogLevel.Warning,
+        Message = "AI model not configured, skipped model resolution for WeaveOnly request.")]
+    public static partial void ModelResolveSkipped(this ILogger logger);
 }

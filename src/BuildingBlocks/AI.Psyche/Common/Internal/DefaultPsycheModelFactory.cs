@@ -22,11 +22,12 @@ internal sealed class DefaultPsycheModelFactory(
     public VKPromptSegment CreateSegment(
         string content,
         string? name = null,
-        bool isEnabled = true,
+        string? tagName = null,
         VKChatRole role = VKChatRole.System,
         int? absoluteDepth = null,
         VKPromptRelativeDepth? relativeDepth = null,
-        int depthPriority = 0)
+        int depthPriority = 0,
+        int tokenCount = 0)
     {
         VKGuard.NotNull(content);
 
@@ -34,11 +35,12 @@ internal sealed class DefaultPsycheModelFactory(
         {
             Content = content,
             Name = name,
-            IsEnabled = isEnabled,
+            TagName = tagName,
             Role = role,
             AbsoluteDepth = absoluteDepth,
             RelativeDepth = relativeDepth,
-            DepthPriority = Math.Clamp(depthPriority, 0, 999)
+            DepthPriority = Math.Clamp(depthPriority, 0, 999),
+            TokenCount = tokenCount
         };
     }
 
@@ -65,9 +67,11 @@ internal sealed class DefaultPsycheModelFactory(
         string name,
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
-        IReadOnlyDictionary<string, object>? extensions = null)
+        IReadOnlyDictionary<string, object>? extensions = null,
+        int priority = 0,
+        int tokenCount = 0)
     {
-        return CreatePersona(new VKPersonaId(_guidGenerator.Create()), name, description, traits, extensions);
+        return CreatePersona(new VKPersonaId(_guidGenerator.Create()), name, description, traits, extensions, priority, tokenCount);
     }
 
     /// <inheritdoc />
@@ -76,9 +80,11 @@ internal sealed class DefaultPsycheModelFactory(
         string name,
         string description,
         IReadOnlyDictionary<string, string>? traits = null,
-        IReadOnlyDictionary<string, object>? extensions = null)
+        IReadOnlyDictionary<string, object>? extensions = null,
+        int priority = 0,
+        int tokenCount = 0)
     {
-        return VKGuard.NotNull(VKPersonaAnchor.Create(id, name, description, traits, extensions).Value);
+        return VKGuard.NotNull(VKPersonaAnchor.Create(id, name, description, traits, extensions, priority, tokenCount).Value);
     }
 
     // --- Directive ---
@@ -88,9 +94,11 @@ internal sealed class DefaultPsycheModelFactory(
         string? overview = null,
         string? behaviorRules = null,
         string? safetyRules = null,
-        string? outputConstraints = null)
+        string? outputConstraints = null,
+        int priority = 0,
+        int tokenCount = 0)
     {
-        return CreateDirective(new VKDirectiveId(_guidGenerator.Create()), overview, behaviorRules, safetyRules, outputConstraints);
+        return CreateDirective(new VKDirectiveId(_guidGenerator.Create()), overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount);
     }
 
     /// <inheritdoc />
@@ -99,9 +107,11 @@ internal sealed class DefaultPsycheModelFactory(
         string? overview = null,
         string? behaviorRules = null,
         string? safetyRules = null,
-        string? outputConstraints = null)
+        string? outputConstraints = null,
+        int priority = 0,
+        int tokenCount = 0)
     {
-        return VKGuard.NotNull(VKDirectiveCharter.Create(id, overview, behaviorRules, safetyRules, outputConstraints).Value);
+        return VKGuard.NotNull(VKDirectiveCharter.Create(id, overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount).Value);
     }
 
     // --- Knowledge ---
@@ -111,10 +121,9 @@ internal sealed class DefaultPsycheModelFactory(
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        string? xmlTag = null,
         IReadOnlyList<VKKnowledgeKey>? keys = null)
     {
-        return CreateKnowledge(new VKKnowledgeId(_guidGenerator.Create()), segment, triggerType, filterLogic, xmlTag, keys);
+        return CreateKnowledge(new VKKnowledgeId(_guidGenerator.Create()), segment, triggerType, filterLogic, keys);
     }
 
     /// <inheritdoc />
@@ -123,10 +132,9 @@ internal sealed class DefaultPsycheModelFactory(
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        string? xmlTag = null,
         IReadOnlyList<VKKnowledgeKey>? keys = null)
     {
-        return VKGuard.NotNull(VKKnowledgeEntry.Create(id, segment, triggerType, filterLogic, xmlTag, keys).Value);
+        return VKGuard.NotNull(VKKnowledgeEntry.Create(id, segment, triggerType, filterLogic, keys).Value);
     }
 
     // --- Pattern ---
@@ -183,9 +191,10 @@ internal sealed class DefaultPsycheModelFactory(
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null)
+        IReadOnlyDictionary<string, string>? preferences = null,
+        int tokenCount = 0)
     {
-        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, timeZone, preferences);
+        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, timeZone, preferences, tokenCount);
     }
 
     /// <inheritdoc />
@@ -194,9 +203,10 @@ internal sealed class DefaultPsycheModelFactory(
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null)
+        IReadOnlyDictionary<string, string>? preferences = null,
+        int tokenCount = 0)
     {
-        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, timeZone, preferences).Value);
+        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, timeZone, preferences, tokenCount).Value);
     }
 
     // --- Echo ---

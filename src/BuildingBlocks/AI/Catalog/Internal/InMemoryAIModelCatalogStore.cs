@@ -6,30 +6,30 @@ using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
 
-namespace VK.Blocks.AI.Internal;
+namespace VK.Blocks.AI.Catalog.Internal;
 
 /// <summary>
-/// High-performance concrete in-memory implementation of <see cref="IVKModelCatalogStore"/>.
+/// High-performance concrete in-memory implementation of <see cref="IVKAIModelCatalogStore"/>.
 /// Provides testing and local backing storage with fluent Seed and Clear utilities.
 /// Follows AP.01 and CS.03.
 /// </summary>
-internal sealed class InMemoryModelCatalogStore : IVKModelCatalogStore
+internal sealed class InMemoryAIModelCatalogStore : IVKAIModelCatalogStore
 {
-    private readonly ConcurrentDictionary<string, VKModelMetadata> _store = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, VKAIModelMetadata> _store = new(StringComparer.OrdinalIgnoreCase);
 
-    public Task<VKResult<IReadOnlyList<VKModelMetadata>>> GetAllAsync(CancellationToken cancellationToken = default)
+    public Task<VKResult<IReadOnlyList<VKAIModelMetadata>>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        IReadOnlyList<VKModelMetadata> list = _store.Values.ToList();
-        return Task.FromResult(VKResult<IReadOnlyList<VKModelMetadata>>.Success(list));
+        IReadOnlyList<VKAIModelMetadata> list = _store.Values.ToList();
+        return Task.FromResult(VKResult<IReadOnlyList<VKAIModelMetadata>>.Success(list));
     }
 
     /// <summary>
     /// Seeds one or more model metadata definitions into the in-memory store.
     /// Useful for unit tests, fixtures, and local initialization.
     /// </summary>
-    public InMemoryModelCatalogStore Seed(VKModelMetadata metadata)
+    public InMemoryAIModelCatalogStore Seed(VKAIModelMetadata metadata)
     {
         VKGuard.NotNull(metadata);
         _store[metadata.ModelId] = metadata;
@@ -39,7 +39,7 @@ internal sealed class InMemoryModelCatalogStore : IVKModelCatalogStore
     /// <summary>
     /// Seeds multiple model metadata definitions into the in-memory store.
     /// </summary>
-    public InMemoryModelCatalogStore Seed(IEnumerable<VKModelMetadata> metadatas)
+    public InMemoryAIModelCatalogStore Seed(IEnumerable<VKAIModelMetadata> metadatas)
     {
         VKGuard.NotNull(metadatas);
         foreach (var metadata in metadatas)
@@ -56,7 +56,7 @@ internal sealed class InMemoryModelCatalogStore : IVKModelCatalogStore
     /// <summary>
     /// Removes a model definition from the in-memory store.
     /// </summary>
-    public InMemoryModelCatalogStore Remove(string modelId)
+    public InMemoryAIModelCatalogStore Remove(string modelId)
     {
         if (!string.IsNullOrWhiteSpace(modelId))
         {
@@ -69,7 +69,7 @@ internal sealed class InMemoryModelCatalogStore : IVKModelCatalogStore
     /// <summary>
     /// Clears all model definitions from the in-memory store.
     /// </summary>
-    public InMemoryModelCatalogStore Clear()
+    public InMemoryAIModelCatalogStore Clear()
     {
         _store.Clear();
         return this;

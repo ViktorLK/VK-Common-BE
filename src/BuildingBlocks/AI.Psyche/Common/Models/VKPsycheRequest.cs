@@ -74,7 +74,7 @@ public sealed record VKPsycheRequest
     // 3. Dynamic Extension Arguments
     // ==========================================
 
-    private ImmutableDictionary<Type, object> Args { get; init; } = ImmutableDictionary<Type, object>.Empty;
+    private ImmutableDictionary<Type, object> Args { get; init; } = [];
 
     public VKPsycheRequest WithArgs<T>(T args) where T : class
     {

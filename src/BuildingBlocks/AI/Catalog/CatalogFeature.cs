@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Internal;
+using VK.Blocks.AI.Catalog.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
 
 /// <summary>
 /// Model Catalog feature marker and registration hub.
-/// Automatically provisions and populates the core <see cref="IVKModelCatalog"/> and fallback <see cref="IVKModelCatalogStore"/>.
+/// Automatically provisions and populates the core <see cref="IVKVKAIModelCatalog"/> and fallback <see cref="IVKAIModelCatalogStore"/>.
 /// </summary>
 [VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKCatalogOptions))]
 internal sealed partial class CatalogFeature
@@ -16,7 +16,7 @@ internal sealed partial class CatalogFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKCatalogOptions options)
     {
-        var catalog = new DefaultModelCatalog();
+        var catalog = new DefaultAIModelCatalog();
 
         // Register any custom models configured via options
         if (options.CustomModels is { Count: > 0 })
@@ -27,8 +27,8 @@ internal sealed partial class CatalogFeature
             }
         }
 
-        services.TryAddSingleton<IVKModelCatalog>(catalog);
-        services.TryAddSingleton<IVKModelCatalogStore, InMemoryModelCatalogStore>();
+        services.TryAddSingleton<IVKVKAIModelCatalog>(catalog);
+        services.TryAddSingleton<IVKAIModelCatalogStore, InMemoryAIModelCatalogStore>();
     }
 
     // [SG Hook] Optional validation hook

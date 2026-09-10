@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Echo.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -22,8 +21,7 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
 {
     private readonly IVKEchoStore _echoStore;
     private readonly IVKPsycheSessionRepository _sessionRepository;
-    private readonly IVKTokenCounter _tokenCounter;
-    private readonly IVKModelCatalog _modelCatalog;
+    private readonly IVKEchoRenderer _echoRenderer;
     private readonly VKEchoOptions _echoOptions;
     private readonly VKWeavingOptions _weavingOptions;
     private readonly ILogger<DefaultEchoExtractStage> _logger;
@@ -31,16 +29,14 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
     public DefaultEchoExtractStage(
         IVKEchoStore echoStore,
         IVKPsycheSessionRepository sessionRepository,
-        IVKTokenCounter tokenCounter,
-        IVKModelCatalog modelCatalog,
+        IVKEchoRenderer echoRenderer,
         VKEchoOptions echoOptions,
         VKWeavingOptions weavingOptions,
         ILogger<DefaultEchoExtractStage> logger)
     {
         _echoStore = VKGuard.NotNull(echoStore);
         _sessionRepository = VKGuard.NotNull(sessionRepository);
-        _tokenCounter = VKGuard.NotNull(tokenCounter);
-        _modelCatalog = VKGuard.NotNull(modelCatalog);
+        _echoRenderer = VKGuard.NotNull(echoRenderer);
         _echoOptions = VKGuard.NotNull(echoOptions);
         _weavingOptions = VKGuard.NotNull(weavingOptions);
         _logger = VKGuard.NotNull(logger);
@@ -54,21 +50,22 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Echo))
+        var echoOptions = context.Args<VKEchoArgs>().Merge(_echoOptions);
+        if (!echoOptions.Enabled)
         {
             return VKResult.Success();
         }
 
-        if (context.Request.SessionId.IsEmpty)
+        var session = context.State<VKSessionThread>();
+        if (session is null)
         {
             return VKResult.Success();
         }
 
         // 1. Phase 1: Fetch lightweight metadata (supports Continuous multi-level parent ancestry tracing)
         var allMetas = new List<VKEchoMetadata>();
-        var currentSessionId = (VKSessionId?)context.Request.SessionId;
-        var mode = context.State<VKSessionThread>()?.Mode ?? VKSessionMode.Isolated;
+        var currentSessionId = (VKSessionId?)session.Id;
+        var mode = session.Mode;
 
         var visitedSessions = new HashSet<VKSessionId>();
 
@@ -84,10 +81,9 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             // Only trace parent dynamically if mode is Continuous
             if (mode == VKSessionMode.Continuous)
             {
-                var cachedSession = context.State<VKSessionThread>();
-                if (cachedSession is not null && cachedSession.Id == currentSessionId.Value)
+                if (session.Id == currentSessionId.Value)
                 {
-                    currentSessionId = cachedSession.ParentSessionId;
+                    currentSessionId = session.ParentSessionId;
                 }
                 else
                 {
@@ -107,16 +103,16 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         }
 
         // 2. Apply sliding window constraint (MaxWindowSize) if defined in request overrides or options
-        var maxWindowSize = context.Args<VKEchoArgs>()?.MaxWindowSize ?? _echoOptions.MaxWindowSize;
+        var maxWindowSize = echoOptions.MaxWindowSize;
         if (maxWindowSize.HasValue && maxWindowSize.Value > 0 && allMetas.Count > maxWindowSize.Value)
         {
             allMetas = [.. allMetas.Skip(allMetas.Count - maxWindowSize.Value)];
         }
 
         // 3. Filter System Messages if disabled
-        if (!_echoOptions.IncludeSystemMessages)
+        if (!echoOptions.IncludeSystemMessages)
         {
-            allMetas = [.. allMetas.Where(e => e.Role != VKChatRole.System)];
+            allMetas.RemoveAll(e => e.Role == VKChatRole.System);
         }
 
         if (allMetas.Count == 0)
@@ -124,44 +120,42 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             return VKResult.Success();
         }
 
-        // 4. Resolve Effective Token Budget dynamically based on IVKModelCatalog & MaxContextBudget
-        var modelId = context.Args<VKChatArgs>()?.ModelId ?? string.Empty;
-        var modelMetadata = _modelCatalog.GetModelMetadata(modelId);
-
+        // 4. Resolve Effective Token Budget from Weaving budget or resolved model metadata
+        var modelMetadata = context.State<VKAIModelMetadata>();
         var configuredBudget = context.Args<VKWeavingArgs>()?.MaxContextBudget ?? _weavingOptions.MaxContextBudget;
-        var totalLimit = configuredBudget.HasValue
-            ? Math.Min(configuredBudget.Value, modelMetadata.ContextWindowSize)
-            : modelMetadata.ContextWindowSize;
+        var totalLimit = configuredBudget ?? modelMetadata?.ContextWindowSize;
 
         int effectiveBudget = int.MaxValue;
-        if (_echoOptions.MaxTokens.HasValue && _echoOptions.MaxTokens.Value > 0)
+        if (echoOptions.MaxTokens.HasValue && echoOptions.MaxTokens.Value > 0)
         {
-            effectiveBudget = _echoOptions.MaxTokens.Value;
+            effectiveBudget = echoOptions.MaxTokens.Value;
         }
 
-        int dynamicLimit = (int)(totalLimit * _echoOptions.TokenBudgetRatio);
-        effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
+        if (totalLimit.HasValue)
+        {
+            int dynamicLimit = (int)(totalLimit.Value * echoOptions.TokenBudgetRatio);
+            effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
+        }
 
         // 5. Trim dialogue metadata in-memory (from oldest to newest)
         var retainedMetas = new List<VKEchoMetadata>();
 
-        if (_echoOptions.PruneUnit == VKEchoPruneUnit.Turn)
+        if (echoOptions.PruneUnit == VKEchoPruneUnit.Turn)
         {
             // Prune by whole Turns (alternating user dialog steps)
             var turns = GroupIntoTurns([.. allMetas]);
             int currentTokensSum = 0;
             int retainedTurnsCount = 0;
+            var maxTurns = echoOptions.MaxTurns;
 
             foreach (var turn in turns)
             {
-                int turnTokens = turn.Sum(GetMetaTokens);
-
-                var maxTurns = context.Args<VKEchoArgs>()?.MaxTurns ?? _echoOptions.MaxTurns;
                 if (maxTurns.HasValue && retainedTurnsCount >= maxTurns.Value)
                 {
                     break;
                 }
 
+                int turnTokens = turn.Sum(GetMetaTokens);
                 if (currentTokensSum + turnTokens <= effectiveBudget)
                 {
                     retainedMetas.InsertRange(0, turn); // Maintain oldest-first chronological order and intra-turn order
@@ -209,34 +203,32 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             return VKResult.Failure(tracesResult.Errors);
         }
 
-        var retained = tracesResult.Value.ToList();
+        // Defensive ordering: align traces strictly with Phase 1 chronological order
+        var traceMap = tracesResult.Value.ToDictionary(t => t.Id);
+        var retained = retainedMetas
+            .Where(m => traceMap.ContainsKey(m.Id))
+            .Select(m => traceMap[m.Id])
+            .ToList();
 
-        var tierType = VKPromptTierType.Echo;
-        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-            ? idx * PsycheConstants.Layout.TierCoordinateGap
-            : PromptLayout.DefaultRenderOrders[tierType];
+        context.SetState(retained);
 
         for (var i = 0; i < retained.Count; i++)
         {
             var echo = retained[i];
-            context.AddFragment(new VKPromptFragment()
+            var renderedContent = _echoRenderer.Render(echo, context);
+            context.AddEcho(new VKEchoFragment
             {
-                TierType = tierType,
-                RenderOrder = baseRenderOrder + i,
-                Metadata = echo,
-                Segment = new VKPromptSegment()
-                {
-                    Content = echo.Content,
-                    Role = echo.Role,
-                    RelativeDepth = VKPromptRelativeDepth.AfterEcho
-                }
+                Content = renderedContent,
+                Role = echo.Role,
+                TurnIndex = i,
+                TokenCount = echo.TokenCount
             });
         }
 
         var allMetasCount = allMetas.Count;
         var retainedCount = retained.Count;
         var trimmedCount = Math.Max(0, allMetasCount - retainedCount);
-        _logger.EchoTrimmed(context.Request.SessionId, allMetasCount, retainedCount);
+        _logger.EchoTrimmed(session.Id, allMetasCount, retainedCount);
 
         Activity.Current?.SetPsycheEchoCount(retainedCount, trimmedCount);
         if (retainedCount > 0)

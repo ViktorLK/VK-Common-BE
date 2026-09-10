@@ -7,6 +7,12 @@ namespace VK.Blocks.AI.Psyche;
 public enum VKPromptTierType : byte
 {
     /// <summary>
+    /// Dynamic in-memory prompt fragments injected at runtime without persistent entity identity.
+    /// Default fallback tier.
+    /// </summary>
+    Dynamic = 0,
+
+    /// <summary>
     /// Directive-level instructions (e.g., system prompts, core rules).
     /// </summary>
     Directive = 1,
@@ -17,17 +23,17 @@ public enum VKPromptTierType : byte
     Persona = 2,
 
     /// <summary>
-    /// Immediate user interaction or specific task prompts.
-    /// </summary>
-    Echo = 3,
-
-    /// <summary>
     /// Injected knowledge context (e.g., RAG results, memory).
     /// </summary>
-    Knowledge = 100,
+    Knowledge = 3,
 
     /// <summary>
     /// Custom prompt preset patterns woven into the prompt tapestry.
     /// </summary>
-    Pattern = 101
+    Pattern = 4,
+
+    /// <summary>
+    /// User profile and session preferences context.
+    /// </summary>
+    Profile = 5
 }

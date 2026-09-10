@@ -31,4 +31,10 @@ public sealed record VKPromptTemplate
     /// Gets the default variables and configuration values defined for this template.
     /// </summary>
     public IDictionary<string, object?> DefaultVariables { get; init; } = new Dictionary<string, object?>();
+
+    /// <summary>
+    /// Gets the estimated or precalculated token count for this prompt template.
+    /// Default is 0 (uncalculated).
+    /// </summary>
+    public int TokenCount { get; init; } = 0;
 }

@@ -43,5 +43,5 @@ internal static partial class DirectiveDiagnostics
         EventId = VKDirectiveDiagnosticsConstants.Logs.DirectiveResolved,
         Level = LogLevel.Information,
         Message = "Resolved Directive {DirectiveId}.")]
-    public static partial void DirectiveResolved(this ILogger logger, string directiveId);
+    public static partial void DirectiveResolved(this ILogger logger, VKDirectiveId directiveId);
 }

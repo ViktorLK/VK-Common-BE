@@ -43,44 +43,84 @@ public sealed class VKPsycheContext
     public bool IsSandbox => State<VKSessionThread>()?.Mode == VKSessionMode.Sandbox;
 
     // ==========================================
-    // 3. Active Prompt Fragments (Thread-Safe Immutable Collection)
+    // 3. Structured Prompt Containers (Thread-Safe Lock-Free Dual Engine)
     // ==========================================
 
-    private ImmutableList<VKPromptFragment> _fragments = ImmutableList<VKPromptFragment>.Empty;
+    private ImmutableList<VKPromptSegment> _segments = [];
+    private ImmutableList<VKEchoFragment> _echoes = [];
 
     /// <summary>
-    /// Gets all active prompt fragments currently accumulated in the context.
-    /// Lock-free, zero-allocation read access.
+    /// Gets all active prompt segments across all tiers (Core Tapestry).
     /// </summary>
-    public IReadOnlyList<VKPromptFragment> Fragments => _fragments;
+    public IReadOnlyList<VKPromptSegment> Segments => _segments;
 
     /// <summary>
-    /// Safely adds a newly extracted prompt fragment into the active collection.
+    /// Gets all active conversation history dialogue turns (Core Pillar 3 - Timeline).
+    /// </summary>
+    public IReadOnlyList<VKEchoFragment> Echoes => _echoes;
+
+    /// <summary>
+    /// Safely adds a prompt segment into the active tapestry collection.
     /// Uses CAS (Compare-And-Swap) for atomic, lock-free thread safety.
     /// </summary>
-    /// <param name="fragment">The prompt fragment to add.</param>
-    public void AddFragment(VKPromptFragment fragment)
+    /// <param name="segment">The prompt segment to add.</param>
+    public void AddSegment(VKPromptSegment segment)
     {
-        VKGuard.NotNull(fragment);
-        ImmutableList<VKPromptFragment> initial, updated;
+        VKGuard.NotNull(segment);
+        if (string.IsNullOrWhiteSpace(segment.Content))
+        {
+            return;
+        }
+
+        ImmutableList<VKPromptSegment> initial, updated;
         do
         {
-            initial = _fragments;
-            updated = initial.Add(fragment);
+            initial = _segments;
+            updated = initial.Add(segment);
         }
-        while (Interlocked.CompareExchange(ref _fragments, updated, initial) != initial);
+        while (Interlocked.CompareExchange(ref _segments, updated, initial) != initial);
     }
 
     /// <summary>
-    /// Safely overrides the active fragments collection (typically used during truncation/pruning).
+    /// Overrides the active prompt segments collection.
+    /// </summary>
+    /// <param name="segments">The new list of active prompt segments.</param>
+    public void SetSegments(IReadOnlyList<VKPromptSegment> segments)
+    {
+        VKGuard.NotNull(segments);
+        Interlocked.Exchange(ref _segments, [.. segments]);
+    }
+
+    /// <summary>
+    /// Adds a conversation history dialogue turn into the context under the Echo pillar.
     /// Uses CAS (Compare-And-Swap) for atomic, lock-free thread safety.
     /// </summary>
-    /// <param name="fragments">The new list of active prompt fragments.</param>
-    public void SetFragments(IReadOnlyList<VKPromptFragment> fragments)
+    /// <param name="fragment">The dialogue turn fragment to add.</param>
+    public void AddEcho(VKEchoFragment fragment)
     {
-        VKGuard.NotNull(fragments);
-        var newImmutableList = fragments.ToImmutableList();
-        Interlocked.Exchange(ref _fragments, newImmutableList);
+        VKGuard.NotNull(fragment);
+        if (string.IsNullOrWhiteSpace(fragment.Content))
+        {
+            return;
+        }
+
+        ImmutableList<VKEchoFragment> initial, updated;
+        do
+        {
+            initial = _echoes;
+            updated = initial.Add(fragment);
+        }
+        while (Interlocked.CompareExchange(ref _echoes, updated, initial) != initial);
+    }
+
+    /// <summary>
+    /// Overrides the retained dialogue turns (typically used during token budget truncation).
+    /// </summary>
+    /// <param name="echoes">The retained dialogue turns.</param>
+    public void SetEchoes(IReadOnlyList<VKEchoFragment> echoes)
+    {
+        VKGuard.NotNull(echoes);
+        Interlocked.Exchange(ref _echoes, [.. echoes]);
     }
 
     // ==========================================
