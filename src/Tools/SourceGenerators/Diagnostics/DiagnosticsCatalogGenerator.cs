@@ -162,7 +162,7 @@ public sealed class DiagnosticsCatalogGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
         sb.AppendLine($"/// Auto-generated compile-time Observability and Diagnostics Catalog for {assemblyName}.");
-        sb.AppendLine("/// </summary>");
+        sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated observability catalog metadata without business logic.\")]");
         sb.AppendLine("public static class VKObservabilityCatalog");
         sb.AppendLine("{");
 

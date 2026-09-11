@@ -158,10 +158,9 @@ internal sealed class DefaultPsycheModelFactory(
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null,
-        VKSessionKnowledgeState? knowledgeState = null)
+        string? forkPointRef = null)
     {
-        return CreateSession(new VKSessionId(_guidGenerator.Create()), mode, parentSessionId, forkSourceSessionId, forkPointRef, knowledgeState);
+        return CreateSession(new VKSessionId(_guidGenerator.Create()), mode, parentSessionId, forkSourceSessionId, forkPointRef);
     }
 
     /// <inheritdoc />
@@ -170,8 +169,7 @@ internal sealed class DefaultPsycheModelFactory(
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null,
-        VKSessionKnowledgeState? knowledgeState = null)
+        string? forkPointRef = null)
     {
         var now = _timeProvider.GetUtcNow();
         return VKGuard.NotNull(VKSessionThread.Create(
@@ -180,8 +178,7 @@ internal sealed class DefaultPsycheModelFactory(
             mode: mode,
             parentSessionId: parentSessionId,
             forkSourceSessionId: forkSourceSessionId,
-            forkPointRef: forkPointRef,
-            knowledgeState: knowledgeState).Value);
+            forkPointRef: forkPointRef).Value);
     }
 
     // --- Profile ---

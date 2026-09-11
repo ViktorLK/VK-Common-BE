@@ -18,7 +18,7 @@ public sealed class AIPsycheRegistrationTests : VKUnitTestBase
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IVKGuidGenerator>(new VKFakeGuidGenerator());
         services.AddSingleton(GetMock<IVKTokenCounter>().Object);
-        services.AddSingleton(GetMock<IVKModelCatalog>().Object);
+        services.AddSingleton(GetMock<IVKVKAIModelCatalog>().Object);
         services.AddSingleton(GetMock<IVKPromptTemplateEngine>().Object);
 
         // Prerequisite markers [AP.02]

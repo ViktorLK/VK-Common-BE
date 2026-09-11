@@ -19,33 +19,27 @@ internal sealed partial class KnowledgeFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddSingleton<InMemoryKnowledgeRepository>();
-        services.TryAddSingleton<IVKPsycheKnowledgeRepository>(sp => sp.GetRequiredService<InMemoryKnowledgeRepository>());
-        services.TryAddSingleton<IVKReadRepository<VKKnowledgeEntry, VKKnowledgeId>>(sp => sp.GetRequiredService<InMemoryKnowledgeRepository>());
-        services.TryAddSingleton<IVKKnowledgeRenderer, DefaultKnowledgeRenderer>();
+        services.TryAddSingleton<IVKPsycheKnowledgeRepository, InMemoryKnowledgeRepository>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultKnowledgeStage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultKnowledgeFinalizerStage>());
-
-        // Register non-generic extractor and formatter
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultKnowledgeFormatter>());
     }
 
     // [SG Hook]
     static partial void ValidateFeatureCustom(VKKnowledgeOptions options, List<string> failures)
     {
-        if (options.MaxEntriesToInject < 0)
+        if (options.MaxEntriesToInject is <= 0)
         {
-            failures.Add("MaxEntriesToInject must be non-negative.");
+            failures.Add("MaxEntriesToInject, if set, must be greater than zero.");
         }
 
-        if (options.ReservedTokens < 0)
+        if (options.ReservedTokens is <= 0)
         {
-            failures.Add("ReservedTokens must be non-negative.");
+            failures.Add("ReservedTokens, if set, must be greater than zero.");
         }
 
-        if (options.SemanticThreshold is < 0 or > 1)
+        if (string.IsNullOrWhiteSpace(options.DefaultXmlTag))
         {
-            failures.Add("SemanticThreshold must be between 0 and 1.");
+            failures.Add("DefaultXmlTag must not be null or whitespace.");
         }
     }
 }

@@ -16,6 +16,13 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Echo;
 /// </summary>
 public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
 {
+    public DefaultEchoExtractStageTests()
+    {
+        GetMock<IVKEchoRenderer>()
+            .Setup(r => r.Render(It.IsAny<VKEchoTrace>(), It.IsAny<VKPsycheContext>()))
+            .Returns((VKEchoTrace t, VKPsycheContext _) => t.Content);
+    }
+
     private void SetupEchoStore(VKSessionId sessionId, List<VKEchoTrace> traces)
     {
         var metas = traces.Select(t => new VKEchoMetadata
@@ -44,14 +51,11 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
     public async Task ExecuteAsync_WhenHistoryExists_InjectsEchoFragments()
     {
         // Arrange
-        GetMock<IVKModelCatalog>()
-            .Setup(m => m.GetModelMetadata(It.IsAny<string>()))
-            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
-
         var echoOptions = new VKEchoOptions { Enabled = true };
         var weavingOptions = new VKWeavingOptions();
 
-        var sessionId = new VKSessionThreadBuilder().Build().Id;
+        var session = new VKSessionThreadBuilder().Build();
+        var sessionId = session.Id;
         var history = new List<VKEchoTrace>
         {
             new VKEchoTraceBuilder().WithSessionId(sessionId).WithRole(VKChatRole.User).WithContent("Message 1").Build(),
@@ -64,29 +68,25 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
             GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
+            GetMockObject<IVKEchoRenderer>(),
             echoOptions,
             weavingOptions,
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
+        context.SetState(session);
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
         result.Should().BeSuccess();
-        context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).Should().HaveCount(3);
+        context.Echoes.Should().HaveCount(3);
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenDisabled_ReturnsSuccessWithoutInjectingFragments()
     {
         // Arrange
-        GetMock<IVKModelCatalog>()
-            .Setup(m => m.GetModelMetadata(It.IsAny<string>()))
-            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
-
         var echoOptions = new VKEchoOptions { Enabled = false };
         var weavingOptions = new VKWeavingOptions();
 
@@ -96,8 +96,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
             GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
+            GetMockObject<IVKEchoRenderer>(),
             echoOptions,
             weavingOptions,
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
@@ -108,11 +107,11 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).Should().BeEmpty();
+        context.Echoes.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenEchoTierDisabledInArgs_ReturnsSuccessWithoutFetchingHistory()
+    public async Task ExecuteAsync_WhenDisabledInArgs_ReturnsSuccessWithoutFetchingHistory()
     {
         // Arrange
         var echoOptions = new VKEchoOptions { Enabled = true };
@@ -122,15 +121,14 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
             GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
+            GetMockObject<IVKEchoRenderer>(),
             echoOptions,
             weavingOptions,
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder()
             .WithSessionId(sessionId)
-            .WithRequestArgs(new VKWeavingArgs { DisabledTiers = [VKPromptTierType.Echo] })
+            .WithRequestArgs(new VKEchoArgs { Enabled = false })
             .BuildContext();
 
         // Act
@@ -151,8 +149,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
             GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
+            GetMockObject<IVKEchoRenderer>(),
             echoOptions,
             weavingOptions,
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
@@ -173,10 +170,6 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
     public async Task ExecuteAsync_WhenContinuousMode_TracesParentAncestry()
     {
         // Arrange
-        GetMock<IVKModelCatalog>()
-            .Setup(m => m.GetModelMetadata(It.IsAny<string>()))
-            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
-
         var parentSession = new VKSessionThreadBuilder()
             .WithMode(VKSessionMode.Continuous)
             .Build();
@@ -230,8 +223,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
             GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
+            GetMockObject<IVKEchoRenderer>(),
             echoOptions,
             weavingOptions,
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
@@ -246,21 +238,17 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        var fragments = context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).ToList();
-        fragments.Should().HaveCount(2);
-        fragments[0].Segment.Content.Should().Be("Parent Msg");
-        fragments[1].Segment.Content.Should().Be("Child Msg");
+        context.Echoes.Should().HaveCount(2);
+        context.Echoes[0].Content.Should().Be("Parent Msg");
+        context.Echoes[1].Content.Should().Be("Child Msg");
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenIncludeSystemMessagesIsFalse_FiltersOutSystemRoleMessages()
     {
         // Arrange
-        GetMock<IVKModelCatalog>()
-            .Setup(m => m.GetModelMetadata(It.IsAny<string>()))
-            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
-
-        var sessionId = new VKSessionThreadBuilder().Build().Id;
+        var session = new VKSessionThreadBuilder().Build();
+        var sessionId = session.Id;
         var history = new List<VKEchoTrace>
         {
             new VKEchoTraceBuilder().WithSessionId(sessionId).WithRole(VKChatRole.System).WithContent("System Injected Echo").Build(),
@@ -275,33 +263,29 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
             GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
+            GetMockObject<IVKEchoRenderer>(),
             echoOptions,
             weavingOptions,
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
+        context.SetState(session);
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
         result.Should().BeSuccess();
-        var fragments = context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).ToList();
-        fragments.Should().ContainSingle();
-        fragments[0].Segment.Role.Should().Be(VKChatRole.User);
+        context.Echoes.Should().ContainSingle();
+        context.Echoes[0].Role.Should().Be(VKChatRole.User);
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenMaxWindowSizeConfigured_LimitsRetainedEchoCount()
     {
         // Arrange
-        GetMock<IVKModelCatalog>()
-            .Setup(m => m.GetModelMetadata(It.IsAny<string>()))
-            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
-
-        var sessionId = new VKSessionThreadBuilder().Build().Id;
+        var session = new VKSessionThreadBuilder().Build();
+        var sessionId = session.Id;
         var history = Enumerable.Range(1, 10).Select(i => new VKEchoTraceBuilder()
             .WithSessionId(sessionId)
             .WithRole(VKChatRole.User)
@@ -316,35 +300,31 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
             GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
+            GetMockObject<IVKEchoRenderer>(),
             echoOptions,
             weavingOptions,
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
+        context.SetState(session);
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
         result.Should().BeSuccess();
-        var fragments = context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).ToList();
-        fragments.Should().HaveCount(3);
-        fragments[0].Segment.Content.Should().Be("Msg 8");
-        fragments[1].Segment.Content.Should().Be("Msg 9");
-        fragments[2].Segment.Content.Should().Be("Msg 10");
+        context.Echoes.Should().HaveCount(3);
+        context.Echoes[0].Content.Should().Be("Msg 8");
+        context.Echoes[1].Content.Should().Be("Msg 9");
+        context.Echoes[2].Content.Should().Be("Msg 10");
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenPruneUnitIsTurn_PrunesByTurnAndRespectsMaxTurns()
     {
         // Arrange
-        GetMock<IVKModelCatalog>()
-            .Setup(m => m.GetModelMetadata(It.IsAny<string>()))
-            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
-
-        var sessionId = new VKSessionThreadBuilder().Build().Id;
+        var session = new VKSessionThreadBuilder().Build();
+        var sessionId = session.Id;
         var history = new List<VKEchoTrace>
         {
             new VKEchoTraceBuilder().WithSessionId(sessionId).WithRole(VKChatRole.User).WithContent("T1 User").Build(),
@@ -366,67 +346,21 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         var stage = new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
             GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
+            GetMockObject<IVKEchoRenderer>(),
             echoOptions,
             weavingOptions,
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
+        context.SetState(session);
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
         result.Should().BeSuccess();
-        var fragments = context.Fragments.Where(f => f.TierType == VKPromptTierType.Echo).ToList();
-        fragments.Should().HaveCount(2);
-        fragments[0].Segment.Content.Should().Be("T2 User");
-        fragments[1].Segment.Content.Should().Be("T2 Assistant");
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_WhenTierRenderOrderOverridesProvided_AppliesCustomRenderOrder()
-    {
-        // Arrange
-        GetMock<IVKModelCatalog>()
-            .Setup(m => m.GetModelMetadata(It.IsAny<string>()))
-            .Returns(new VKModelMetadata { ModelId = "test-model", MaxOutputTokens = 2048, ContextWindowSize = 4096 });
-
-        var sessionId = new VKSessionThreadBuilder().Build().Id;
-        var history = new List<VKEchoTrace>
-        {
-            new VKEchoTraceBuilder().WithSessionId(sessionId).WithRole(VKChatRole.User).WithContent("Msg").Build()
-        };
-
-        SetupEchoStore(sessionId, history);
-
-        var echoOptions = new VKEchoOptions { Enabled = true };
-        var weavingOptions = new VKWeavingOptions();
-
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKTokenCounter>(),
-            GetMockObject<IVKModelCatalog>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
-
-        var (context, _) = new VKPsycheRequestBuilder()
-            .WithSessionId(sessionId)
-            .WithRequestArgs(new VKWeavingArgs
-            {
-                TierRenderOrderOverrides = [VKPromptTierType.Directive, VKPromptTierType.Echo]
-            })
-            .BuildContext();
-
-        // Act
-        var result = await stage.ExecuteAsync(context, CancellationToken.None);
-
-        // Assert
-        result.Should().BeSuccess();
-        var fragment = context.Fragments.First(f => f.TierType == VKPromptTierType.Echo);
-        fragment.RenderOrder.Should().Be(10000);
+        context.Echoes.Should().HaveCount(2);
+        context.Echoes[0].Content.Should().Be("T2 User");
+        context.Echoes[1].Content.Should().Be("T2 Assistant");
     }
 }

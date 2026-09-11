@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Builders;
 /// </summary>
 public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
 {
-    private readonly List<VKPersonaId> _personaIds = [];
+    private VKPersonaId? _personaId;
     private readonly List<VKDirectiveId> _directiveIds = [];
     private readonly List<VKPatternId> _patternIds = [];
     private VKSessionId _sessionId = new(Guid.NewGuid());
@@ -21,13 +21,7 @@ public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
 
     public VKPsycheRequestBuilder WithPersonaId(VKPersonaId personaId)
     {
-        _personaIds.Add(personaId);
-        return this;
-    }
-
-    public VKPsycheRequestBuilder WithPersonaIds(IEnumerable<VKPersonaId> personaIds)
-    {
-        _personaIds.AddRange(personaIds);
+        _personaId = personaId;
         return this;
     }
 
@@ -107,7 +101,7 @@ public sealed class VKPsycheRequestBuilder : VKTestDataBuilder<VKPsycheRequest>
     {
         var req = new VKPsycheRequest
         {
-            PersonaIds = _personaIds.Count > 0 ? [.. _personaIds] : [new VKPersonaId(Guid.NewGuid())],
+            PersonaId = _personaId ?? new VKPersonaId(Guid.NewGuid()),
             DirectiveIds = [.. _directiveIds],
             PatternIds = [.. _patternIds],
             SessionId = _sessionId,

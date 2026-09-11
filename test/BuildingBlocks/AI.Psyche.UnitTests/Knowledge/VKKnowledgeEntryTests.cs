@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 
@@ -13,7 +16,7 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
     {
         // Arrange
         var id = new VKKnowledgeId(Guid.NewGuid());
-        var segment = new VKPromptSegment { Content = "Knowledge Text" };
+        var segment = new VKPromptSegment { Content = "Knowledge Text", TagName = "lore" };
         var keys = new List<VKKnowledgeKey>
         {
             new() { Text = "dragon", MatchType = VKKnowledgeMatchType.Contains, CaseSensitive = false }
@@ -25,7 +28,6 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
             segment,
             VKKnowledgeTriggerType.Keyword,
             VKKnowledgeFilterLogic.AndAll,
-            xmlTag: "lore",
             keys: keys);
 
         // Assert
@@ -54,7 +56,7 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
     {
         // Arrange
         var id = new VKKnowledgeId(Guid.NewGuid());
-        var segment = new VKPromptSegment { Content = "Rehydrated" };
+        var segment = new VKPromptSegment { Content = "Rehydrated", TagName = "tag" };
 
         // Act
         var entry = VKKnowledgeEntry.Rehydrate(
@@ -62,7 +64,6 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
             segment,
             VKKnowledgeTriggerType.Constant,
             VKKnowledgeFilterLogic.AndAny,
-            "tag",
             []);
 
         // Assert
@@ -100,14 +101,12 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
         // Act
         var result = entry.UpdateTriggerSettings(
             VKKnowledgeTriggerType.Keyword,
-            VKKnowledgeFilterLogic.AndAll,
-            "newTag");
+            VKKnowledgeFilterLogic.AndAll);
 
         // Assert
         result.Should().BeSuccess();
         entry.TriggerType.Should().Be(VKKnowledgeTriggerType.Keyword);
         entry.FilterLogic.Should().Be(VKKnowledgeFilterLogic.AndAll);
-        entry.XmlTag.Should().Be("newTag");
     }
 
     [Fact]

@@ -11,8 +11,11 @@ public static class VKPsycheSemanticExtensions
     public const string StageKey = "ai.psyche.stage";
     public const string CorrelationIdKey = "ai.psyche.correlation_id";
     public const string MatchedCountKey = "ai.psyche.knowledge.matched_count";
+    public const string InjectedKnowledgeKey = "ai.psyche.knowledge.injected_count";
+    public const string TruncatedKnowledgeKey = "ai.psyche.knowledge.truncated_count";
     public const string RetainedEchoKey = "ai.psyche.echo.retained_count";
     public const string TrimmedEchoKey = "ai.psyche.echo.trimmed_count";
+    public const string SavedEchoKey = "ai.psyche.echo.saved_count";
     public const string MessageCountKey = "ai.psyche.weaving.message_count";
 
     /// <summary>
@@ -43,6 +46,19 @@ public static class VKPsycheSemanticExtensions
     }
 
     /// <summary>
+    /// Sets the knowledge finalizer statistics.
+    /// </summary>
+    public static Activity? SetPsycheKnowledgeFinalizedCount(this Activity? activity, int injected, int truncated)
+    {
+        if (activity is null)
+            return null;
+
+        activity.SetTag(InjectedKnowledgeKey, injected);
+        activity.SetTag(TruncatedKnowledgeKey, truncated);
+        return activity;
+    }
+
+    /// <summary>
     /// Sets the dialogue echo retention statistics.
     /// </summary>
     public static Activity? SetPsycheEchoCount(this Activity? activity, int retained, int trimmed)
@@ -52,6 +68,15 @@ public static class VKPsycheSemanticExtensions
 
         activity.SetTag(RetainedEchoKey, retained);
         activity.SetTag(TrimmedEchoKey, trimmed);
+        return activity;
+    }
+
+    /// <summary>
+    /// Sets the dialogue echo persistence statistics.
+    /// </summary>
+    public static Activity? SetPsycheEchoSavedCount(this Activity? activity, int savedCount)
+    {
+        activity?.SetTag(SavedEchoKey, savedCount);
         return activity;
     }
 

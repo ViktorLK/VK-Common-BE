@@ -56,5 +56,17 @@ internal static partial class KnowledgeDiagnostics
         EventId = VKKnowledgeDiagnosticsConstants.Logs.KnowledgeMatched,
         Level = LogLevel.Information,
         Message = "Knowledge stage matched {Count} entries for Session: {SessionId}, CorrelationId: {CorrelationId}, Duration: {DurationMs}ms")]
-    public static partial void KnowledgeMatched(this ILogger logger, int count, string sessionId, string correlationId, double durationMs);
+    public static partial void KnowledgeMatched(this ILogger logger, int count, VKSessionId sessionId, string correlationId, double durationMs);
+
+    [LoggerMessage(
+        EventId = VKKnowledgeDiagnosticsConstants.Logs.KnowledgeFinalized,
+        Level = LogLevel.Information,
+        Message = "Knowledge finalized for Session: {SessionId}, CorrelationId: {CorrelationId}. Injected: {InjectedCount}, Truncated: {TruncatedCount}, TotalTokens: {TotalTokens}")]
+    public static partial void KnowledgeFinalized(
+        this ILogger logger,
+        VKSessionId sessionId,
+        string correlationId,
+        int injectedCount,
+        int truncatedCount,
+        int totalTokens);
 }

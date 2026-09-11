@@ -18,6 +18,7 @@ public static class VKKnowledgeDiagnosticsConstants
         public const int LedgerNotImplemented = VKDiagnosticOffsets.AI_Psyche_Knowledge + 3;
         public const int KnowledgeMatched = VKDiagnosticOffsets.AI_Psyche_Knowledge + 4;
         public const int KnowledgeEvaluationCompleted = VKDiagnosticOffsets.AI_Psyche_Knowledge + 5;
+        public const int KnowledgeFinalized = VKDiagnosticOffsets.AI_Psyche_Knowledge + 6;
     }
 
     // Metrics (Meter/Counter/Histogram Names)

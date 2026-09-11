@@ -161,7 +161,9 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
                         $"{info.DomainType.Name}.{parentProp.Name}"));
                 }
 
-                var voProps = nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer);
+                var voProps = nestedType.GetMembers().OfType<IPropertySymbol>()
+                    .Where(p => !p.IsStatic && !p.IsIndexer && p.DeclaredAccessibility == Accessibility.Public &&
+                                !p.GetAttributes().Any(a => a.AttributeClass?.Name is "VKPersistIgnoreAttribute" or "NotMappedAttribute"));
                 foreach (var vp in voProps)
                 {
                     if (!entityProps.Any(ep => string.Equals(ep.Name, vp.Name, StringComparison.OrdinalIgnoreCase)))
@@ -308,6 +310,11 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             {
                 if (!member.IsStatic && !member.IsIndexer && !list.Any(p => p.Name == member.Name))
                 {
+                    if (member.DeclaredAccessibility != Accessibility.Public ||
+                        member.GetAttributes().Any(a => a.AttributeClass?.Name is "VKPersistIgnoreAttribute" or "NotMappedAttribute"))
+                    {
+                        continue;
+                    }
                     list.Add(member);
                 }
             }
@@ -370,7 +377,9 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             {
                 sb.AppendLine($"            {domainProp.Name} = new {nestedType.ToDisplayString()}");
                 sb.AppendLine("            {");
-                var nestedProps = nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer && p.SetMethod is not null);
+                var nestedProps = nestedType.GetMembers().OfType<IPropertySymbol>()
+                    .Where(p => !p.IsStatic && !p.IsIndexer && p.DeclaredAccessibility == Accessibility.Public && p.SetMethod is not null &&
+                                !p.GetAttributes().Any(a => a.AttributeClass?.Name is "VKPersistIgnoreAttribute" or "NotMappedAttribute"));
                 foreach (var np in nestedProps)
                 {
                     var matchingEntityProp = entityProps.FirstOrDefault(p => string.Equals(p.Name, np.Name, StringComparison.OrdinalIgnoreCase));
@@ -457,7 +466,9 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             var parentProp = domainProps.FirstOrDefault(p => string.Equals(p.Name, flatName, StringComparison.OrdinalIgnoreCase));
             if (parentProp?.Type is INamedTypeSymbol nestedType)
             {
-                foreach (var np in nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer))
+                foreach (var np in nestedType.GetMembers().OfType<IPropertySymbol>()
+                    .Where(p => !p.IsStatic && !p.IsIndexer && p.DeclaredAccessibility == Accessibility.Public &&
+                                !p.GetAttributes().Any(a => a.AttributeClass?.Name is "VKPersistIgnoreAttribute" or "NotMappedAttribute")))
                 {
                     flattenLookup[np.Name] = (flatName, np);
                 }
@@ -567,7 +578,9 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             var parentProp = domainProps.FirstOrDefault(p => string.Equals(p.Name, flatName, StringComparison.OrdinalIgnoreCase));
             if (parentProp?.Type is INamedTypeSymbol nestedType)
             {
-                foreach (var np in nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer))
+                foreach (var np in nestedType.GetMembers().OfType<IPropertySymbol>()
+                    .Where(p => !p.IsStatic && !p.IsIndexer && p.DeclaredAccessibility == Accessibility.Public &&
+                                !p.GetAttributes().Any(a => a.AttributeClass?.Name is "VKPersistIgnoreAttribute" or "NotMappedAttribute")))
                 {
                     flattenLookup[np.Name] = (flatName, np);
                 }
@@ -727,7 +740,9 @@ public sealed class VKPersistMapperGenerator : IIncrementalGenerator
             var sb = new StringBuilder();
             sb.AppendLine($"new {nestedType.ToDisplayString()}");
             sb.AppendLine("            {");
-            var nestedProps = nestedType.GetMembers().OfType<IPropertySymbol>().Where(p => !p.IsStatic && !p.IsIndexer && p.SetMethod is not null);
+            var nestedProps = nestedType.GetMembers().OfType<IPropertySymbol>()
+                .Where(p => !p.IsStatic && !p.IsIndexer && p.DeclaredAccessibility == Accessibility.Public && p.SetMethod is not null &&
+                            !p.GetAttributes().Any(a => a.AttributeClass?.Name is "VKPersistIgnoreAttribute" or "NotMappedAttribute"));
             foreach (var np in nestedProps)
             {
                 var matchingEntityProp = entityProps.FirstOrDefault(p => string.Equals(p.Name, np.Name, StringComparison.OrdinalIgnoreCase));

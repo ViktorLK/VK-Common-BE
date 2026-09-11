@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using VK.Blocks.Core;
@@ -8,7 +9,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Domain aggregate root representing an entry in a knowledge/worldbook.
 /// Follows AP.01, CS.01.
 /// </summary>
-public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>, IVKFragmentMetadata
+public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>
 {
     // =========================================================================
     // Properties
@@ -30,14 +31,20 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>, IVKFragme
     public VKKnowledgeFilterLogic FilterLogic { get; private set; }
 
     /// <summary>
-    /// Gets the optional XML wrapper tag used when this entry is woven into the prompt.
-    /// </summary>
-    public string? XmlTag { get; private set; }
-
-    /// <summary>
     /// Gets the structured keys that trigger this entry.
     /// </summary>
     public IReadOnlyList<VKKnowledgeKey> Keys { get; private set; }
+
+    /// <summary>
+    /// Gets the precalculated token count of this knowledge entry's segment.
+    /// Default is 0 (uncalculated).
+    /// </summary>
+    public int TokenCount => Segment?.TokenCount ?? 0;
+
+    /// <summary>
+    /// Gets the optional XML wrapper tag name of this knowledge entry's segment.
+    /// </summary>
+    public string? XmlTag => Segment?.TagName;
 
     // =========================================================================
     // Constructor (Private)
@@ -48,13 +55,11 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>, IVKFragme
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType,
         VKKnowledgeFilterLogic filterLogic,
-        string? xmlTag,
         IReadOnlyList<VKKnowledgeKey>? keys) : base(id)
     {
         Segment = segment;
         TriggerType = triggerType;
         FilterLogic = filterLogic;
-        XmlTag = xmlTag;
         Keys = keys ?? [];
     }
 
@@ -70,14 +75,13 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>, IVKFragme
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        string? xmlTag = null,
         IReadOnlyList<VKKnowledgeKey>? keys = null)
     {
         // [AP.01]
         VKGuard.NotDefault(id);
         VKGuard.NotNull(segment);
 
-        return VKResult.Success(new VKKnowledgeEntry(id, segment, triggerType, filterLogic, xmlTag, keys));
+        return VKResult.Success(new VKKnowledgeEntry(id, segment, triggerType, filterLogic, keys));
     }
 
     /// <summary>
@@ -88,10 +92,9 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>, IVKFragme
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType,
         VKKnowledgeFilterLogic filterLogic,
-        string? xmlTag,
         IReadOnlyList<VKKnowledgeKey>? keys)
     {
-        return new VKKnowledgeEntry(id, segment, triggerType, filterLogic, xmlTag, keys);
+        return new VKKnowledgeEntry(id, segment, triggerType, filterLogic, keys);
     }
 
     // =========================================================================
@@ -108,16 +111,14 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>, IVKFragme
     }
 
     /// <summary>
-    /// Updates trigger activation strategies and XML wrapping tag.
+    /// Updates trigger activation strategies.
     /// </summary>
     public VKResult UpdateTriggerSettings(
         VKKnowledgeTriggerType triggerType,
-        VKKnowledgeFilterLogic filterLogic,
-        string? xmlTag)
+        VKKnowledgeFilterLogic filterLogic)
     {
         TriggerType = triggerType;
         FilterLogic = filterLogic;
-        XmlTag = xmlTag;
         return VKResult.Success();
     }
 
@@ -138,6 +139,18 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>, IVKFragme
         VKGuard.NotNull(key);
         var list = new List<VKKnowledgeKey>(Keys) { key };
         Keys = list;
+        return VKResult.Success();
+    }
+
+    /// <summary>
+    /// Updates the precalculated token count for this knowledge entry's segment.
+    /// </summary>
+    public VKResult UpdateTokenCount(int tokenCount)
+    {
+        if (Segment is not null)
+        {
+            Segment = Segment with { TokenCount = Math.Max(0, tokenCount) };
+        }
         return VKResult.Success();
     }
 }

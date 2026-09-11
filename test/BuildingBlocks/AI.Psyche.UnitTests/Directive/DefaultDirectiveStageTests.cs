@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.AI.Psyche.Directive.Internal;
@@ -13,7 +16,7 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Directive;
 public sealed class DefaultDirectiveStageTests : VKUnitTestBase
 {
     [Fact]
-    public async Task ExecuteAsync_HappyPath_AddsDirectiveFragment()
+    public async Task ExecuteAsync_HappyPath_AddsDirectiveSegment()
     {
         // Arrange
         var directive = new VKDirectiveCharterBuilder()
@@ -24,11 +27,15 @@ public sealed class DefaultDirectiveStageTests : VKUnitTestBase
             .Setup(s => s.ListByIdsAsync(It.IsAny<IReadOnlyList<VKDirectiveId>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(VKResult.Success<IReadOnlyList<VKDirectiveCharter>>([directive]));
 
+        GetMock<IVKDirectiveRenderer>()
+            .Setup(r => r.Render(directive))
+            .Returns("Rendered Directive Text");
+
         var options = new VKDirectiveOptions { Enabled = true };
         var stage = new DefaultDirectiveStage(
             options,
             GetMockObject<IVKPsycheDirectiveRepository>(),
-            new VKWeavingOptions(),
+            GetMockObject<IVKDirectiveRenderer>(),
             GetMockObject<ILogger<DefaultDirectiveStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder()
@@ -41,20 +48,19 @@ public sealed class DefaultDirectiveStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        var fragment = context.Fragments.Should().ContainSingle(f => f.TierType == VKPromptTierType.Directive).Subject;
-        fragment.Metadata.Should().Be(directive);
+        var segment = context.Segments.Should().ContainSingle(s => s.Tier == VKPromptTierType.Directive).Subject;
+        segment.Content.Should().Be("Rendered Directive Text");
     }
 
     [Fact]
-    public async Task ExecuteAsync_WhenDisabledTiersContainsDirective_ReturnsSuccessWithoutAddingFragment()
+    public async Task ExecuteAsync_WhenDisabled_ReturnsSuccessWithoutAddingSegment()
     {
         // Arrange
-        var weavingOptions = new VKWeavingOptions { DisabledTiers = [VKPromptTierType.Directive] };
-        var options = new VKDirectiveOptions { Enabled = true };
+        var options = new VKDirectiveOptions { Enabled = false };
         var stage = new DefaultDirectiveStage(
             options,
             GetMockObject<IVKPsycheDirectiveRepository>(),
-            weavingOptions,
+            GetMockObject<IVKDirectiveRenderer>(),
             GetMockObject<ILogger<DefaultDirectiveStage>>());
 
         var directiveId = new VKDirectiveCharterBuilder().Build().Id;
@@ -68,7 +74,7 @@ public sealed class DefaultDirectiveStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        context.Fragments.Should().NotContain(f => f.TierType == VKPromptTierType.Directive);
+        context.Segments.Should().NotContain(s => s.Tier == VKPromptTierType.Directive);
         GetMock<IVKPsycheDirectiveRepository>()
             .Verify(s => s.ListByIdsAsync(It.IsAny<IReadOnlyList<VKDirectiveId>>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -86,7 +92,7 @@ public sealed class DefaultDirectiveStageTests : VKUnitTestBase
         var stage = new DefaultDirectiveStage(
             options,
             GetMockObject<IVKPsycheDirectiveRepository>(),
-            new VKWeavingOptions(),
+            GetMockObject<IVKDirectiveRenderer>(),
             GetMockObject<ILogger<DefaultDirectiveStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder()
@@ -109,7 +115,7 @@ public sealed class DefaultDirectiveStageTests : VKUnitTestBase
         var stage = new DefaultDirectiveStage(
             options,
             GetMockObject<IVKPsycheDirectiveRepository>(),
-            new VKWeavingOptions(),
+            GetMockObject<IVKDirectiveRenderer>(),
             GetMockObject<ILogger<DefaultDirectiveStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();

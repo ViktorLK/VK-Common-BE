@@ -49,6 +49,14 @@ internal static partial class EchoDiagnostics
         [VKMetricTag(VKEchoDiagnosticsConstants.Tags.StageName)] string stage,
         [VKMetricTag(VKPsycheDiagnosticsConstants.Tags.IsSuccess)] bool success);
 
+    [VKMetricCounter(
+        VKEchoDiagnosticsConstants.Metrics.SavedEchoesCount,
+        Unit = "echoes",
+        Description = "Total number of dialogue echoes persisted to store.")]
+    public static partial void RecordSavedEchoes(
+        long count,
+        [VKMetricTag(VKEchoDiagnosticsConstants.Tags.StageName)] string stage);
+
     // --- [LoggerMessage] Generators (OR.01) ---
 
     [LoggerMessage(
@@ -68,4 +76,16 @@ internal static partial class EchoDiagnostics
         Level = LogLevel.Information,
         Message = "Trimmed dialogue history for session {SessionId}. Original count: {OriginalCount}, Retained count: {RetainedCount}.")]
     public static partial void EchoTrimmed(this ILogger logger, VKSessionId sessionId, int originalCount, int retainedCount);
+
+    [LoggerMessage(
+        EventId = VKEchoDiagnosticsConstants.Logs.EchoSaved,
+        Level = LogLevel.Information,
+        Message = "Persisted {Count} dialogue echoes for session {SessionId}. Duration: {DurationMs}ms.")]
+    public static partial void EchoSaved(this ILogger logger, int count, VKSessionId sessionId, double durationMs);
+
+    [LoggerMessage(
+        EventId = VKEchoDiagnosticsConstants.Logs.EchoSaveFailed,
+        Level = LogLevel.Error,
+        Message = "Failed to persist dialogue echoes for session {SessionId}. Error: {ErrorMessage}.")]
+    public static partial void EchoSaveFailed(this ILogger logger, VKSessionId sessionId, string errorMessage);
 }
