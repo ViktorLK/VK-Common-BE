@@ -13,6 +13,8 @@ public sealed class VKPersonaAnchorBuilder : VKTestDataBuilder<VKPersonaAnchor>
     private string _description = "Default Persona Description";
     private Dictionary<string, string> _traits = new();
     private Dictionary<string, object> _extensions = new();
+    private int _priority;
+    private int _tokenCount;
 
     public VKPersonaAnchorBuilder WithId(VKPersonaId id)
     {
@@ -50,6 +52,18 @@ public sealed class VKPersonaAnchorBuilder : VKTestDataBuilder<VKPersonaAnchor>
         return this;
     }
 
+    public VKPersonaAnchorBuilder WithPriority(int priority)
+    {
+        _priority = priority;
+        return this;
+    }
+
+    public VKPersonaAnchorBuilder WithTokenCount(int tokenCount)
+    {
+        _tokenCount = tokenCount;
+        return this;
+    }
+
     protected override VKPersonaAnchor CreateDefault()
     {
         return VKGuard.NotNull(VKPersonaAnchor.Create(
@@ -57,6 +71,8 @@ public sealed class VKPersonaAnchorBuilder : VKTestDataBuilder<VKPersonaAnchor>
             _name,
             _description,
             _traits,
-            _extensions).Value);
+            _extensions,
+            _priority,
+            _tokenCount).Value);
     }
 }

@@ -174,6 +174,7 @@
 ## 📋 AI.Psyche Tasks
 - [ ] [AI.PSYCHE-001: Support Streaming Pipeline (IVKPsycheStreamingPipeline & TTFT Profiling)](./AI.Psyche/001-support-streaming-pipeline-(ivkpsychestreamingpipeline-&-ttft-profiling).md)
 
+- [ ] [AI.PSYCHE-002: Eliminate redundant options.Enabled checks in feature hooks](./AI.Psyche/002-eliminate-redundant-optionsenabled-checks-in-feature-hooks.md)
 ## 📋 AI.Eidos Tasks
 - [ ] [AI.EIDOS-001: Implement Streaming Contract Transformer and End-of-Stream Sealing](./AI.Eidos/001-implement-streaming-contract-transformer-and-end-of-stream-sealing.md)
 - [ ] [AI.EIDOS-002: Implement Lenient and Partial ToleranceModes in Materialization Binder](./AI.Eidos/002-implement-lenient-and-partial-tolerancemodes-in-materialization-binder.md)

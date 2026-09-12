@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using VK.Blocks.AI.Psyche.Knowledge.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -16,9 +14,6 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
 {
     private readonly VKKnowledgeOptions _options;
     private readonly IVKPsycheKnowledgeRepository _knowledgeRepository;
-    private readonly IVKKnowledgeRenderer _renderer;
-    private readonly VKWeavingOptions _weavingOptions;
-    private readonly TimeProvider _timeProvider;
     private readonly ILogger<DefaultKnowledgeStage> _logger;
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledge;
@@ -27,25 +22,19 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
     public DefaultKnowledgeStage(
         VKKnowledgeOptions options,
         IVKPsycheKnowledgeRepository knowledgeRepository,
-        IVKKnowledgeRenderer renderer,
-        VKWeavingOptions weavingOptions,
-        TimeProvider? timeProvider = null,
-        ILogger<DefaultKnowledgeStage>? logger = null)
+        ILogger<DefaultKnowledgeStage> logger)
     {
         _options = VKGuard.NotNull(options);
         _knowledgeRepository = VKGuard.NotNull(knowledgeRepository);
-        _renderer = VKGuard.NotNull(renderer);
-        _weavingOptions = VKGuard.NotNull(weavingOptions);
-        _timeProvider = timeProvider ?? TimeProvider.System;
-        _logger = logger ?? NullLogger<DefaultKnowledgeStage>.Instance;
+        _logger = VKGuard.NotNull(logger);
     }
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken ct)
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Knowledge))
+        var isEnabled = context.Args<VKKnowledgeArgs>()?.Enabled ?? _options.Enabled;
+        if (!isEnabled)
         {
             return VKResult.Success();
         }
@@ -61,7 +50,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
             return VKResult.Failure(knowledgeResult.Errors); // [CS.01]
         }
 
-        var candidateEntries = knowledgeResult.Value.Where(e => e.Segment.IsEnabled).ToList();
+        var candidateEntries = knowledgeResult.Value;
 
         // Separate constant entries from conditional keyword/regex entries
         var activeEntries = candidateEntries
@@ -72,61 +61,67 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
             .Where(e => e.TriggerType != VKKnowledgeTriggerType.Constant)
             .ToList();
 
-        // Session-level state tracking
-        var sessionThread = context.State<VKSessionThread>();
-        var currentTurn = sessionThread?.TurnCount ?? 0;
-        var existingKnowledgeState = sessionThread?.KnowledgeState;
-
-        var updatedTriggeredTurns = existingKnowledgeState?.LastTriggeredTurns is not null
-            ? new Dictionary<VKKnowledgeId, int>(existingKnowledgeState.LastTriggeredTurns)
-            : new Dictionary<VKKnowledgeId, int>();
-
-        // 1. Maintain entries that are still within turn retention window
-        if (_options.KeywordScanDepth > 0 && existingKnowledgeState?.LastTriggeredTurns is not null)
+        // Build texts to scan: current UserInput + recent historical Echoes
+        var scanTexts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(context.Request.UserInput))
         {
-            foreach (var (knowledgeId, triggeredTurn) in existingKnowledgeState.LastTriggeredTurns)
+            scanTexts.Add(context.Request.UserInput);
+        }
+
+        var scanDepth = context.Args<VKKnowledgeArgs>()?.KeywordScanDepth ?? _options.KeywordScanDepth;
+        if (scanDepth > 0 && context.Echoes.Count > 0)
+        {
+            int userCount = 0;
+            int startIndex = 0;
+
+            for (int i = context.Echoes.Count - 1; i >= 0; i--)
             {
-                if (currentTurn - triggeredTurn < _options.KeywordScanDepth)
+                if (context.Echoes[i].Role == VKChatRole.User)
                 {
-                    var retainedEntry = candidateEntries.FirstOrDefault(e => e.Id == knowledgeId);
-                    if (retainedEntry is not null && !activeEntries.Contains(retainedEntry))
+                    userCount++;
+                    startIndex = i;
+                    if (userCount >= scanDepth)
                     {
-                        activeEntries.Add(retainedEntry);
+                        break;
                     }
+                }
+            }
+
+            for (int i = startIndex; i < context.Echoes.Count; i++)
+            {
+                var content = context.Echoes[i].Content;
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    scanTexts.Add(content);
+                }
+            }
+        }
+        else if (scanDepth == -1 && context.Echoes.Count > 0)
+        {
+            foreach (var echo in context.Echoes)
+            {
+                if (!string.IsNullOrWhiteSpace(echo.Content))
+                {
+                    scanTexts.Add(echo.Content);
                 }
             }
         }
 
-        // 2. Incremental scan on current UserInput
-        if (!string.IsNullOrWhiteSpace(context.Request.UserInput) && conditionalEntries.Count > 0)
+        // Incremental scan across all target texts
+        if (scanTexts.Count > 0 && conditionalEntries.Count > 0)
         {
-            var userInput = context.Request.UserInput;
             foreach (var entry in conditionalEntries)
             {
                 var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
-                if (matcher(userInput))
+                if (scanTexts.Any(text => matcher(text)))
                 {
                     if (!activeEntries.Contains(entry))
                     {
                         activeEntries.Add(entry);
                     }
-                    updatedTriggeredTurns[entry.Id] = currentTurn;
                 }
             }
         }
-
-        // Update context states for downstream consumption & session persistence
-        var updatedKnowledgeState = new VKSessionKnowledgeState
-        {
-            LastEvaluatedTurn = currentTurn,
-            LastTriggeredTurns = updatedTriggeredTurns
-        };
-
-        if (sessionThread is not null)
-        {
-            sessionThread.AdvanceKnowledgeState(updatedKnowledgeState, _timeProvider.GetUtcNow());
-        }
-        context.SetState(updatedKnowledgeState);
 
         var candidateState = context.State<VKKnowledgeCandidatesState>();
         if (candidateState is null)
@@ -141,7 +136,7 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
         {
             KnowledgeDiagnostics.RecordEntriesMatched(activeEntries.Count, "Knowledge", "Keyword+Constant");
         }
-        _logger.KnowledgeMatched(activeEntries.Count, context.Request.SessionId.Value.ToString(), context.CorrelationId, 0);
+        _logger.KnowledgeMatched(activeEntries.Count, context.Request.SessionId, context.CorrelationId, 0);
 
         return VKResult.Success();
     }

@@ -46,6 +46,11 @@ public sealed record VKPsycheRequest
     // ==========================================
 
     /// <summary>
+    /// Gets the optional Persona identifier representing the AI assistant's identity.
+    /// </summary>
+    public VKPersonaId? PersonaId { get; init; }
+
+    /// <summary>
     /// Gets the optional profile identifier explicitly provided by the caller.
     /// </summary>
     public VKProfileId? ProfileId { get; init; }
@@ -54,11 +59,6 @@ public sealed record VKPsycheRequest
     /// Gets the list of Directive identifiers (0..N: supports global safety, policy, and task rules).
     /// </summary>
     public IReadOnlyList<VKDirectiveId> DirectiveIds { get; init; } = [];
-
-    /// <summary>
-    /// Gets the list of Persona identifiers (1..N: supports single agent or multi-agent collaboration).
-    /// </summary>
-    public IReadOnlyList<VKPersonaId> PersonaIds { get; init; } = [];
 
     /// <summary>
     /// Gets the list of explicitly specified Knowledge identifiers (0..N).

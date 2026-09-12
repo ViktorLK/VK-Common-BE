@@ -15,6 +15,12 @@ public sealed class VKDirectiveCharter : VKAggregateRoot<VKDirectiveId>
     // =========================================================================
 
     /// <summary>
+    /// Gets the administrative human-readable name or title for this directive.
+    /// Used for management, logging, and diagnostics; not rendered into LLM prompt payload.
+    /// </summary>
+    public string? Name { get; private set; }
+
+    /// <summary>
     /// Gets the high-level overview or core system instructions for this directive.
     /// </summary>
     public string? Overview { get; private set; }
@@ -52,6 +58,7 @@ public sealed class VKDirectiveCharter : VKAggregateRoot<VKDirectiveId>
 
     private VKDirectiveCharter(
         VKDirectiveId id,
+        string? name,
         string? overview,
         string? behaviorRules,
         string? safetyRules,
@@ -59,6 +66,7 @@ public sealed class VKDirectiveCharter : VKAggregateRoot<VKDirectiveId>
         int priority = 0,
         int tokenCount = 0) : base(id)
     {
+        Name = name;
         Overview = overview;
         BehaviorRules = behaviorRules;
         SafetyRules = safetyRules;
@@ -82,12 +90,13 @@ public sealed class VKDirectiveCharter : VKAggregateRoot<VKDirectiveId>
         string? safetyRules = null,
         string? outputConstraints = null,
         int priority = 0,
-        int tokenCount = 0)
+        int tokenCount = 0,
+        string? name = null)
     {
         // [AP.01]
         VKGuard.NotDefault(id);
 
-        return VKResult.Success(new VKDirectiveCharter(id, overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount));
+        return VKResult.Success(new VKDirectiveCharter(id, name, overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount));
     }
 
     /// <summary>
@@ -100,14 +109,24 @@ public sealed class VKDirectiveCharter : VKAggregateRoot<VKDirectiveId>
         string? safetyRules,
         string? outputConstraints,
         int priority = 0,
-        int tokenCount = 0)
+        int tokenCount = 0,
+        string? name = null)
     {
-        return new VKDirectiveCharter(id, overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount);
+        return new VKDirectiveCharter(id, name, overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount);
     }
 
     // =========================================================================
     // Behavioral Methods
     // =========================================================================
+
+    /// <summary>
+    /// Updates the administrative human-readable name of this directive charter.
+    /// </summary>
+    public VKResult UpdateName(string? name)
+    {
+        Name = name;
+        return VKResult.Success();
+    }
 
     /// <summary>
     /// Updates the core overview and instructions for this directive.

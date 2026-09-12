@@ -16,6 +16,8 @@ public static class VKEchoDiagnosticsConstants
         public const int EchoInitialized = VKDiagnosticOffsets.AI_Psyche_Echo + 1;
         public const int EchoRecorded = VKDiagnosticOffsets.AI_Psyche_Echo + 2;
         public const int EchoTrimmed = VKDiagnosticOffsets.AI_Psyche_Echo + 3;
+        public const int EchoSaved = VKDiagnosticOffsets.AI_Psyche_Echo + 4;
+        public const int EchoSaveFailed = VKDiagnosticOffsets.AI_Psyche_Echo + 5;
     }
 
     // Metrics (Meter/Counter/Histogram Names)
@@ -25,6 +27,7 @@ public static class VKEchoDiagnosticsConstants
         public const string EchoSaveDuration = "vk.ai.psyche.echo.save.duration";
         public const string ActiveEchoesCount = "vk.ai.psyche.echo.active_count";
         public const string TrimmedEchoesCount = "vk.ai.psyche.echo.trimmed_count";
+        public const string SavedEchoesCount = "vk.ai.psyche.echo.saved_count";
     }
 
     // Tags
@@ -33,5 +36,6 @@ public static class VKEchoDiagnosticsConstants
         public const string StageName = "ai.psyche.stage";
         public const string RetainedCount = "ai.psyche.echo.retained_count";
         public const string TrimmedCount = "ai.psyche.echo.trimmed_count";
+        public const string SavedCount = "ai.psyche.echo.saved_count";
     }
 }

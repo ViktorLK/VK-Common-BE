@@ -219,4 +219,146 @@ public sealed class DefaultKnowledgeMatcherTests : VKUnitTestBase
         // Assert
         matcher("start\nmiddle\nend").Should().BeTrue();
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void GetMatcher_WithNullOrWhitespaceInput_ReturnsFalseEvenForNegativeFilters(string? input)
+    {
+        // Arrange
+        var entry = new VKKnowledgeEntryBuilder()
+            .WithContent("Empty check")
+            .WithTriggerType(VKKnowledgeTriggerType.Keyword)
+            .WithFilterLogic(VKKnowledgeFilterLogic.NotAny)
+            .WithKey(new VKKnowledgeKey { Text = "forbidden", MatchType = VKKnowledgeMatchType.Contains })
+            .Build();
+
+        // Act
+        var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
+
+        // Assert: Even with NotAny logic, empty/whitespace/null text must not activate knowledge
+        matcher(input!).Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetMatcher_WithBareRegexPattern_MatchesCorrectly()
+    {
+        // Arrange (Regex without surrounding slashes)
+        var entry = new VKKnowledgeEntryBuilder()
+            .WithContent("Bare Regex Rule")
+            .WithTriggerType(VKKnowledgeTriggerType.Keyword)
+            .WithKey(new VKKnowledgeKey { Text = @"\bID-\d{4}\b", MatchType = VKKnowledgeMatchType.Regex, CaseSensitive = false })
+            .Build();
+
+        // Act
+        var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
+
+        // Assert
+        matcher("User ID-5678 is active").Should().BeTrue();
+        matcher("User id-5678 is active").Should().BeTrue();
+        matcher("User ID-abcd is active").Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetMatcher_WhenEntryModified_InvalidatesCacheAndRecompiles()
+    {
+        // Arrange
+        var initialEntry = new VKKnowledgeEntryBuilder()
+            .WithContent("Version 1")
+            .WithTriggerType(VKKnowledgeTriggerType.Keyword)
+            .WithKey(new VKKnowledgeKey { Text = "version1", MatchType = VKKnowledgeMatchType.Contains })
+            .Build();
+
+        var matcher1 = DefaultKnowledgeMatcher.GetMatcher(initialEntry);
+        matcher1("this is version1").Should().BeTrue();
+        matcher1("this is version2").Should().BeFalse();
+
+        // Create updated entry with the EXACT same Id, but different keys
+        var updatedEntry = new VKKnowledgeEntryBuilder()
+            .WithId(initialEntry.Id)
+            .WithContent("Version 2")
+            .WithTriggerType(VKKnowledgeTriggerType.Keyword)
+            .WithKey(new VKKnowledgeKey { Text = "version2", MatchType = VKKnowledgeMatchType.Contains })
+            .Build();
+
+        // Act
+        var matcher2 = DefaultKnowledgeMatcher.GetMatcher(updatedEntry);
+
+        // Assert (Hash changed, so new matcher is returned)
+        matcher2.Should().NotBeSameAs(matcher1);
+        matcher2("this is version2").Should().BeTrue();
+        matcher2("this is version1").Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetMatcher_WithMixedKeyTypesAndAll_RequiresBothMatches()
+    {
+        // Arrange (Mixed Contains + Regex under AndAll)
+        var entry = new VKKnowledgeEntryBuilder()
+            .WithContent("Mixed Rules")
+            .WithTriggerType(VKKnowledgeTriggerType.Keyword)
+            .WithFilterLogic(VKKnowledgeFilterLogic.AndAll)
+            .WithKey(new VKKnowledgeKey { Text = "urgent", MatchType = VKKnowledgeMatchType.Contains, CaseSensitive = false })
+            .WithKey(new VKKnowledgeKey { Text = @"#\d{4}", MatchType = VKKnowledgeMatchType.Regex })
+            .Build();
+
+        // Act
+        var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
+
+        // Assert
+        matcher("This is an urgent ticket #1234").Should().BeTrue();
+        matcher("This is urgent without ticket number").Should().BeFalse();
+        matcher("Normal ticket #1234").Should().BeFalse();
+    }
+
+    [Fact]
+    public void GetMatcher_WithNullEntry_ThrowsArgumentNullException()
+    {
+        // Act
+        Action act = () => DefaultKnowledgeMatcher.GetMatcher(null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void GetMatcher_WithWholeWordAndCjkKeyword_FallsBackToSubstringMatch()
+    {
+        // Arrange (CJK characters without space delimiters in Chinese text)
+        var entry = new VKKnowledgeEntryBuilder()
+            .WithContent("Apple knowledge")
+            .WithTriggerType(VKKnowledgeTriggerType.Keyword)
+            .WithKey(new VKKnowledgeKey { Text = "苹果", MatchType = VKKnowledgeMatchType.WholeWord, CaseSensitive = false })
+            .Build();
+
+        // Act
+        var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
+
+        // Assert: Chinese text without ASCII word boundaries should match successfully
+        matcher("我想吃苹果啊").Should().BeTrue();
+        matcher("今天去买香蕉").Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("日本語", "私は日本語を勉強しています", true)]
+    [InlineData("桜", "春には桜が満開になります", true)]
+    [InlineData("佐々木", "佐々木さんはエンジニアです", true)]
+    [InlineData("コーヒー", "毎朝コーヒーを飲みます", true)]
+    [InlineData("富士山", "今日はいい天気です", false)]
+    public void GetMatcher_WithWholeWordAndJapaneseKeywords_FallsBackToSubstringMatch(string keyword, string input, bool expected)
+    {
+        // Arrange
+        var entry = new VKKnowledgeEntryBuilder()
+            .WithContent("Japanese test")
+            .WithTriggerType(VKKnowledgeTriggerType.Keyword)
+            .WithKey(new VKKnowledgeKey { Text = keyword, MatchType = VKKnowledgeMatchType.WholeWord, CaseSensitive = false })
+            .Build();
+
+        // Act
+        var matcher = DefaultKnowledgeMatcher.GetMatcher(entry);
+
+        // Assert
+        matcher(input).Should().Be(expected);
+    }
 }

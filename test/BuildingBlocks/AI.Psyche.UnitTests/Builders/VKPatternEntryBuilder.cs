@@ -12,7 +12,7 @@ public sealed class VKPatternEntryBuilder : VKTestDataBuilder<VKPatternEntry>
     private VKPromptSegment _segment = new()
     {
         Content = "Default Pattern Segment Content",
-        IsEnabled = true
+        Tier = VKPromptTierType.Pattern
     };
 
     public VKPatternEntryBuilder WithId(VKPatternId id)
@@ -26,7 +26,7 @@ public sealed class VKPatternEntryBuilder : VKTestDataBuilder<VKPatternEntry>
         _segment = new VKPromptSegment
         {
             Content = content,
-            IsEnabled = true
+            Tier = VKPromptTierType.Pattern
         };
         return this;
     }

@@ -13,7 +13,6 @@ public sealed class VKSessionThreadBuilder : VKTestDataBuilder<VKSessionThread>
     private VKSessionId? _parentSessionId;
     private VKSessionId? _forkSourceSessionId;
     private string? _forkPointRef;
-    private VKSessionKnowledgeState? _knowledgeState;
     private DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
 
     public VKSessionThreadBuilder WithId(VKSessionId id)
@@ -41,12 +40,6 @@ public sealed class VKSessionThreadBuilder : VKTestDataBuilder<VKSessionThread>
         return this;
     }
 
-    public VKSessionThreadBuilder WithKnowledgeState(VKSessionKnowledgeState knowledgeState)
-    {
-        _knowledgeState = knowledgeState;
-        return this;
-    }
-
     public VKSessionThreadBuilder WithCreatedAt(DateTimeOffset createdAt)
     {
         _createdAt = createdAt;
@@ -61,7 +54,6 @@ public sealed class VKSessionThreadBuilder : VKTestDataBuilder<VKSessionThread>
             mode: _mode,
             parentSessionId: _parentSessionId,
             forkSourceSessionId: _forkSourceSessionId,
-            forkPointRef: _forkPointRef,
-            knowledgeState: _knowledgeState).Value);
+            forkPointRef: _forkPointRef).Value);
     }
 }

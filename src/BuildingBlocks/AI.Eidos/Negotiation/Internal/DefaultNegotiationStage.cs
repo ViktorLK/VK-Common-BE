@@ -48,8 +48,8 @@ internal sealed class DefaultNegotiationStage(
 
         if (negotiationResult.SelectedMode == VKAIEidosExpressionMode.PromptJson)
         {
-            context.AddFragment(_projector.GetHeaderProtocolFragment());
-            context.AddFragment(_projector.GetTailSchemaFragment(contract));
+            context.AddSegment(_projector.GetHeaderProtocolFragment());
+            context.AddSegment(_projector.GetTailSchemaFragment(contract));
         }
 
         return Task.FromResult(VKResult.Success());

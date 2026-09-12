@@ -50,11 +50,15 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
 
         var hasEfCore = context.SemanticModel.Compilation.GetTypeByMetadataName("Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter`2") is not null;
 
+        var hasExcludeAttribute = symbol.GetAttributes().Any(a =>
+            a.AttributeClass?.Name is "ExcludeFromCodeCoverageAttribute" or "ExcludeFromCodeCoverage");
+
         return new TargetRecordStruct(
             Namespace: symbol.ContainingNamespace.ToDisplayString(),
             Name: symbol.Name,
             IsPartial: isPartial,
             HasEfCore: hasEfCore,
+            HasExcludeAttribute: hasExcludeAttribute,
             Location: recordDeclaration.Identifier.GetLocation()
         );
     }
@@ -92,6 +96,10 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         sb.AppendLine($"namespace {target.Namespace};");
         sb.AppendLine();
 
+        if (!target.HasExcludeAttribute)
+        {
+            sb.AppendLine("[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage(Justification = \"Source-generated strongly-typed ID record struct without business logic.\")]");
+        }
         sb.AppendLine($"[JsonConverter(typeof({target.Name}JsonConverter))]");
         sb.AppendLine($"[TypeConverter(typeof({target.Name}TypeConverter))]");
         sb.AppendLine($"public partial record struct {target.Name}(Guid Value) : IComparable<{target.Name}>, IParsable<{target.Name}>");
@@ -188,5 +196,5 @@ public sealed class VKStronglyTypedIdGenerator : IIncrementalGenerator
         ctx.AddSource($"{target.Name}.g.cs", sb.ToString());
     }
 
-    private sealed record TargetRecordStruct(string Namespace, string Name, bool IsPartial, bool HasEfCore, Location Location);
+    private sealed record TargetRecordStruct(string Namespace, string Name, bool IsPartial, bool HasEfCore, bool HasExcludeAttribute, Location Location);
 }

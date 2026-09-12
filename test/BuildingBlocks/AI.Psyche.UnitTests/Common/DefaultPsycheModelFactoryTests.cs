@@ -66,14 +66,13 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var newGuid = Guid.NewGuid();
         var fakeGuidGen = new VKFakeGuidGenerator(newGuid);
         var factory = new DefaultPsycheModelFactory(fakeGuidGen, TimeProvider.System);
-        var segment = new VKPromptSegment { Content = "Knowledge Item" };
+        var segment = new VKPromptSegment { Content = "Knowledge Item", TagName = "lore" };
 
         // Act
         var entry = factory.CreateKnowledge(
             segment,
             VKKnowledgeTriggerType.Keyword,
             VKKnowledgeFilterLogic.AndAll,
-            xmlTag: "lore",
             keys: [new VKKnowledgeKey { Text = "dragon" }]);
 
         // Assert
@@ -128,7 +127,6 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var sessionId = new VKSessionId(Guid.NewGuid());
         var parentSessionId = new VKSessionId(Guid.NewGuid());
         var forkSourceSessionId = new VKSessionId(Guid.NewGuid());
-        var kState = new VKSessionKnowledgeState { LastEvaluatedTurn = 5 };
 
         // Act
         var session = factory.CreateSession(
@@ -136,8 +134,7 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
             VKSessionMode.Continuous,
             parentSessionId,
             forkSourceSessionId,
-            forkPointRef: "cp-1",
-            knowledgeState: kState);
+            forkPointRef: "cp-1");
 
         // Assert
         session.Id.Should().Be(sessionId);
@@ -147,7 +144,6 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         session.ForkPointRef.Should().Be("cp-1");
         session.Status.Should().Be(VKSessionStatus.Active);
         session.TurnCount.Should().Be(0);
-        session.KnowledgeState.Should().BeSameAs(kState);
     }
 
     [Fact]
@@ -203,7 +199,6 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var segment = factory.CreateSegment(
             "Content",
             name: "Seg1",
-            isEnabled: true,
             role: VKChatRole.System,
             absoluteDepth: 1,
             relativeDepth: VKPromptRelativeDepth.AfterEcho,

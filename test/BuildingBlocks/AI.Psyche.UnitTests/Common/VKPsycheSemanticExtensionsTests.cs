@@ -18,7 +18,9 @@ public sealed class VKPsycheSemanticExtensionsTests : VKUnitTestBase
         activity.SetPsycheStage("Stage").Should().BeNull();
         activity.SetPsycheCorrelationId("Corr").Should().BeNull();
         activity.SetPsycheKnowledgeCount(5).Should().BeNull();
+        activity.SetPsycheKnowledgeFinalizedCount(3, 2).Should().BeNull();
         activity.SetPsycheEchoCount(2, 1).Should().BeNull();
+        activity.SetPsycheEchoSavedCount(3).Should().BeNull();
         activity.SetPsycheMessageCount(10).Should().BeNull();
     }
 
@@ -33,15 +35,20 @@ public sealed class VKPsycheSemanticExtensionsTests : VKUnitTestBase
         activity.SetPsycheStage("DirectiveStage");
         activity.SetPsycheCorrelationId("corr-123");
         activity.SetPsycheKnowledgeCount(3);
+        activity.SetPsycheKnowledgeFinalizedCount(2, 1);
         activity.SetPsycheEchoCount(4, 2);
+        activity.SetPsycheEchoSavedCount(2);
         activity.SetPsycheMessageCount(7);
 
         // Assert
         activity.GetTagItem(VKPsycheSemanticExtensions.StageKey).Should().Be("DirectiveStage");
         activity.GetTagItem(VKPsycheSemanticExtensions.CorrelationIdKey).Should().Be("corr-123");
         activity.GetTagItem(VKPsycheSemanticExtensions.MatchedCountKey).Should().Be(3);
+        activity.GetTagItem(VKPsycheSemanticExtensions.InjectedKnowledgeKey).Should().Be(2);
+        activity.GetTagItem(VKPsycheSemanticExtensions.TruncatedKnowledgeKey).Should().Be(1);
         activity.GetTagItem(VKPsycheSemanticExtensions.RetainedEchoKey).Should().Be(4);
         activity.GetTagItem(VKPsycheSemanticExtensions.TrimmedEchoKey).Should().Be(2);
+        activity.GetTagItem(VKPsycheSemanticExtensions.SavedEchoKey).Should().Be(2);
         activity.GetTagItem(VKPsycheSemanticExtensions.MessageCountKey).Should().Be(7);
 
         activity.Stop();

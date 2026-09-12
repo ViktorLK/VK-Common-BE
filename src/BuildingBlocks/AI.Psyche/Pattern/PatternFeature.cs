@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Pattern feature marker and registration hub.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPatternOptions))]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPatternOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
 internal sealed partial class PatternFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPatternOptions options)
@@ -19,9 +19,7 @@ internal sealed partial class PatternFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddSingleton<InMemoryPatternRepository>();
-        services.TryAddSingleton<IVKPsychePatternRepository>(sp => sp.GetRequiredService<InMemoryPatternRepository>());
-        services.TryAddSingleton<IVKReadRepository<VKPatternEntry, VKPatternId>>(sp => sp.GetRequiredService<InMemoryPatternRepository>());
+        services.TryAddSingleton<IVKPsychePatternRepository, InMemoryPatternRepository>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPatternStage>());
     }
 

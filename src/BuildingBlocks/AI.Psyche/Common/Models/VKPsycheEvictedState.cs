@@ -13,12 +13,19 @@ namespace VK.Blocks.AI.Psyche;
 public sealed class VKPsycheEvictedState
 {
     private ImmutableList<VKPromptSegment> _evicted = [];
+    private ImmutableList<VKEchoFragment> _evictedEchoes = [];
 
     /// <summary>
     /// Gets all prompt segments that were evicted/discarded.
     /// Lock-free, zero-allocation read access.
     /// </summary>
     public IReadOnlyList<VKPromptSegment> Evicted => _evicted;
+
+    /// <summary>
+    /// Gets all dialogue echo turns that were evicted during token budget truncation.
+    /// Preserves original turn metadata including role, timestamps, and turn index.
+    /// </summary>
+    public IReadOnlyList<VKEchoFragment> EvictedEchoes => _evictedEchoes;
 
     /// <summary>
     /// Adds a prompt segment that was evicted.
@@ -39,16 +46,26 @@ public sealed class VKPsycheEvictedState
 
     /// <summary>
     /// Adds an echo fragment that was evicted during token budget truncation.
+    /// Preserves full echo metadata in EvictedEchoes and records a corresponding segment with original Role.
     /// </summary>
     /// <param name="echo">The evicted echo fragment.</param>
     public void Add(VKEchoFragment echo)
     {
         VKGuard.NotNull(echo);
+        ImmutableList<VKEchoFragment> initialEchoes, updatedEchoes;
+        do
+        {
+            initialEchoes = _evictedEchoes;
+            updatedEchoes = initialEchoes.Add(echo);
+        }
+        while (Interlocked.CompareExchange(ref _evictedEchoes, updatedEchoes, initialEchoes) != initialEchoes);
+
         Add(new VKPromptSegment
         {
             Content = echo.Content,
             Role = echo.Role,
-            DepthPriority = echo.TurnIndex
+            DepthPriority = echo.TurnIndex,
+            TokenCount = echo.TokenCount
         });
     }
 }

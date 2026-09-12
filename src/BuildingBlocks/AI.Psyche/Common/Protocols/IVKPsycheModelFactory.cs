@@ -16,9 +16,9 @@ public interface IVKPsycheModelFactory
     /// </summary>
     VKPromptSegment CreateSegment(
         string content,
+        VKChatRole role = VKChatRole.System,
         string? name = null,
         string? tagName = null,
-        VKChatRole role = VKChatRole.System,
         int? absoluteDepth = null,
         VKPromptRelativeDepth? relativeDepth = null,
         int depthPriority = 0,
@@ -68,7 +68,8 @@ public interface IVKPsycheModelFactory
         string? safetyRules = null,
         string? outputConstraints = null,
         int priority = 0,
-        int tokenCount = 0);
+        int tokenCount = 0,
+        string? name = null);
 
     /// <summary>
     /// Creates a new <see cref="VKDirectiveCharter"/> with an explicitly specified ID.
@@ -80,7 +81,8 @@ public interface IVKPsycheModelFactory
         string? safetyRules = null,
         string? outputConstraints = null,
         int priority = 0,
-        int tokenCount = 0);
+        int tokenCount = 0,
+        string? name = null);
 
     // --- Knowledge ---
 
@@ -91,7 +93,8 @@ public interface IVKPsycheModelFactory
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        IReadOnlyList<VKKnowledgeKey>? keys = null);
+        IReadOnlyList<VKKnowledgeKey>? keys = null,
+        string? name = null);
 
     /// <summary>
     /// Creates a new <see cref="VKKnowledgeEntry"/> with an explicitly specified ID.
@@ -101,19 +104,20 @@ public interface IVKPsycheModelFactory
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        IReadOnlyList<VKKnowledgeKey>? keys = null);
+        IReadOnlyList<VKKnowledgeKey>? keys = null,
+        string? name = null);
 
     // --- Pattern ---
 
     /// <summary>
     /// Creates a new <see cref="VKPatternEntry"/> with an automatically generated ID.
     /// </summary>
-    VKPatternEntry CreatePattern(VKPromptSegment segment);
+    VKPatternEntry CreatePattern(VKPromptSegment segment, string? name = null);
 
     /// <summary>
     /// Creates a new <see cref="VKPatternEntry"/> with an explicitly specified ID.
     /// </summary>
-    VKPatternEntry CreatePattern(VKPatternId id, VKPromptSegment segment);
+    VKPatternEntry CreatePattern(VKPatternId id, VKPromptSegment segment, string? name = null);
 
     // --- Session ---
 
@@ -124,8 +128,7 @@ public interface IVKPsycheModelFactory
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null,
-        VKSessionKnowledgeState? knowledgeState = null);
+        string? forkPointRef = null);
 
     /// <summary>
     /// Creates a new <see cref="VKSessionThread"/> with an explicitly specified ID.
@@ -135,8 +138,7 @@ public interface IVKPsycheModelFactory
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null,
-        VKSessionKnowledgeState? knowledgeState = null);
+        string? forkPointRef = null);
 
     // --- Profile ---
 
@@ -147,7 +149,11 @@ public interface IVKPsycheModelFactory
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null,
+        string? description = null,
+        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
+        int depthPriority = 10,
+        int? absoluteDepth = null,
+        string? tagName = null,
         int tokenCount = 0);
 
     /// <summary>
@@ -158,7 +164,11 @@ public interface IVKPsycheModelFactory
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null,
+        string? description = null,
+        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
+        int depthPriority = 10,
+        int? absoluteDepth = null,
+        string? tagName = null,
         int tokenCount = 0);
 
     // --- Echo ---
