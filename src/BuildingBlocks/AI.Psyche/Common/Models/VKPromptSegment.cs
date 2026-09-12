@@ -1,3 +1,4 @@
+using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -8,6 +9,17 @@ namespace VK.Blocks.AI.Psyche;
 public sealed record VKPromptSegment
 {
     private readonly int _depthPriority = 0;
+
+    /// <summary>
+    /// Gets the human-readable identifier or name for this segment, if specified.
+    /// </summary>
+    public string? Name { get; init; }
+
+    /// <summary>
+    /// Gets the target chat role when this segment is rendered as a standalone chat message.
+    /// Defaults to <see cref="VKChatRole.System"/>.
+    /// </summary>
+    public VKChatRole Role { get; init; } = VKChatRole.System;
 
     /// <summary>
     /// Gets the prompt tier classification for this segment.
@@ -27,15 +39,6 @@ public sealed record VKPromptSegment
     /// </summary>
     public string? TagName { get; init; }
 
-    /// <summary>
-    /// Gets the optional name of the prompt entry for identification.
-    /// </summary>
-    public string? Name { get; init; }
-
-    /// <summary>
-    /// Gets the chat role (e.g., System, User, Assistant) under which this segment is presented.
-    /// </summary>
-    public VKChatRole Role { get; init; } = VKChatRole.System;
 
     /// <summary>
     /// Gets the absolute depth (position) in the message layout if absolute positioning is used; otherwise, null.

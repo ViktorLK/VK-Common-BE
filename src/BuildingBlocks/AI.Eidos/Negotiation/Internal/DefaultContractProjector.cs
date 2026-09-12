@@ -21,26 +21,17 @@ internal sealed class DefaultContractProjector(
 
     private static readonly VKPatternId HeaderPatternId = VKPatternId.Parse("e1d05000-0000-0000-0000-000000000001");
 
-    private static readonly Lazy<VKPromptFragment> StaticHeaderFragment = new(() =>
+    private static readonly Lazy<VKPromptSegment> StaticHeaderFragment = new(() =>
     {
-        var headerSegment = new VKPromptSegment
+        return new VKPromptSegment
         {
-            Role = VKChatRole.System,
             Content = NegotiationConstants.StrictJsonProtocolContent,
             RelativeDepth = VKPromptRelativeDepth.AfterDirective,
             DepthPriority = 950
         };
-        var headerPattern = VKPatternEntry.Create(HeaderPatternId, headerSegment).Value!;
-
-        return new VKPromptFragment
-        {
-            TierType = VKPromptTierType.Pattern,
-            Metadata = headerPattern,
-            Segment = headerSegment
-        };
     }, LazyThreadSafetyMode.PublicationOnly);
 
-    private readonly ConcurrentDictionary<string, Lazy<VKPromptFragment>> _tailPatternCache = new();
+    private readonly ConcurrentDictionary<string, Lazy<VKPromptSegment>> _tailPatternCache = new();
     private readonly ConcurrentDictionary<string, string> _promptInstructionCache = new();
     private readonly ConcurrentDictionary<string, string> _projectedSchemaCache = new();
 
@@ -77,30 +68,21 @@ internal sealed class DefaultContractProjector(
         };
     }
 
-    public VKPromptFragment GetHeaderProtocolFragment() => StaticHeaderFragment.Value;
+    public VKPromptSegment GetHeaderProtocolFragment() => StaticHeaderFragment.Value;
 
-    public VKPromptFragment GetTailSchemaFragment(VKAIEidosResponseContract contract)
+    public VKPromptSegment GetTailSchemaFragment(VKAIEidosResponseContract contract)
     {
         VKGuard.NotNull(contract);
         var cacheKey = $"{contract.ContractId}:{contract.Version}";
 
-        return _tailPatternCache.GetOrAdd(cacheKey, _ => new Lazy<VKPromptFragment>(() =>
+        return _tailPatternCache.GetOrAdd(cacheKey, _ => new Lazy<VKPromptSegment>(() =>
         {
             var schemaDirective = GetOrBuildPromptInstruction(contract);
-            var schemaSegment = new VKPromptSegment
+            return new VKPromptSegment
             {
-                Role = VKChatRole.System,
                 Content = schemaDirective,
                 AbsoluteDepth = 0,
                 DepthPriority = 950
-            };
-            var schemaPattern = VKPatternEntry.Create(VKPatternId.New(_guidGenerator), schemaSegment).Value!;
-
-            return new VKPromptFragment
-            {
-                TierType = VKPromptTierType.Pattern,
-                Metadata = schemaPattern,
-                Segment = schemaSegment
             };
         }, LazyThreadSafetyMode.ExecutionAndPublication)).Value;
     }

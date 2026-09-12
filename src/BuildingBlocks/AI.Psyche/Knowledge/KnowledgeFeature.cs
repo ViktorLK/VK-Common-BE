@@ -36,10 +36,5 @@ internal sealed partial class KnowledgeFeature
         {
             failures.Add("ReservedTokens, if set, must be greater than zero.");
         }
-
-        if (string.IsNullOrWhiteSpace(options.DefaultXmlTag))
-        {
-            failures.Add("DefaultXmlTag must not be null or whitespace.");
-        }
     }
 }

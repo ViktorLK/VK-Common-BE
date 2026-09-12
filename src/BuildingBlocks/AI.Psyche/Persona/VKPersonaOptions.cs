@@ -12,17 +12,6 @@ public sealed partial record VKPersonaOptions : IVKToggleableBlockOptions
     /// Gets or sets a value indicating whether Persona feature is enabled.
     /// Defaults to true.
     /// </summary>
+    [VKRequestOverride]
     public bool Enabled { get; init; } = true;
-
-    /// <summary>
-    /// Gets the reserved tokens for persona context.
-    /// </summary>
-    [VKRequestOverride]
-    public int PersonaReservedTokens { get; init; } = 512;
-
-    /// <summary>
-    /// Gets a value indicating whether dynamic persona switching is allowed.
-    /// </summary>
-    [VKRequestOverride]
-    public bool AllowDynamicPersonaSwitching { get; init; } = true;
 }

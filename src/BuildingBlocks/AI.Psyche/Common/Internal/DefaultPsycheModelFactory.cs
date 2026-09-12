@@ -21,9 +21,9 @@ internal sealed class DefaultPsycheModelFactory(
     /// <inheritdoc />
     public VKPromptSegment CreateSegment(
         string content,
+        VKChatRole role = VKChatRole.System,
         string? name = null,
         string? tagName = null,
-        VKChatRole role = VKChatRole.System,
         int? absoluteDepth = null,
         VKPromptRelativeDepth? relativeDepth = null,
         int depthPriority = 0,
@@ -34,9 +34,9 @@ internal sealed class DefaultPsycheModelFactory(
         return new VKPromptSegment
         {
             Content = content,
+            Role = role,
             Name = name,
             TagName = tagName,
-            Role = role,
             AbsoluteDepth = absoluteDepth,
             RelativeDepth = relativeDepth,
             DepthPriority = Math.Clamp(depthPriority, 0, 999),
@@ -96,9 +96,10 @@ internal sealed class DefaultPsycheModelFactory(
         string? safetyRules = null,
         string? outputConstraints = null,
         int priority = 0,
-        int tokenCount = 0)
+        int tokenCount = 0,
+        string? name = null)
     {
-        return CreateDirective(new VKDirectiveId(_guidGenerator.Create()), overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount);
+        return CreateDirective(new VKDirectiveId(_guidGenerator.Create()), overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount, name);
     }
 
     /// <inheritdoc />
@@ -109,9 +110,10 @@ internal sealed class DefaultPsycheModelFactory(
         string? safetyRules = null,
         string? outputConstraints = null,
         int priority = 0,
-        int tokenCount = 0)
+        int tokenCount = 0,
+        string? name = null)
     {
-        return VKGuard.NotNull(VKDirectiveCharter.Create(id, overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount).Value);
+        return VKGuard.NotNull(VKDirectiveCharter.Create(id, overview, behaviorRules, safetyRules, outputConstraints, priority, tokenCount, name).Value);
     }
 
     // --- Knowledge ---
@@ -121,9 +123,10 @@ internal sealed class DefaultPsycheModelFactory(
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        IReadOnlyList<VKKnowledgeKey>? keys = null)
+        IReadOnlyList<VKKnowledgeKey>? keys = null,
+        string? name = null)
     {
-        return CreateKnowledge(new VKKnowledgeId(_guidGenerator.Create()), segment, triggerType, filterLogic, keys);
+        return CreateKnowledge(new VKKnowledgeId(_guidGenerator.Create()), segment, triggerType, filterLogic, keys, name);
     }
 
     /// <inheritdoc />
@@ -132,23 +135,24 @@ internal sealed class DefaultPsycheModelFactory(
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        IReadOnlyList<VKKnowledgeKey>? keys = null)
+        IReadOnlyList<VKKnowledgeKey>? keys = null,
+        string? name = null)
     {
-        return VKGuard.NotNull(VKKnowledgeEntry.Create(id, segment, triggerType, filterLogic, keys).Value);
+        return VKGuard.NotNull(VKKnowledgeEntry.Create(id, segment, triggerType, filterLogic, keys, name).Value);
     }
 
     // --- Pattern ---
 
     /// <inheritdoc />
-    public VKPatternEntry CreatePattern(VKPromptSegment segment)
+    public VKPatternEntry CreatePattern(VKPromptSegment segment, string? name = null)
     {
-        return CreatePattern(new VKPatternId(_guidGenerator.Create()), segment);
+        return CreatePattern(new VKPatternId(_guidGenerator.Create()), segment, name);
     }
 
     /// <inheritdoc />
-    public VKPatternEntry CreatePattern(VKPatternId id, VKPromptSegment segment)
+    public VKPatternEntry CreatePattern(VKPatternId id, VKPromptSegment segment, string? name = null)
     {
-        return VKGuard.NotNull(VKPatternEntry.Create(id, segment).Value);
+        return VKGuard.NotNull(VKPatternEntry.Create(id, segment, name).Value);
     }
 
     // --- Session ---
@@ -188,10 +192,14 @@ internal sealed class DefaultPsycheModelFactory(
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null,
+        string? description = null,
+        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
+        int depthPriority = 10,
+        int? absoluteDepth = null,
+        string? tagName = null,
         int tokenCount = 0)
     {
-        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, timeZone, preferences, tokenCount);
+        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, timeZone, description, relativeDepth, depthPriority, absoluteDepth, tagName, tokenCount);
     }
 
     /// <inheritdoc />
@@ -200,10 +208,14 @@ internal sealed class DefaultPsycheModelFactory(
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null,
+        string? description = null,
+        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
+        int depthPriority = 10,
+        int? absoluteDepth = null,
+        string? tagName = null,
         int tokenCount = 0)
     {
-        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, timeZone, preferences, tokenCount).Value);
+        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, timeZone, description, relativeDepth, depthPriority, absoluteDepth, tagName, tokenCount).Value);
     }
 
     // --- Echo ---

@@ -13,17 +13,17 @@ public enum VKPromptTierType : byte
     Dynamic = 0,
 
     /// <summary>
-    /// Directive-level instructions (e.g., system prompts, core rules).
+    /// Directive-level instructions.
     /// </summary>
     Directive = 1,
 
     /// <summary>
-    /// Persona-specific definitions (e.g., character background, tone).
+    /// Persona-specific definitions.
     /// </summary>
     Persona = 2,
 
     /// <summary>
-    /// Injected knowledge context (e.g., RAG results, memory).
+    /// Injected knowledge context.
     /// </summary>
     Knowledge = 3,
 

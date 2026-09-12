@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -16,18 +18,18 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
 {
     private readonly VKPersonaOptions _options;
     private readonly IVKPsychePersonaRepository _personaRepository;
-    private readonly VKWeavingOptions _weavingOptions;
+    private readonly IVKPersonaRenderer _personaRenderer;
     private readonly ILogger<DefaultPersonaStage> _logger;
 
     public DefaultPersonaStage(
         VKPersonaOptions options,
         IVKPsychePersonaRepository personaRepository,
-        VKWeavingOptions weavingOptions,
+        IVKPersonaRenderer personaRenderer,
         ILogger<DefaultPersonaStage> logger)
     {
         _options = VKGuard.NotNull(options);
         _personaRepository = VKGuard.NotNull(personaRepository);
-        _weavingOptions = VKGuard.NotNull(weavingOptions);
+        _personaRenderer = VKGuard.NotNull(personaRenderer);
         _logger = VKGuard.NotNull(logger);
     }
 
@@ -38,48 +40,48 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Persona))
+        var isEnabled = context.Args<VKPersonaArgs>()?.Enabled ?? _options.Enabled;
+        if (!isEnabled)
         {
             return VKResult.Success();
         }
 
-        if (context.Request.PersonaIds.Count == 0)
+        var personaId = context.Request.PersonaId;
+        if (personaId.IsNullOrEmpty())
         {
             return VKResult.Success();
         }
 
-        var personasResult = await _personaRepository.ListByIdsAsync(context.Request.PersonaIds, cancellationToken).ConfigureAwait(false); // [CS.03]
-        if (personasResult.IsFailure)
+        var personaResult = await _personaRepository.FindByIdAsync(personaId.Value, cancellationToken).ConfigureAwait(false); // [CS.03]
+        if (personaResult.IsFailure)
         {
-            return VKResult.Failure(personasResult.Errors); // [CS.01]
+            return VKResult.Failure(personaResult.Errors); // [CS.01]
         }
 
-        var tierType = VKPromptTierType.Persona;
-        var baseRenderOrder = context.Args<VKWeavingArgs>()?.TierRenderOrderOverrides?.IndexOf(tierType) is int idx && idx >= 0
-            ? idx * PsycheConstants.Layout.TierCoordinateGap
-            : PromptLayout.DefaultRenderOrders[tierType];
-
-        foreach (var persona in personasResult.Value)
+        var persona = personaResult.Value;
+        if (persona is null)
         {
-            context.SetState(persona);
-            _logger.PersonaResolved(persona.Id, persona.Name);
+            return VKResult.Success();
+        }
 
-            context.AddFragment(new VKPromptFragment()
+        context.SetState(persona);
+
+        _logger.PersonaResolved(persona.Id, persona.Name);
+
+        var content = _personaRenderer.Render(persona);
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            _logger.PersonaRendered(persona.Id, content.Length);
+            context.AddSegment(new VKPromptSegment
             {
-                TierType = tierType,
-                RenderOrder = baseRenderOrder,
-                Metadata = persona,
-                Segment = new VKPromptSegment
-                {
-                    Role = VKChatRole.System
-                }
+                Tier = VKPromptTierType.Persona,
+                TagName = PsycheConstants.XmlTags.Persona,
+                Content = content,
+                DepthPriority = 0,
+                TokenCount = persona.TokenCount
             });
-        }
 
-        if (personasResult.Value.Count > 0)
-        {
-            PersonaDiagnostics.RecordPersonasResolved(personasResult.Value.Count, "Persona");
+            PersonaDiagnostics.RecordPersonasResolved(1, "Persona");
         }
 
         return VKResult.Success();

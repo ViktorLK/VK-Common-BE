@@ -19,8 +19,8 @@ public interface IVKContractProjector
         VKAIEidosResponseContract contract,
         VKAIEidosExpressionMode mode);
 
-    VKPromptFragment GetHeaderProtocolFragment();
+    VKPromptSegment GetHeaderProtocolFragment();
 
-    VKPromptFragment GetTailSchemaFragment(
+    VKPromptSegment GetTailSchemaFragment(
         VKAIEidosResponseContract contract);
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.Knowledge.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -48,9 +49,6 @@ internal sealed class DefaultKnowledgeFinalizerStage : IVKPsychePipelineStage
 
         var maxEntries = context.Args<VKKnowledgeArgs>()?.MaxEntriesToInject ?? _options.MaxEntriesToInject;
         var reservedTokens = context.Args<VKKnowledgeArgs>()?.ReservedTokens ?? _options.ReservedTokens;
-        var defaultXmlTag = !string.IsNullOrWhiteSpace(context.Args<VKKnowledgeArgs>()?.DefaultXmlTag)
-            ? context.Args<VKKnowledgeArgs>()!.DefaultXmlTag
-            : _options.DefaultXmlTag;
 
         var orderedCandidates = state.Candidates
             .DistinctBy(e => e.Id)
@@ -68,9 +66,9 @@ internal sealed class DefaultKnowledgeFinalizerStage : IVKPsychePipelineStage
                 break;
             }
 
-            if (reservedTokens is > 0 && entry.TokenCount > 0)
+            if (reservedTokens is > 0 && entry.Segment.TokenCount > 0)
             {
-                if (accumulatedTokens + entry.TokenCount > reservedTokens.Value && injectedCount > 0)
+                if (accumulatedTokens + entry.Segment.TokenCount > reservedTokens.Value && injectedCount > 0)
                 {
                     break;
                 }
@@ -84,12 +82,12 @@ internal sealed class DefaultKnowledgeFinalizerStage : IVKPsychePipelineStage
             var segment = entry.Segment with { Tier = VKPromptTierType.Knowledge };
             if (string.IsNullOrWhiteSpace(segment.TagName))
             {
-                segment = segment with { TagName = defaultXmlTag };
+                segment = segment with { TagName = PsycheConstants.XmlTags.Knowledge };
             }
 
             context.AddSegment(segment);
             injectedCount++;
-            accumulatedTokens += entry.TokenCount;
+            accumulatedTokens += entry.Segment.TokenCount;
         }
 
         var truncatedCount = Math.Max(0, candidateCount - injectedCount);

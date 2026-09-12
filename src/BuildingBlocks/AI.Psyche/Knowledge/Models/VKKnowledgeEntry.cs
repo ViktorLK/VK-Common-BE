@@ -16,6 +16,11 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>
     // =========================================================================
 
     /// <summary>
+    /// Gets the human-readable title or name for this knowledge entry.
+    /// </summary>
+    public string? Name { get; private set; }
+
+    /// <summary>
     /// Gets the segment text for this knowledge entry.
     /// </summary>
     public VKPromptSegment Segment { get; private set; }
@@ -35,17 +40,6 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>
     /// </summary>
     public IReadOnlyList<VKKnowledgeKey> Keys { get; private set; }
 
-    /// <summary>
-    /// Gets the precalculated token count of this knowledge entry's segment.
-    /// Default is 0 (uncalculated).
-    /// </summary>
-    public int TokenCount => Segment?.TokenCount ?? 0;
-
-    /// <summary>
-    /// Gets the optional XML wrapper tag name of this knowledge entry's segment.
-    /// </summary>
-    public string? XmlTag => Segment?.TagName;
-
     // =========================================================================
     // Constructor (Private)
     // =========================================================================
@@ -55,12 +49,14 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType,
         VKKnowledgeFilterLogic filterLogic,
-        IReadOnlyList<VKKnowledgeKey>? keys) : base(id)
+        IReadOnlyList<VKKnowledgeKey>? keys,
+        string? name = null) : base(id)
     {
         Segment = segment;
         TriggerType = triggerType;
         FilterLogic = filterLogic;
         Keys = keys ?? [];
+        Name = name;
     }
 
     // =========================================================================
@@ -75,13 +71,14 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType = VKKnowledgeTriggerType.Constant,
         VKKnowledgeFilterLogic filterLogic = VKKnowledgeFilterLogic.AndAny,
-        IReadOnlyList<VKKnowledgeKey>? keys = null)
+        IReadOnlyList<VKKnowledgeKey>? keys = null,
+        string? name = null)
     {
         // [AP.01]
         VKGuard.NotDefault(id);
         VKGuard.NotNull(segment);
 
-        return VKResult.Success(new VKKnowledgeEntry(id, segment, triggerType, filterLogic, keys));
+        return VKResult.Success(new VKKnowledgeEntry(id, segment, triggerType, filterLogic, keys, name));
     }
 
     /// <summary>
@@ -92,14 +89,24 @@ public sealed class VKKnowledgeEntry : VKAggregateRoot<VKKnowledgeId>
         VKPromptSegment segment,
         VKKnowledgeTriggerType triggerType,
         VKKnowledgeFilterLogic filterLogic,
-        IReadOnlyList<VKKnowledgeKey>? keys)
+        IReadOnlyList<VKKnowledgeKey>? keys,
+        string? name = null)
     {
-        return new VKKnowledgeEntry(id, segment, triggerType, filterLogic, keys);
+        return new VKKnowledgeEntry(id, segment, triggerType, filterLogic, keys, name);
     }
 
     // =========================================================================
     // Behavioral Methods
     // =========================================================================
+
+    /// <summary>
+    /// Updates the human-readable name/title of this knowledge entry.
+    /// </summary>
+    public VKResult UpdateName(string? name)
+    {
+        Name = name;
+        return VKResult.Success();
+    }
 
     /// <summary>
     /// Updates the prompt segment content and placement coordinates.

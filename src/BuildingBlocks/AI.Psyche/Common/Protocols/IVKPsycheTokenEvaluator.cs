@@ -24,7 +24,7 @@ public interface IVKPsycheTokenEvaluator
     int EvaluateAndRefresh(VKDirectiveCharter directive, string? modelId = null);
 
     /// <summary>
-    /// Evaluates the token count of a knowledge entry's segment and updates <see cref="VKKnowledgeEntry.TokenCount"/>.
+    /// Evaluates the token count of a knowledge entry's segment and updates <see cref="VKPromptSegment.TokenCount"/>.
     /// </summary>
     /// <param name="knowledge">The knowledge entry aggregate root.</param>
     /// <param name="modelId">Optional target AI model ID for model-specific tokenization.</param>
@@ -32,7 +32,7 @@ public interface IVKPsycheTokenEvaluator
     int EvaluateAndRefresh(VKKnowledgeEntry knowledge, string? modelId = null);
 
     /// <summary>
-    /// Evaluates the token count of a pattern entry's segment and updates <see cref="VKPatternEntry.TokenCount"/>.
+    /// Evaluates the token count of a pattern entry's segment and updates <see cref="VKPromptSegment.TokenCount"/>.
     /// </summary>
     /// <param name="pattern">The pattern entry aggregate root.</param>
     /// <param name="modelId">Optional target AI model ID for model-specific tokenization.</param>

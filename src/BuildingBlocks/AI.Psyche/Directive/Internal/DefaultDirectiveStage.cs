@@ -83,7 +83,6 @@ internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
                     TagName = PsycheConstants.XmlTags.SystemDirective,
                     Content = content,
                     DepthPriority = i,
-                    Role = VKChatRole.System,
                     TokenCount = directive.TokenCount
                 });
             }

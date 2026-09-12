@@ -1,7 +1,8 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using VK.Blocks.AI.Psyche.Pattern.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -12,7 +13,6 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
 {
     private readonly VKPatternOptions _options;
     private readonly IVKPsychePatternRepository _patternRepository;
-    private readonly VKWeavingOptions _weavingOptions;
     private readonly ILogger<DefaultPatternStage> _logger;
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePattern;
@@ -21,21 +21,19 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
     public DefaultPatternStage(
         VKPatternOptions options,
         IVKPsychePatternRepository patternRepository,
-        VKWeavingOptions weavingOptions,
-        ILogger<DefaultPatternStage>? logger = null)
+        ILogger<DefaultPatternStage> logger)
     {
         _options = VKGuard.NotNull(options);
         _patternRepository = VKGuard.NotNull(patternRepository);
-        _weavingOptions = VKGuard.NotNull(weavingOptions);
-        _logger = logger ?? NullLogger<DefaultPatternStage>.Instance;
+        _logger = VKGuard.NotNull(logger);
     }
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken ct)
     {
         VKGuard.NotNull(context);
 
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _weavingOptions.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Contains(VKPromptTierType.Pattern))
+        var isEnabled = context.Args<VKPatternArgs>()?.Enabled ?? _options.Enabled;
+        if (!isEnabled)
         {
             return VKResult.Success();
         }
@@ -52,22 +50,44 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
         }
 
         var currentPatterns = patternsResult.Value;
-
-        foreach (var pattern in currentPatterns)
+        if (currentPatterns.Count == 0)
         {
-            _logger.PatternResolved(pattern.Id.Value.ToString());
-
-            context.AddFragment(new VKPromptFragment
-            {
-                TierType = VKPromptTierType.Pattern,
-                Segment = pattern.Segment,
-                Metadata = pattern
-            });
+            return VKResult.Success();
         }
 
-        if (currentPatterns.Count > 0)
+        // Dual-factor deterministic sorting: DepthPriority first (ascending), then request declaration order
+        var requestOrder = new Dictionary<VKPatternId, int>(context.Request.PatternIds.Count);
+        for (int i = 0; i < context.Request.PatternIds.Count; i++)
         {
-            PatternDiagnostics.RecordPatternsResolved(currentPatterns.Count, "Pattern");
+            requestOrder.TryAdd(context.Request.PatternIds[i], i);
+        }
+
+        var sortedPatterns = currentPatterns
+            .DistinctBy(p => p.Id)
+            .OrderBy(p => p.Segment.DepthPriority)
+            .ThenBy(p => requestOrder.GetValueOrDefault(p.Id, int.MaxValue))
+            .ToList();
+
+        context.SetState<IReadOnlyList<VKPatternEntry>>(sortedPatterns);
+
+        int resolvedCount = 0;
+        foreach (var pattern in sortedPatterns)
+        {
+            if (string.IsNullOrWhiteSpace(pattern.Segment.Content))
+            {
+                continue;
+            }
+
+            _logger.PatternResolved(pattern.Id);
+
+            var segment = pattern.Segment with { Tier = VKPromptTierType.Pattern };
+            context.AddSegment(segment);
+            resolvedCount++;
+        }
+
+        if (resolvedCount > 0)
+        {
+            PatternDiagnostics.RecordPatternsResolved(resolvedCount, "Pattern");
         }
 
         return VKResult.Success();

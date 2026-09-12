@@ -19,14 +19,11 @@ internal sealed partial class PersonaFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddSingleton<InMemoryPersonaRepository>();
-        services.TryAddSingleton<IVKPsychePersonaRepository>(sp => sp.GetRequiredService<InMemoryPersonaRepository>());
-        services.TryAddSingleton<IVKReadRepository<VKPersonaAnchor, VKPersonaId>>(sp => sp.GetRequiredService<InMemoryPersonaRepository>());
+        services.TryAddSingleton<IVKPsychePersonaRepository, InMemoryPersonaRepository>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPersonaStage>());
 
-        // Register non-generic extractor, renderer and formatter
+        // Register persona renderer
         services.TryAddSingleton<IVKPersonaRenderer, DefaultPersonaRenderer>();
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptFormatter, DefaultPersonaFormatter>());
     }
 
     // [SG Hook]

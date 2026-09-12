@@ -43,5 +43,5 @@ internal static partial class PatternDiagnostics
         EventId = VKPatternDiagnosticsConstants.Logs.PatternResolved,
         Level = LogLevel.Debug,
         Message = "Resolved Pattern {PatternId}.")]
-    public static partial void PatternResolved(this ILogger logger, string patternId);
+    public static partial void PatternResolved(this ILogger logger, VKPatternId patternId);
 }

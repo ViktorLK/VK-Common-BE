@@ -1,5 +1,4 @@
 using VK.Blocks.Core;
-using VK.Blocks.AI.Psyche.Common.Internal;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -40,11 +39,4 @@ public sealed partial record VKKnowledgeOptions : IVKToggleableBlockOptions
     /// </summary>
     [VKRequestOverride]
     public int? ReservedTokens { get; init; } = null;
-
-    /// <summary>
-    /// Gets or sets the default XML wrapper tag for knowledge segments when entry.Segment.TagName is omitted.
-    /// Defaults to <see cref="PsycheConstants.XmlTags.Knowledge"/> ("knowledge").
-    /// </summary>
-    [VKRequestOverride]
-    public string DefaultXmlTag { get; init; } = PsycheConstants.XmlTags.Knowledge;
 }
