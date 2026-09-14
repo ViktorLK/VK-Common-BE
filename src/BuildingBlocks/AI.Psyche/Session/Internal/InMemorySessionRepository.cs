@@ -14,11 +14,9 @@ namespace VK.Blocks.AI.Psyche.Session.Internal;
 internal sealed class InMemorySessionRepository : IVKPsycheSessionRepository
 {
     private readonly ConcurrentDictionary<VKSessionId, VKSessionThread> _sessions = new();
-    private readonly TimeProvider _timeProvider;
 
-    public InMemorySessionRepository(TimeProvider? timeProvider = null)
+    public InMemorySessionRepository()
     {
-        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public Task<VKResult<VKSessionThread>> FindByIdAsync(VKSessionId id, CancellationToken ct = default)
@@ -76,7 +74,8 @@ internal sealed class InMemorySessionRepository : IVKPsycheSessionRepository
 
         if (!_sessions.TryAdd(item.Id, item))
         {
-            return Task.FromResult(VKResult.Failure(VKSessionErrors.NotFound));
+            // [CS.01]
+            return Task.FromResult(VKResult.Failure(VKSessionErrors.AlreadyExists));
         }
 
         return Task.FromResult(VKResult.Success());

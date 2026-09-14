@@ -52,7 +52,7 @@ internal static partial class SessionDiagnostics
         EventId = VKSessionDiagnosticsConstants.Logs.SessionResolved,
         Level = LogLevel.Debug,
         Message = "Resolved Session {SessionId}. Mode: {Mode}, TurnCount: {TurnCount}")]
-    public static partial void SessionResolved(this ILogger logger, VKSessionId sessionId, string mode, int turnCount);
+    public static partial void SessionResolved(this ILogger logger, VKSessionId sessionId, VKSessionMode mode, int turnCount);
 
     [LoggerMessage(
         EventId = VKSessionDiagnosticsConstants.Logs.SessionUpdated,
@@ -64,5 +64,5 @@ internal static partial class SessionDiagnostics
         EventId = VKSessionDiagnosticsConstants.Logs.SessionNotActive,
         Level = LogLevel.Warning,
         Message = "Session {SessionId} is not in Active status ({Status}).")]
-    public static partial void SessionNotActive(this ILogger logger, VKSessionId sessionId, string status);
+    public static partial void SessionNotActive(this ILogger logger, VKSessionId sessionId, VKSessionStatus status);
 }

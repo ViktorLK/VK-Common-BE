@@ -13,4 +13,9 @@ public static class VKProfileErrors
     /// Error returned when the user profile was not found.
     /// </summary>
     public static readonly VKError NotFound = new("AI.Profile.NotFound", "The requested profile was not found.");
+
+    /// <summary>
+    /// Error returned when attempting to add a profile that already exists.
+    /// </summary>
+    public static readonly VKError AlreadyExists = new("AI.Profile.AlreadyExists", "The profile already exists.");
 }

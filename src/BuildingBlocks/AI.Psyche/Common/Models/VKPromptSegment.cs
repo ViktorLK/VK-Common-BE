@@ -1,4 +1,4 @@
-using VK.Blocks.AI;
+using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -64,4 +64,34 @@ public sealed record VKPromptSegment
     /// Default is 0 (uncalculated).
     /// </summary>
     public int TokenCount { get; init; } = 0;
+
+    /// <summary>
+    /// Computes the linearized layout ordering key based on relative depth anchors, tier, role, and depth priority.
+    /// Internal to VK.Blocks.AI.Psyche; used for deterministic pipeline sorting.
+    /// </summary>
+    internal int LayoutOrder
+    {
+        get
+        {
+            int slotBase = RelativeDepth switch
+            {
+                VKPromptRelativeDepth.BeforeDirective => PsycheConstants.LayoutSlots.BeforeDirective,
+                VKPromptRelativeDepth.AfterDirective  => PsycheConstants.LayoutSlots.AfterDirective,
+                VKPromptRelativeDepth.BeforePersona   => PsycheConstants.LayoutSlots.BeforePersona,
+                VKPromptRelativeDepth.AfterPersona    => PsycheConstants.LayoutSlots.AfterPersona,
+                VKPromptRelativeDepth.BeforeEcho      => PsycheConstants.LayoutSlots.BeforeEcho,
+                VKPromptRelativeDepth.AfterEcho       => PsycheConstants.LayoutSlots.AfterEcho,
+                VKPromptRelativeDepth.BeforeInput     => PsycheConstants.LayoutSlots.BeforeInput,
+                VKPromptRelativeDepth.AfterInput      => PsycheConstants.LayoutSlots.AfterInput,
+                _ => Tier switch
+                {
+                    VKPromptTierType.Directive => PsycheConstants.LayoutSlots.Directive,
+                    VKPromptTierType.Persona   => PsycheConstants.LayoutSlots.Persona,
+                    _ => Role == VKChatRole.System ? PsycheConstants.LayoutSlots.AfterPersona : PsycheConstants.LayoutSlots.AfterEcho
+                }
+            };
+
+            return slotBase + DepthPriority;
+        }
+    }
 }

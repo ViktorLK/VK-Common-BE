@@ -73,7 +73,7 @@ internal sealed class InMemoryProfileRepository : IVKPsycheProfileRepository
 
         if (!_presences.TryAdd(item.Id, item))
         {
-            return Task.FromResult(VKResult.Failure(VKProfileErrors.NotFound));
+            return Task.FromResult(VKResult.Failure(VKProfileErrors.AlreadyExists));
         }
 
         return Task.FromResult(VKResult.Success());

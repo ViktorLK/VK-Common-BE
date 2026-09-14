@@ -60,6 +60,12 @@ public sealed class VKPsycheContext
     public IReadOnlyList<VKEchoFragment> Echoes => _echoes;
 
     /// <summary>
+    /// Gets or sets the pre-built user dialogue echo trace for the current turn.
+    /// Prepared during EchoExtractStage and reused across Truncation, Tapestry Weaving, and EchoSaveStage.
+    /// </summary>
+    public VKEchoTrace? UserEchoTrace { get; set; }
+
+    /// <summary>
     /// Safely adds a prompt segment into the active tapestry collection.
     /// Uses CAS (Compare-And-Swap) for atomic, lock-free thread safety.
     /// </summary>

@@ -21,11 +21,10 @@ internal sealed partial class SessionFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddScoped<InMemorySessionRepository>();
-        services.TryAddScoped<IVKPsycheSessionRepository>(sp => sp.GetRequiredService<InMemorySessionRepository>());
-        services.TryAddScoped<IVKReadRepository<VKSessionThread, VKSessionId>>(sp => sp.GetRequiredService<InMemorySessionRepository>());
-        services.AddScoped<IVKPsychePipelineStage, DefaultSessionResolveStage>();
-        services.AddScoped<IVKPsychePipelineStage, DefaultSessionUpdateStage>();
+        // [AP.02] Idempotent registration
+        services.TryAddScoped<IVKPsycheSessionRepository, InMemorySessionRepository>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultSessionResolveStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultSessionUpdateStage>());
     }
 
     // [SG Hook]

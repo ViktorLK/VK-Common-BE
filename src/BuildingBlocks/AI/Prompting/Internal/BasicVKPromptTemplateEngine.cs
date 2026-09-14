@@ -18,7 +18,7 @@ internal sealed class BasicVKPromptTemplateEngine : IVKPromptTemplateEngine
     {
         VKGuard.NotNull(templateText);
 
-        if (variables is null || variables.Count == 0)
+        if (variables is null || variables.Count == 0 || !templateText.Contains("{{"))
         {
             return Task.FromResult(VKResult.Success(templateText));
         }
@@ -26,9 +26,13 @@ internal sealed class BasicVKPromptTemplateEngine : IVKPromptTemplateEngine
         var sb = new StringBuilder(templateText);
         foreach (var kvp in variables)
         {
+            if (kvp.Value is null)
+            {
+                continue;
+            }
+
             string placeholder = "{{" + kvp.Key + "}}";
-            string replacement = kvp.Value?.ToString() ?? string.Empty;
-            sb.Replace(placeholder, replacement);
+            sb.Replace(placeholder, kvp.Value.ToString()!);
         }
 
         return Task.FromResult(VKResult.Success(sb.ToString()));

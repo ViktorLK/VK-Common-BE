@@ -12,5 +12,6 @@ public sealed partial record VKProfileOptions : IVKToggleableBlockOptions
     /// Gets or sets a value indicating whether the Profile feature is enabled.
     /// Defaults to true.
     /// </summary>
+    [VKRequestOverride]
     public bool Enabled { get; init; } = true;
 }

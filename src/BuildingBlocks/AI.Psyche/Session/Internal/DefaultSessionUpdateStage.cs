@@ -1,8 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using VK.Blocks.AI.Psyche.Session.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -15,6 +15,8 @@ namespace VK.Blocks.AI.Psyche.Session.Internal;
 [VKTrace("psyche.stage.session_update")]
 internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
 {
+    private const string StageName = "SessionUpdate";
+
     private readonly VKSessionOptions _options;
     private readonly IVKPsycheSessionRepository _sessionRepository;
     private readonly TimeProvider _timeProvider;
@@ -24,12 +26,12 @@ internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
         VKSessionOptions options,
         IVKPsycheSessionRepository sessionRepository,
         TimeProvider timeProvider,
-        ILogger<DefaultSessionUpdateStage>? logger = null)
+        ILogger<DefaultSessionUpdateStage> logger)
     {
         _options = VKGuard.NotNull(options);
         _sessionRepository = VKGuard.NotNull(sessionRepository);
         _timeProvider = VKGuard.NotNull(timeProvider);
-        _logger = logger ?? NullLogger<DefaultSessionUpdateStage>.Instance;
+        _logger = VKGuard.NotNull(logger);
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.After.PsycheSessionUpdate;
@@ -59,7 +61,14 @@ internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
             return incResult;
         }
 
-        var saveResult = await _sessionRepository.UpdateAsync(session, cancellationToken).ConfigureAwait(false);
+        var stopwatch = Stopwatch.StartNew();
+        var saveResult = await _sessionRepository.UpdateAsync(session, cancellationToken).ConfigureAwait(false); // [CS.03]
+        stopwatch.Stop();
+        var durationMs = stopwatch.Elapsed.TotalMilliseconds;
+
+        var isSuccess = saveResult.IsSuccess;
+        SessionDiagnostics.RecordSessionUpdate(durationMs, StageName, isSuccess); // [BB.04]
+
         if (saveResult.IsFailure)
         {
             return saveResult;

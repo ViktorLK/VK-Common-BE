@@ -1,7 +1,7 @@
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Defines standard prompt insertion points inside the system instructions template.
+/// Defines standard prompt insertion points across directive, persona, echo history, and user input pillars.
 /// </summary>
 public enum VKPromptRelativeDepth : byte
 {
@@ -10,5 +10,7 @@ public enum VKPromptRelativeDepth : byte
     BeforePersona = 2,
     AfterPersona = 3,
     BeforeEcho = 4,
-    AfterEcho = 5
+    AfterEcho = 5,
+    BeforeInput = 6,
+    AfterInput = 7
 }
