@@ -44,6 +44,14 @@ public sealed partial record VKEchoOptions : IVKToggleableBlockOptions
     public int? MaxTurns { get; init; } = null;
 
     /// <summary>
+    /// Gets or sets the minimum number of complete conversation turns that must be retained
+    /// even during budget truncation. Default is 1 (guarantees retaining at least the latest turn).
+    /// Set to 0 to allow complete eviction if budget is exhausted.
+    /// </summary>
+    [VKRequestOverride]
+    public int MinRetainedTurns { get; init; } = 1;
+
+    /// <summary>
     /// Gets or sets the unit of truncation/pruning when history exceeds the budget.
     /// Default is <see cref="VKEchoPruneUnit.Turn"/> to maintain dialog consistency.
     /// </summary>

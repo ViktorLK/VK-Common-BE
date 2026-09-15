@@ -37,7 +37,7 @@ internal sealed class DefaultPsycheModelFactory(
             Role = role,
             Name = name,
             TagName = tagName,
-            AbsoluteDepth = absoluteDepth,
+            TimelineDepth = absoluteDepth,
             RelativeDepth = relativeDepth,
             DepthPriority = Math.Clamp(depthPriority, 0, 999),
             TokenCount = tokenCount

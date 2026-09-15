@@ -12,7 +12,12 @@ public sealed class VKProfilePresenceBuilder : VKTestDataBuilder<VKProfilePresen
     private string? _displayName = "Default User";
     private string? _preferredLanguage = "en-US";
     private string? _timeZone = "UTC";
-    private Dictionary<string, string> _preferences = new();
+    private string? _description = null;
+    private VKPromptRelativeDepth? _relativeDepth = VKPromptRelativeDepth.AfterDirective;
+    private int _depthPriority = 10;
+    private int? _absoluteDepth = null;
+    private string? _tagName = null;
+    private int _tokenCount = 0;
 
     public VKProfilePresenceBuilder WithId(VKProfileId id)
     {
@@ -38,15 +43,34 @@ public sealed class VKProfilePresenceBuilder : VKTestDataBuilder<VKProfilePresen
         return this;
     }
 
-    public VKProfilePresenceBuilder WithPreference(string key, string value)
+    public VKProfilePresenceBuilder WithDescription(string? description)
     {
-        _preferences[key] = value;
+        _description = description;
         return this;
     }
 
-    public VKProfilePresenceBuilder WithPreferences(IReadOnlyDictionary<string, string> preferences)
+    public VKProfilePresenceBuilder WithContent(string content)
     {
-        _preferences = new Dictionary<string, string>(preferences);
+        _description = content;
+        return this;
+    }
+
+    public VKProfilePresenceBuilder WithCoordinates(
+        VKPromptRelativeDepth? relativeDepth,
+        int depthPriority = 10,
+        int? absoluteDepth = null,
+        string? tagName = null)
+    {
+        _relativeDepth = relativeDepth;
+        _depthPriority = depthPriority;
+        _absoluteDepth = absoluteDepth;
+        _tagName = tagName;
+        return this;
+    }
+
+    public VKProfilePresenceBuilder WithTokenCount(int tokenCount)
+    {
+        _tokenCount = tokenCount;
         return this;
     }
 
@@ -57,6 +81,11 @@ public sealed class VKProfilePresenceBuilder : VKTestDataBuilder<VKProfilePresen
             displayName: _displayName,
             preferredLanguage: _preferredLanguage,
             timeZone: _timeZone,
-            preferences: _preferences).Value);
+            description: _description,
+            relativeDepth: _relativeDepth,
+            depthPriority: _depthPriority,
+            absoluteDepth: _absoluteDepth,
+            tagName: _tagName,
+            tokenCount: _tokenCount).Value);
     }
 }

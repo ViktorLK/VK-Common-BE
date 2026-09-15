@@ -161,7 +161,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(35);
-        knowledge.TokenCount.Should().Be(35);
+        knowledge.Segment.TokenCount.Should().Be(35);
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(0);
-        knowledge.TokenCount.Should().Be(0);
+        knowledge.Segment.TokenCount.Should().Be(0);
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(18);
-        pattern.TokenCount.Should().Be(18);
+        pattern.Segment.TokenCount.Should().Be(18);
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(0);
-        pattern.TokenCount.Should().Be(0);
+        pattern.Segment.TokenCount.Should().Be(0);
     }
 
     [Fact]

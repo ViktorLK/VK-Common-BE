@@ -16,12 +16,14 @@ public sealed class VKDirectiveCharterTests : VKUnitTestBase
             overview: "Overview",
             behaviorRules: "Rules",
             safetyRules: "Safety",
-            outputConstraints: "Constraints");
+            outputConstraints: "Constraints",
+            name: "Master Directive");
 
         // Assert
         result.Should().BeSuccess();
         var charter = result.Value!;
         charter.Id.Should().Be(id);
+        charter.Name.Should().Be("Master Directive");
         charter.Overview.Should().Be("Overview");
         charter.BehaviorRules.Should().Be("Rules");
         charter.SafetyRules.Should().Be("Safety");
@@ -50,14 +52,32 @@ public sealed class VKDirectiveCharterTests : VKUnitTestBase
             "Overview",
             "Rules",
             "Safety",
-            "Constraints");
+            "Constraints",
+            0,
+            0,
+            "Rehydrated Directive");
 
         // Assert
         charter.Id.Should().Be(id);
+        charter.Name.Should().Be("Rehydrated Directive");
         charter.Overview.Should().Be("Overview");
         charter.BehaviorRules.Should().Be("Rules");
         charter.SafetyRules.Should().Be("Safety");
         charter.OutputConstraints.Should().Be("Constraints");
+    }
+
+    [Fact]
+    public void UpdateName_WhenCalled_UpdatesName()
+    {
+        // Arrange
+        var charter = new VKDirectiveCharterBuilder().Build();
+
+        // Act
+        var result = charter.UpdateName("New Name");
+
+        // Assert
+        result.Should().BeSuccess();
+        charter.Name.Should().Be("New Name");
     }
 
     [Fact]

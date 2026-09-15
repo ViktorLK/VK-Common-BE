@@ -11,7 +11,7 @@ public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry
     private VKKnowledgeId _id = new(Guid.NewGuid());
     private VKKnowledgeTriggerType _triggerType = VKKnowledgeTriggerType.Constant;
     private VKKnowledgeFilterLogic _filterLogic = VKKnowledgeFilterLogic.AndAny;
-    private VKPromptSegment _segment = new() { Role = VKChatRole.System, Content = "Knowledge Content" };
+    private VKPromptSegment _segment = new() { Content = "Knowledge Content" };
     private string? _xmlTag;
     private List<VKKnowledgeKey> _keys = [];
 
@@ -33,9 +33,9 @@ public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry
         return this;
     }
 
-    public VKKnowledgeEntryBuilder WithContent(string content, VKChatRole role = VKChatRole.System)
+    public VKKnowledgeEntryBuilder WithContent(string content)
     {
-        _segment = new VKPromptSegment { Role = role, Content = content };
+        _segment = new VKPromptSegment { Content = content };
         return this;
     }
 

@@ -47,9 +47,10 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
     public int DepthPriority { get; private set; } = 10;
 
     /// <summary>
-    /// Gets the absolute depth (position) in the message layout if absolute positioning is used; otherwise, null.
+    /// <summary>
+    /// Gets the timeline depth (position relative to chat timeline) in the message layout if timeline positioning is used; otherwise, null.
     /// </summary>
-    public int? AbsoluteDepth { get; private set; }
+    public int? TimelineDepth { get; private set; }
 
     /// <summary>
     /// Gets the optional XML wrapper tag name when injected into prompt context; or null to use system default.
@@ -73,7 +74,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
         string? description,
         VKPromptRelativeDepth? relativeDepth,
         int depthPriority,
-        int? absoluteDepth,
+        int? timelineDepth,
         string? tagName,
         int tokenCount) : base(id)
     {
@@ -83,7 +84,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
         Description = description;
         RelativeDepth = relativeDepth;
         DepthPriority = depthPriority;
-        AbsoluteDepth = absoluteDepth;
+        TimelineDepth = timelineDepth;
         TagName = tagName;
         TokenCount = tokenCount;
     }
@@ -103,7 +104,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
         string? description = null,
         VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
         int depthPriority = 10,
-        int? absoluteDepth = null,
+        int? timelineDepth = null,
         string? tagName = null,
         int tokenCount = 0)
     {
@@ -119,7 +120,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
             description,
             relativeDepth,
             depthPriority,
-            absoluteDepth,
+            timelineDepth,
             tagName,
             Math.Max(0, tokenCount)));
     }
@@ -135,7 +136,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
         string? description,
         VKPromptRelativeDepth? relativeDepth,
         int depthPriority,
-        int? absoluteDepth,
+        int? timelineDepth,
         string? tagName,
         int tokenCount)
     {
@@ -147,7 +148,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
             description,
             relativeDepth,
             depthPriority,
-            absoluteDepth,
+            timelineDepth,
             tagName,
             tokenCount);
     }

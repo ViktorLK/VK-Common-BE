@@ -69,4 +69,53 @@ public sealed class VKPatternEntryTests : VKUnitTestBase
         pattern.Segment.Content.Should().Be("Updated");
         pattern.Segment.DepthPriority.Should().Be(20);
     }
+
+    [Fact]
+    public void Create_WithNullSegment_ThrowsArgumentNullException()
+    {
+        // Act
+        Action act = () => VKPatternEntry.Create(new VKPatternId(Guid.NewGuid()), null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
+    public void UpdateTokenCount_WithValidCount_UpdatesSegmentTokenCount()
+    {
+        // Arrange
+        var pattern = new VKPatternEntryBuilder().Build();
+
+        // Act
+        var result = pattern.UpdateTokenCount(45);
+
+        // Assert
+        result.Should().BeSuccess();
+        pattern.Segment.TokenCount.Should().Be(45);
+    }
+
+    [Fact]
+    public void UpdateTokenCount_WithNegativeCount_ClampsToZero()
+    {
+        // Arrange
+        var pattern = new VKPatternEntryBuilder().Build();
+
+        // Act
+        var result = pattern.UpdateTokenCount(-10);
+
+        // Assert
+        result.Should().BeSuccess();
+        pattern.Segment.TokenCount.Should().Be(0);
+    }
+
+    [Fact]
+    public void UpdateTokenCount_WhenSegmentIsNull_DoesNotThrow()
+    {
+        // Arrange
+        var pattern = VKPatternEntry.Rehydrate(new VKPatternId(Guid.NewGuid()), null!);
+
+        // Act & Assert
+        pattern.UpdateTokenCount(50).Should().BeSuccess();
+    }
 }
+

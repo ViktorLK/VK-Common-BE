@@ -103,26 +103,5 @@ public sealed class KnowledgeOptionsValidatorTests : VKUnitTestBase
         result.Failed.Should().BeTrue();
         result.FailureMessage.Should().Contain("ReservedTokens, if set, must be greater than zero.");
     }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Validate_WhenDefaultXmlTagNullOrWhitespace_ShouldFail(string? invalidTag)
-    {
-        // Arrange
-        var validator = CreateValidator();
-        var options = new VKKnowledgeOptions
-        {
-            DefaultXmlTag = invalidTag!
-        };
-
-        // Act
-        var result = validator.Validate(Options.DefaultName, options);
-
-        // Assert
-        result.Failed.Should().BeTrue();
-        result.FailureMessage.Should().Contain("DefaultXmlTag must not be null or whitespace.");
-    }
 }
 

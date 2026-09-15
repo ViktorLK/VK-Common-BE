@@ -44,27 +44,27 @@ internal static partial class PipelineDiagnostics
 
     [LoggerMessage(
         EventId = VKPipelineDiagnosticsConstants.Logs.ExecutionStarted,
-        Level = LogLevel.Information,
+        Level = LogLevel.Debug,
         Message = "Psyche pipeline execution started. SessionId: {SessionId}, CorrelationId: {CorrelationId}")]
     public static partial void ExecutionStarted(this ILogger logger, VKSessionId sessionId, string correlationId);
 
     [LoggerMessage(
         EventId = VKPipelineDiagnosticsConstants.Logs.ExecutionCompleted,
-        Level = LogLevel.Information,
+        Level = LogLevel.Debug,
         Message = "Psyche pipeline execution completed successfully. CorrelationId: {CorrelationId}, Duration: {DurationMs}ms")]
     public static partial void ExecutionCompleted(this ILogger logger, string correlationId, double durationMs);
 
     [LoggerMessage(
         EventId = VKPipelineDiagnosticsConstants.Logs.ExecutionFailed,
-        Level = LogLevel.Error,
+        Level = LogLevel.Debug,
         Message = "Psyche pipeline execution failed. CorrelationId: {CorrelationId}, ErrorCode: {ErrorCode}, Message: {ErrorMessage}")]
     public static partial void ExecutionFailed(this ILogger logger, string correlationId, string errorCode, string errorMessage);
 
     [LoggerMessage(
         EventId = VKPipelineDiagnosticsConstants.Logs.PipelineStarted,
         Level = LogLevel.Information,
-        Message = "Psyche pipeline started. PersonaIds: {PersonaIds}, SessionId: {SessionId}, CorrelationId: {CorrelationId}")]
-    public static partial void PipelineStarted(this ILogger logger, string personaIds, VKSessionId sessionId, string correlationId);
+        Message = "Psyche pipeline started. PersonaId: {PersonaId}, SessionId: {SessionId}, CorrelationId: {CorrelationId}")]
+    public static partial void PipelineStarted(this ILogger logger, VKPersonaId? personaId, VKSessionId sessionId, string correlationId);
 
     [LoggerMessage(
         EventId = VKPipelineDiagnosticsConstants.Logs.PipelineCompleted,

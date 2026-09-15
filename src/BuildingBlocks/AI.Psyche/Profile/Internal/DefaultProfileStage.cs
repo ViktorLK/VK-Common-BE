@@ -82,7 +82,7 @@ internal sealed class DefaultProfileStage : IVKPsychePipelineStage
                 TagName = profile.TagName ?? ProfileConstants.Defaults.TagName,
                 RelativeDepth = profile.RelativeDepth ?? ProfileConstants.Defaults.RelativeDepth,
                 DepthPriority = profile.DepthPriority,
-                AbsoluteDepth = profile.AbsoluteDepth,
+                TimelineDepth = profile.TimelineDepth,
                 Tier = VKPromptTierType.Profile,
                 TokenCount = profile.TokenCount
             });

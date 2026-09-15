@@ -41,12 +41,18 @@ public sealed record VKPromptSegment
 
 
     /// <summary>
-    /// Gets the absolute depth (position) in the message layout if absolute positioning is used; otherwise, null.
+    /// Gets the temporal slot depth along the dialogue timeline (Echoes and UserInput), if timeline positioning is used; otherwise, null.
+    /// <list type="bullet">
+    ///   <item><description><c>0</c>: Injected immediately after current UserInput (prompt tail / suffix).</description></item>
+    ///   <item><description><c>1</c>: Injected before current UserInput (between dialogue history and prompt trigger).</description></item>
+    ///   <item><description><c>2 .. N</c>: Interleaved between historical dialogue echo turns.</description></item>
+    ///   <item><description><c>-1</c>: Injected immediately before the oldest historical echo (preface slot, never precedes static persona/directives).</description></item>
+    /// </list>
     /// </summary>
-    public int? AbsoluteDepth { get; init; }
+    public int? TimelineDepth { get; init; }
 
     /// <summary>
-    /// Gets the relative anchor relative to which the segment is rendered if absolute positioning is not used.
+    /// Gets the relative spatial anchor within the static persona/directive template, if relative positioning is used; otherwise, null.
     /// </summary>
     public VKPromptRelativeDepth? RelativeDepth { get; init; }
 
@@ -76,18 +82,14 @@ public sealed record VKPromptSegment
             int slotBase = RelativeDepth switch
             {
                 VKPromptRelativeDepth.BeforeDirective => PsycheConstants.LayoutSlots.BeforeDirective,
-                VKPromptRelativeDepth.AfterDirective  => PsycheConstants.LayoutSlots.AfterDirective,
-                VKPromptRelativeDepth.BeforePersona   => PsycheConstants.LayoutSlots.BeforePersona,
-                VKPromptRelativeDepth.AfterPersona    => PsycheConstants.LayoutSlots.AfterPersona,
-                VKPromptRelativeDepth.BeforeEcho      => PsycheConstants.LayoutSlots.BeforeEcho,
-                VKPromptRelativeDepth.AfterEcho       => PsycheConstants.LayoutSlots.AfterEcho,
-                VKPromptRelativeDepth.BeforeInput     => PsycheConstants.LayoutSlots.BeforeInput,
-                VKPromptRelativeDepth.AfterInput      => PsycheConstants.LayoutSlots.AfterInput,
+                VKPromptRelativeDepth.AfterDirective => PsycheConstants.LayoutSlots.AfterDirective,
+                VKPromptRelativeDepth.BeforePersona => PsycheConstants.LayoutSlots.BeforePersona,
+                VKPromptRelativeDepth.AfterPersona => PsycheConstants.LayoutSlots.AfterPersona,
                 _ => Tier switch
                 {
                     VKPromptTierType.Directive => PsycheConstants.LayoutSlots.Directive,
-                    VKPromptTierType.Persona   => PsycheConstants.LayoutSlots.Persona,
-                    _ => Role == VKChatRole.System ? PsycheConstants.LayoutSlots.AfterPersona : PsycheConstants.LayoutSlots.AfterEcho
+                    VKPromptTierType.Persona => PsycheConstants.LayoutSlots.Persona,
+                    _ => PsycheConstants.LayoutSlots.AfterPersona
                 }
             };
 
