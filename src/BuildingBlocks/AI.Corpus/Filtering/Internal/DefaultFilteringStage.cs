@@ -261,9 +261,9 @@ internal sealed class DefaultFilteringStage : IVKPsychePipelineStage
             {
                 passedEntries.Add(entry);
                 currentTurnInjectedTags.Add(entry.Knowledge.Id.Value.ToString());
-                if (!string.IsNullOrEmpty(entry.Knowledge.XmlTag))
+                if (!string.IsNullOrEmpty(entry.Knowledge.Segment.TagName))
                 {
-                    currentTurnInjectedTags.Add(entry.Knowledge.XmlTag);
+                    currentTurnInjectedTags.Add(entry.Knowledge.Segment.TagName);
                 }
             }
         }

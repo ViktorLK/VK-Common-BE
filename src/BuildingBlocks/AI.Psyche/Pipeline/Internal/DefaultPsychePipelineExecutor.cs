@@ -1,7 +1,10 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.AI.Psyche.Pipeline.Diagnostics.Internal;
 using VK.Blocks.Core;
@@ -14,6 +17,9 @@ namespace VK.Blocks.AI.Psyche.Pipeline.Internal;
 /// </summary>
 internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKPsycheContext, VKPsycheResponse>, IVKPsychePipelineExecutor
 {
+    private sealed record StageMetadata(string RawName, string SpanName, ActivityKind Kind);
+    private static readonly ConcurrentDictionary<Type, StageMetadata> StageMetadataCache = new();
+
     private readonly ILogger<DefaultPsychePipelineExecutor> _logger;
 
     public DefaultPsychePipelineExecutor(
@@ -23,6 +29,17 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         : base(stages, middlewares)
     {
         _logger = VKGuard.NotNull(logger);
+    }
+
+    private static StageMetadata GetStageMetadata(Type stageType)
+    {
+        return StageMetadataCache.GetOrAdd(stageType, static t =>
+        {
+            var traceAttr = (VKTraceAttribute?)System.Attribute.GetCustomAttribute(t, typeof(VKTraceAttribute));
+            var rawName = t.Name.Replace("Default", string.Empty).Replace("Stage", string.Empty);
+            var spanName = traceAttr?.ActivityName ?? $"psyche.stage.{rawName.ToLowerInvariant()}";
+            return new StageMetadata(rawName, spanName, traceAttr?.Kind ?? ActivityKind.Internal);
+        });
     }
 
     public override async Task<VKResult<VKPsycheResponse>> ExecuteAsync(
@@ -68,18 +85,17 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         VKPsycheContext context,
         CancellationToken cancellationToken)
     {
-        if (context.Services.GetService(typeof(IVKChatEngine)) is not IVKChatEngine chatEngine)
+        if (context.Services.GetService<IVKChatEngine>() is not { } chatEngine)
         {
             return VKResult.Failure(VKPipelineErrors.ChatEngineNotFound);
         }
 
         var chatArgs = context.Args<VKChatArgs>();
+        var modelMetadata = context.State<VKAIModelMetadata>();
+        var modelId = modelMetadata?.ModelId ?? "unknown";
 
         using var activity = PipelineDiagnostics.Source.StartActivity("psyche.llm.invoke");
-        if (chatArgs is not null)
-        {
-            activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.RequestModel, chatArgs.ModelId);
-        }
+        activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.RequestModel, modelId);
 
         var stopwatch = Stopwatch.StartNew();
         try
@@ -87,7 +103,7 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
             var chatResult = await chatEngine.SendAsync(context.ResponseBuilder.Messages, chatArgs, cancellationToken).ConfigureAwait(false);
             stopwatch.Stop();
 
-            PipelineDiagnostics.RecordLLMInvocation(stopwatch.Elapsed.TotalMilliseconds, chatArgs?.ModelId ?? "unknown", chatResult.IsSuccess);
+            PipelineDiagnostics.RecordLLMInvocation(stopwatch.Elapsed.TotalMilliseconds, modelId, chatResult.IsSuccess);
 
             if (chatResult.IsFailure)
             {
@@ -113,7 +129,7 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         catch
         {
             stopwatch.Stop();
-            PipelineDiagnostics.RecordLLMInvocation(stopwatch.Elapsed.TotalMilliseconds, chatArgs?.ModelId ?? "unknown", false);
+            PipelineDiagnostics.RecordLLMInvocation(stopwatch.Elapsed.TotalMilliseconds, modelId, false);
             throw;
         }
         finally
@@ -127,16 +143,14 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         VKPsycheContext context,
         CancellationToken cancellationToken)
     {
-        var stageType = component.GetType();
-        var traceAttr = (VKTraceAttribute?)System.Attribute.GetCustomAttribute(stageType, typeof(VKTraceAttribute));
-        var rawName = stageType.Name.Replace("Default", string.Empty).Replace("Stage", string.Empty);
-        var spanName = traceAttr?.ActivityName ?? $"psyche.stage.{rawName.ToLowerInvariant()}";
+        var metadata = GetStageMetadata(component.GetType());
 
-        using var activity = PipelineDiagnostics.Source.StartActivity(spanName, traceAttr?.Kind ?? ActivityKind.Internal);
-        activity?.SetPsycheStage(rawName);
+        using var activity = PipelineDiagnostics.Source.StartActivity(metadata.SpanName, metadata.Kind);
+        activity?.SetPsycheStage(metadata.RawName);
         activity?.SetPsycheCorrelationId(context.CorrelationId);
 
         var stopwatch = Stopwatch.StartNew();
+        bool isSuccess = false;
         try
         {
             var result = await component.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
@@ -146,6 +160,7 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
             }
             else
             {
+                isSuccess = true;
                 activity?.SetGenAiOk();
             }
             return result;
@@ -159,8 +174,9 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         {
             stopwatch.Stop();
             var durationMs = stopwatch.Elapsed.TotalMilliseconds;
-            var profilingKey = $"{rawName}Stage";
+            var profilingKey = $"{metadata.RawName}Stage";
             context.ResponseBuilder.ProfilingMetrics[profilingKey] = durationMs;
+            PipelineDiagnostics.RecordStageExecution(durationMs, metadata.RawName, isSuccess);
         }
     }
 

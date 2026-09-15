@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using VK.Blocks.AI.Psyche.Profile.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -18,19 +16,19 @@ internal sealed class DefaultProfileStage : IVKPsychePipelineStage
 {
     private readonly VKProfileOptions _options;
     private readonly IVKPsycheProfileRepository _profileRepository;
-    private readonly TimeProvider _timeProvider;
+    private readonly IVKProfileRenderer _profileRenderer;
     private readonly ILogger<DefaultProfileStage> _logger;
 
     public DefaultProfileStage(
         VKProfileOptions options,
         IVKPsycheProfileRepository profileRepository,
-        TimeProvider? timeProvider = null,
-        ILogger<DefaultProfileStage>? logger = null)
+        IVKProfileRenderer profileRenderer,
+        ILogger<DefaultProfileStage> logger)
     {
         _options = VKGuard.NotNull(options);
         _profileRepository = VKGuard.NotNull(profileRepository);
-        _timeProvider = timeProvider ?? TimeProvider.System;
-        _logger = logger ?? NullLogger<DefaultProfileStage>.Instance;
+        _profileRenderer = VKGuard.NotNull(profileRenderer);
+        _logger = VKGuard.NotNull(logger);
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheProfile;
@@ -40,97 +38,58 @@ internal sealed class DefaultProfileStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
+        var profileArgs = context.Args<VKProfileArgs>();
+        var isEnabled = profileArgs?.Enabled ?? _options.Enabled;
+        if (!isEnabled)
+        {
+            return VKResult.Success();
+        }
+
         // 1. Resolve ProfileId from Request
         var profileId = context.Request.ProfileId;
-        if (!profileId.HasValue || profileId.Value.IsEmpty)
+        if (profileId.IsNullOrEmpty())
         {
             return VKResult.Success();
         }
 
         var profileResult = await _profileRepository.FindByIdAsync(profileId.Value, cancellationToken).ConfigureAwait(false);
-        if (profileResult.IsSuccess && profileResult.Value is not null)
+        if (profileResult.IsFailure)
         {
-            var profile = profileResult.Value;
-            context.SetState(profile);
-
-            _logger.ProfileResolved(
-                profile.Id.Value.ToString(),
-                profile.PreferredLanguage ?? "None",
-                profile.TimeZone ?? "None");
-
-            // 2. Inject PreferredLanguage directive if defined (only if non-null/non-empty)
-            if (!string.IsNullOrWhiteSpace(profile.PreferredLanguage))
-            {
-                context.AddFragment(new VKPromptFragment
-                {
-                    TierType = VKPromptTierType.Directive,
-                    RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 10,
-                    Metadata = profile,
-                    Segment = new VKPromptSegment
-                    {
-                        Role = VKChatRole.System,
-                        Content = $"[Language Requirement]: Please respond using the user's preferred language ({profile.PreferredLanguage})."
-                    }
-                });
-            }
-
-            // 3. Inject TimeZone & Local Time directive if defined (only if non-null/non-empty)
-            if (!string.IsNullOrWhiteSpace(profile.TimeZone))
-            {
-                var nowUtc = _timeProvider.GetUtcNow();
-                var timeStr = TryFormatUserLocalTime(nowUtc, profile.TimeZone, out var formattedLocalTime)
-                    ? $"{formattedLocalTime} ({profile.TimeZone})"
-                    : $"{nowUtc:yyyy-MM-dd HH:mm:ss} UTC ({profile.TimeZone})";
-
-                context.AddFragment(new VKPromptFragment
-                {
-                    TierType = VKPromptTierType.Directive,
-                    RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 5,
-                    Metadata = profile,
-                    Segment = new VKPromptSegment
-                    {
-                        Role = VKChatRole.System,
-                        Content = $"[Current Time Context]: {timeStr}."
-                    }
-                });
-            }
-
-            // 4. Inject Preferences directive if defined (only if non-empty dictionary)
-            if (profile.Preferences is { Count: > 0 })
-            {
-                var prefsStr = string.Join("; ", profile.Preferences.Select(kv => $"{kv.Key}: {kv.Value}"));
-                context.AddFragment(new VKPromptFragment
-                {
-                    TierType = VKPromptTierType.Directive,
-                    RenderOrder = PromptLayout.DefaultRenderOrders[VKPromptTierType.Directive] + 15,
-                    Metadata = profile,
-                    Segment = new VKPromptSegment
-                    {
-                        Role = VKChatRole.System,
-                        Content = $"[User Output Preferences]: {prefsStr}."
-                    }
-                });
-            }
-
-            ProfileDiagnostics.RecordProfilesResolved(1, "Profile");
+            return VKResult.Failure(profileResult.Errors);
         }
+
+        var profile = profileResult.Value;
+        if (profile is null)
+        {
+            return VKResult.Success();
+        }
+
+        context.SetState(profile);
+
+        _logger.ProfileResolved(
+            profile.Id,
+            profile.PreferredLanguage ?? "None",
+            profile.TimeZone ?? "None");
+
+        var content = _profileRenderer.Render(profile, context.CreatedAt);
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            _logger.ProfileRendered(profile.Id, content.Length);
+            context.AddSegment(new VKPromptSegment
+            {
+                Role = VKChatRole.System,
+                Content = content,
+                TagName = profile.TagName ?? ProfileConstants.Defaults.TagName,
+                RelativeDepth = profile.RelativeDepth ?? ProfileConstants.Defaults.RelativeDepth,
+                DepthPriority = profile.DepthPriority,
+                TimelineDepth = profile.TimelineDepth,
+                Tier = VKPromptTierType.Profile,
+                TokenCount = profile.TokenCount
+            });
+        }
+
+        ProfileDiagnostics.RecordProfilesResolved(1, "Profile");
 
         return VKResult.Success();
-    }
-
-    private static bool TryFormatUserLocalTime(DateTimeOffset nowUtc, string timeZoneId, out string result)
-    {
-        try
-        {
-            var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-            var localTime = TimeZoneInfo.ConvertTime(nowUtc, tzInfo);
-            result = localTime.ToString("yyyy-MM-dd HH:mm:ss");
-            return true;
-        }
-        catch
-        {
-            result = string.Empty;
-            return false;
-        }
     }
 }

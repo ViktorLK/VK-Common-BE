@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -64,7 +65,7 @@ public sealed class VKPsycheEvictedState
         {
             Content = echo.Content,
             Role = echo.Role,
-            DepthPriority = echo.TurnIndex,
+            DepthPriority = Math.Clamp(echo.TurnIndex, 0, 999),
             TokenCount = echo.TokenCount
         });
     }

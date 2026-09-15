@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -21,6 +22,33 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         GetMock<IVKEchoRenderer>()
             .Setup(r => r.Render(It.IsAny<VKEchoTrace>(), It.IsAny<VKPsycheContext>()))
             .Returns((VKEchoTrace t, VKPsycheContext _) => t.Content);
+
+        GetMock<IVKTokenCounter>()
+            .Setup(t => t.CountTokens(It.IsAny<string>(), It.IsAny<string?>()))
+            .Returns(15);
+
+        GetMock<IVKPsycheModelFactory>()
+            .Setup(f => f.CreateEcho(It.IsAny<VKSessionId>(), It.IsAny<VKChatRole>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTimeOffset?>()))
+            .Returns((VKSessionId sid, VKChatRole role, string content, int tokens, DateTimeOffset? created) => new VKEchoTraceBuilder()
+                .WithSessionId(sid)
+                .WithRole(role)
+                .WithContent(content)
+                .WithTokenCount(tokens)
+                .WithCreatedAt(created ?? DateTimeOffset.UtcNow)
+                .Build());
+    }
+
+    private DefaultEchoExtractStage CreateStage(VKEchoOptions echoOptions, VKWeavingOptions? weavingOptions = null)
+    {
+        return new DefaultEchoExtractStage(
+            GetMockObject<IVKEchoStore>(),
+            GetMockObject<IVKPsycheSessionRepository>(),
+            GetMockObject<IVKEchoRenderer>(),
+            GetMockObject<IVKPsycheModelFactory>(),
+            GetMockObject<IVKTokenCounter>(),
+            echoOptions,
+            weavingOptions ?? new VKWeavingOptions(),
+            GetMockObject<ILogger<DefaultEchoExtractStage>>());
     }
 
     private void SetupEchoStore(VKSessionId sessionId, List<VKEchoTrace> traces)
@@ -52,8 +80,6 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
     {
         // Arrange
         var echoOptions = new VKEchoOptions { Enabled = true };
-        var weavingOptions = new VKWeavingOptions();
-
         var session = new VKSessionThreadBuilder().Build();
         var sessionId = session.Id;
         var history = new List<VKEchoTrace>
@@ -65,13 +91,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
 
         SetupEchoStore(sessionId, history);
 
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKEchoRenderer>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
+        var stage = CreateStage(echoOptions);
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
         context.SetState(session);
 
@@ -84,22 +104,42 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
     }
 
     [Fact]
+    public async Task ExecuteAsync_WhenUserInputAndSessionPresent_PreBuildsUserEchoTrace()
+    {
+        // Arrange
+        var echoOptions = new VKEchoOptions { Enabled = true };
+        var session = new VKSessionThreadBuilder().Build();
+        var sessionId = session.Id;
+        SetupEchoStore(sessionId, []);
+
+        var stage = CreateStage(echoOptions);
+        var (context, _) = new VKPsycheRequestBuilder()
+            .WithSessionId(sessionId)
+            .WithUserInput("Hello AI, help me test")
+            .BuildContext();
+        context.SetState(session);
+
+        // Act
+        var result = await stage.ExecuteAsync(context, CancellationToken.None);
+
+        // Assert
+        result.Should().BeSuccess();
+        context.UserEchoTrace.Should().NotBeNull();
+        context.UserEchoTrace!.Role.Should().Be(VKChatRole.User);
+        context.UserEchoTrace.Content.Should().Be("Hello AI, help me test");
+        context.UserEchoTrace.TokenCount.Should().Be(15);
+        context.UserEchoTrace.SessionId.Should().Be(sessionId);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WhenDisabled_ReturnsSuccessWithoutInjectingFragments()
     {
         // Arrange
         var echoOptions = new VKEchoOptions { Enabled = false };
-        var weavingOptions = new VKWeavingOptions();
-
         var sessionId = new VKSessionThreadBuilder().Build().Id;
         SetupEchoStore(sessionId, []);
 
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKEchoRenderer>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
+        var stage = CreateStage(echoOptions);
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
 
         // Act
@@ -115,16 +155,8 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
     {
         // Arrange
         var echoOptions = new VKEchoOptions { Enabled = true };
-        var weavingOptions = new VKWeavingOptions();
-
         var sessionId = new VKSessionThreadBuilder().Build().Id;
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKEchoRenderer>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
+        var stage = CreateStage(echoOptions);
 
         var (context, _) = new VKPsycheRequestBuilder()
             .WithSessionId(sessionId)
@@ -144,15 +176,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
     {
         // Arrange
         var echoOptions = new VKEchoOptions { Enabled = true };
-        var weavingOptions = new VKWeavingOptions();
-
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKEchoRenderer>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
+        var stage = CreateStage(echoOptions);
 
         var (context, _) = new VKPsycheRequestBuilder()
             .WithSessionId(VKSessionId.Empty)
@@ -218,15 +242,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             .ReturnsAsync(VKResult.Success(parentSession));
 
         var echoOptions = new VKEchoOptions { Enabled = true };
-        var weavingOptions = new VKWeavingOptions();
-
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKEchoRenderer>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
+        var stage = CreateStage(echoOptions);
 
         var (context, _) = new VKPsycheRequestBuilder()
             .WithSessionId(childSession.Id)
@@ -258,15 +274,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         SetupEchoStore(sessionId, history);
 
         var echoOptions = new VKEchoOptions { Enabled = true, IncludeSystemMessages = false };
-        var weavingOptions = new VKWeavingOptions();
-
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKEchoRenderer>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
+        var stage = CreateStage(echoOptions);
 
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
         context.SetState(session);
@@ -295,15 +303,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         SetupEchoStore(sessionId, history);
 
         var echoOptions = new VKEchoOptions { Enabled = true, MaxWindowSize = 3 };
-        var weavingOptions = new VKWeavingOptions();
-
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKEchoRenderer>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
+        var stage = CreateStage(echoOptions);
 
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
         context.SetState(session);
@@ -341,16 +341,8 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             PruneUnit = VKEchoPruneUnit.Turn,
             MaxTurns = 1
         };
-        var weavingOptions = new VKWeavingOptions();
 
-        var stage = new DefaultEchoExtractStage(
-            GetMockObject<IVKEchoStore>(),
-            GetMockObject<IVKPsycheSessionRepository>(),
-            GetMockObject<IVKEchoRenderer>(),
-            echoOptions,
-            weavingOptions,
-            GetMockObject<ILogger<DefaultEchoExtractStage>>());
-
+        var stage = CreateStage(echoOptions);
         var (context, _) = new VKPsycheRequestBuilder().WithSessionId(sessionId).BuildContext();
         context.SetState(session);
 

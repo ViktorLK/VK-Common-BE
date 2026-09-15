@@ -153,32 +153,6 @@ public sealed class DefaultKnowledgeFinalizerStageTests : VKUnitTestBase
         segment.TagName.Should().Be("custom_lore");
     }
 
-    [Fact]
-    public async Task ExecuteAsync_WhenRequestArgsOverridesDefaultXmlTag_UsesArgsDefaultXmlTag()
-    {
-        // Arrange
-        var stage = CreateStage();
-        var (context, _) = new VKPsycheRequestBuilder()
-            .WithUserInput("test")
-            .WithRequestArgs(new VKKnowledgeArgs { DefaultXmlTag = "override_lore" })
-            .BuildContext();
-
-        var entry = new VKKnowledgeEntryBuilder()
-            .WithSegment(new VKPromptSegment { Content = "Doc without tag", TagName = null })
-            .Build();
-
-        var state = new VKKnowledgeCandidatesState();
-        state.Candidates.Add(entry);
-        context.SetState(state);
-
-        // Act
-        var result = await stage.ExecuteAsync(context, CancellationToken.None);
-
-        // Assert
-        result.Should().BeSuccess();
-        var segment = context.Segments.Should().ContainSingle().Subject;
-        segment.TagName.Should().Be("override_lore");
-    }
 
     [Fact]
     public async Task ExecuteAsync_WhenBudgetNullOrDefault_InjectsAllCandidatesWithoutConstraint()

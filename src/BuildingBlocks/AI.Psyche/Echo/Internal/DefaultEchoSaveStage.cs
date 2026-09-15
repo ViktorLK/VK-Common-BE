@@ -59,14 +59,18 @@ internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage // [AP.01]
         var sessionId = session.Id;
         var traces = new List<VKEchoTrace>(2);
 
-        // 1. Auto-save User Input trace (from context.Request.UserInput)
-        var userInput = context.Request.UserInput;
-        if (!string.IsNullOrWhiteSpace(userInput))
+        // 1. Auto-save User Input trace (reuse pre-built trace from EchoExtractStage or fallback)
+        var userTrace = context.UserEchoTrace;
+        if (userTrace is null && !string.IsNullOrWhiteSpace(context.Request.UserInput))
         {
-            var userTokens = _tokenCounter.CountTokens(userInput);
-            var userTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.User, userInput, tokenCount: userTokens, createdAt: context.CreatedAt);
+            var userTokens = _tokenCounter.CountTokens(context.Request.UserInput);
+            userTrace = _modelFactory.CreateEcho(sessionId, VKChatRole.User, context.Request.UserInput, tokenCount: userTokens, createdAt: context.CreatedAt);
+        }
+
+        if (userTrace is not null)
+        {
             traces.Add(userTrace);
-            _logger.EchoRecorded(sessionId, VKChatRole.User, userInput.Length); // [OR.01]
+            _logger.EchoRecorded(sessionId, VKChatRole.User, userTrace.Content.Length); // [OR.01]
         }
 
         // 2. Auto-save Assistant Response trace (from context.Response.ChatResponse.Message.Content)

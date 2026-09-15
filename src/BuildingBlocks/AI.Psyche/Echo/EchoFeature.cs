@@ -42,6 +42,7 @@ internal sealed partial class EchoFeature
 
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultEchoExtractStage>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultEchoSaveStage>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingPipelineTask, DefaultEchoTruncateTask>());
     }
 
     // [SG Hook]
@@ -66,6 +67,11 @@ internal sealed partial class EchoFeature
         if (options.MaxTurns.HasValue && options.MaxTurns.Value <= 0)
         {
             failures.Add("MaxTurns, if set, must be greater than zero.");
+        }
+
+        if (options.MinRetainedTurns < 0)
+        {
+            failures.Add("MinRetainedTurns cannot be negative.");
         }
     }
 }

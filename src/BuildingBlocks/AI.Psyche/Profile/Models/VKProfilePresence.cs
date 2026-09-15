@@ -1,13 +1,13 @@
-using System.Collections.Generic;
+using System;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Domain aggregate root representing a user's lightweight cognitive presence in Psyche's execution pipeline.
+/// Domain aggregate root representing a user's cognitive presence in Psyche's execution pipeline.
 /// Follows AP.01, CS.01.
 /// </summary>
-public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>, IVKFragmentMetadata
+public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
 {
     // =========================================================================
     // Properties
@@ -29,9 +29,38 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>, IVKFragmen
     public string? TimeZone { get; private set; }
 
     /// <summary>
-    /// Gets arbitrary key-value user preference settings for prompt personalizations.
+    /// Gets the custom user description, background, and prompt instructions.
     /// </summary>
-    public IReadOnlyDictionary<string, string> Preferences { get; private set; }
+    public string? Description { get; private set; }
+
+    /// <summary>
+    /// Gets the relative position anchor in prompt assembly.
+    /// Defaults to <see cref="VKPromptRelativeDepth.AfterDirective"/>.
+    /// </summary>
+    public VKPromptRelativeDepth? RelativeDepth { get; private set; } = VKPromptRelativeDepth.AfterDirective;
+
+    /// <summary>
+    /// Gets the rendering priority order among segments at the same relative depth.
+    /// Priority must be between 0 and 999.
+    /// Defaults to 10.
+    /// </summary>
+    public int DepthPriority { get; private set; } = 10;
+
+    /// <summary>
+    /// <summary>
+    /// Gets the timeline depth (position relative to chat timeline) in the message layout if timeline positioning is used; otherwise, null.
+    /// </summary>
+    public int? TimelineDepth { get; private set; }
+
+    /// <summary>
+    /// Gets the optional XML wrapper tag name when injected into prompt context; or null to use system default.
+    /// </summary>
+    public string? TagName { get; private set; }
+
+    /// <summary>
+    /// Gets the precalculated or estimated token count for this profile presence.
+    /// </summary>
+    public int TokenCount { get; private set; } = 0;
 
     // =========================================================================
     // Constructor (Private)
@@ -42,12 +71,22 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>, IVKFragmen
         string? displayName,
         string? preferredLanguage,
         string? timeZone,
-        IReadOnlyDictionary<string, string>? preferences) : base(id)
+        string? description,
+        VKPromptRelativeDepth? relativeDepth,
+        int depthPriority,
+        int? timelineDepth,
+        string? tagName,
+        int tokenCount) : base(id)
     {
         DisplayName = displayName;
         PreferredLanguage = preferredLanguage;
         TimeZone = timeZone;
-        Preferences = preferences ?? new Dictionary<string, string>();
+        Description = description;
+        RelativeDepth = relativeDepth;
+        DepthPriority = depthPriority;
+        TimelineDepth = timelineDepth;
+        TagName = tagName;
+        TokenCount = tokenCount;
     }
 
     // =========================================================================
@@ -62,12 +101,28 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>, IVKFragmen
         string? displayName = null,
         string? preferredLanguage = null,
         string? timeZone = null,
-        IReadOnlyDictionary<string, string>? preferences = null)
+        string? description = null,
+        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
+        int depthPriority = 10,
+        int? timelineDepth = null,
+        string? tagName = null,
+        int tokenCount = 0)
     {
         // [AP.01]
         VKGuard.NotDefault(id);
+        VKGuard.InRange(depthPriority, 0, 999, nameof(depthPriority));
 
-        return VKResult.Success(new VKProfilePresence(id, displayName, preferredLanguage, timeZone, preferences));
+        return VKResult.Success(new VKProfilePresence(
+            id,
+            displayName,
+            preferredLanguage,
+            timeZone,
+            description,
+            relativeDepth,
+            depthPriority,
+            timelineDepth,
+            tagName,
+            Math.Max(0, tokenCount)));
     }
 
     /// <summary>
@@ -78,9 +133,24 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>, IVKFragmen
         string? displayName,
         string? preferredLanguage,
         string? timeZone,
-        IReadOnlyDictionary<string, string>? preferences = null)
+        string? description,
+        VKPromptRelativeDepth? relativeDepth,
+        int depthPriority,
+        int? timelineDepth,
+        string? tagName,
+        int tokenCount)
     {
-        return new VKProfilePresence(id, displayName, preferredLanguage, timeZone, preferences);
+        return new VKProfilePresence(
+            id,
+            displayName,
+            preferredLanguage,
+            timeZone,
+            description,
+            relativeDepth,
+            depthPriority,
+            timelineDepth,
+            tagName,
+            tokenCount);
     }
 
     // =========================================================================
@@ -99,33 +169,20 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>, IVKFragmen
     }
 
     /// <summary>
-    /// Sets or updates a single user preference key-value pair.
+    /// Updates the custom user description, background, and prompt instructions.
     /// </summary>
-    public VKResult SetPreference(string key, string value)
+    public VKResult UpdateDescription(string? description)
     {
-        VKGuard.NotNullOrWhiteSpace(key);
-        VKGuard.NotNull(value);
-
-        var dict = new Dictionary<string, string>(Preferences) { [key] = value };
-        Preferences = dict;
+        Description = description;
         return VKResult.Success();
     }
 
     /// <summary>
-    /// Removes a user preference key if present.
+    /// Updates the precalculated token count for this profile presence.
     /// </summary>
-    public VKResult RemovePreference(string key)
+    public VKResult UpdateTokenCount(int tokenCount)
     {
-        VKGuard.NotNullOrWhiteSpace(key);
-
-        if (!Preferences.ContainsKey(key))
-        {
-            return VKResult.Success();
-        }
-
-        var dict = new Dictionary<string, string>(Preferences);
-        dict.Remove(key);
-        Preferences = dict;
+        TokenCount = Math.Max(0, tokenCount);
         return VKResult.Success();
     }
 }

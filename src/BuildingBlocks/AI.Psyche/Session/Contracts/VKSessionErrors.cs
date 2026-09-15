@@ -15,6 +15,12 @@ public static class VKSessionErrors
     public static readonly VKError NotFound = new("AI.Session.NotFound", "The requested session thread was not found.");
 
     /// <summary>
+    /// Error returned when the session thread already exists.
+    /// </summary>
+    // [CS.01]
+    public static readonly VKError AlreadyExists = new("AI.Session.AlreadyExists", "The session thread already exists.");
+
+    /// <summary>
     /// Error returned when the session thread is not in an active operational status.
     /// </summary>
     public static readonly VKError SessionNotActive = new("AI.Session.NotActive", "The requested session thread is not in an active status.");

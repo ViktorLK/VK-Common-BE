@@ -9,6 +9,7 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Builders;
 public sealed class VKDirectiveCharterBuilder : VKTestDataBuilder<VKDirectiveCharter>
 {
     private VKDirectiveId _id = new(Guid.NewGuid());
+    private string? _name = "Default Directive Name";
     private string? _overview = "Default Directive Overview";
     private string? _behaviorRules = "Default Behavior Rules";
     private string? _safetyRules = "Default Safety Rules";
@@ -17,6 +18,12 @@ public sealed class VKDirectiveCharterBuilder : VKTestDataBuilder<VKDirectiveCha
     public VKDirectiveCharterBuilder WithId(VKDirectiveId id)
     {
         _id = id;
+        return this;
+    }
+
+    public VKDirectiveCharterBuilder WithName(string? name)
+    {
+        _name = name;
         return this;
     }
 
@@ -51,6 +58,7 @@ public sealed class VKDirectiveCharterBuilder : VKTestDataBuilder<VKDirectiveCha
             overview: _overview,
             behaviorRules: _behaviorRules,
             safetyRules: _safetyRules,
-            outputConstraints: _outputConstraints).Value);
+            outputConstraints: _outputConstraints,
+            name: _name).Value);
     }
 }

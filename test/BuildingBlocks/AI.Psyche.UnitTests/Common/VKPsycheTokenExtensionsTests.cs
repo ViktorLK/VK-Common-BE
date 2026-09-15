@@ -99,7 +99,7 @@ public sealed class VKPsycheTokenExtensionsTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(20);
-        knowledge.TokenCount.Should().Be(20);
+        knowledge.Segment.TokenCount.Should().Be(20);
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public sealed class VKPsycheTokenExtensionsTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(15);
-        pattern.TokenCount.Should().Be(15);
+        pattern.Segment.TokenCount.Should().Be(15);
     }
 
     [Fact]

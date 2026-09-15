@@ -14,15 +14,6 @@ internal static partial class ProfileDiagnostics
 {
     // --- Source Generated Metrics (v1.5) ---
 
-    [VKMetricHistogram(
-        VKProfileDiagnosticsConstants.Metrics.ProfileStageDuration,
-        Unit = "ms",
-        Description = "Duration of profile resolution and injection in milliseconds.")]
-    public static partial void RecordProfileStage(
-        double durationMs,
-        [VKMetricTag(VKProfileDiagnosticsConstants.Tags.StageName)] string stage,
-        [VKMetricTag(VKPsycheDiagnosticsConstants.Tags.IsSuccess)] bool success);
-
     [VKMetricCounter(
         VKProfileDiagnosticsConstants.Metrics.ProfilesResolvedCount,
         Unit = "profiles",
@@ -34,14 +25,14 @@ internal static partial class ProfileDiagnostics
     // --- [LoggerMessage] Generators (OR.01) ---
 
     [LoggerMessage(
-        EventId = VKProfileDiagnosticsConstants.Logs.ProfileInitialized,
-        Level = LogLevel.Information,
-        Message = "Profile provider initialized.")]
-    public static partial void ProfileInitialized(this ILogger logger);
-
-    [LoggerMessage(
         EventId = VKProfileDiagnosticsConstants.Logs.ProfileResolved,
         Level = LogLevel.Debug,
         Message = "Resolved Profile {ProfileId}. PreferredLanguage: {Language}, TimeZone: {TimeZone}")]
-    public static partial void ProfileResolved(this ILogger logger, string profileId, string language, string timeZone);
+    public static partial void ProfileResolved(this ILogger logger, VKProfileId profileId, string language, string timeZone);
+
+    [LoggerMessage(
+        EventId = VKProfileDiagnosticsConstants.Logs.ProfileRendered,
+        Level = LogLevel.Debug,
+        Message = "Profile system prompt rendered for {ProfileId} ({Length} chars)")]
+    public static partial void ProfileRendered(this ILogger logger, VKProfileId profileId, int length);
 }

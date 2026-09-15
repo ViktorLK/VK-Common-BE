@@ -20,7 +20,23 @@ internal static class PsycheConstants
 
     internal static class Separators
     {
-        internal const string DefaultSegment = "\n\n";
+        internal const string SegmentSeparator = "\n\n";
         internal const string DefaultRoleHeader = ": ";
+    }
+
+    internal static class LayoutSlots
+    {
+        // Pillar 1: Directive
+        internal const int BeforeDirective = 100_000;
+        internal const int Directive = 200_000;
+        internal const int AfterDirective = 300_000;
+
+        // Pillar 2: Persona
+        internal const int BeforePersona = 400_000;
+        internal const int Persona = 500_000;
+        internal const int AfterPersona = 600_000;
+
+        // Static boundary
+        internal const int StaticBoundary = 700_000;
     }
 }

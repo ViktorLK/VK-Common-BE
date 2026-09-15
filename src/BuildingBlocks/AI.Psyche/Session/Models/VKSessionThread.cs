@@ -44,11 +44,6 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
     public int TurnCount { get; private set; }
 
     /// <summary>
-    /// Gets the dynamic knowledge activation state and token tracking.
-    /// </summary>
-    public VKSessionKnowledgeState KnowledgeState { get; private set; }
-
-    /// <summary>
     /// Gets the timestamp when the session thread was created.
     /// </summary>
     public DateTimeOffset CreatedAt { get; private set; }
@@ -56,7 +51,7 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
     /// <summary>
     /// Gets the timestamp when the session thread was last updated.
     /// </summary>
-    public DateTimeOffset UpdatedAt { get; private set; }
+    public DateTimeOffset? UpdatedAt { get; private set; }
 
     /// <summary>
     /// Gets the timestamp of the latest interaction or message in this session.
@@ -78,9 +73,8 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
         string? forkPointRef,
         VKSessionStatus status,
         int turnCount,
-        VKSessionKnowledgeState? knowledgeState,
         DateTimeOffset createdAt,
-        DateTimeOffset updatedAt,
+        DateTimeOffset? updatedAt,
         DateTimeOffset? lastActivityAt,
         byte[]? rowVersion = null) : base(id)
     {
@@ -90,7 +84,6 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
         ForkPointRef = forkPointRef;
         Status = status;
         TurnCount = turnCount;
-        KnowledgeState = knowledgeState ?? new VKSessionKnowledgeState();
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         LastActivityAt = lastActivityAt;
@@ -110,12 +103,12 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null,
-        VKSessionKnowledgeState? knowledgeState = null)
+        string? forkPointRef = null)
     {
         // [AP.01]
         VKGuard.NotDefault(id);
 
+        // [CS.08] UpdatedAt is null on creation, updated only on actual modification.
         var thread = new VKSessionThread(
             id: id,
             mode: mode,
@@ -124,9 +117,8 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
             forkPointRef: forkPointRef,
             status: VKSessionStatus.Active,
             turnCount: 0,
-            knowledgeState: knowledgeState ?? new VKSessionKnowledgeState(),
             createdAt: now,
-            updatedAt: now,
+            updatedAt: null,
             lastActivityAt: now);
 
         return VKResult.Success(thread);
@@ -143,9 +135,8 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
         string? forkPointRef,
         VKSessionStatus status,
         int turnCount,
-        VKSessionKnowledgeState knowledgeState,
         DateTimeOffset createdAt,
-        DateTimeOffset updatedAt,
+        DateTimeOffset? updatedAt,
         DateTimeOffset? lastActivityAt,
         byte[]? rowVersion = null)
     {
@@ -157,7 +148,6 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
             forkPointRef,
             status,
             turnCount,
-            knowledgeState,
             createdAt,
             updatedAt,
             lastActivityAt,
@@ -182,22 +172,6 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
         LastActivityAt = now;
         UpdatedAt = now;
 
-        return VKResult.Success();
-    }
-
-    /// <summary>
-    /// Updates the session-level knowledge execution tracking state.
-    /// </summary>
-    public VKResult AdvanceKnowledgeState(VKSessionKnowledgeState knowledgeState, DateTimeOffset now)
-    {
-        KnowledgeState = VKGuard.NotNull(knowledgeState);
-
-        if (Status != VKSessionStatus.Active)
-        {
-            return VKResult.Failure(VKSessionErrors.SessionNotActive);
-        }
-
-        UpdatedAt = now;
         return VKResult.Success();
     }
 
@@ -236,7 +210,6 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
             mode: Mode,
             parentSessionId: ParentSessionId,
             forkSourceSessionId: Id,
-            forkPointRef: forkPointRef,
-            knowledgeState: KnowledgeState);
+            forkPointRef: forkPointRef);
     }
 }

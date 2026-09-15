@@ -19,10 +19,9 @@ internal sealed partial class ProfileFeature
         if (!options.Enabled)
             return;
 
-        services.TryAddScoped<InMemoryProfileRepository>();
-        services.TryAddScoped<IVKPsycheProfileRepository>(sp => sp.GetRequiredService<InMemoryProfileRepository>());
-        services.TryAddScoped<IVKReadRepository<VKProfilePresence, VKProfileId>>(sp => sp.GetRequiredService<InMemoryProfileRepository>());
-        services.AddScoped<IVKPsychePipelineStage, DefaultProfileStage>();
+        services.TryAddScoped<IVKPsycheProfileRepository, InMemoryProfileRepository>();
+        services.TryAddSingleton<IVKProfileRenderer, DefaultProfileRenderer>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultProfileStage>());
     }
 
     // [SG Hook]

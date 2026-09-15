@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -14,6 +15,8 @@ namespace VK.Blocks.AI.Psyche.Session.Internal;
 [VKTrace("psyche.stage.session_resolve")]
 internal sealed class DefaultSessionResolveStage : IVKPsychePipelineStage
 {
+    private const string StageName = "SessionResolve";
+
     private readonly VKSessionOptions _options;
     private readonly IVKPsycheSessionRepository _sessionRepository;
     private readonly ILogger<DefaultSessionResolveStage> _logger;
@@ -36,26 +39,41 @@ internal sealed class DefaultSessionResolveStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context);
 
-        // 1. Guard against empty SessionId (stateless call)
+        // 1. Guard against empty SessionId (stateless call per AP.07)
         if (context.Request.SessionId.IsEmpty)
         {
             return VKResult.Success();
         }
 
-        var resolveResult = await _sessionRepository.FindByIdAsync(context.Request.SessionId, cancellationToken).ConfigureAwait(false);
-        if (resolveResult.IsSuccess && resolveResult.Value is not null)
-        {
-            var session = resolveResult.Value;
-            if (session.Status != VKSessionStatus.Active)
-            {
-                _logger.SessionNotActive(session.Id, session.Status.ToString());
-                return VKResult.Failure(VKSessionErrors.SessionNotActive);
-            }
+        var stopwatch = Stopwatch.StartNew();
+        var resolveResult = await _sessionRepository.FindByIdAsync(context.Request.SessionId, cancellationToken).ConfigureAwait(false); // [CS.03]
+        stopwatch.Stop();
+        var durationMs = stopwatch.Elapsed.TotalMilliseconds;
 
-            context.SetState(session);
-            _logger.SessionResolved(session.Id, session.Mode.ToString(), session.TurnCount);
-            SessionDiagnostics.RecordActiveSessionsResolved(1, "SessionResolve");
+        // 2. [AP.06 / CS.01] Fail-Fast when explicit identifier lookup fails
+        if (resolveResult.IsFailure)
+        {
+            SessionDiagnostics.RecordSessionResolve(durationMs, StageName, success: false);
+            return VKResult.Failure(resolveResult.Errors);
         }
+
+        var session = resolveResult.Value;
+        if (session is null)
+        {
+            SessionDiagnostics.RecordSessionResolve(durationMs, StageName, success: false);
+            return VKResult.Failure(VKSessionErrors.NotFound);
+        }
+        if (session.Status != VKSessionStatus.Active)
+        {
+            _logger.SessionNotActive(session.Id, session.Status);
+            SessionDiagnostics.RecordSessionResolve(durationMs, StageName, success: false);
+            return VKResult.Failure(VKSessionErrors.SessionNotActive);
+        }
+
+        context.SetState(session);
+        _logger.SessionResolved(session.Id, session.Mode, session.TurnCount);
+        SessionDiagnostics.RecordSessionResolve(durationMs, StageName, success: true);
+        SessionDiagnostics.RecordActiveSessionsResolved(1, StageName);
 
         return VKResult.Success();
     }

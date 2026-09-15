@@ -22,6 +22,8 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
     private readonly IVKEchoStore _echoStore;
     private readonly IVKPsycheSessionRepository _sessionRepository;
     private readonly IVKEchoRenderer _echoRenderer;
+    private readonly IVKPsycheModelFactory _modelFactory;
+    private readonly IVKTokenCounter _tokenCounter;
     private readonly VKEchoOptions _echoOptions;
     private readonly VKWeavingOptions _weavingOptions;
     private readonly ILogger<DefaultEchoExtractStage> _logger;
@@ -30,16 +32,20 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         IVKEchoStore echoStore,
         IVKPsycheSessionRepository sessionRepository,
         IVKEchoRenderer echoRenderer,
+        IVKPsycheModelFactory modelFactory,
+        IVKTokenCounter tokenCounter,
         VKEchoOptions echoOptions,
         VKWeavingOptions weavingOptions,
         ILogger<DefaultEchoExtractStage> logger)
     {
-        _echoStore = VKGuard.NotNull(echoStore);
-        _sessionRepository = VKGuard.NotNull(sessionRepository);
-        _echoRenderer = VKGuard.NotNull(echoRenderer);
-        _echoOptions = VKGuard.NotNull(echoOptions);
-        _weavingOptions = VKGuard.NotNull(weavingOptions);
-        _logger = VKGuard.NotNull(logger);
+        _echoStore = VKGuard.NotNull(echoStore); // [AP.01]
+        _sessionRepository = VKGuard.NotNull(sessionRepository); // [AP.01]
+        _echoRenderer = VKGuard.NotNull(echoRenderer); // [AP.01]
+        _modelFactory = VKGuard.NotNull(modelFactory); // [AP.01]
+        _tokenCounter = VKGuard.NotNull(tokenCounter); // [AP.01]
+        _echoOptions = VKGuard.NotNull(echoOptions); // [AP.01]
+        _weavingOptions = VKGuard.NotNull(weavingOptions); // [AP.01]
+        _logger = VKGuard.NotNull(logger); // [AP.01]
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
@@ -48,18 +54,27 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
     [VKTrace("psyche.stage.echo_extract")]
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
-        VKGuard.NotNull(context);
+        VKGuard.NotNull(context); // [AP.01]
 
         var echoOptions = context.Args<VKEchoArgs>().Merge(_echoOptions);
         if (!echoOptions.Enabled)
         {
-            return VKResult.Success();
+            return VKResult.Success(); // [CS.01]
         }
 
         var session = context.State<VKSessionThread>();
         if (session is null)
         {
-            return VKResult.Success();
+            return VKResult.Success(); // [CS.01]
+        }
+
+        // 0. Pre-build User Echo trace for current turn if UserInput exists
+        var userInput = context.Request.UserInput;
+        if (!string.IsNullOrWhiteSpace(userInput))
+        {
+            var userTokens = _tokenCounter.CountTokens(userInput);
+            var userTrace = _modelFactory.CreateEcho(session.Id, VKChatRole.User, userInput, tokenCount: userTokens, createdAt: context.CreatedAt);
+            context.UserEchoTrace = userTrace;
         }
 
         // 1. Phase 1: Fetch lightweight metadata (supports Continuous multi-level parent ancestry tracing)
@@ -209,8 +224,6 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             .Where(m => traceMap.ContainsKey(m.Id))
             .Select(m => traceMap[m.Id])
             .ToList();
-
-        context.SetState(retained);
 
         for (var i = 0; i < retained.Count; i++)
         {

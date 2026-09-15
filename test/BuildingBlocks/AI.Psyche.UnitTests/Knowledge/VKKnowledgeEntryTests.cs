@@ -37,7 +37,7 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
         entry.Segment.Content.Should().Be("Knowledge Text");
         entry.TriggerType.Should().Be(VKKnowledgeTriggerType.Keyword);
         entry.FilterLogic.Should().Be(VKKnowledgeFilterLogic.AndAll);
-        entry.XmlTag.Should().Be("lore");
+        entry.Segment.TagName.Should().Be("lore");
         entry.Keys.Should().HaveCount(1);
     }
 
@@ -69,7 +69,7 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
         // Assert
         entry.Id.Should().Be(id);
         entry.TriggerType.Should().Be(VKKnowledgeTriggerType.Constant);
-        entry.XmlTag.Should().Be("tag");
+        entry.Segment.TagName.Should().Be("tag");
     }
 
     [Fact]

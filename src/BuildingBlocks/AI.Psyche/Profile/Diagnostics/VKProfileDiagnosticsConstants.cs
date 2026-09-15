@@ -13,13 +13,12 @@ public static class VKProfileDiagnosticsConstants
     // Logs (Event IDs: 77000 - 77999)
     public static class Logs
     {
-        public const int ProfileInitialized = VKDiagnosticOffsets.AI_Psyche_Profile + 1;
         public const int ProfileResolved = VKDiagnosticOffsets.AI_Psyche_Profile + 2;
+        public const int ProfileRendered = VKDiagnosticOffsets.AI_Psyche_Profile + 3;
     }
 
     public static class Metrics
     {
-        public const string ProfileStageDuration = "vk.ai.psyche.profile.duration";
         public const string ProfilesResolvedCount = "vk.ai.psyche.profile.resolved_count";
     }
 

@@ -80,7 +80,7 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         entry.Segment.Content.Should().Be("Knowledge Item");
         entry.TriggerType.Should().Be(VKKnowledgeTriggerType.Keyword);
         entry.FilterLogic.Should().Be(VKKnowledgeFilterLogic.AndAll);
-        entry.XmlTag.Should().Be("lore");
+        entry.Segment.TagName.Should().Be("lore");
         entry.Keys.Should().HaveCount(1);
     }
 
@@ -153,17 +153,17 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var newGuid = Guid.NewGuid();
         var fakeGuidGen = new VKFakeGuidGenerator(newGuid);
         var factory = new DefaultPsycheModelFactory(fakeGuidGen, TimeProvider.System);
-        var prefs = new Dictionary<string, string> { ["Theme"] = "Dark" };
+        var segment = new VKPromptSegment { Content = "Hero bio" };
 
         // Act
-        var profile = factory.CreateProfile("Hero", "zh-CN", "UTC", prefs);
+        var profile = factory.CreateProfile("Hero", "zh-CN", "UTC", description: "Hero bio");
 
         // Assert
         profile.Id.Value.Should().Be(newGuid);
         profile.DisplayName.Should().Be("Hero");
         profile.PreferredLanguage.Should().Be("zh-CN");
         profile.TimeZone.Should().Be("UTC");
-        profile.Preferences.Should().ContainKey("Theme");
+        profile.Description.Should().Be("Hero bio");
     }
 
     [Fact]
@@ -198,8 +198,6 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         // Act
         var segment = factory.CreateSegment(
             "Content",
-            name: "Seg1",
-            role: VKChatRole.System,
             absoluteDepth: 1,
             relativeDepth: VKPromptRelativeDepth.AfterEcho,
             depthPriority: 100);
@@ -207,8 +205,7 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
 
         // Assert
         segment.Content.Should().Be("Content");
-        segment.Name.Should().Be("Seg1");
-        segment.AbsoluteDepth.Should().Be(1);
+        segment.TimelineDepth.Should().Be(1);
         segment.RelativeDepth.Should().Be(VKPromptRelativeDepth.AfterEcho);
         segment.DepthPriority.Should().Be(100);
 

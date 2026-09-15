@@ -154,4 +154,148 @@ public sealed class VKPromptXmlBuilderTests : VKUnitTestBase
         Assert.Throws<ArgumentException>(() => VKPromptXmlBuilder.WrapSelfClosing("", new Dictionary<string, string>()));
         Assert.Throws<ArgumentNullException>(() => VKPromptXmlBuilder.WrapSelfClosing("tag", null!));
     }
+
+    [Fact]
+    public void Wrap_SingleContentAlreadyWrappedWithSameTag_DoesNotDoubleWrap()
+    {
+        // Arrange
+        var content = "<instruction>\r\nAlready wrapped.\r\n</instruction>";
+
+        // Act
+        var result = VKPromptXmlBuilder.Wrap("instruction", content);
+
+        // Assert
+        result.Should().Be(content);
+    }
+
+    [Fact]
+    public void Wrap_MultipleItemsWithSingleAlreadyWrapped_DoesNotDoubleWrap()
+    {
+        // Arrange
+        var items = new[] { "<rules>\nAlready wrapped rules\n</rules>" };
+
+        // Act
+        var result = VKPromptXmlBuilder.Wrap("rules", items);
+
+        // Assert
+        result.Should().Be("<rules>\nAlready wrapped rules\n</rules>");
+    }
+
+    [Fact]
+    public void Wrap_SingleContentAlreadyWrappedWithDifferentTag_EnclosesInNewTag()
+    {
+        // Arrange
+        var content = "<inner>Text</inner>";
+
+        // Act
+        var result = VKPromptXmlBuilder.Wrap("outer", content);
+
+        // Assert
+        result.Should().StartWith("<outer>");
+        result.Should().Contain("<inner>Text</inner>");
+        result.Should().EndWith("</outer>");
+    }
+
+    [Fact]
+    public void Wrap_SingleContentWithSiblingBlocksOfSameTag_CoalescesIntoSingleRootTag()
+    {
+        // Arrange
+        var content = "<system_directive>\n123\n</system_directive>\n<system_directive>\n456\n</system_directive>";
+
+        // Act
+        var result = VKPromptXmlBuilder.Wrap("system_directive", content);
+
+        // Assert
+        result.Should().StartWith("<system_directive>\r\n");
+        result.Should().Contain("123");
+        result.Should().Contain("456");
+        result.Should().EndWith("</system_directive>");
+        result.IndexOf("<system_directive>").Should().Be(result.LastIndexOf("<system_directive>"));
+        result.IndexOf("</system_directive>").Should().Be(result.LastIndexOf("</system_directive>"));
+    }
+
+    [Fact]
+    public void Wrap_MultipleItemsEachAlreadyWrapped_UnwrapsAndCoalescesIntoSingleRootTag()
+    {
+        // Arrange
+        var items = new[]
+        {
+            "<system_directive>\n123\n</system_directive>",
+            "<system_directive>\n456\n</system_directive>"
+        };
+
+        // Act
+        var result = VKPromptXmlBuilder.Wrap("system_directive", items);
+
+        // Assert
+        result.Should().StartWith("<system_directive>\r\n");
+        result.Should().Contain("123");
+        result.Should().Contain("456");
+        result.Should().EndWith("</system_directive>");
+        result.IndexOf("<system_directive>").Should().Be(result.LastIndexOf("<system_directive>"));
+        result.IndexOf("</system_directive>").Should().Be(result.LastIndexOf("</system_directive>"));
+    }
+
+    [Fact]
+    public void Wrap_MultipleItemsMixedWrapping_NormalizesWithoutDoubleWrapping()
+    {
+        // Arrange
+        var items = new[]
+        {
+            "<rules>\nRule 1\n</rules>",
+            "Rule 2",
+            "<persona>Persona P</persona>"
+        };
+
+        // Act
+        var result = VKPromptXmlBuilder.Wrap("rules", items);
+
+        // Assert
+        result.Should().StartWith("<rules>\r\n");
+        result.Should().Contain("Rule 1");
+        result.Should().Contain("Rule 2");
+        result.Should().Contain("<persona>Persona P</persona>");
+        result.Should().EndWith("</rules>");
+        result.IndexOf("<rules>").Should().Be(result.LastIndexOf("<rules>"));
+        result.IndexOf("</rules>").Should().Be(result.LastIndexOf("</rules>"));
+    }
+
+    [Fact]
+    public void Unwrap_SingleWrappedBlock_ReturnsInnerContent()
+    {
+        // Arrange
+        var content = "<system_directive>\n123\n</system_directive>";
+
+        // Act
+        var result = VKPromptXmlBuilder.Unwrap("system_directive", content);
+
+        // Assert
+        result.Should().Be("123");
+    }
+
+    [Fact]
+    public void Unwrap_SiblingBlocks_ReturnsJoinedInnerContents()
+    {
+        // Arrange
+        var content = "<system_directive>\n123\n</system_directive>\n<system_directive>\n456\n</system_directive>";
+
+        // Act
+        var result = VKPromptXmlBuilder.Unwrap("system_directive", content);
+
+        // Assert
+        result.Should().Be("123\n\n456");
+    }
+
+    [Fact]
+    public void Unwrap_NotWrapped_ReturnsOriginalContent()
+    {
+        // Arrange
+        var content = "Plain text content";
+
+        // Act
+        var result = VKPromptXmlBuilder.Unwrap("system_directive", content);
+
+        // Assert
+        result.Should().Be("Plain text content");
+    }
 }
