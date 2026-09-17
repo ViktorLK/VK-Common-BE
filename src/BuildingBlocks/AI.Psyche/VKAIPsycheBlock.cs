@@ -16,5 +16,6 @@ public sealed partial class VKAIPsycheBlock
     static partial void RegisterBlockCustom(IVKAIPsycheBuilder builder)
     {
         builder.Services.TryAddScoped<IVKPsycheModelFactory, DefaultPsycheModelFactory>();
+        builder.Services.TryAddScoped<IVKPsycheTokenEvaluator, DefaultPsycheTokenEvaluator>();
     }
 }

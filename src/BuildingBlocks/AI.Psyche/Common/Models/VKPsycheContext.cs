@@ -59,11 +59,18 @@ public sealed class VKPsycheContext
     /// </summary>
     public IReadOnlyList<VKEchoFragment> Echoes => _echoes;
 
+    private VKEchoTrace? _userEchoTrace;
+
     /// <summary>
     /// Gets or sets the pre-built user dialogue echo trace for the current turn.
     /// Prepared during EchoExtractStage and reused across Truncation, Tapestry Weaving, and EchoSaveStage.
+    /// Uses <see cref="Volatile.Read{T}(ref T)"/> and <see cref="Interlocked.Exchange{T}(ref T, T)"/> for thread-safe atomic access.
     /// </summary>
-    public VKEchoTrace? UserEchoTrace { get; set; }
+    public VKEchoTrace? UserEchoTrace
+    {
+        get => Volatile.Read(ref _userEchoTrace);
+        set => Interlocked.Exchange(ref _userEchoTrace, value);
+    }
 
     /// <summary>
     /// Safely adds a prompt segment into the active tapestry collection.

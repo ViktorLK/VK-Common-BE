@@ -175,6 +175,9 @@
 - [ ] [AI.PSYCHE-001: Support Streaming Pipeline (IVKPsycheStreamingPipeline & TTFT Profiling)](./AI.Psyche/001-support-streaming-pipeline-(ivkpsychestreamingpipeline-&-ttft-profiling).md)
 
 - [ ] [AI.PSYCHE-002: Eliminate redundant options.Enabled checks in feature hooks](./AI.Psyche/002-eliminate-redundant-optionsenabled-checks-in-feature-hooks.md)
+- [ ] [AI.PSYCHE-003: Implement Channels-based asynchronous pipeline post-processing and backpressure](./AI.Psyche/003-implement-channels-based-asynchronous-pipeline-post-processing-and-backpressure.md)
+- [ ] [AI.PSYCHE-004: Design pluggable semantic knowledge retrieval abstraction and external adapter](./AI.Psyche/004-design-pluggable-semantic-knowledge-retrieval-abstraction-and-external-adapter.md)
+- [ ] [AI.PSYCHE-005: Implement external distributed persistence adapters for Redis and EFCore](./AI.Psyche/005-implement-external-distributed-persistence-adapters-for-redis-and-efcore.md)
 ## 📋 AI.Eidos Tasks
 - [ ] [AI.EIDOS-001: Implement Streaming Contract Transformer and End-of-Stream Sealing](./AI.Eidos/001-implement-streaming-contract-transformer-and-end-of-stream-sealing.md)
 - [ ] [AI.EIDOS-002: Implement Lenient and Partial ToleranceModes in Materialization Binder](./AI.Eidos/002-implement-lenient-and-partial-tolerancemodes-in-materialization-binder.md)

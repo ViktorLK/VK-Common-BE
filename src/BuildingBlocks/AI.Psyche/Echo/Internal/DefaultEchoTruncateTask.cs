@@ -56,8 +56,10 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
 
         if (!string.IsNullOrWhiteSpace(context.Request.UserInput))
         {
-            nonHistoryTokens += context.UserEchoTrace?.TokenCount
-                ?? _tokenCounter.CountTokens(context.Request.UserInput);
+            int userTokens = context.UserEchoTrace?.TokenCount is > 0
+                ? context.UserEchoTrace.TokenCount
+                : _tokenCounter.CountTokens(context.Request.UserInput);
+            nonHistoryTokens += userTokens;
         }
 
         // 3. Compute available prompt budget after subtracting reserved response tokens
@@ -71,27 +73,46 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
             return Task.FromResult(VKResult.Failure(VKWeavingErrors.ContextBudgetExceeded(nonHistoryTokens, availablePromptBudget)));
         }
 
-        int remainingHistoryBudget = availablePromptBudget - nonHistoryTokens;
-
         if (context.Echoes.Count == 0)
         {
             return Task.FromResult(VKResult.Success());
         }
 
-        // 4. Resolve Echo options and group dialogue history into turns (newest to oldest)
+        // 4. Resolve Echo options and effective history budget cap (MaxTokens defense)
         var echoOptions = context.Args<VKEchoArgs>().Merge(_echoOptions);
-        int minRetainedTurns = Math.Max(0, echoOptions.MinRetainedTurns);
+        int maxHistoryBudget = echoOptions.MaxTokens.HasValue && echoOptions.MaxTokens.Value > 0
+            ? echoOptions.MaxTokens.Value
+            : int.MaxValue;
+
+        int remainingHistoryBudget = Math.Min(maxHistoryBudget, availablePromptBudget - nonHistoryTokens);
 
         var echoesAscending = context.Echoes.OrderBy(e => e.TurnIndex).ToList();
-        var turns = GroupIntoTurns(echoesAscending);
 
-        // 5. Enforce MinRetainedTurns guarantee
+        // 5. Delegate truncation based on configured PruneUnit
+        return echoOptions.PruneUnit == VKEchoPruneUnit.Message
+            ? TruncateByMessages(context, echoesAscending, nonHistoryTokens, availablePromptBudget, remainingHistoryBudget, echoOptions, cancellationToken)
+            : TruncateByTurns(context, echoesAscending, nonHistoryTokens, availablePromptBudget, remainingHistoryBudget, echoOptions, cancellationToken);
+    }
+
+    private Task<VKResult> TruncateByTurns(
+        VKPsycheContext context,
+        List<VKEchoFragment> echoesAscending,
+        int nonHistoryTokens,
+        int availablePromptBudget,
+        int remainingHistoryBudget,
+        VKEchoOptions echoOptions,
+        CancellationToken cancellationToken)
+    {
+        var turns = EchoTurnGrouper.Group(echoesAscending, e => e.Role);
+        int minRetainedTurns = Math.Max(0, echoOptions.MinRetainedTurns);
+
+        // Enforce MinRetainedTurns guarantee
         int requiredTurnsCount = Math.Min(minRetainedTurns, turns.Count);
         int requiredTurnsTokens = 0;
         for (int t = 0; t < requiredTurnsCount; t++)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            requiredTurnsTokens += GetTurnTokens(turns[t]);
+            requiredTurnsTokens += GetTurnTokens(turns[t], cancellationToken);
         }
 
         if (nonHistoryTokens + requiredTurnsTokens > availablePromptBudget)
@@ -101,7 +122,6 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
                 VKWeavingErrors.ContextBudgetExceeded(nonHistoryTokens + requiredTurnsTokens, availablePromptBudget)));
         }
 
-        // 6. Retain required turns, then fit as many older turns as possible
         var retainedTurns = new List<List<VKEchoFragment>>(turns.Count);
         int activeHistoryTokens = requiredTurnsTokens;
 
@@ -110,11 +130,15 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
             retainedTurns.Add(turns[t]);
         }
 
-        for (int t = requiredTurnsCount; t < turns.Count; t++)
+        int candidateTurnsLimit = echoOptions.MaxTurns.HasValue && echoOptions.MaxTurns.Value >= 0
+            ? Math.Min(echoOptions.MaxTurns.Value, turns.Count)
+            : turns.Count;
+
+        for (int t = requiredTurnsCount; t < candidateTurnsLimit; t++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var turn = turns[t];
-            int turnTokens = GetTurnTokens(turn);
+            int turnTokens = GetTurnTokens(turn, cancellationToken);
 
             if (activeHistoryTokens + turnTokens <= remainingHistoryBudget)
             {
@@ -124,80 +148,191 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
             else
             {
                 // Evict this turn and all older turns
-                var evictedState = context.State<VKPsycheEvictedState>() ?? new VKPsycheEvictedState();
-                context.SetState(evictedState);
-
-                for (int k = t; k < turns.Count; k++)
-                {
-                    foreach (var echo in turns[k])
-                    {
-                        evictedState.Add(echo);
-                    }
-                }
+                EvictTurns(context, turns, t);
                 break;
             }
         }
 
-        // 7. Flatten retained turns, restore chronological order (oldest first), and update context
-        var retainedEchoes = retainedTurns
-            .SelectMany(t => t)
-            .OrderBy(e => e.TurnIndex)
-            .ToList();
+        if (candidateTurnsLimit < turns.Count && retainedTurns.Count == candidateTurnsLimit)
+        {
+            EvictTurns(context, turns, candidateTurnsLimit);
+        }
+
+        // Flatten retained turns, restore chronological order (oldest first) without OrderBy/SelectMany allocations
+        int totalRetainedCount = 0;
+        for (int i = 0; i < retainedTurns.Count; i++)
+        {
+            totalRetainedCount += retainedTurns[i].Count;
+        }
+
+        var retainedEchoes = new List<VKEchoFragment>(totalRetainedCount);
+        for (int i = retainedTurns.Count - 1; i >= 0; i--)
+        {
+            retainedEchoes.AddRange(retainedTurns[i]);
+        }
 
         context.SetEchoes(retainedEchoes);
 
-        var finalEvictedState = context.State<VKPsycheEvictedState>();
-        int evictedCount = finalEvictedState?.Evicted.Count ?? 0;
-        if (evictedCount > 0)
-        {
-            _logger.WeavingTruncated(context.Request.SessionId, remainingHistoryBudget, activeHistoryTokens, evictedCount);
-            WeavingDiagnostics.RecordTruncation(evictedCount, "Truncate", remainingHistoryBudget);
-        }
-
+        RecordTruncationDiagnostics(context, remainingHistoryBudget, activeHistoryTokens);
         return Task.FromResult(VKResult.Success()); // [CS.01]
     }
 
-    private int GetTurnTokens(List<VKEchoFragment> turn)
+    private Task<VKResult> TruncateByMessages(
+        VKPsycheContext context,
+        List<VKEchoFragment> echoesAscending,
+        int nonHistoryTokens,
+        int availablePromptBudget,
+        int remainingHistoryBudget,
+        VKEchoOptions echoOptions,
+        CancellationToken cancellationToken)
     {
-        int sum = 0;
-        foreach (var echo in turn)
+        // 1. Precalculate/backfill tokens for all messages
+        var processedEchoes = new List<VKEchoFragment>(echoesAscending.Count);
+        for (int i = 0; i < echoesAscending.Count; i++)
         {
-            sum += echo.TokenCount > 0
+            cancellationToken.ThrowIfCancellationRequested();
+            var echo = echoesAscending[i];
+            int count = echo.TokenCount > 0
                 ? echo.TokenCount
                 : (!string.IsNullOrWhiteSpace(echo.Content) ? _tokenCounter.CountTokens(echo.Content) : 0);
+            processedEchoes.Add(echo.TokenCount == count ? echo : echo with { TokenCount = count });
+        }
+
+        // 2. Identify required messages guaranteed by MinRetainedTurns (scanning backwards)
+        int minRetainedTurns = Math.Max(0, echoOptions.MinRetainedTurns);
+        int requiredStartIndex = processedEchoes.Count;
+        if (minRetainedTurns > 0)
+        {
+            int userTurnsFound = 0;
+            for (int i = processedEchoes.Count - 1; i >= 0; i--)
+            {
+                if (processedEchoes[i].Role == VKChatRole.User)
+                {
+                    userTurnsFound++;
+                    if (userTurnsFound >= minRetainedTurns)
+                    {
+                        requiredStartIndex = i;
+                        break;
+                    }
+                }
+            }
+            if (userTurnsFound < minRetainedTurns)
+            {
+                requiredStartIndex = 0;
+            }
+        }
+
+        int requiredTokens = 0;
+        for (int i = requiredStartIndex; i < processedEchoes.Count; i++)
+        {
+            requiredTokens += processedEchoes[i].TokenCount;
+        }
+
+        if (nonHistoryTokens + requiredTokens > availablePromptBudget)
+        {
+            _logger.ContextBudgetExceeded(context.Request.SessionId, nonHistoryTokens + requiredTokens, availablePromptBudget);
+            return Task.FromResult(VKResult.Failure(
+                VKWeavingErrors.ContextBudgetExceeded(nonHistoryTokens + requiredTokens, availablePromptBudget)));
+        }
+
+        // 3. Greedily retain older messages within remainingHistoryBudget and optional MaxWindowSize
+        int activeHistoryTokens = requiredTokens;
+        int retainedStartIndex = requiredStartIndex;
+
+        int maxWindow = echoOptions.MaxWindowSize.HasValue && echoOptions.MaxWindowSize.Value > 0
+            ? echoOptions.MaxWindowSize.Value
+            : int.MaxValue;
+
+        int retainedCount = processedEchoes.Count - requiredStartIndex;
+
+        for (int i = requiredStartIndex - 1; i >= 0; i--)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (retainedCount >= maxWindow)
+            {
+                break;
+            }
+
+            var msg = processedEchoes[i];
+            if (activeHistoryTokens + msg.TokenCount <= remainingHistoryBudget)
+            {
+                activeHistoryTokens += msg.TokenCount;
+                retainedStartIndex = i;
+                retainedCount++;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        // Evict un-retained older messages (from index 0 to retainedStartIndex - 1)
+        if (retainedStartIndex > 0)
+        {
+            var evictedState = context.State<VKPsycheEvictedState>() ?? new VKPsycheEvictedState();
+            context.SetState(evictedState);
+            for (int i = 0; i < retainedStartIndex; i++)
+            {
+                evictedState.Add(processedEchoes[i]);
+            }
+        }
+
+        // Retain messages from retainedStartIndex to end (already in chronological order)
+        var retainedEchoes = new List<VKEchoFragment>(processedEchoes.Count - retainedStartIndex);
+        for (int i = retainedStartIndex; i < processedEchoes.Count; i++)
+        {
+            retainedEchoes.Add(processedEchoes[i]);
+        }
+
+        context.SetEchoes(retainedEchoes);
+
+        RecordTruncationDiagnostics(context, remainingHistoryBudget, activeHistoryTokens);
+        return Task.FromResult(VKResult.Success()); // [CS.01]
+    }
+
+    private int GetTurnTokens(List<VKEchoFragment> turn, CancellationToken cancellationToken)
+    {
+        int sum = 0;
+        for (int i = 0; i < turn.Count; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var echo = turn[i];
+            int count = echo.TokenCount > 0
+                ? echo.TokenCount
+                : (!string.IsNullOrWhiteSpace(echo.Content) ? _tokenCounter.CountTokens(echo.Content) : 0);
+
+            if (echo.TokenCount != count)
+            {
+                turn[i] = echo with { TokenCount = count };
+            }
+
+            sum += count;
         }
         return sum;
     }
 
-    private static List<List<VKEchoFragment>> GroupIntoTurns(List<VKEchoFragment> echoes)
+    private static void EvictTurns(VKPsycheContext context, List<List<VKEchoFragment>> turns, int fromIndex)
     {
-        var turns = new List<List<VKEchoFragment>>();
-        if (echoes.Count == 0)
+        var evictedState = context.State<VKPsycheEvictedState>() ?? new VKPsycheEvictedState();
+        context.SetState(evictedState);
+
+        for (int k = fromIndex; k < turns.Count; k++)
         {
-            return turns;
-        }
-
-        var currentTurn = new List<VKEchoFragment>();
-
-        // Walk backwards from latest to oldest
-        for (int i = echoes.Count - 1; i >= 0; i--)
-        {
-            var msg = echoes[i];
-            currentTurn.Insert(0, msg);
-
-            // A User turn marker completes a conversational turn exchange
-            if (msg.Role == VKChatRole.User)
+            foreach (var echo in turns[k])
             {
-                turns.Add(currentTurn);
-                currentTurn = [];
+                evictedState.Add(echo);
             }
         }
+    }
 
-        if (currentTurn.Count > 0)
+    private void RecordTruncationDiagnostics(VKPsycheContext context, int remainingBudget, int activeHistoryTokens)
+    {
+        var finalEvictedState = context.State<VKPsycheEvictedState>();
+        int evictedCount = finalEvictedState?.EvictedEchoes.Count ?? 0;
+        if (evictedCount > 0)
         {
-            turns.Add(currentTurn);
+            _logger.WeavingTruncated(context.Request.SessionId, remainingBudget, activeHistoryTokens, evictedCount);
+            WeavingDiagnostics.RecordTruncation(evictedCount, "Truncate", remainingBudget);
         }
-
-        return turns;
     }
 }
