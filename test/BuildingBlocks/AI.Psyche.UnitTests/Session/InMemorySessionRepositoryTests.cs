@@ -132,7 +132,7 @@ public sealed class InMemorySessionRepositoryTests : VKUnitTestBase
         var result = await repository.AddAsync(item, CancellationToken.None);
 
         // Assert
-        result.Should().BeFailure(VKSessionErrors.NotFound);
+        result.Should().BeFailure(VKSessionErrors.AlreadyExists);
     }
 
     [Fact]

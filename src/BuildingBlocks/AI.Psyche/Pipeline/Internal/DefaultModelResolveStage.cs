@@ -2,9 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Psyche.Pipeline.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -23,10 +21,10 @@ internal sealed class DefaultModelResolveStage : IVKPsychePipelineStage
 
     public DefaultModelResolveStage(
         IVKVKAIModelCatalog modelCatalog,
-        ILogger<DefaultModelResolveStage>? logger = null)
+        ILogger<DefaultModelResolveStage> logger)
     {
         _modelCatalog = VKGuard.NotNull(modelCatalog); // [AP.01]
-        _logger = logger ?? NullLogger<DefaultModelResolveStage>.Instance;
+        _logger = VKGuard.NotNull(logger); // [AP.01]
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheModelResolve;

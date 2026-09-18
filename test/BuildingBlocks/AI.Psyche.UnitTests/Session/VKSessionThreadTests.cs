@@ -27,6 +27,7 @@ public sealed class VKSessionThreadTests : VKUnitTestBase
         thread.Status.Should().Be(VKSessionStatus.Active);
         thread.TurnCount.Should().Be(0);
         thread.CreatedAt.Should().Be(_now);
+        thread.UpdatedAt.Should().BeNull();
     }
 
     [Fact]
@@ -44,7 +45,6 @@ public sealed class VKSessionThreadTests : VKUnitTestBase
     {
         // Arrange
         var id = new VKSessionId(Guid.NewGuid());
-        var state = new VKSessionKnowledgeState();
 
         // Act
         var thread = VKSessionThread.Rehydrate(
@@ -55,7 +55,6 @@ public sealed class VKSessionThreadTests : VKUnitTestBase
             forkPointRef: null,
             status: VKSessionStatus.Active,
             turnCount: 5,
-            knowledgeState: state,
             createdAt: _now.AddDays(-1),
             updatedAt: _now,
             lastActivityAt: _now);
@@ -78,6 +77,7 @@ public sealed class VKSessionThreadTests : VKUnitTestBase
         result.Should().BeSuccess();
         thread.TurnCount.Should().Be(1);
         thread.LastActivityAt.Should().Be(_now.AddMinutes(1));
+        thread.UpdatedAt.Should().Be(_now.AddMinutes(1));
     }
 
     [Fact]
@@ -89,35 +89,6 @@ public sealed class VKSessionThreadTests : VKUnitTestBase
 
         // Act
         var result = thread.IncrementTurn(_now.AddMinutes(1));
-
-        // Assert
-        result.Should().BeFailure(VKSessionErrors.SessionNotActive);
-    }
-
-    [Fact]
-    public void AdvanceKnowledgeState_WhenActive_UpdatesState()
-    {
-        // Arrange
-        var thread = new VKSessionThreadBuilder().WithCreatedAt(_now).Build();
-        var newState = new VKSessionKnowledgeState { LastEvaluatedTurn = 3 };
-
-        // Act
-        var result = thread.AdvanceKnowledgeState(newState, _now.AddMinutes(2));
-
-        // Assert
-        result.Should().BeSuccess();
-        thread.KnowledgeState.Should().BeSameAs(newState);
-    }
-
-    [Fact]
-    public void AdvanceKnowledgeState_WhenNotActive_ReturnsFailure()
-    {
-        // Arrange
-        var thread = new VKSessionThreadBuilder().WithCreatedAt(_now).Build();
-        thread.Close(_now);
-
-        // Act
-        var result = thread.AdvanceKnowledgeState(new VKSessionKnowledgeState(), _now);
 
         // Assert
         result.Should().BeFailure(VKSessionErrors.SessionNotActive);

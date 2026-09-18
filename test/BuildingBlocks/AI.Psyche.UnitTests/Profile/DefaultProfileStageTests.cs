@@ -1,3 +1,6 @@
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.AI.Psyche.Profile.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
@@ -14,7 +17,7 @@ public sealed class DefaultProfileStageTests : VKUnitTestBase
         var profile = new VKProfilePresenceBuilder()
             .WithPreferredLanguage("zh-CN")
             .WithTimeZone("UTC")
-            .WithPreference("Format", "Markdown")
+            .WithContent("Custom user bio information")
             .Build();
 
         GetMock<IVKPsycheProfileRepository>()
@@ -22,7 +25,11 @@ public sealed class DefaultProfileStageTests : VKUnitTestBase
             .ReturnsAsync(VKResult.Success(profile));
 
         var options = new VKProfileOptions { Enabled = true };
-        var stage = new DefaultProfileStage(options, GetMockObject<IVKPsycheProfileRepository>(), TimeProvider.System);
+        var stage = new DefaultProfileStage(
+            options,
+            GetMockObject<IVKPsycheProfileRepository>(),
+            new DefaultProfileRenderer(TimeProvider.System),
+            GetMockObject<ILogger<DefaultProfileStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder()
             .WithProfileId(profile.Id)
@@ -35,9 +42,11 @@ public sealed class DefaultProfileStageTests : VKUnitTestBase
         // Assert
         result.Should().BeSuccess();
         context.State<VKProfilePresence>().Should().Be(profile);
-        context.Fragments.Should().Contain(f => f.Segment.Content.Contains("zh-CN"));
-        context.Fragments.Should().Contain(f => f.Segment.Content.Contains("UTC"));
-        context.Fragments.Should().Contain(f => f.Segment.Content.Contains("Format: Markdown"));
+        var segment = context.Segments.Should().ContainSingle(s => s.Tier == VKPromptTierType.Profile).Subject;
+        segment.Role.Should().Be(VKChatRole.System);
+        segment.Content.Should().Contain("zh-CN");
+        segment.Content.Should().Contain("UTC");
+        segment.Content.Should().Contain("Custom user bio information");
     }
 
     [Fact]
@@ -45,7 +54,11 @@ public sealed class DefaultProfileStageTests : VKUnitTestBase
     {
         // Arrange
         var options = new VKProfileOptions { Enabled = true };
-        var stage = new DefaultProfileStage(options, GetMockObject<IVKPsycheProfileRepository>());
+        var stage = new DefaultProfileStage(
+            options,
+            GetMockObject<IVKPsycheProfileRepository>(),
+            GetMockObject<IVKProfileRenderer>(),
+            GetMockObject<ILogger<DefaultProfileStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
 
@@ -54,6 +67,6 @@ public sealed class DefaultProfileStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        context.Fragments.Should().BeEmpty();
+        context.Segments.Should().BeEmpty();
     }
 }

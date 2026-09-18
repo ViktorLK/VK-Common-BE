@@ -13,10 +13,9 @@ public sealed class VKProfilePresenceTests : VKUnitTestBase
     {
         // Arrange
         var id = new VKProfileId(Guid.NewGuid());
-        var prefs = new Dictionary<string, string> { ["Theme"] = "Dark" };
 
         // Act
-        var result = VKProfilePresence.Create(id, "Alice", "en-US", "UTC", prefs);
+        var result = VKProfilePresence.Create(id, "Alice", "en-US", "UTC", "User prefers code-first answers");
 
         // Assert
         result.Should().BeSuccess();
@@ -25,7 +24,8 @@ public sealed class VKProfilePresenceTests : VKUnitTestBase
         profile.DisplayName.Should().Be("Alice");
         profile.PreferredLanguage.Should().Be("en-US");
         profile.TimeZone.Should().Be("UTC");
-        profile.Preferences.Should().ContainKey("Theme");
+        profile.Description.Should().Be("User prefers code-first answers");
+        profile.TagName.Should().BeNull();
     }
 
     [Fact]
@@ -43,17 +43,19 @@ public sealed class VKProfilePresenceTests : VKUnitTestBase
     {
         // Arrange
         var id = new VKProfileId(Guid.NewGuid());
-        var prefs = new Dictionary<string, string> { ["Style"] = "Compact" };
 
         // Act
-        var profile = VKProfilePresence.Rehydrate(id, "Bob", "ja-JP", "Asia/Tokyo", prefs);
+        var profile = VKProfilePresence.Rehydrate(id, "Bob", "ja-JP", "Asia/Tokyo", "Japanese native speaker", VKPromptRelativeDepth.AfterDirective, 10, null, "profile", 20);
 
         // Assert
         profile.Id.Should().Be(id);
         profile.DisplayName.Should().Be("Bob");
         profile.PreferredLanguage.Should().Be("ja-JP");
         profile.TimeZone.Should().Be("Asia/Tokyo");
-        profile.Preferences.Should().ContainKey("Style");
+        profile.Description.Should().Be("Japanese native speaker");
+        profile.RelativeDepth.Should().Be(VKPromptRelativeDepth.AfterDirective);
+        profile.DepthPriority.Should().Be(10);
+        profile.TokenCount.Should().Be(20);
     }
 
     [Fact]
@@ -73,32 +75,30 @@ public sealed class VKProfilePresenceTests : VKUnitTestBase
     }
 
     [Fact]
-    public void SetPreference_WhenCalled_AddsOrUpdatesPreference()
+    public void UpdateDescription_WhenCalled_UpdatesDescription()
     {
         // Arrange
         var profile = new VKProfilePresenceBuilder().Build();
 
         // Act
-        profile.SetPreference("Format", "Detailed");
-        profile.SetPreference("Format", "Concise");
+        var result = profile.UpdateDescription("Updated bio");
 
         // Assert
-        profile.Preferences.Should().ContainKey("Format").WhoseValue.Should().Be("Concise");
+        result.Should().BeSuccess();
+        profile.Description.Should().Be("Updated bio");
     }
 
     [Fact]
-    public void RemovePreference_WhenPreferenceExists_RemovesIt()
+    public void UpdateTokenCount_WhenCalled_UpdatesTokenCount()
     {
         // Arrange
-        var profile = new VKProfilePresenceBuilder()
-            .WithPreference("Key1", "Val1")
-            .Build();
+        var profile = new VKProfilePresenceBuilder().Build();
 
         // Act
-        profile.RemovePreference("Key1");
-        profile.RemovePreference("NonExistent");
+        var result = profile.UpdateTokenCount(42);
 
         // Assert
-        profile.Preferences.Should().NotContainKey("Key1");
+        result.Should().BeSuccess();
+        profile.TokenCount.Should().Be(42);
     }
 }

@@ -25,9 +25,21 @@ public sealed record VKPsycheResponse
     public VKChatResponse? ChatResponse { get; init; }
 
     /// <summary>
-    /// Gets any prompt segments that were evicted or truncated during token management.
+    /// Gets any static prompt segments (e.g. Directive, Persona, Knowledge) that were evicted or truncated during token management.
     /// </summary>
-    public IReadOnlyList<VKPromptSegment> EvictedFragments { get; init; } = [];
+    public IReadOnlyList<VKPromptSegment> EvictedSegments { get; init; } = [];
+
+    /// <summary>
+    /// Gets any dialogue history turns (Echoes) that were evicted or truncated during token management.
+    /// </summary>
+    public IReadOnlyList<VKEchoFragment> EvictedEchoes { get; init; } = [];
+
+    /// <summary>
+    /// Gets any prompt segments that were evicted or truncated during token management.
+    /// Backward-compatibility alias for <see cref="EvictedSegments"/>.
+    /// </summary>
+    [System.Obsolete("Use EvictedSegments for prompt segments or EvictedEchoes for dialogue history turns.")]
+    public IReadOnlyList<VKPromptSegment> EvictedFragments => EvictedSegments;
 
     /// <summary>
     /// Gets the execution duration profiling metrics in milliseconds per pipeline stage or task.

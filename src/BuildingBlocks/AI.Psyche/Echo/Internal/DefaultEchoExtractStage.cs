@@ -158,7 +158,7 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         if (echoOptions.PruneUnit == VKEchoPruneUnit.Turn)
         {
             // Prune by whole Turns (alternating user dialog steps)
-            var turns = GroupIntoTurns([.. allMetas]);
+            var turns = EchoTurnGrouper.Group(allMetas, m => m.Role);
             int currentTokensSum = 0;
             int retainedTurnsCount = 0;
             var maxTurns = echoOptions.MaxTurns;
@@ -256,40 +256,6 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         return VKResult.Success();
     }
 
-    /// <summary>
-    /// Groups dialogue metadata into turn exchanges (from newest to oldest).
-    /// </summary>
-    private static List<List<VKEchoMetadata>> GroupIntoTurns(IReadOnlyList<VKEchoMetadata> echoes)
-    {
-        var turns = new List<List<VKEchoMetadata>>();
-        if (echoes.Count == 0)
-        {
-            return turns;
-        }
-
-        var currentTurn = new List<VKEchoMetadata>();
-
-        // Walk backwards from latest to oldest
-        for (int i = echoes.Count - 1; i >= 0; i--)
-        {
-            var msg = echoes[i];
-            currentTurn.Insert(0, msg);
-
-            // A User turn marker completes a conversational turn exchange
-            if (msg.Role == VKChatRole.User)
-            {
-                turns.Add(currentTurn);
-                currentTurn = [];
-            }
-        }
-
-        if (currentTurn.Count > 0)
-        {
-            turns.Add(currentTurn);
-        }
-
-        return turns;
-    }
 
     private static int GetMetaTokens(VKEchoMetadata meta)
     {

@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using VK.Blocks.AI.Psyche.Session.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -24,11 +23,11 @@ internal sealed class DefaultSessionResolveStage : IVKPsychePipelineStage
     public DefaultSessionResolveStage(
         VKSessionOptions options,
         IVKPsycheSessionRepository sessionRepository,
-        ILogger<DefaultSessionResolveStage>? logger = null)
+        ILogger<DefaultSessionResolveStage> logger)
     {
         _options = VKGuard.NotNull(options);
         _sessionRepository = VKGuard.NotNull(sessionRepository);
-        _logger = logger ?? NullLogger<DefaultSessionResolveStage>.Instance;
+        _logger = VKGuard.NotNull(logger);
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheSessionResolve;

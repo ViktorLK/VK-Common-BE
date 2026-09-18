@@ -65,13 +65,41 @@ public sealed class DefaultSessionResolveStageTests : VKUnitTestBase
 
         var options = new VKSessionOptions { Enabled = true };
         var stage = new DefaultSessionResolveStage(options, repoMock.Object);
-        var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
+        var (context, _) = new VKPsycheRequestBuilder()
+            .WithUserInput("hello")
+            .WithSessionId(VKSessionId.Empty)
+            .BuildContext();
 
         // Act
         var result = await stage.ExecuteAsync(context, CancellationToken.None);
 
         // Assert
         result.Should().BeSuccess();
+        context.State<VKSessionThread>().Should().BeNull();
+        repoMock.Verify(s => s.FindByIdAsync(It.IsAny<VKSessionId>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenExplicitSessionNotFound_ReturnsFailure()
+    {
+        // Arrange
+        var missingSessionId = new VKSessionId(Guid.NewGuid());
+        var repoMock = GetMock<IVKPsycheSessionRepository>();
+        repoMock.Setup(s => s.FindByIdAsync(missingSessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Failure<VKSessionThread>(VKSessionErrors.NotFound));
+
+        var options = new VKSessionOptions { Enabled = true };
+        var stage = new DefaultSessionResolveStage(options, repoMock.Object);
+        var (context, _) = new VKPsycheRequestBuilder()
+            .WithUserInput("hello")
+            .WithSessionId(missingSessionId)
+            .BuildContext();
+
+        // Act
+        var result = await stage.ExecuteAsync(context, CancellationToken.None);
+
+        // Assert
+        result.Should().BeFailure(VKSessionErrors.NotFound);
         context.State<VKSessionThread>().Should().BeNull();
     }
 }
