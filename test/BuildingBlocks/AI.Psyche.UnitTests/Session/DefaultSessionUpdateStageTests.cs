@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.AI.Psyche.Session.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
@@ -16,7 +17,7 @@ public sealed class DefaultSessionUpdateStageTests : VKUnitTestBase
             .ReturnsAsync(VKResult.Success());
 
         var options = new VKSessionOptions { Enabled = true };
-        var stage = new DefaultSessionUpdateStage(options, GetMockObject<IVKPsycheSessionRepository>(), TimeProvider.System);
+        var stage = new DefaultSessionUpdateStage(options, GetMockObject<IVKPsycheSessionRepository>(), TimeProvider.System, GetMockObject<ILogger<DefaultSessionUpdateStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
         var session = new VKSessionThreadBuilder().Build();
@@ -39,7 +40,7 @@ public sealed class DefaultSessionUpdateStageTests : VKUnitTestBase
     {
         // Arrange
         var options = new VKSessionOptions { Enabled = true };
-        var stage = new DefaultSessionUpdateStage(options, GetMockObject<IVKPsycheSessionRepository>(), TimeProvider.System);
+        var stage = new DefaultSessionUpdateStage(options, GetMockObject<IVKPsycheSessionRepository>(), TimeProvider.System, GetMockObject<ILogger<DefaultSessionUpdateStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("hello").BuildContext();
 
@@ -57,7 +58,7 @@ public sealed class DefaultSessionUpdateStageTests : VKUnitTestBase
     {
         // Arrange
         var options = new VKSessionOptions { Enabled = true };
-        var stage = new DefaultSessionUpdateStage(options, GetMockObject<IVKPsycheSessionRepository>(), TimeProvider.System);
+        var stage = new DefaultSessionUpdateStage(options, GetMockObject<IVKPsycheSessionRepository>(), TimeProvider.System, GetMockObject<ILogger<DefaultSessionUpdateStage>>());
 
         var (context, _) = new VKPsycheRequestBuilder()
             .WithUserInput("hello")

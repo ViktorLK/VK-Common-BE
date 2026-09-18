@@ -132,7 +132,7 @@ public sealed class InMemoryProfileRepositoryTests : VKUnitTestBase
         var result = await repository.AddAsync(item, CancellationToken.None);
 
         // Assert
-        result.Should().BeFailure(VKProfileErrors.NotFound);
+        result.Should().BeFailure(VKProfileErrors.AlreadyExists);
     }
 
     [Fact]

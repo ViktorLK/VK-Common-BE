@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>VK.Blocks.AI.Psyche.IntegrationTests</RootNamespace>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\Core\VK.Blocks.Core.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\AI\VK.Blocks.AI.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\AI.Psyche\VK.Blocks.AI.Psyche.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\Persistence\VK.Blocks.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\Persistence.EFCore\VK.Blocks.Persistence.EFCore.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\AI.Psyche.EFCore\VK.Blocks.AI.Psyche.EFCore.csproj" />
+    <ProjectReference Include="..\..\..\src\BuildingBlocks\MultiTenancy.EFCore\VK.Blocks.MultiTenancy.EFCore.csproj" />
+    <ProjectReference Include="..\..\Tools\Testing\Core\VK.Blocks.Testing.Core.csproj" />
+    <ProjectReference Include="..\..\Tools\Testing\EntityFramework\VK.Blocks.Testing.EntityFramework.csproj" />
+    <ProjectReference Include="..\..\Tools\Testing\EntityFramework.Sqlite\VK.Blocks.Testing.EntityFramework.Sqlite.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="VK.Blocks.Testing" />
+  </ItemGroup>
+</Project>
