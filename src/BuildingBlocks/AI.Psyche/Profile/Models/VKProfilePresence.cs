@@ -4,10 +4,10 @@ using VK.Blocks.Core;
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
-/// Domain aggregate root representing a user's cognitive presence in Psyche's execution pipeline.
+/// Domain aggregate root representing a user's cognitive presence and personalized preferences in Psyche's execution pipeline.
 /// Follows AP.01, CS.01.
 /// </summary>
-public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
+public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] sealed
 {
     // =========================================================================
     // Properties
@@ -19,19 +19,34 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
     public string? DisplayName { get; private set; }
 
     /// <summary>
-    /// Gets the user preferred language code (e.g. "en-US", "ja-JP").
+    /// Gets the user preferred language code (e.g. "en-US", "ja-JP", "zh-CN").
     /// </summary>
     public string? PreferredLanguage { get; private set; }
-
-    /// <summary>
-    /// Gets the user standard IANA or Windows time zone.
-    /// </summary>
-    public string? TimeZone { get; private set; }
 
     /// <summary>
     /// Gets the custom user description, background, and prompt instructions.
     /// </summary>
     public string? Description { get; private set; }
+
+    /// <summary>
+    /// Gets the preferred addressing term or honorific for the user (e.g. "王工", "Sensei", "您", "Dr. Smith").
+    /// </summary>
+    public string? AddressingTerm { get; private set; }
+
+    /// <summary>
+    /// Gets the optional overall communication tone and interaction posture (or null if unconfigured).
+    /// </summary>
+    public VKInteractionTone? InteractionTone { get; private set; }
+
+    /// <summary>
+    /// Gets the optional level of explanation detail and output verbosity (or null if unconfigured).
+    /// </summary>
+    public VKResponseVerbosity? ResponseVerbosity { get; private set; }
+
+    /// <summary>
+    /// Gets the optional emoji usage constraint for generated responses (or null if unconfigured).
+    /// </summary>
+    public VKEmojiPolicy? EmojiPolicy { get; private set; }
 
     /// <summary>
     /// Gets the relative position anchor in prompt assembly.
@@ -46,7 +61,6 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
     /// </summary>
     public int DepthPriority { get; private set; } = 10;
 
-    /// <summary>
     /// <summary>
     /// Gets the timeline depth (position relative to chat timeline) in the message layout if timeline positioning is used; otherwise, null.
     /// </summary>
@@ -70,8 +84,11 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
         VKProfileId id,
         string? displayName,
         string? preferredLanguage,
-        string? timeZone,
         string? description,
+        string? addressingTerm,
+        VKInteractionTone? interactionTone,
+        VKResponseVerbosity? responseVerbosity,
+        VKEmojiPolicy? emojiPolicy,
         VKPromptRelativeDepth? relativeDepth,
         int depthPriority,
         int? timelineDepth,
@@ -80,8 +97,11 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
     {
         DisplayName = displayName;
         PreferredLanguage = preferredLanguage;
-        TimeZone = timeZone;
         Description = description;
+        AddressingTerm = addressingTerm;
+        InteractionTone = interactionTone;
+        ResponseVerbosity = responseVerbosity;
+        EmojiPolicy = emojiPolicy;
         RelativeDepth = relativeDepth;
         DepthPriority = depthPriority;
         TimelineDepth = timelineDepth;
@@ -100,13 +120,16 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
         VKProfileId id,
         string? displayName = null,
         string? preferredLanguage = null,
-        string? timeZone = null,
         string? description = null,
         VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
         int depthPriority = 10,
         int? timelineDepth = null,
         string? tagName = null,
-        int tokenCount = 0)
+        int tokenCount = 0,
+        string? addressingTerm = null,
+        VKInteractionTone? interactionTone = null,
+        VKResponseVerbosity? responseVerbosity = null,
+        VKEmojiPolicy? emojiPolicy = null)
     {
         // [AP.01]
         VKGuard.NotDefault(id);
@@ -116,8 +139,11 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
             id,
             displayName,
             preferredLanguage,
-            timeZone,
             description,
+            addressingTerm,
+            interactionTone,
+            responseVerbosity,
+            emojiPolicy,
             relativeDepth,
             depthPriority,
             timelineDepth,
@@ -126,26 +152,53 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
     }
 
     /// <summary>
+    /// Backward-compatibility factory overload with deprecated timeZone argument.
+    /// </summary>
+    [Obsolete("TimeZone has moved to AI.Cognitive.Presence.")]
+    public static VKResult<VKProfilePresence> Create(
+        VKProfileId id,
+        string? displayName,
+        string? preferredLanguage,
+        string? timeZone,
+        string? description,
+        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
+        int depthPriority = 10,
+        int? timelineDepth = null,
+        string? tagName = null,
+        int tokenCount = 0,
+        string? addressingTerm = null,
+        VKInteractionTone? interactionTone = null,
+        VKResponseVerbosity? responseVerbosity = null,
+        VKEmojiPolicy? emojiPolicy = null)
+        => Create(id, displayName, preferredLanguage, description, relativeDepth, depthPriority, timelineDepth, tagName, tokenCount, addressingTerm, interactionTone, responseVerbosity, emojiPolicy);
+
+    /// <summary>
     /// Rehydration factory used exclusively by persistence mappers to restore persisted state without side effects.
     /// </summary>
     internal static VKProfilePresence Rehydrate(
         VKProfileId id,
         string? displayName,
         string? preferredLanguage,
-        string? timeZone,
         string? description,
         VKPromptRelativeDepth? relativeDepth,
         int depthPriority,
         int? timelineDepth,
         string? tagName,
-        int tokenCount)
+        int tokenCount,
+        string? addressingTerm = null,
+        VKInteractionTone? interactionTone = null,
+        VKResponseVerbosity? responseVerbosity = null,
+        VKEmojiPolicy? emojiPolicy = null)
     {
         return new VKProfilePresence(
             id,
             displayName,
             preferredLanguage,
-            timeZone,
             description,
+            addressingTerm,
+            interactionTone,
+            responseVerbosity,
+            emojiPolicy,
             relativeDepth,
             depthPriority,
             timelineDepth,
@@ -158,13 +211,35 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId>
     // =========================================================================
 
     /// <summary>
-    /// Updates the user's display identity, preferred language, and timezone settings.
+    /// Updates the user's display identity and preferred language settings.
     /// </summary>
-    public VKResult UpdateSettings(string? displayName, string? preferredLanguage, string? timeZone)
+    public VKResult UpdateSettings(string? displayName, string? preferredLanguage)
     {
         DisplayName = displayName;
         PreferredLanguage = preferredLanguage;
-        TimeZone = timeZone;
+        return VKResult.Success();
+    }
+
+    /// <summary>
+    /// Backward-compatibility overload with deprecated timeZone argument.
+    /// </summary>
+    [Obsolete("TimeZone has moved to AI.Cognitive.Presence.")]
+    public VKResult UpdateSettings(string? displayName, string? preferredLanguage, string? timeZone)
+        => UpdateSettings(displayName, preferredLanguage);
+
+    /// <summary>
+    /// Updates the user's interaction style and output preferences.
+    /// </summary>
+    public VKResult UpdateStylePreferences(
+        string? addressingTerm = null,
+        VKInteractionTone? interactionTone = null,
+        VKResponseVerbosity? responseVerbosity = null,
+        VKEmojiPolicy? emojiPolicy = null)
+    {
+        AddressingTerm = addressingTerm;
+        InteractionTone = interactionTone;
+        ResponseVerbosity = responseVerbosity;
+        EmojiPolicy = emojiPolicy;
         return VKResult.Success();
     }
 

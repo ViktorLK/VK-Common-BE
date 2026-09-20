@@ -27,8 +27,8 @@ internal static partial class ProfileDiagnostics
     [LoggerMessage(
         EventId = VKProfileDiagnosticsConstants.Logs.ProfileResolved,
         Level = LogLevel.Debug,
-        Message = "Resolved Profile {ProfileId}. PreferredLanguage: {Language}, TimeZone: {TimeZone}")]
-    public static partial void ProfileResolved(this ILogger logger, VKProfileId profileId, string language, string timeZone);
+        Message = "Resolved Profile {ProfileId}. PreferredLanguage: {Language}")]
+    public static partial void ProfileResolved(this ILogger logger, VKProfileId profileId, string language);
 
     [LoggerMessage(
         EventId = VKProfileDiagnosticsConstants.Logs.ProfileRendered,

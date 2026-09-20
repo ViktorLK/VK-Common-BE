@@ -22,10 +22,7 @@ internal sealed partial class WeavingFeature
         // Extractors are now handled by their respective modules (Echo, Persona, Knowledge)
 
         // Register weaving pipeline tasks
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingPipelineTask, DefaultPromptFormatterTask>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingPipelineTask, DefaultPromptTruncateTask>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingPipelineTask, DefaultFragmentReplacementTask>());
-        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingPipelineTask, DefaultCoordinateResolveTask>());
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingPipelineTask, DefaultPromptReplacementTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKWeavingPipelineTask, DefaultTapestryWeavingTask>());
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultWeavingStage>());
     }
@@ -33,7 +30,24 @@ internal sealed partial class WeavingFeature
     // [SG Hook]
     static partial void ValidateFeatureCustom(VKWeavingOptions options, List<string> failures)
     {
-        _ = options;
-        _ = failures;
+        if (options.MaxContextBudget.HasValue && options.MaxContextBudget.Value <= 0)
+        {
+            failures.Add("VKWeavingOptions.MaxContextBudget must be greater than 0 if specified.");
+        }
+
+        if (options.ResponseReservedTokens < 0)
+        {
+            failures.Add("VKWeavingOptions.ResponseReservedTokens cannot be negative.");
+        }
+
+        if (string.IsNullOrEmpty(options.SegmentSeparator))
+        {
+            failures.Add("VKWeavingOptions.SegmentSeparator cannot be null or empty.");
+        }
+
+        if (options.MaxReplacementLength.HasValue && options.MaxReplacementLength.Value <= 0)
+        {
+            failures.Add("VKWeavingOptions.MaxReplacementLength must be greater than 0 if specified.");
+        }
     }
 }

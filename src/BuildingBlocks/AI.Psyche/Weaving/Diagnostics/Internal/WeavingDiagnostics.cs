@@ -59,4 +59,10 @@ internal static partial class WeavingDiagnostics
         Level = LogLevel.Warning,
         Message = "No active prompt fragments remaining after filters. SessionId: {SessionId}")]
     public static partial void WeavingEmptyActive(this ILogger logger, VKSessionId sessionId);
+
+    [LoggerMessage(
+        EventId = VKWeavingDiagnosticsConstants.Logs.ContextBudgetExceeded,
+        Level = LogLevel.Warning,
+        Message = "Prompt tokens ({RequiredTokens}) exceed available budget ({AvailableTokens}). SessionId: {SessionId}")]
+    public static partial void ContextBudgetExceeded(this ILogger logger, VKSessionId sessionId, int requiredTokens, int availableTokens);
 }

@@ -15,6 +15,7 @@ public static class VKWeavingDiagnosticsConstants
         public const int WeavingTruncated = VKDiagnosticOffsets.AI_Psyche_Weaving + 1;
         public const int WeavingAssembled = VKDiagnosticOffsets.AI_Psyche_Weaving + 2;
         public const int WeavingEmptyActive = VKDiagnosticOffsets.AI_Psyche_Weaving + 3;
+        public const int ContextBudgetExceeded = VKDiagnosticOffsets.AI_Psyche_Weaving + 4;
     }
 
     public static class Metrics

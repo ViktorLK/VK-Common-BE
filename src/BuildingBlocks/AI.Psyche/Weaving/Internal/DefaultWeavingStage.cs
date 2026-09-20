@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using VK.Blocks.AI.Psyche.Weaving.Diagnostics.Internal;
 using VK.Blocks.Core;
 
@@ -13,17 +12,14 @@ namespace VK.Blocks.AI.Psyche.Weaving.Internal;
 internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
 {
     private readonly IEnumerable<IVKWeavingPipelineTask> _tasks;
-    private readonly VKWeavingOptions _options;
     private readonly ILogger<DefaultWeavingStage> _logger;
 
     public DefaultWeavingStage(
         IEnumerable<IVKWeavingPipelineTask> tasks,
-        VKWeavingOptions options,
-        ILogger<DefaultWeavingStage>? logger = null)
+        ILogger<DefaultWeavingStage> logger)
     {
         _tasks = VKGuard.NotNull(tasks);
-        _options = VKGuard.NotNull(options);
-        _logger = logger ?? NullLogger<DefaultWeavingStage>.Instance;
+        _logger = VKGuard.NotNull(logger);
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheWeaving;
@@ -36,27 +32,41 @@ internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
     {
         VKGuard.NotNull(context); // [AP.01]
 
-        PruneDisabledTiers(context);
+        if (context.IsAborted)
+        {
+            return VKResult.Failure(VKPipelineErrors.Aborted); // [CS.01]
+        }
 
-        var runResult = await VKPipelineRunner.ExecuteComponentsAsync(_tasks, context, cancellationToken: cancellationToken).ConfigureAwait(false); // [CS.03]
+        var stopwatch = Stopwatch.StartNew();
+
+        var runResult = await VKPipelineRunner.ExecuteComponentsAsync(
+            _tasks,
+            context,
+            checkAbortedFunc: static ctx => ctx.IsAborted,
+            abortResultFunc: static _ => VKResult.Failure(VKPipelineErrors.Aborted),
+            checkCompletedFunc: static ctx => ctx.IsCompleted,
+            cancellationToken: cancellationToken).ConfigureAwait(false); // [CS.03]
+
         if (runResult.IsFailure)
         {
+            WeavingDiagnostics.RecordWeaving(stopwatch.Elapsed.TotalMilliseconds, "Weaving", false);
             return runResult; // [CS.01]
         }
 
         if (context.ResponseBuilder.Messages.Count == 0)
         {
             _logger.WeavingEmptyActive(context.Request.SessionId);
+            WeavingDiagnostics.RecordWeaving(stopwatch.Elapsed.TotalMilliseconds, "Weaving", false);
             return VKResult.Failure(VKWeavingErrors.NoTapestry); // [CS.01]
         }
 
         var messageCount = context.ResponseBuilder.Messages.Count;
         _logger.WeavingAssembled(context.Request.SessionId, messageCount);
 
-        if (messageCount > 0)
-        {
-            WeavingDiagnostics.RecordTokensAssembled(messageCount, "Weaving");
-        }
+        var assembledTokens = context.ResponseBuilder.TotalEstimatedTokens;
+
+        WeavingDiagnostics.RecordTokensAssembled(assembledTokens, "Weaving");
+        WeavingDiagnostics.RecordWeaving(stopwatch.Elapsed.TotalMilliseconds, "Weaving", true);
 
         if (context.IsWeaveOnly)
         {
@@ -64,17 +74,5 @@ internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
         }
 
         return VKResult.Success(); // [CS.01]
-    }
-
-    private void PruneDisabledTiers(VKPsycheContext context)
-    {
-        var disabledTiers = context.Args<VKWeavingArgs>()?.DisabledTiers ?? _options.DisabledTiers;
-        if (disabledTiers is not null && disabledTiers.Count > 0)
-        {
-            var activeFragments = context.Fragments
-                .Where(f => !disabledTiers.Contains(f.TierType))
-                .ToList();
-            context.SetFragments(activeFragments);
-        }
     }
 }

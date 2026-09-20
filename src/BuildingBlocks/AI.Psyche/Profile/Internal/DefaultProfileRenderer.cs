@@ -1,73 +1,117 @@
 using System;
-using System.Linq;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Profile.Internal;
 
 /// <summary>
 /// Default implementation of <see cref="IVKProfileRenderer"/>.
-/// Formats user profile presence (preferred language, local time context, output preferences) into prompt instruction text.
-/// Follows AP.01, CS.04 (Span/ValueStringBuilder), CS.06, and AP.04.
+/// Formats user profile presence (output language, user addressing, tone, verbosity, emoji policy, custom instructions)
+/// into structured XML tags.
+/// Follows AP.01, CS.04 (Span/ValueStringBuilder).
 /// </summary>
-internal sealed class DefaultProfileRenderer : IVKProfileRenderer
+internal sealed class DefaultProfileRenderer : IVKProfileRenderer // [AP.01] sealed
 {
-    private readonly TimeProvider _timeProvider;
-
-    public DefaultProfileRenderer(TimeProvider? timeProvider = null)
+    public string Render(VKProfilePresence profile)
     {
-        _timeProvider = timeProvider ?? TimeProvider.System;
-    }
+        VKGuard.NotNull(profile); // [AP.01]
 
-    public string Render(VKProfilePresence profile, DateTimeOffset? referenceTime = null)
-    {
-        VKGuard.NotNull(profile);
-
-        Span<char> initialBuffer = stackalloc char[512];
+        Span<char> initialBuffer = stackalloc char[1024]; // [CS.04]
         using var sb = new VKValueStringBuilder(initialBuffer);
 
-        // 1. Language Requirement
+        // 1. Output Language
         if (!string.IsNullOrWhiteSpace(profile.PreferredLanguage))
         {
-            sb.Append(ProfileConstants.Prefixes.LanguageStart);
+            sb.Append('<');
+            sb.Append(ProfileConstants.XmlTags.OutputLanguage);
+            sb.Append('>');
             sb.Append(profile.PreferredLanguage);
-            sb.AppendLine(ProfileConstants.Prefixes.LanguageEnd);
+            sb.Append("</");
+            sb.Append(ProfileConstants.XmlTags.OutputLanguage);
+            sb.AppendLine(">");
         }
 
-        // 2. Local Time Context
-        if (!string.IsNullOrWhiteSpace(profile.TimeZone))
+        // 2. User Addressing (Actionable directive)
+        if (!string.IsNullOrWhiteSpace(profile.AddressingTerm))
         {
-            var nowUtc = referenceTime ?? _timeProvider.GetUtcNow();
-            var timeStr = TryFormatUserLocalTime(nowUtc, profile.TimeZone, out var formattedLocalTime)
-                ? $"{formattedLocalTime} ({profile.TimeZone})"
-                : $"{nowUtc:yyyy-MM-dd HH:mm:ss} UTC ({profile.TimeZone})";
-
-            sb.Append(ProfileConstants.Prefixes.TimeContext);
-            sb.Append(timeStr);
-            sb.AppendLine(".");
+            sb.Append('<');
+            sb.Append(ProfileConstants.XmlTags.UserAddressing);
+            sb.Append('>');
+            sb.Append(ProfileConstants.Directives.Addressing.Prefix);
+            sb.Append(profile.AddressingTerm);
+            sb.Append(ProfileConstants.Directives.Addressing.Suffix);
+            sb.Append("</");
+            sb.Append(ProfileConstants.XmlTags.UserAddressing);
+            sb.AppendLine(">");
         }
 
-        // 3. Custom User Context / Instructions
+        // 3. Interaction Tone (Actionable directive, rendered only if configured)
+        if (profile.InteractionTone.HasValue)
+        {
+            var toneDirective = profile.InteractionTone.Value switch
+            {
+                VKInteractionTone.Concise => ProfileConstants.Directives.Tone.Concise,
+                VKInteractionTone.Friendly => ProfileConstants.Directives.Tone.Friendly,
+                VKInteractionTone.Academic => ProfileConstants.Directives.Tone.Academic,
+                _ => ProfileConstants.Directives.Tone.Professional
+            };
+            sb.Append('<');
+            sb.Append(ProfileConstants.XmlTags.InteractionTone);
+            sb.Append('>');
+            sb.Append(toneDirective);
+            sb.Append("</");
+            sb.Append(ProfileConstants.XmlTags.InteractionTone);
+            sb.AppendLine(">");
+        }
+
+        // 4. Response Verbosity (Actionable directive, rendered only if configured)
+        if (profile.ResponseVerbosity.HasValue)
+        {
+            var verbosityDirective = profile.ResponseVerbosity.Value switch
+            {
+                VKResponseVerbosity.Concise => ProfileConstants.Directives.Verbosity.Concise,
+                VKResponseVerbosity.Detailed => ProfileConstants.Directives.Verbosity.Detailed,
+                VKResponseVerbosity.StepByStep => ProfileConstants.Directives.Verbosity.StepByStep,
+                _ => ProfileConstants.Directives.Verbosity.Standard
+            };
+            sb.Append('<');
+            sb.Append(ProfileConstants.XmlTags.ResponseVerbosity);
+            sb.Append('>');
+            sb.Append(verbosityDirective);
+            sb.Append("</");
+            sb.Append(ProfileConstants.XmlTags.ResponseVerbosity);
+            sb.AppendLine(">");
+        }
+
+        // 5. Emoji Policy (Actionable directive, rendered only if configured)
+        if (profile.EmojiPolicy.HasValue)
+        {
+            var emojiDirective = profile.EmojiPolicy.Value switch
+            {
+                VKEmojiPolicy.Minimal => ProfileConstants.Directives.Emoji.Minimal,
+                VKEmojiPolicy.Rich => ProfileConstants.Directives.Emoji.Rich,
+                _ => ProfileConstants.Directives.Emoji.None
+            };
+            sb.Append('<');
+            sb.Append(ProfileConstants.XmlTags.EmojiPolicy);
+            sb.Append('>');
+            sb.Append(emojiDirective);
+            sb.Append("</");
+            sb.Append(ProfileConstants.XmlTags.EmojiPolicy);
+            sb.AppendLine(">");
+        }
+
+        // 6. Custom Instructions / Background
         if (!string.IsNullOrWhiteSpace(profile.Description))
         {
-            sb.AppendLine(profile.Description);
+            sb.Append('<');
+            sb.Append(ProfileConstants.XmlTags.CustomInstructions);
+            sb.AppendLine(">");
+            sb.AppendLine(profile.Description.Trim());
+            sb.Append("</");
+            sb.Append(ProfileConstants.XmlTags.CustomInstructions);
+            sb.AppendLine(">");
         }
 
         return sb.ToString().Trim();
-    }
-
-    private static bool TryFormatUserLocalTime(DateTimeOffset nowUtc, string timeZoneId, out string result)
-    {
-        try
-        {
-            var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-            var localTime = TimeZoneInfo.ConvertTime(nowUtc, tzInfo);
-            result = localTime.ToString("yyyy-MM-dd HH:mm:ss");
-            return true;
-        }
-        catch
-        {
-            result = string.Empty;
-            return false;
-        }
     }
 }
