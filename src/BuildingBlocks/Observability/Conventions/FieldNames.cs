@@ -25,10 +25,6 @@ public static class FieldNames
     /// <summary>Field for service version.</summary>
     public const string ServiceVersion = "service.version";
 
-    /// <summary>Field for environment (deprecated, use DeploymentEnvironment).</summary>
-    [System.Obsolete("Use DeploymentEnvironment instead.")]
-    public const string Environment = "deployment.environment";
-
     /// <summary>Field for HTTP method.</summary>
     public const string HttpMethod = "http.request.method";
 

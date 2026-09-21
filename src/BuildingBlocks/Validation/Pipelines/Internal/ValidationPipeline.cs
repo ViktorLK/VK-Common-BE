@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,33 +12,51 @@ using VK.Blocks.Validation.Diagnostics.Internal;
 namespace VK.Blocks.Validation.Pipeline.Internal;
 
 /// <summary>
-/// realization of <see cref="IVKValidationPipeline"/> that executes all registered validators.
+/// Realization of <see cref="IVKValidationPipeline"/> that executes all registered validators with type-based caching.
 /// </summary>
+// [AP.01] Sealed by default
+// [AP.03] Internal scoping without VK prefix
 internal sealed class ValidationPipeline(
     IEnumerable<IVKValidator> validators,
     IOptions<VKValidationOptions> options,
     ILogger<ValidationPipeline> logger)
     : IVKValidationPipeline
 {
-    private readonly IReadOnlyList<IVKValidator> _validators = (validators ?? Enumerable.Empty<IVKValidator>())
+    private readonly IVKValidator[] _validators = (validators ?? Enumerable.Empty<IVKValidator>())
         .OrderBy(v => v is IVKValidationOrder orderable ? orderable.Order : 0)
-        .ToList();
+        .ToArray();
     private readonly VKValidationOptions _options = options?.Value ?? new VKValidationOptions();
     private readonly ILogger _logger = VKGuard.NotNull(logger);
+    private readonly ConcurrentDictionary<Type, IVKValidator[]> _validatorCache = new();
 
-    public async Task<VKValidationResult> ValidateAsync(object model, CancellationToken ct = default)
+    public Task<VKValidationResult> ValidateAsync(object model, CancellationToken ct = default)
+        => ValidateAsync(model, group: null, ct);
+
+    public async Task<VKValidationResult> ValidateAsync(object model, string? group, CancellationToken ct = default)
     {
+        // [AP.01] Boundary check with VKGuard
         VKGuard.NotNull(model);
 
-        var modelType = model.GetType().Name;
-        using var activity = ValidationDiagnostics.Source?.StartActivity($"ValidationPipeline:{modelType}");
+        var modelType = model.GetType();
+        using var activity = ValidationDiagnostics.Source?.StartActivity($"ValidationPipeline:{modelType.Name}");
+
+        var applicable = GetApplicableValidators(model);
+        if (applicable.Length == 0)
+        {
+            return VKValidationResult.Success();
+        }
 
         var errors = new List<VKValidationError>();
 
         if (_options.EnableParallelValidation)
         {
-            var applicableValidators = _validators.Where(v => v.CanValidate(model)).ToList();
-            var tasks = applicableValidators.Select(v => v.ValidateAsync(model, ct));
+            var tasks = new Task<VKValidationResult>[applicable.Length];
+            for (int i = 0; i < applicable.Length; i++)
+            {
+                tasks[i] = applicable[i].ValidateAsync(model, group, ct);
+            }
+
+            // [CS.03] ConfigureAwait(false) in library code
             var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
             for (int i = 0; i < results.Length; i++)
@@ -49,31 +69,49 @@ internal sealed class ValidationPipeline(
         }
         else
         {
-            foreach (var validator in _validators)
+            for (int i = 0; i < applicable.Length; i++)
             {
-                if (validator.CanValidate(model))
+                // [CS.03] ConfigureAwait(false) in library code
+                var result = await applicable[i].ValidateAsync(model, group, ct).ConfigureAwait(false);
+                if (!result.IsValid)
                 {
-                    var result = await validator.ValidateAsync(model, ct).ConfigureAwait(false);
-                    if (!result.IsValid)
+                    errors.AddRange(result.Errors);
+                    if (_options.ShortCircuitOnFirstFailure)
                     {
-                        errors.AddRange(result.Errors);
-                        if (_options.ShortCircuitOnFirstFailure)
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
             }
         }
 
-
         var finalResult = errors.Count == 0
             ? VKValidationResult.Success()
             : VKValidationResult.Failure(errors);
 
-        ValidationDiagnostics.LogPipelineExecuted(_logger, modelType, finalResult.IsValid, errors.Count);
+        ValidationDiagnostics.LogPipelineExecuted(_logger, modelType.Name, finalResult.IsValid, errors.Count);
 
         return finalResult;
     }
-}
 
+    private IVKValidator[] GetApplicableValidators(object model)
+    {
+        var type = model.GetType();
+        if (_validatorCache.TryGetValue(type, out var cached))
+        {
+            return cached;
+        }
+
+        var list = new List<IVKValidator>(_validators.Length);
+        for (int i = 0; i < _validators.Length; i++)
+        {
+            if (_validators[i].CanValidate(model))
+            {
+                list.Add(_validators[i]);
+            }
+        }
+
+        var result = list.ToArray();
+        _validatorCache.TryAdd(type, result);
+        return result;
+    }
+}
