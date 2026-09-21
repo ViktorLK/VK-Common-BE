@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using VK.Blocks.Core;
+using VK.Blocks.Validation.Common.Internal;
 using VK.Blocks.Validation.Pipeline.Internal;
 using VK.Blocks.Validation.Validators.Internal;
 
@@ -16,6 +17,9 @@ public sealed partial class VKValidationBlock : IVKBlockMarker
     {
         var services = builder.Services;
         var options = services.GetVKServiceInstance<VKValidationOptions>()!;
+
+        // [AP.02] TryAdd registration for customizable message localization provider
+        services.TryAddSingleton<IVKValidationMessageProvider, DefaultValidationMessageProvider>();
 
         if (options.EnableDataAnnotations)
         {

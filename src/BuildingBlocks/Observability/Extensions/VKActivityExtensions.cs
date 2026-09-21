@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using VK.Blocks.Core;
 
@@ -68,6 +69,29 @@ public static class VKActivityExtensions
         {
             activity.SetTag(FieldNames.UserId, userId);
         }
+    }
+
+    /// <summary>
+    /// Records an exception as an event on the current span and sets span status to Error.
+    /// Complies with Manifest §9.
+    /// </summary>
+    public static void RecordException(this Activity? activity, Exception exception)
+    {
+        if (activity is null || exception is null)
+        {
+            return;
+        }
+
+        activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+
+        var eventTags = new ActivityTagsCollection
+        {
+            { "exception.type", exception.GetType().FullName },
+            { "exception.message", exception.Message },
+            { "exception.stacktrace", exception.StackTrace }
+        };
+
+        activity.AddEvent(new ActivityEvent("exception", tags: eventTags));
     }
 
     /// <summary>

@@ -68,10 +68,9 @@ internal sealed class DefaultProfileStage : IVKPsychePipelineStage
 
         _logger.ProfileResolved(
             profile.Id,
-            profile.PreferredLanguage ?? "None",
-            profile.TimeZone ?? "None");
+            profile.PreferredLanguage ?? "None");
 
-        var content = _profileRenderer.Render(profile, context.CreatedAt);
+        var content = _profileRenderer.Render(profile);
         if (!string.IsNullOrWhiteSpace(content))
         {
             _logger.ProfileRendered(profile.Id, content.Length);

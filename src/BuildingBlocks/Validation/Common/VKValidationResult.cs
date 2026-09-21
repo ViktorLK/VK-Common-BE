@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.Validation;
 
@@ -19,19 +20,28 @@ public sealed record VKValidationResult
     /// </summary>
     public IReadOnlyList<VKValidationError> Errors { get; init; } = Array.Empty<VKValidationError>();
 
+    private static readonly VKValidationResult CachedSuccess = new();
+
     /// <summary>
     /// Creates a successful validation result.
     /// </summary>
-    public static VKValidationResult Success() => new();
+    public static VKValidationResult Success() => CachedSuccess;
 
     /// <summary>
     /// Creates a failed validation result with the specified errors.
     /// </summary>
-    public static VKValidationResult Failure(IEnumerable<VKValidationError> errors) => new() { Errors = errors.ToList() };
+    public static VKValidationResult Failure(IEnumerable<VKValidationError> errors)
+    {
+        VKGuard.NotNull(errors);
+        return new VKValidationResult
+        {
+            Errors = errors as IReadOnlyList<VKValidationError> ?? errors.ToList()
+        };
+    }
 
     /// <summary>
     /// Creates a failed validation result with a single error.
     /// </summary>
     public static VKValidationResult Failure(string propertyName, string message, string? errorCode = null)
-        => Failure([new VKValidationError(propertyName, message, errorCode)]);
+        => new() { Errors = [new VKValidationError(propertyName, message, errorCode)] };
 }

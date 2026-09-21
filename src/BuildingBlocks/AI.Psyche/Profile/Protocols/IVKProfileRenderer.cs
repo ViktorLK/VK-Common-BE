@@ -1,5 +1,3 @@
-using System;
-
 namespace VK.Blocks.AI.Psyche;
 
 /// <summary>
@@ -12,7 +10,6 @@ public interface IVKProfileRenderer
     /// Renders the specified profile presence aggregate into prompt instruction text.
     /// </summary>
     /// <param name="profile">The user profile presence aggregate.</param>
-    /// <param name="referenceTime">Optional reference time for rendering current time context (defaults to UtcNow).</param>
     /// <returns>The rendered prompt instruction text.</returns>
-    string Render(VKProfilePresence profile, DateTimeOffset? referenceTime = null);
+    string Render(VKProfilePresence profile);
 }

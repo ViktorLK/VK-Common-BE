@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using VK.Blocks.Core;
+using VK.Blocks.AI.Psyche.Common.Internal;
 
 namespace VK.Blocks.AI.Psyche;
 
@@ -12,23 +12,32 @@ public sealed partial record VKWeavingOptions : IVKBlockOptions
 {
     /// <summary>
     /// Gets the optional maximum context token budget.
-    /// If null (default), dynamically uses the physical ContextWindowSize from <see cref="IVKModelCatalog"/>.
+    /// If null (default), dynamically uses the physical ContextWindowSize from <see cref="IVKVKAIModelCatalog"/>.
     /// </summary>
     public int? MaxContextBudget { get; init; } = null;
 
     /// <summary>
-    /// Gets the default reserved token budget allocated for LLM response generation when not specified in args.
+    /// Gets the reserved token budget allocated for LLM response generation when not specified in args.
     /// Default is 2,048.
     /// </summary>
-    public int DefaultResponseReservedTokens { get; init; } = 2048;
+    public int ResponseReservedTokens { get; init; } = 2048;
 
     /// <summary>
-    /// Gets the list of prompt tiers that should be completely disabled and pruned during weaving.
+    /// Gets the default separator between segments and coalesced prompt items.
+    /// Default is <see cref="Common.Internal.PsycheConstants.Separators.SegmentSeparator"/> ("\n\n").
     /// </summary>
-    public List<VKPromptTierType> DisabledTiers { get; init; } = [];
+    public string SegmentSeparator { get; init; } = PsycheConstants.Separators.SegmentSeparator;
 
     /// <summary>
-    /// Gets the override order sequence for prompt tier rendering.
+    /// Gets whether to sanitize template variables (escaping XML tags and stripping ChatML control tokens)
+    /// to prevent prompt injection. Default is true.
     /// </summary>
-    public List<VKPromptTierType> TierRenderOrderOverrides { get; init; } = [];
+    public bool SanitizeVariables { get; init; } = true;
+
+    /// <summary>
+    /// Gets the maximum character length permitted for any single placeholder replacement value.
+    /// If exceeded, the replacement task returns a failure to prevent memory exhaustion or DoS attacks.
+    /// Default is 32,768 characters. Set to null to disable length enforcement.
+    /// </summary>
+    public int? MaxReplacementLength { get; init; } = 32_768;
 }

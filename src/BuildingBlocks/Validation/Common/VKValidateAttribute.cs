@@ -14,4 +14,10 @@ public sealed class VKValidateAttribute : Attribute
     /// Default is <see cref="VKCascadeMode.Continue"/>.
     /// </summary>
     public VKCascadeMode CascadeMode { get; init; } = VKCascadeMode.Continue;
+
+    /// <summary>
+    /// Gets or sets the validation scenario or group (e.g. <see cref="VKValidationGroups.Create"/>).
+    /// When specified, only rules matching this group will be evaluated.
+    /// </summary>
+    public string? Group { get; init; }
 }

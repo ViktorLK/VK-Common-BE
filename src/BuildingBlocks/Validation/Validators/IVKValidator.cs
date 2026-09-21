@@ -17,6 +17,12 @@ public interface IVKValidator
     /// Validates the specified model asynchronously.
     /// </summary>
     Task<VKValidationResult> ValidateAsync(object model, CancellationToken ct = default);
+
+    /// <summary>
+    /// Validates the specified model asynchronously for a specific validation group.
+    /// </summary>
+    Task<VKValidationResult> ValidateAsync(object model, string? group, CancellationToken ct = default)
+        => ValidateAsync(model, ct);
 }
 
 /// <summary>
@@ -30,12 +36,25 @@ public interface IVKValidator<in T> : IVKValidator
     /// </summary>
     Task<VKValidationResult> ValidateAsync(T model, CancellationToken ct = default);
 
+    /// <summary>
+    /// Validates the specified model asynchronously for a specific validation group.
+    /// </summary>
+    Task<VKValidationResult> ValidateAsync(T model, string? group, CancellationToken ct = default)
+        => ValidateAsync(model, ct);
+
     bool IVKValidator.CanValidate(object model) => model is T;
 
     Task<VKValidationResult> IVKValidator.ValidateAsync(object model, CancellationToken ct)
     {
         return model is T typedModel
             ? ValidateAsync(typedModel, ct)
+            : Task.FromResult(VKValidationResult.Failure(string.Empty, $"Expected model of type {typeof(T).Name}, but received {model?.GetType().Name ?? "null"}."));
+    }
+
+    Task<VKValidationResult> IVKValidator.ValidateAsync(object model, string? group, CancellationToken ct)
+    {
+        return model is T typedModel
+            ? ValidateAsync(typedModel, group, ct)
             : Task.FromResult(VKValidationResult.Failure(string.Empty, $"Expected model of type {typeof(T).Name}, but received {model?.GetType().Name ?? "null"}."));
     }
 }

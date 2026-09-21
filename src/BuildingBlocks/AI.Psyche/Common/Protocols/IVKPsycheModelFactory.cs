@@ -148,7 +148,6 @@ public interface IVKPsycheModelFactory
     VKProfilePresence CreateProfile(
         string? displayName = null,
         string? preferredLanguage = null,
-        string? timeZone = null,
         string? description = null,
         VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
         int depthPriority = 10,
@@ -163,7 +162,6 @@ public interface IVKPsycheModelFactory
         VKProfileId id,
         string? displayName = null,
         string? preferredLanguage = null,
-        string? timeZone = null,
         string? description = null,
         VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
         int depthPriority = 10,

@@ -191,7 +191,6 @@ internal sealed class DefaultPsycheModelFactory(
     public VKProfilePresence CreateProfile(
         string? displayName = null,
         string? preferredLanguage = null,
-        string? timeZone = null,
         string? description = null,
         VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
         int depthPriority = 10,
@@ -199,7 +198,7 @@ internal sealed class DefaultPsycheModelFactory(
         string? tagName = null,
         int tokenCount = 0)
     {
-        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, timeZone, description, relativeDepth, depthPriority, absoluteDepth, tagName, tokenCount);
+        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, description, relativeDepth, depthPriority, absoluteDepth, tagName, tokenCount);
     }
 
     /// <inheritdoc />
@@ -207,7 +206,6 @@ internal sealed class DefaultPsycheModelFactory(
         VKProfileId id,
         string? displayName = null,
         string? preferredLanguage = null,
-        string? timeZone = null,
         string? description = null,
         VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
         int depthPriority = 10,
@@ -215,7 +213,7 @@ internal sealed class DefaultPsycheModelFactory(
         string? tagName = null,
         int tokenCount = 0)
     {
-        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, timeZone, description, relativeDepth, depthPriority, absoluteDepth, tagName, tokenCount).Value);
+        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, description, relativeDepth, depthPriority, absoluteDepth, tagName, tokenCount).Value);
     }
 
     // --- Echo ---

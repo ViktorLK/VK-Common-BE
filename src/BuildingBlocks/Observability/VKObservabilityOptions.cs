@@ -21,4 +21,16 @@ public sealed partial record VKObservabilityOptions : IVKBlockOptions
     public bool EnableMetrics { get; init; } = true;
 
     public bool IncludeUserName { get; init; } = false;
+
+    /// <summary>
+    /// Field names to treat as sensitive across all telemetry signals (Logging, Tracing, Metrics).
+    /// Complies with Manifest §7.
+    /// </summary>
+    public string[] SensitiveFieldNames { get; init; } = ["password", "token", "secret", "api_key", "apikey", "authorization", "cookie", "access_token", "refresh_token", "private_key"];
+
+    /// <summary>
+    /// Performance thresholds for slow operation and query detection.
+    /// Complies with Manifest §13.
+    /// </summary>
+    public VKPerformanceThresholds PerformanceThresholds { get; init; } = new();
 }
