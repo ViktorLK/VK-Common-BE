@@ -15,7 +15,8 @@ namespace VK.Blocks.AI.Psyche.Session.Internal;
 [VKTrace("psyche.stage.session_update")]
 internal sealed class DefaultSessionUpdateStage : IVKPsychePipelineStage
 {
-    private const string StageName = "SessionUpdate";
+    public string TraceName => "psyche.stage.session_update";
+    public string StageName => "SessionUpdate";
 
     private readonly VKSessionOptions _options;
     private readonly IVKPsycheSessionRepository _sessionRepository;

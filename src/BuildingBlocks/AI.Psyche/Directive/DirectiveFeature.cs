@@ -16,10 +16,7 @@ internal sealed partial class DirectiveFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKDirectiveOptions options)
     {
-        if (!options.Enabled)
-        {
-            return;
-        }
+        _ = options;
 
         services.TryAddScoped<IVKPsycheDirectiveRepository, InMemoryDirectiveRepository>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultDirectiveStage>());

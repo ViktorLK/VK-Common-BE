@@ -9,20 +9,7 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public interface IVKPsycheModelFactory
 {
-    // --- Segment & Key (Value Objects) ---
-
-    /// <summary>
-    /// Creates a new <see cref="VKPromptSegment"/> with validated layout coordinates and prompt payload.
-    /// </summary>
-    VKPromptSegment CreateSegment(
-        string content,
-        VKChatRole role = VKChatRole.System,
-        string? name = null,
-        string? tagName = null,
-        int? absoluteDepth = null,
-        VKPromptRelativeDepth? relativeDepth = null,
-        int depthPriority = 0,
-        int tokenCount = 0);
+    // --- Key (Value Objects) ---
 
     /// <summary>
     /// Creates a new <see cref="VKKnowledgeKey"/> for knowledge trigger matching.
@@ -149,11 +136,12 @@ public interface IVKPsycheModelFactory
         string? displayName = null,
         string? preferredLanguage = null,
         string? description = null,
-        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
-        int depthPriority = 10,
-        int? absoluteDepth = null,
-        string? tagName = null,
-        int tokenCount = 0);
+        VKPromptCoordinates? coordinates = null,
+        int tokenCount = 0,
+        string? addressingTerm = null,
+        VKInteractionTone? interactionTone = null,
+        VKResponseVerbosity? responseVerbosity = null,
+        VKEmojiPolicy? emojiPolicy = null);
 
     /// <summary>
     /// Creates a new <see cref="VKProfilePresence"/> with an explicitly specified ID.
@@ -163,11 +151,12 @@ public interface IVKPsycheModelFactory
         string? displayName = null,
         string? preferredLanguage = null,
         string? description = null,
-        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
-        int depthPriority = 10,
-        int? absoluteDepth = null,
-        string? tagName = null,
-        int tokenCount = 0);
+        VKPromptCoordinates? coordinates = null,
+        int tokenCount = 0,
+        string? addressingTerm = null,
+        VKInteractionTone? interactionTone = null,
+        VKResponseVerbosity? responseVerbosity = null,
+        VKEmojiPolicy? emojiPolicy = null);
 
     // --- Echo ---
 

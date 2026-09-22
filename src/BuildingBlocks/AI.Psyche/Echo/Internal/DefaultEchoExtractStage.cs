@@ -17,15 +17,21 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 /// Phase 2: Fetches full dialogue content (VKEchoTrace) only for the retained message IDs.
 /// Follows AP.01 (sealed class default) and CS.03.
 /// </summary>
+[VKTrace("psyche.stage.echo_extract")]
 internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
 {
+    /// <summary>
+    /// Default token estimate used as a defensive fallback during Phase 1 metadata pruning
+    /// when an echo trace does not carry a precalculated token count (e.g. legacy or mock data).
+    /// </summary>
+    private const int DefaultEstimatedTokenCount = 10;
+
     private readonly IVKEchoStore _echoStore;
     private readonly IVKPsycheSessionRepository _sessionRepository;
     private readonly IVKEchoRenderer _echoRenderer;
     private readonly IVKPsycheModelFactory _modelFactory;
     private readonly IVKTokenCounter _tokenCounter;
     private readonly VKEchoOptions _echoOptions;
-    private readonly VKWeavingOptions _weavingOptions;
     private readonly ILogger<DefaultEchoExtractStage> _logger;
 
     public DefaultEchoExtractStage(
@@ -35,7 +41,6 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         IVKPsycheModelFactory modelFactory,
         IVKTokenCounter tokenCounter,
         VKEchoOptions echoOptions,
-        VKWeavingOptions weavingOptions,
         ILogger<DefaultEchoExtractStage> logger)
     {
         _echoStore = VKGuard.NotNull(echoStore); // [AP.01]
@@ -44,14 +49,14 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
         _modelFactory = VKGuard.NotNull(modelFactory); // [AP.01]
         _tokenCounter = VKGuard.NotNull(tokenCounter); // [AP.01]
         _echoOptions = VKGuard.NotNull(echoOptions); // [AP.01]
-        _weavingOptions = VKGuard.NotNull(weavingOptions); // [AP.01]
         _logger = VKGuard.NotNull(logger); // [AP.01]
     }
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheEcho;
     public bool IsActive => _echoOptions.Enabled;
+    public string TraceName => "psyche.stage.echo_extract";
+    public string StageName => "EchoExtract";
 
-    [VKTrace("psyche.stage.echo_extract")]
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
         VKGuard.NotNull(context); // [AP.01]
@@ -135,20 +140,11 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             return VKResult.Success();
         }
 
-        // 4. Resolve Effective Token Budget from Weaving budget or resolved model metadata
-        var modelMetadata = context.State<VKAIModelMetadata>();
-        var configuredBudget = context.Args<VKWeavingArgs>()?.MaxContextBudget ?? _weavingOptions.MaxContextBudget;
-        var totalLimit = configuredBudget ?? modelMetadata?.ContextWindowSize;
-
-        int effectiveBudget = int.MaxValue;
-        if (echoOptions.MaxTokens.HasValue && echoOptions.MaxTokens.Value > 0)
+        // 4. Resolve Effective Token Budget from Echo options and context TokenBudget
+        int effectiveBudget = echoOptions.MaxTokens is > 0 ? echoOptions.MaxTokens.Value : int.MaxValue;
+        if (context.TokenBudget?.TotalLimit is { } totalLimit)
         {
-            effectiveBudget = echoOptions.MaxTokens.Value;
-        }
-
-        if (totalLimit.HasValue)
-        {
-            int dynamicLimit = (int)(totalLimit.Value * echoOptions.TokenBudgetRatio);
+            int dynamicLimit = (int)(totalLimit * echoOptions.TokenBudgetRatio);
             effectiveBudget = Math.Min(effectiveBudget, dynamicLimit);
         }
 
@@ -259,6 +255,6 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
 
     private static int GetMetaTokens(VKEchoMetadata meta)
     {
-        return meta.TokenCount > 0 ? meta.TokenCount : 10;
+        return meta.TokenCount > 0 ? meta.TokenCount : DefaultEstimatedTokenCount;
     }
 }

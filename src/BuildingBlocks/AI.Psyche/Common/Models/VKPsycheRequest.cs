@@ -71,10 +71,31 @@ public sealed record VKPsycheRequest
     public IReadOnlyList<VKPatternId> PatternIds { get; init; } = [];
 
     // ==========================================
-    // 3. Dynamic Extension Arguments
+    // 3. Dynamic Extension Identifiers & Arguments
     // ==========================================
 
+    private ImmutableDictionary<Type, object> Ids { get; init; } = [];
     private ImmutableDictionary<Type, object> Args { get; init; } = [];
+
+    /// <summary>
+    /// Attaches a strongly-typed extension identifier (e.g., <c>VKSituationId</c>) to this request.
+    /// Follows AP.01 and AP.07.
+    /// </summary>
+    /// <typeparam name="TId">The strongly-typed identifier struct type.</typeparam>
+    /// <param name="id">The identifier instance.</param>
+    /// <returns>A new <see cref="VKPsycheRequest"/> with the identifier attached.</returns>
+    public VKPsycheRequest WithId<TId>(TId id) where TId : struct
+    {
+        return this with { Ids = Ids.SetItem(typeof(TId), id) };
+    }
+
+    /// <summary>
+    /// Resolves an attached strongly-typed extension identifier, or returns null if not specified.
+    /// </summary>
+    /// <typeparam name="TId">The strongly-typed identifier struct type.</typeparam>
+    /// <returns>The attached identifier if found; otherwise, null.</returns>
+    public TId? GetId<TId>() where TId : struct
+        => Ids.TryGetValue(typeof(TId), out object? v) ? (TId)v : null;
 
     public VKPsycheRequest WithArgs<T>(T args) where T : class
     {

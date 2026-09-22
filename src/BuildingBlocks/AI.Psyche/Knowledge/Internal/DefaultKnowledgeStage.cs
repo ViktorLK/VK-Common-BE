@@ -18,6 +18,8 @@ internal sealed class DefaultKnowledgeStage : IVKPsychePipelineStage
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheKnowledge;
     public bool IsActive => _options.Enabled;
+    public string TraceName => "psyche.stage.knowledge";
+    public string StageName => "Knowledge";
 
     public DefaultKnowledgeStage(
         VKKnowledgeOptions options,

@@ -16,8 +16,7 @@ internal sealed partial class KnowledgeFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKKnowledgeOptions options)
     {
-        if (!options.Enabled)
-            return;
+        _ = options;
 
         services.TryAddSingleton<IVKPsycheKnowledgeRepository, InMemoryKnowledgeRepository>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultKnowledgeStage>());

@@ -15,8 +15,7 @@ internal sealed partial class EchoFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKEchoOptions options)
     {
-        if (!options.Enabled)
-            return;
+        _ = options;
 
         services.TryAddScoped<IVKEchoStore, InMemoryEchoStore>();
 

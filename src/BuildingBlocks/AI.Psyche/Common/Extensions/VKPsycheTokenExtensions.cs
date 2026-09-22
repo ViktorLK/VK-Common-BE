@@ -1,5 +1,3 @@
-using System;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -85,7 +83,7 @@ public static class VKPsycheTokenExtensions
         VKGuard.NotNull(knowledge);
         VKGuard.NotNull(tokenCounter);
 
-        var content = knowledge.Segment?.Content;
+        var content = knowledge.Payload?.Content;
         int tokens = string.IsNullOrWhiteSpace(content) ? 0 : tokenCounter.CountTokens(content, modelId);
         knowledge.UpdateTokenCount(tokens);
         return tokens;
@@ -115,7 +113,7 @@ public static class VKPsycheTokenExtensions
         VKGuard.NotNull(pattern);
         VKGuard.NotNull(tokenCounter);
 
-        var content = pattern.Segment?.Content;
+        var content = pattern.Payload?.Content;
         int tokens = string.IsNullOrWhiteSpace(content) ? 0 : tokenCounter.CountTokens(content, modelId);
         pattern.UpdateTokenCount(tokens);
         return tokens;

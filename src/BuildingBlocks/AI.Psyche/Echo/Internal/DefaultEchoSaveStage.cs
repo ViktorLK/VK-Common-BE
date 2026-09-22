@@ -15,7 +15,8 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 [VKTrace("psyche.stage.echo_save")]
 internal sealed class DefaultEchoSaveStage : IVKPsychePipelineStage // [AP.01]
 {
-    private const string StageName = "EchoSave";
+    public string TraceName => "psyche.stage.echo_save";
+    public string StageName => "EchoSave";
 
     private readonly IVKEchoStore _echoStore;
     private readonly IVKPsycheModelFactory _modelFactory;

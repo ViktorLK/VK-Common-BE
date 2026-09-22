@@ -42,6 +42,22 @@ public sealed class VKPsycheContext
     /// </summary>
     public bool IsSandbox => State<VKSessionThread>()?.Mode == VKSessionMode.Sandbox;
 
+    /// <summary>
+    /// Gets or sets the resolved token budget snapshot for this pipeline execution.
+    /// Acts as the single source of truth for all downstream stages (Echo, Knowledge, Weaving, and external extensions).
+    /// </summary>
+    public VKPsycheTokenBudget? TokenBudget
+    {
+        get => State<VKPsycheTokenBudget>();
+        set
+        {
+            if (value is not null)
+            {
+                SetState(value);
+            }
+        }
+    }
+
     // ==========================================
     // 3. Structured Prompt Containers (Thread-Safe Lock-Free Dual Engine)
     // ==========================================
@@ -80,7 +96,7 @@ public sealed class VKPsycheContext
     public void AddSegment(VKPromptSegment segment)
     {
         VKGuard.NotNull(segment);
-        if (string.IsNullOrWhiteSpace(segment.Content))
+        if (string.IsNullOrWhiteSpace(segment.Payload.Content))
         {
             return;
         }
@@ -184,6 +200,13 @@ public sealed class VKPsycheContext
     /// <returns>The arguments if present, or null.</returns>
     public T? Args<T>() where T : class
         => _argsOverrides.TryGetValue(typeof(T), out object? v) ? (T)v : Request.GetArgs<T>();
+
+    /// <summary>
+    /// Gets the strongly-typed extension identifier attached to the request payload.
+    /// </summary>
+    /// <typeparam name="TId">The strongly-typed identifier struct type.</typeparam>
+    /// <returns>The identifier if present, or null.</returns>
+    public TId? Id<TId>() where TId : struct => Request.GetId<TId>();
 
     /// <summary>
     /// Gets a value indicating whether to only run the prompt weaving stages, bypassing the LLM call.

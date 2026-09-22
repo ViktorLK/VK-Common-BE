@@ -35,13 +35,6 @@ public sealed record VKPsycheResponse
     public IReadOnlyList<VKEchoFragment> EvictedEchoes { get; init; } = [];
 
     /// <summary>
-    /// Gets any prompt segments that were evicted or truncated during token management.
-    /// Backward-compatibility alias for <see cref="EvictedSegments"/>.
-    /// </summary>
-    [System.Obsolete("Use EvictedSegments for prompt segments or EvictedEchoes for dialogue history turns.")]
-    public IReadOnlyList<VKPromptSegment> EvictedFragments => EvictedSegments;
-
-    /// <summary>
     /// Gets the execution duration profiling metrics in milliseconds per pipeline stage or task.
     /// </summary>
     public IReadOnlyDictionary<string, double> ProfilingMetrics { get; init; } = new Dictionary<string, double>();
