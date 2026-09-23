@@ -35,7 +35,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
 
         // 1. Resolve active segments
         var activeSegments = context.Segments
-            .Where(s => !string.IsNullOrWhiteSpace(s.Content))
+            .Where(s => !string.IsNullOrWhiteSpace(s.Payload.Content))
             .ToList();
 
         bool hasSegments = activeSegments.Count > 0;
@@ -92,9 +92,9 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
 
         // Resolve relative (static) segments ordered by LayoutOrder, then DepthPriority
         var relativeSegments = activeSegments
-            .Where(s => s.TimelineDepth is null)
-            .OrderBy(s => s.LayoutOrder)
-            .ThenBy(s => s.DepthPriority)
+            .Where(s => s.Coordinates.TimelineDepth is null)
+            .OrderBy(s => s.Coordinates.LayoutOrder)
+            .ThenBy(s => s.Coordinates.DepthPriority)
             .ToList();
 
         // Partition timeline segments into slots [0 .. m]
@@ -103,8 +103,8 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
         // Slot 2..m-1: between echoes
         // Slot m: before oldest echo (depth == -1 or depth >= m)
         var timelineSegments = activeSegments
-            .Where(s => s.TimelineDepth is not null)
-            .OrderBy(s => s.DepthPriority)
+            .Where(s => s.Coordinates.TimelineDepth is not null)
+            .OrderBy(s => s.Coordinates.DepthPriority)
             .ToList();
 
         var slots = new List<VKPromptSegment>[msgCount + 1];
@@ -115,7 +115,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
 
         foreach (var inject in timelineSegments)
         {
-            int depth = inject.TimelineDepth!.Value;
+            int depth = inject.Coordinates.TimelineDepth!.Value;
             int slotIndex = (depth == -1 || depth >= msgCount) ? msgCount : (depth <= 0 ? 0 : depth);
             slots[slotIndex].Add(inject);
         }
@@ -198,12 +198,12 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
 
     private static string? GetEffectiveTagName(VKPromptSegment segment)
     {
-        if (!string.IsNullOrWhiteSpace(segment.TagName))
+        if (!string.IsNullOrWhiteSpace(segment.Coordinates.TagName))
         {
-            return segment.TagName;
+            return segment.Coordinates.TagName;
         }
 
-        return segment.Tier switch
+        return segment.Coordinates.Tier switch
         {
             VKPromptTierType.Directive => PsycheConstants.XmlTags.SystemDirective,
             VKPromptTierType.Persona => PsycheConstants.XmlTags.Persona,
@@ -231,30 +231,30 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
 
             if (string.IsNullOrWhiteSpace(tagName))
             {
-                int rawTokens = current.TokenCount > 0
-                    ? current.TokenCount
-                    : _tokenCounter.CountTokens(current.Content);
+                int rawTokens = current.Payload.TokenCount > 0
+                    ? current.Payload.TokenCount
+                    : _tokenCounter.CountTokens(current.Payload.Content);
 
                 messages.Add(new VKChatMessage
                 {
-                    Role = current.Role,
-                    Content = current.Content,
+                    Role = current.Coordinates.Role,
+                    Content = current.Payload.Content,
                     TokenCount = rawTokens
                 });
                 continue;
             }
 
-            var sectionItems = new List<string> { current.Content };
+            var sectionItems = new List<string> { current.Payload.Content };
 
             while (i + 1 < list.Count)
             {
                 var next = list[i + 1];
                 var nextTag = GetEffectiveTagName(next);
-                if (next.Role == current.Role &&
+                if (next.Coordinates.Role == current.Coordinates.Role &&
                     !string.IsNullOrWhiteSpace(nextTag) &&
                     string.Equals(nextTag, tagName, StringComparison.OrdinalIgnoreCase))
                 {
-                    sectionItems.Add(next.Content);
+                    sectionItems.Add(next.Payload.Content);
                     i++;
                 }
                 else
@@ -264,7 +264,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
             }
 
             string content = sectionItems.Count == 1
-                ? VKPromptXmlBuilder.Wrap(tagName, current.Content)
+                ? VKPromptXmlBuilder.Wrap(tagName, current.Payload.Content)
                 : VKPromptXmlBuilder.Wrap(tagName, sectionItems, separator);
 
             // Accurately compute token count for the rendered XML block
@@ -272,7 +272,7 @@ internal sealed class DefaultTapestryWeavingTask : IVKWeavingPipelineTask
 
             messages.Add(new VKChatMessage
             {
-                Role = current.Role,
+                Role = current.Coordinates.Role,
                 Content = content,
                 TokenCount = tokenCount
             });

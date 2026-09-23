@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -14,12 +13,10 @@ namespace VK.Blocks.AI.Psyche.Pipeline.Internal;
 /// <summary>
 /// Default implementation of the Psyche pipeline executor.
 /// Inherits from <see cref="VKPipelineExecutorBase{TContext, TResponse}"/> and handles the terminal ChatEngine execution.
+/// Follows AP.01, CS.01, CS.03, and Zero-Reflection architecture (no runtime attribute inspection or concurrent dictionary caching).
 /// </summary>
 internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKPsycheContext, VKPsycheResponse>, IVKPsychePipelineExecutor
 {
-    private sealed record StageMetadata(string RawName, string SpanName, ActivityKind Kind);
-    private static readonly ConcurrentDictionary<Type, StageMetadata> StageMetadataCache = new();
-
     private readonly ILogger<DefaultPsychePipelineExecutor> _logger;
 
     public DefaultPsychePipelineExecutor(
@@ -29,17 +26,6 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         : base(stages, middlewares)
     {
         _logger = VKGuard.NotNull(logger);
-    }
-
-    private static StageMetadata GetStageMetadata(Type stageType)
-    {
-        return StageMetadataCache.GetOrAdd(stageType, static t =>
-        {
-            var traceAttr = (VKTraceAttribute?)System.Attribute.GetCustomAttribute(t, typeof(VKTraceAttribute));
-            var rawName = t.Name.Replace("Default", string.Empty).Replace("Stage", string.Empty);
-            var spanName = traceAttr?.ActivityName ?? $"psyche.stage.{rawName.ToLowerInvariant()}";
-            return new StageMetadata(rawName, spanName, traceAttr?.Kind ?? ActivityKind.Internal);
-        });
     }
 
     public override async Task<VKResult<VKPsycheResponse>> ExecuteAsync(
@@ -57,6 +43,17 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         var stopwatch = Stopwatch.StartNew();
 
         var result = await base.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+
+        // Inject resolved Token Budget telemetry tags onto pipeline activity
+        if (context.TokenBudget is { } budget)
+        {
+            if (budget.TotalLimit.HasValue)
+            {
+                activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.BudgetTotalLimit, budget.TotalLimit.Value);
+            }
+            activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.BudgetAvailablePrompt, budget.AvailablePromptBudget);
+            activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.BudgetReservedResponse, budget.ReservedResponseTokens);
+        }
 
         stopwatch.Stop();
         var durationMs = stopwatch.Elapsed.TotalMilliseconds;
@@ -122,6 +119,18 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
                 activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.PromptTokens, chatResult.Value.Usage.InputTokens);
                 activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.CompletionTokens, chatResult.Value.Usage.OutputTokens);
                 activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.TotalTokens, chatResult.Value.Usage.TotalTokens);
+
+                // Compute and attach budget utilization ratio if total limit is available
+                if (context.TokenBudget?.TotalLimit is { } totalLimit && totalLimit > 0)
+                {
+                    double utilization = (double)chatResult.Value.Usage.TotalTokens / totalLimit;
+                    activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.BudgetUtilizationRatio, Math.Round(utilization, 4));
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(chatResult.Value.FinishReason))
+            {
+                activity?.SetTag(VKPsycheDiagnosticsConstants.Tags.ResponseFinishReasons, new[] { chatResult.Value.FinishReason });
             }
 
             return VKResult.Success();
@@ -143,10 +152,13 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         VKPsycheContext context,
         CancellationToken cancellationToken)
     {
-        var metadata = GetStageMetadata(component.GetType());
+        // Zero-Reflection: Dispatch directly via IVKPsychePipelineStage polymorphic contract
+        var (stageName, traceName) = component is IVKPsychePipelineStage psycheStage
+            ? (psycheStage.StageName, psycheStage.TraceName)
+            : (component.Name, $"psyche.stage.{component.Name.ToLowerInvariant()}");
 
-        using var activity = PipelineDiagnostics.Source.StartActivity(metadata.SpanName, metadata.Kind);
-        activity?.SetPsycheStage(metadata.RawName);
+        using var activity = PipelineDiagnostics.Source.StartActivity(traceName);
+        activity?.SetPsycheStage(stageName);
         activity?.SetPsycheCorrelationId(context.CorrelationId);
 
         var stopwatch = Stopwatch.StartNew();
@@ -174,9 +186,9 @@ internal sealed class DefaultPsychePipelineExecutor : VKPipelineExecutorBase<VKP
         {
             stopwatch.Stop();
             var durationMs = stopwatch.Elapsed.TotalMilliseconds;
-            var profilingKey = $"{metadata.RawName}Stage";
+            var profilingKey = $"{stageName}Stage";
             context.ResponseBuilder.ProfilingMetrics[profilingKey] = durationMs;
-            PipelineDiagnostics.RecordStageExecution(durationMs, metadata.RawName, isSuccess);
+            PipelineDiagnostics.RecordStageExecution(durationMs, stageName, isSuccess);
         }
     }
 

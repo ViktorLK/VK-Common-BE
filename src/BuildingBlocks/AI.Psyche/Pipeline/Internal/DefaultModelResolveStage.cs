@@ -30,6 +30,8 @@ internal sealed class DefaultModelResolveStage : IVKPsychePipelineStage
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheModelResolve;
 
     public bool IsActive => true;
+    public string TraceName => "psyche.stage.model_resolve";
+    public string StageName => "ModelResolve";
 
     public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
@@ -51,6 +53,7 @@ internal sealed class DefaultModelResolveStage : IVKPsychePipelineStage
             if (context.IsWeaveOnly)
             {
                 _logger.ModelResolveSkipped();
+                ResolveTokenBudget(context, null);
                 return Task.FromResult(VKResult.Success()); // [CS.01]
             }
 
@@ -63,6 +66,7 @@ internal sealed class DefaultModelResolveStage : IVKPsychePipelineStage
             if (context.IsWeaveOnly)
             {
                 _logger.ModelResolveSkipped();
+                ResolveTokenBudget(context, null);
                 return Task.FromResult(VKResult.Success()); // [CS.01]
             }
 
@@ -75,6 +79,35 @@ internal sealed class DefaultModelResolveStage : IVKPsychePipelineStage
         context.SetState(metadata);
         _logger.ModelResolved(modelId, metadata.Provider.ToString(), metadata.ContextWindowSize);
 
+        // 6. Upfront resolution of global TokenBudget contract (Single Source of Truth)
+        ResolveTokenBudget(context, metadata.ContextWindowSize);
+
         return Task.FromResult(VKResult.Success()); // [CS.01]
+    }
+
+    private static void ResolveTokenBudget(VKPsycheContext context, int? modelContextWindowSize)
+    {
+        var psycheOptions = context.Services.GetService<VKAIPsycheOptions>()
+            ?? context.Services.GetService<IOptions<VKAIPsycheOptions>>()?.Value;
+        var weavingOptions = context.Services.GetService<VKWeavingOptions>()
+            ?? context.Services.GetService<IOptions<VKWeavingOptions>>()?.Value;
+        var weavingArgs = context.Args<VKWeavingArgs>();
+
+        var configuredTotal = weavingArgs?.MaxContextBudget
+            ?? weavingOptions?.MaxContextBudget
+            ?? psycheOptions?.MaxContextBudget;
+
+        var totalLimit = configuredTotal ?? modelContextWindowSize;
+
+        var reservedResponse = weavingArgs?.ResponseReservedTokens
+            ?? weavingOptions?.ResponseReservedTokens
+            ?? psycheOptions?.ResponseReservedTokens
+            ?? 4096;
+
+        context.TokenBudget = new VKPsycheTokenBudget
+        {
+            TotalLimit = totalLimit,
+            ReservedResponseTokens = reservedResponse
+        };
     }
 }

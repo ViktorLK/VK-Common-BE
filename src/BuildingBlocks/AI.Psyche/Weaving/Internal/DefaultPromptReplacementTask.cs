@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Weaving.Internal;
@@ -66,13 +65,13 @@ internal sealed class DefaultPromptReplacementTask : IVKWeavingPipelineTask
             var updatedSegments = new List<VKPromptSegment>(context.Segments.Count);
             foreach (var seg in context.Segments)
             {
-                if (string.IsNullOrWhiteSpace(seg.Content))
+                if (string.IsNullOrWhiteSpace(seg.Payload.Content))
                 {
                     updatedSegments.Add(seg);
                     continue;
                 }
 
-                var rendered = await _templateEngine.RenderAsync(seg.Content, replacements, cancellationToken).ConfigureAwait(false);
+                var rendered = await _templateEngine.RenderAsync(seg.Payload.Content, replacements, cancellationToken).ConfigureAwait(false);
                 if (!rendered.IsSuccess)
                 {
                     updatedSegments.Add(seg);
@@ -82,13 +81,13 @@ internal sealed class DefaultPromptReplacementTask : IVKWeavingPipelineTask
                 // Fast-path / Slow-path token adjustment:
                 // If replacement was heavy (>256 chars) and content changed, recount tokens for accurate downstream truncation.
                 // Otherwise, maintain precalculated TokenCount (zero tokenizer overhead for normal lightweight requests).
-                int tokenCount = seg.TokenCount;
-                if (hasHeavyReplacement && !ReferenceEquals(rendered.Value, seg.Content))
+                int tokenCount = seg.Payload.TokenCount;
+                if (hasHeavyReplacement && !ReferenceEquals(rendered.Value, seg.Payload.Content))
                 {
                     tokenCount = _tokenCounter.CountTokens(rendered.Value);
                 }
 
-                updatedSegments.Add(seg with { Content = rendered.Value, TokenCount = tokenCount });
+                updatedSegments.Add(seg with { Payload = seg.Payload with { Content = rendered.Value, TokenCount = tokenCount } });
             }
             context.SetSegments(updatedSegments);
         }

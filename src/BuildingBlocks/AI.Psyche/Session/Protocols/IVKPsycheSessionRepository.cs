@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
@@ -9,4 +13,11 @@ namespace VK.Blocks.AI.Psyche;
 /// </summary>
 public interface IVKPsycheSessionRepository : IVKAggregateRepository<VKSessionThread, VKSessionId>
 {
+    /// <summary>
+    /// Lists active session threads filtered by activity timestamp and bounded by limit to prevent full-table scans.
+    /// </summary>
+    Task<VKResult<IReadOnlyList<VKSessionThread>>> ListActiveSessionsAsync(
+        DateTimeOffset? activeSince = null,
+        int limit = 100,
+        CancellationToken ct = default);
 }

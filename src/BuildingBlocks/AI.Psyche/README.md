@@ -8,7 +8,7 @@
 
 `VK.Blocks.AI.Psyche` は、LLM ベースの AI チャットアプリケーション向けに設計された**プロンプトオーケストレーション＆行動パイプライン**です。
 
-Persona（人格定義）、Echo（対話履歴）、Knowledge（動的ナレッジ）、Directive（テナント指令）、Pattern（Few-Shot パターン）、Profile（ユーザープロファイル）、Session（セッション管理）の 7 つの情報源を統合的に管理し、トークン予算制約の下で最適なプロンプトを自動組み立てする「**Prompt Weaving（プロンプト織り込み）**」エンジンと、LLM 呼び出しを制御する **Onion Middleware パイプライン** を提供します。
+9 つの垂直スライスフィーチャー（Echo, Weaving, Session, Pipeline, Persona, Profile, Knowledge, Pattern, Directive）で構成され、7 つの情報源（Persona, Echo, Knowledge, Directive, Pattern, Profile, Session）を統合的に管理。トークン予算制約の下で最適なプロンプトを自動組み立てする「**Prompt Weaving（プロンプト織り込み）**」エンジンと、LLM 呼び出しを制御する **Onion Middleware パイプライン** を提供します。
 
 ### 設計思想
 
@@ -46,23 +46,32 @@ flowchart TB
         REQ --> CTX["VKPsycheContext 生成<br/>(CorrelationId, CreatedAt 自動付与)"]
 
         subgraph Before ["Before Stages (IVKPsychePipelineStage — Schedule順)"]
-            MODEL["ModelResolve Stage<br/>• AI モデル/プロバイダー解決<br/>• VKAIModelMetadata キャッシュ"]
-            SESSION["SessionResolve Stage<br/>• VKSessionThread 取得<br/>• Active 状態検証"]
-            PERSONA["Persona Stage<br/>• PersonaAnchor 取得<br/>• IVKPersonaRenderer レンダリング"]
-            DIRECTIVE["Directive Stage<br/>• テナント指令取得<br/>• System 指示セグメント注入"]
-            KNOWLEDGE["Knowledge Stage<br/>• Constant + Keyword/Regex マッチ<br/>• KnowledgeFinalizer で注入"]
-            PATTERN["Pattern Stage<br/>• Few-Shot パターン注入"]
-            PROFILE["Profile Stage<br/>• ユーザープロファイル注入"]
-            ECHO["EchoExtract Stage<br/>• 2フェーズ DDD 取得<br/>• Metadata → Full Trace<br/>• Turn/Message Pruning"]
+            MODEL["ModelResolve Stage (0)<br/>• AI モデル/プロバイダー解決<br/>• VKAIModelMetadata キャッシュ"]
+            SESSION["SessionResolve Stage (50)<br/>• VKSessionThread 取得<br/>• Active 状態検証"]
 
-            subgraph WeavingPhase ["Weaving Stage (子タスク)"]
-                TRUNC["EchoTruncateTask<br/>• Token Budget 適用<br/>• MinRetainedTurns 保証<br/>• Eviction State 追跡"]
-                TAPESTRY["TapestryWeavingTask<br/>• Relative/Timeline 分割<br/>• Tag Coalescing<br/>• Timeline Interleaving"]
-                REPLACE["PromptReplacementTask<br/>• テンプレート変数置換<br/>• MaxReplacementLength 検証"]
+            subgraph ParallelGroup1 ["並行グループ 1 (Schedule 100)"]
+                PROFILE["Profile Stage<br/>• ユーザープロファイル注入"]
+                PERSONA["Persona Stage<br/>• PersonaAnchor レンダリング"]
+                DIRECTIVE["Directive Stage<br/>• テナント指令セグメント注入"]
+            end
+
+            ECHO["EchoExtract Stage (200)<br/>• 2フェーズ DDD 取得 (Metadata → Full Trace)<br/>• Multi-Level 親セッション結合"]
+
+            subgraph ParallelGroup2 ["並行グループ 2 (Schedule 500-600)"]
+                KNOWLEDGE["Knowledge Stage (500)<br/>• Native AOT Matcher 評価<br/>• 候補セグメント抽出"]
+                PATTERN["Pattern Stage (600)<br/>• Few-Shot パターン注入"]
+            end
+
+            KFINAL["KnowledgeFinalizer Stage (990)<br/>• マッチ候補のプロンプト注入"]
+
+            subgraph WeavingPhase ["Weaving Stage (1000 — 子タスク)"]
+                TRUNC["EchoTruncateTask (100)<br/>• Token Budget 適用<br/>• MinRetainedTurns 保証"]
+                TAPESTRY["TapestryWeavingTask (200)<br/>• Relative/Timeline 分割<br/>• Tag Coalescing / Interleaving"]
+                REPLACE["PromptReplacementTask (300)<br/>• テンプレート変数置換<br/>• MaxReplacementLength 防御"]
             end
         end
 
-        CTX --> MODEL --> SESSION --> PERSONA --> DIRECTIVE --> KNOWLEDGE --> PATTERN --> PROFILE --> ECHO --> WeavingPhase
+        CTX --> MODEL --> SESSION --> ParallelGroup1 --> ECHO --> ParallelGroup2 --> KFINAL --> WeavingPhase
 
         subgraph Terminal ["Terminal (IVKChatEngine)"]
             CHAT["ChatEngine.SendAsync<br/>• Onion Middleware Chain<br/>• LLM 呼び出し"]
@@ -70,7 +79,7 @@ flowchart TB
 
         WeavingPhase --> CHAT
 
-        subgraph After ["After Stages"]
+        subgraph After ["After Stages (Schedule 900)"]
             ECHOSAVE["EchoSave Stage<br/>• User/Assistant 対話保存<br/>• Sandbox/WeaveOnly ガード"]
             SESSIONUPDATE["SessionUpdate Stage<br/>• TurnCount 更新<br/>• Sandbox/WeaveOnly ガード"]
         end
@@ -140,6 +149,18 @@ flowchart TB
 - **Pluggable Repository**: `IVKPsychePatternRepository` によるパターン管理。InMemory デフォルト実装付き
 - **宣言的ティア無効化**: `DisabledTiers` により Pattern ティアを選択的に無効化可能
 - **Feature Toggle**: `VKPatternOptions.Enabled` による Feature 単位の有効/無効制御
+
+### 👤 Profile（ユーザープロファイル管理）
+
+- **多次元プロファイル定義**: `VKProfilePresence` による対話トーン（`VKInteractionTone`）、応答詳細度（`VKResponseVerbosity`）、絵文字ポリシー（`VKEmojiPolicy`）、カスタム属性の構造化管理
+- **Pluggable Renderer**: `IVKProfileRenderer` によるシステムプロンプトへの構造化レンダリング。フォーマットの完全な差し替えが可能
+- **ゼロインフラデフォルト**: `IVKPsycheProfileRepository` と `InMemoryProfileRepository` による即座の開発・テスト実行環境
+
+### 🗂️ Session（セッションライフサイクル管理）
+
+- **多態セッションモード**: `Continuous`（親セッション履歴を自動再帰結合）、`Fork`（過去履歴を分岐した新規対話）、`Sandbox`（永続的 DB 副作用を完全スキップする検証モード）
+- **DDD 集約ルート設計**: `VKSessionThread : VKAggregateRoot<VKSessionId>` による TurnCount、状態（Active/Archived/Closed）、メタデータの厳格なカプセル化
+- **安全なライフサイクル同期**: パイプライン After フェーズでの自動 TurnCount インクリメントと、Sandbox / WeaveOnly ガードによる永続化保護
 
 ### 🧵 Weaving Engine（プロンプト織り込みエンジン）
 
@@ -273,16 +294,24 @@ builder.Services.TryAddEnumerable(
 
 ## 🏛️ アーキテクチャ監査
 
-最新の監査レポートは [AI.Psyche_20260915.md](/docs/04-AuditReports/AI.Psyche/AI.Psyche_20260915.md) を参照してください。
+最新の監査レポートは [AI.Psyche_20260922.md](/docs/04-AuditReports/AI.Psyche/AI.Psyche_20260922.md) を参照してください。
 
 | 項目                | 結果                        |
 | ------------------- | --------------------------- |
-| **総合スコア**      | 95 / 100                    |
-| **Fast Audit**      | 26/26 (100%)                |
+| **総合スコア**      | 93 / 100                    |
+| **Fast Audit**      | 22/22 (100%)                |
 | **DI Registration** | ✅ PASS (BB.03 SG 完全準拠) |
 | **重大な懸念事項**  | なし                        |
 
-### 監査による改善提案
+### 監査による改善提案（最新）
+
+| 優先度 | 内容 | 状態 |
+| :----- | :--- | :--: |
+| 🟢 Low | `DefaultEchoExtractStage.GetMetaTokens` のフォールバック値（10トークン）のマジックナンバー定数化 | ✅ 完了 |
+| 🟢 Low | `DefaultEchoExtractStage` と `DefaultEchoTruncateTask` におけるトークンバジェット解決ロジックの共通化（DRY 強化） | ✅ 完了 |
+| 🟢 Low | `DefaultPsychePipelineExecutor` の `[VKTrace]` 属性取得の Source Generator 化（Zero-Reflection 原則の徹底） | 📋 検討中 |
+
+### 過去の改善実績
 
 | 優先度 | 内容 | 状態 |
 | :----- | :--- | :--: |
@@ -308,9 +337,11 @@ builder.Services.TryAddEnumerable(
 | **2-Phase DDD Echo Retrieval**    |  ✅  | Metadata → Full Trace の 2 フェーズ取得による I/O 最適化                                             |
 | **Sandbox / WeaveOnly Guard**     |  ✅  | 全 After ステージで永続的 DB 副作用の安全なスキップ                                                  |
 | **Streaming Pipeline & Tapestry** |  📋  | `IAsyncEnumerable` ベースのストリーミング LLM レスポンス対応（`AI.PSYCHE-001`）                      |
-| **Channels 异步流通道与背压**      |  📋  | `System.Threading.Channels` によるストリーミング後処理と非同期落库（`AI.PSYCHE-003`）                 |
-| **Semantic 向量检索扩展 (外置)**   |  📋  | `AI.Psyche.Knowledge.Semantic` 外置アダプターライブラリ（`AI.PSYCHE-004`）                           |
-| **分布式持久化存储适配器 (外置)**  |  📋  | Redis / EFCore 外置アダプターライブラリ（`AI.PSYCHE-005`）                                           |
+| **Feature 登録フックの Enabled ガード整理** |  📋  | Source Generator と重複する `options.Enabled` 冗余判定の撤廃（`AI.PSYCHE-002`） |
+| **Channels 非同期ストリームとバックプレッシャー** |  📋  | `System.Threading.Channels` によるストリーミング後処理と非同期永続化（`AI.PSYCHE-003`）             |
+| **Semantic ベクトル検索拡張 (外部)** |  📋  | `AI.Psyche.Knowledge.Semantic` 外部アダプターライブラリ（`AI.PSYCHE-004`）                         |
+| **分散永続化ストレージアダプター (外部)** |  📋  | Redis / EF Core 外部アダプターライブラリ（`AI.PSYCHE-005`）                                         |
+| **Prompt Cache 診断・警告システム (PCA)** |  📋  | 非侵入的なプロンプトキャッシュ阻害検知・OTel/ログ警告（`AI.PSYCHE-006`）                               |
 
 ---
 
