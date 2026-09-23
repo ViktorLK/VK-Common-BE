@@ -14,7 +14,8 @@ namespace VK.Blocks.AI.Psyche.Session.Internal;
 [VKTrace("psyche.stage.session_resolve")]
 internal sealed class DefaultSessionResolveStage : IVKPsychePipelineStage
 {
-    private const string StageName = "SessionResolve";
+    public string TraceName => "psyche.stage.session_resolve";
+    public string StageName => "SessionResolve";
 
     private readonly VKSessionOptions _options;
     private readonly IVKPsycheSessionRepository _sessionRepository;

@@ -49,27 +49,9 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
     public VKEmojiPolicy? EmojiPolicy { get; private set; }
 
     /// <summary>
-    /// Gets the relative position anchor in prompt assembly.
-    /// Defaults to <see cref="VKPromptRelativeDepth.AfterDirective"/>.
+    /// Gets the layout coordinates and placement rules for this profile presence.
     /// </summary>
-    public VKPromptRelativeDepth? RelativeDepth { get; private set; } = VKPromptRelativeDepth.AfterDirective;
-
-    /// <summary>
-    /// Gets the rendering priority order among segments at the same relative depth.
-    /// Priority must be between 0 and 999.
-    /// Defaults to 10.
-    /// </summary>
-    public int DepthPriority { get; private set; } = 10;
-
-    /// <summary>
-    /// Gets the timeline depth (position relative to chat timeline) in the message layout if timeline positioning is used; otherwise, null.
-    /// </summary>
-    public int? TimelineDepth { get; private set; }
-
-    /// <summary>
-    /// Gets the optional XML wrapper tag name when injected into prompt context; or null to use system default.
-    /// </summary>
-    public string? TagName { get; private set; }
+    public VKPromptCoordinates Coordinates { get; private set; }
 
     /// <summary>
     /// Gets the precalculated or estimated token count for this profile presence.
@@ -89,10 +71,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
         VKInteractionTone? interactionTone,
         VKResponseVerbosity? responseVerbosity,
         VKEmojiPolicy? emojiPolicy,
-        VKPromptRelativeDepth? relativeDepth,
-        int depthPriority,
-        int? timelineDepth,
-        string? tagName,
+        VKPromptCoordinates coordinates,
         int tokenCount) : base(id)
     {
         DisplayName = displayName;
@@ -102,10 +81,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
         InteractionTone = interactionTone;
         ResponseVerbosity = responseVerbosity;
         EmojiPolicy = emojiPolicy;
-        RelativeDepth = relativeDepth;
-        DepthPriority = depthPriority;
-        TimelineDepth = timelineDepth;
-        TagName = tagName;
+        Coordinates = coordinates;
         TokenCount = tokenCount;
     }
 
@@ -121,10 +97,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
         string? displayName = null,
         string? preferredLanguage = null,
         string? description = null,
-        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
-        int depthPriority = 10,
-        int? timelineDepth = null,
-        string? tagName = null,
+        VKPromptCoordinates? coordinates = null,
         int tokenCount = 0,
         string? addressingTerm = null,
         VKInteractionTone? interactionTone = null,
@@ -133,7 +106,6 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
     {
         // [AP.01]
         VKGuard.NotDefault(id);
-        VKGuard.InRange(depthPriority, 0, 999, nameof(depthPriority));
 
         return VKResult.Success(new VKProfilePresence(
             id,
@@ -144,33 +116,9 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
             interactionTone,
             responseVerbosity,
             emojiPolicy,
-            relativeDepth,
-            depthPriority,
-            timelineDepth,
-            tagName,
+            coordinates ?? VKPromptCoordinates.Default,
             Math.Max(0, tokenCount)));
     }
-
-    /// <summary>
-    /// Backward-compatibility factory overload with deprecated timeZone argument.
-    /// </summary>
-    [Obsolete("TimeZone has moved to AI.Cognitive.Presence.")]
-    public static VKResult<VKProfilePresence> Create(
-        VKProfileId id,
-        string? displayName,
-        string? preferredLanguage,
-        string? timeZone,
-        string? description,
-        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
-        int depthPriority = 10,
-        int? timelineDepth = null,
-        string? tagName = null,
-        int tokenCount = 0,
-        string? addressingTerm = null,
-        VKInteractionTone? interactionTone = null,
-        VKResponseVerbosity? responseVerbosity = null,
-        VKEmojiPolicy? emojiPolicy = null)
-        => Create(id, displayName, preferredLanguage, description, relativeDepth, depthPriority, timelineDepth, tagName, tokenCount, addressingTerm, interactionTone, responseVerbosity, emojiPolicy);
 
     /// <summary>
     /// Rehydration factory used exclusively by persistence mappers to restore persisted state without side effects.
@@ -180,10 +128,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
         string? displayName,
         string? preferredLanguage,
         string? description,
-        VKPromptRelativeDepth? relativeDepth,
-        int depthPriority,
-        int? timelineDepth,
-        string? tagName,
+        VKPromptCoordinates coordinates,
         int tokenCount,
         string? addressingTerm = null,
         VKInteractionTone? interactionTone = null,
@@ -199,10 +144,7 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
             interactionTone,
             responseVerbosity,
             emojiPolicy,
-            relativeDepth,
-            depthPriority,
-            timelineDepth,
-            tagName,
+            coordinates,
             tokenCount);
     }
 
@@ -221,11 +163,13 @@ public sealed class VKProfilePresence : VKAggregateRoot<VKProfileId> // [AP.01] 
     }
 
     /// <summary>
-    /// Backward-compatibility overload with deprecated timeZone argument.
+    /// Updates the prompt layout coordinates for this profile presence.
     /// </summary>
-    [Obsolete("TimeZone has moved to AI.Cognitive.Presence.")]
-    public VKResult UpdateSettings(string? displayName, string? preferredLanguage, string? timeZone)
-        => UpdateSettings(displayName, preferredLanguage);
+    public VKResult UpdateCoordinates(VKPromptCoordinates coordinates)
+    {
+        Coordinates = VKGuard.NotNull(coordinates);
+        return VKResult.Success();
+    }
 
     /// <summary>
     /// Updates the user's interaction style and output preferences.

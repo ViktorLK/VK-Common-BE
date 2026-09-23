@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -35,6 +33,8 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePersona;
     public bool IsActive => _options.Enabled;
+    public string TraceName => "psyche.stage.persona";
+    public string StageName => "Persona";
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
@@ -72,14 +72,12 @@ internal sealed class DefaultPersonaStage : IVKPsychePipelineStage
         if (!string.IsNullOrWhiteSpace(content))
         {
             _logger.PersonaRendered(persona.Id, content.Length);
-            context.AddSegment(new VKPromptSegment
+            context.AddSegment(new VKPromptCoordinates
             {
                 Tier = VKPromptTierType.Persona,
                 TagName = PsycheConstants.XmlTags.Persona,
-                Content = content,
-                DepthPriority = 0,
-                TokenCount = persona.TokenCount
-            });
+                DepthPriority = 0
+            }.ToSegment(content, persona.TokenCount));
 
             PersonaDiagnostics.RecordPersonasResolved(1, "Persona");
         }

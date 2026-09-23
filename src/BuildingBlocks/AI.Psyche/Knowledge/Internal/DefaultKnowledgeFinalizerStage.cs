@@ -37,6 +37,12 @@ internal sealed class DefaultKnowledgeFinalizerStage : IVKPsychePipelineStage
     public bool IsActive => _options.Enabled;
 
     /// <inheritdoc />
+    public string TraceName => "psyche.stage.knowledge_finalizer";
+
+    /// <inheritdoc />
+    public string StageName => "KnowledgeFinalizer";
+
+    /// <inheritdoc />
     public Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
         VKGuard.NotNull(context);
@@ -52,7 +58,7 @@ internal sealed class DefaultKnowledgeFinalizerStage : IVKPsychePipelineStage
 
         var orderedCandidates = state.Candidates
             .DistinctBy(e => e.Id)
-            .OrderBy(e => e.Segment.DepthPriority)
+            .OrderBy(e => e.Coordinates.DepthPriority)
             .ToList();
 
         int candidateCount = orderedCandidates.Count;
@@ -66,28 +72,31 @@ internal sealed class DefaultKnowledgeFinalizerStage : IVKPsychePipelineStage
                 break;
             }
 
-            if (reservedTokens is > 0 && entry.Segment.TokenCount > 0)
+            if (reservedTokens is > 0 && entry.Payload.TokenCount > 0)
             {
-                if (accumulatedTokens + entry.Segment.TokenCount > reservedTokens.Value && injectedCount > 0)
+                if (accumulatedTokens + entry.Payload.TokenCount > reservedTokens.Value && injectedCount > 0)
                 {
                     break;
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(entry.Segment.Content))
+            if (string.IsNullOrWhiteSpace(entry.Payload.Content))
             {
                 continue;
             }
 
-            var segment = entry.Segment with { Tier = VKPromptTierType.Knowledge };
-            if (string.IsNullOrWhiteSpace(segment.TagName))
+            var coordinates = entry.Coordinates with
             {
-                segment = segment with { TagName = PsycheConstants.XmlTags.Knowledge };
-            }
+                Tier = VKPromptTierType.Knowledge,
+                TagName = string.IsNullOrWhiteSpace(entry.Coordinates.TagName)
+                    ? PsycheConstants.XmlTags.Knowledge
+                    : entry.Coordinates.TagName
+            };
+            var segment = coordinates.ToSegment(entry.Payload);
 
             context.AddSegment(segment);
             injectedCount++;
-            accumulatedTokens += entry.Segment.TokenCount;
+            accumulatedTokens += entry.Payload.TokenCount;
         }
 
         var truncatedCount = Math.Max(0, candidateCount - injectedCount);

@@ -17,6 +17,8 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsychePattern;
     public bool IsActive => _options.Enabled;
+    public string TraceName => "psyche.stage.pattern";
+    public string StageName => "Pattern";
 
     public DefaultPatternStage(
         VKPatternOptions options,
@@ -64,7 +66,7 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
 
         var sortedPatterns = currentPatterns
             .DistinctBy(p => p.Id)
-            .OrderBy(p => p.Segment.DepthPriority)
+            .OrderBy(p => p.Coordinates.DepthPriority)
             .ThenBy(p => requestOrder.GetValueOrDefault(p.Id, int.MaxValue))
             .ToList();
 
@@ -73,14 +75,14 @@ internal sealed class DefaultPatternStage : IVKPsychePipelineStage
         int resolvedCount = 0;
         foreach (var pattern in sortedPatterns)
         {
-            if (string.IsNullOrWhiteSpace(pattern.Segment.Content))
+            if (string.IsNullOrWhiteSpace(pattern.Payload.Content))
             {
                 continue;
             }
 
             _logger.PatternResolved(pattern.Id);
 
-            var segment = pattern.Segment with { Tier = VKPromptTierType.Pattern };
+            var segment = (pattern.Coordinates with { Tier = VKPromptTierType.Pattern }).ToSegment(pattern.Payload);
             context.AddSegment(segment);
             resolvedCount++;
         }

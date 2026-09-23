@@ -16,8 +16,7 @@ internal sealed partial class PersonaFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPersonaOptions options)
     {
-        if (!options.Enabled)
-            return;
+        _ = options;
 
         services.TryAddSingleton<IVKPsychePersonaRepository, InMemoryPersonaRepository>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPersonaStage>());

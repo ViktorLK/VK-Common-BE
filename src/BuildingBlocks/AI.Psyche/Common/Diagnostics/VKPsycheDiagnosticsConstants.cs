@@ -14,18 +14,27 @@ public static class VKPsycheDiagnosticsConstants
     /// </summary>
     public static class Tags
     {
+        // OpenTelemetry GenAI Conventions (v1.28+)
         public const string GenAiSystem = "gen_ai.system";
         public const string OperationName = "gen_ai.operation.name";
         public const string SessionId = "gen_ai.session.id";
         public const string CorrelationId = "gen_ai.correlation_id";
         public const string RequestModel = "gen_ai.request.model";
         public const string ResponseModel = "gen_ai.response.model";
+        public const string RequestMaxTokens = "gen_ai.request.max_tokens";
         public const string PromptTokens = "gen_ai.usage.prompt_tokens";
         public const string CompletionTokens = "gen_ai.usage.completion_tokens";
         public const string TotalTokens = "gen_ai.usage.total_tokens";
+        public const string ResponseFinishReasons = "gen_ai.response.finish_reasons";
+
+        // Psyche Domain & Token Budget Telemetry
         public const string StageName = "ai.psyche.stage";
         public const string IsSuccess = "ai.psyche.is_success";
         public const string ErrorCode = "error.code";
+        public const string BudgetTotalLimit = "ai.psyche.budget.total_limit";
+        public const string BudgetAvailablePrompt = "ai.psyche.budget.available_prompt";
+        public const string BudgetReservedResponse = "ai.psyche.budget.reserved_response";
+        public const string BudgetUtilizationRatio = "ai.psyche.budget.utilization_ratio";
     }
 
     /// <summary>

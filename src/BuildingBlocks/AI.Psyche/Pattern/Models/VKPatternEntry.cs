@@ -19,9 +19,15 @@ public sealed class VKPatternEntry : VKAggregateRoot<VKPatternId>
     public string? Name { get; private set; }
 
     /// <summary>
-    /// Gets the prompt segment definition and text content for this pattern entry.
+    /// Gets the layout coordinates and placement rules for this pattern entry.
     /// </summary>
-    public VKPromptSegment Segment { get; private set; }
+    public VKPromptCoordinates Coordinates { get; private set; }
+
+    /// <summary>
+    /// Gets the prompt text payload and token count for this pattern entry.
+    /// </summary>
+    public VKPromptPayload Payload { get; private set; }
+
 
     // =========================================================================
     // Constructor (Private)
@@ -29,10 +35,12 @@ public sealed class VKPatternEntry : VKAggregateRoot<VKPatternId>
 
     private VKPatternEntry(
         VKPatternId id,
-        VKPromptSegment segment,
+        VKPromptCoordinates coordinates,
+        VKPromptPayload payload,
         string? name = null) : base(id)
     {
-        Segment = segment;
+        Coordinates = coordinates;
+        Payload = payload;
         Name = name;
     }
 
@@ -45,14 +53,28 @@ public sealed class VKPatternEntry : VKAggregateRoot<VKPatternId>
     /// </summary>
     public static VKResult<VKPatternEntry> Create(
         VKPatternId id,
-        VKPromptSegment segment,
+        VKPromptCoordinates coordinates,
+        VKPromptPayload payload,
         string? name = null)
     {
         // [AP.01]
         VKGuard.NotDefault(id);
-        VKGuard.NotNull(segment);
+        VKGuard.NotNull(coordinates);
+        VKGuard.NotNull(payload);
 
-        return VKResult.Success(new VKPatternEntry(id, segment, name));
+        return VKResult.Success(new VKPatternEntry(id, coordinates, payload, name));
+    }
+
+    /// <summary>
+    /// Factory method to create a new pattern entry aggregate root from a prompt segment.
+    /// </summary>
+    public static VKResult<VKPatternEntry> Create(
+        VKPatternId id,
+        VKPromptSegment segment,
+        string? name = null)
+    {
+        VKGuard.NotNull(segment);
+        return Create(id, segment.Coordinates, segment.Payload, name);
     }
 
     /// <summary>
@@ -60,10 +82,22 @@ public sealed class VKPatternEntry : VKAggregateRoot<VKPatternId>
     /// </summary>
     internal static VKPatternEntry Rehydrate(
         VKPatternId id,
+        VKPromptCoordinates coordinates,
+        VKPromptPayload payload,
+        string? name = null)
+    {
+        return new VKPatternEntry(id, coordinates, payload, name);
+    }
+
+    /// <summary>
+    /// Rehydration factory overload from segment.
+    /// </summary>
+    internal static VKPatternEntry Rehydrate(
+        VKPatternId id,
         VKPromptSegment segment,
         string? name = null)
     {
-        return new VKPatternEntry(id, segment, name);
+        return new VKPatternEntry(id, segment.Coordinates, segment.Payload, name);
     }
 
     // =========================================================================
@@ -80,23 +114,44 @@ public sealed class VKPatternEntry : VKAggregateRoot<VKPatternId>
     }
 
     /// <summary>
-    /// Updates the prompt segment content and layout coordinates.
+    /// Updates the layout coordinates for this pattern entry.
     /// </summary>
-    public VKResult UpdateSegment(VKPromptSegment segment)
+    public VKResult UpdateCoordinates(VKPromptCoordinates coordinates)
     {
-        Segment = VKGuard.NotNull(segment);
+        Coordinates = VKGuard.NotNull(coordinates);
         return VKResult.Success();
     }
 
     /// <summary>
-    /// Updates the precalculated token count for this pattern entry's segment.
+    /// Updates the text payload for this pattern entry.
+    /// </summary>
+    public VKResult UpdatePayload(VKPromptPayload payload)
+    {
+        Payload = VKGuard.NotNull(payload);
+        return VKResult.Success();
+    }
+
+    /// <summary>
+    /// Updates the prompt segment (both coordinates and payload).
+    /// </summary>
+    public VKResult UpdateSegment(VKPromptSegment segment)
+    {
+        VKGuard.NotNull(segment);
+        Coordinates = segment.Coordinates;
+        Payload = segment.Payload;
+        return VKResult.Success();
+    }
+
+    /// <summary>
+    /// Updates the precalculated token count for this pattern entry.
     /// </summary>
     public VKResult UpdateTokenCount(int tokenCount)
     {
-        if (Segment is not null)
+        if (Payload is not null)
         {
-            Segment = Segment with { TokenCount = Math.Max(0, tokenCount) };
+            Payload = Payload with { TokenCount = Math.Max(0, tokenCount) };
         }
+
         return VKResult.Success();
     }
 }

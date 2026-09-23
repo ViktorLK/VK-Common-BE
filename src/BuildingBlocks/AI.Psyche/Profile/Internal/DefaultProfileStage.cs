@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -33,6 +32,8 @@ internal sealed class DefaultProfileStage : IVKPsychePipelineStage
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheProfile;
     public bool IsActive => _options.Enabled;
+    public string TraceName => "psyche.stage.profile";
+    public string StageName => "Profile";
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken = default)
     {
@@ -74,17 +75,14 @@ internal sealed class DefaultProfileStage : IVKPsychePipelineStage
         if (!string.IsNullOrWhiteSpace(content))
         {
             _logger.ProfileRendered(profile.Id, content.Length);
-            context.AddSegment(new VKPromptSegment
+            var coordinates = profile.Coordinates with
             {
                 Role = VKChatRole.System,
-                Content = content,
-                TagName = profile.TagName ?? ProfileConstants.Defaults.TagName,
-                RelativeDepth = profile.RelativeDepth ?? ProfileConstants.Defaults.RelativeDepth,
-                DepthPriority = profile.DepthPriority,
-                TimelineDepth = profile.TimelineDepth,
-                Tier = VKPromptTierType.Profile,
-                TokenCount = profile.TokenCount
-            });
+                TagName = profile.Coordinates.TagName ?? ProfileConstants.XmlTags.Profile,
+                RelativeDepth = profile.Coordinates.RelativeDepth ?? VKPromptRelativeDepth.AfterDirective,
+                Tier = VKPromptTierType.Profile
+            };
+            context.AddSegment(coordinates.ToSegment(content, profile.TokenCount));
         }
 
         ProfileDiagnostics.RecordProfilesResolved(1, "Profile");

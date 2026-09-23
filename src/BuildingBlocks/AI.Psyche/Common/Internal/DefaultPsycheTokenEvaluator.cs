@@ -1,5 +1,3 @@
-using System;
-using VK.Blocks.AI;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.Common.Internal;
@@ -55,7 +53,7 @@ internal sealed class DefaultPsycheTokenEvaluator : IVKPsycheTokenEvaluator
     {
         VKGuard.NotNull(knowledge);
 
-        var content = knowledge.Segment?.Content;
+        var content = knowledge.Payload?.Content;
         int tokens = string.IsNullOrWhiteSpace(content) ? 0 : _tokenCounter.CountTokens(content, modelId);
         knowledge.UpdateTokenCount(tokens);
         return tokens;
@@ -66,7 +64,7 @@ internal sealed class DefaultPsycheTokenEvaluator : IVKPsycheTokenEvaluator
     {
         VKGuard.NotNull(pattern);
 
-        var content = pattern.Segment?.Content;
+        var content = pattern.Payload?.Content;
         int tokens = string.IsNullOrWhiteSpace(content) ? 0 : _tokenCounter.CountTokens(content, modelId);
         pattern.UpdateTokenCount(tokens);
         return tokens;
@@ -88,12 +86,12 @@ internal sealed class DefaultPsycheTokenEvaluator : IVKPsycheTokenEvaluator
     {
         VKGuard.NotNull(segment);
 
-        if (string.IsNullOrWhiteSpace(segment.Content))
+        if (string.IsNullOrWhiteSpace(segment.Payload.Content))
         {
-            return segment.TokenCount == 0 ? segment : segment with { TokenCount = 0 };
+            return segment.Payload.TokenCount == 0 ? segment : segment with { Payload = segment.Payload with { TokenCount = 0 } };
         }
 
-        int tokens = _tokenCounter.CountTokens(segment.Content, modelId);
-        return segment with { TokenCount = tokens };
+        int tokens = _tokenCounter.CountTokens(segment.Payload.Content, modelId);
+        return segment with { Payload = segment.Payload with { TokenCount = tokens } };
     }
 }

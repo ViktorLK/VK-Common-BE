@@ -18,8 +18,7 @@ internal sealed partial class SessionFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKSessionOptions options)
     {
-        if (!options.Enabled)
-            return;
+        _ = options;
 
         // [AP.02] Idempotent registration
         services.TryAddScoped<IVKPsycheSessionRepository, InMemorySessionRepository>();

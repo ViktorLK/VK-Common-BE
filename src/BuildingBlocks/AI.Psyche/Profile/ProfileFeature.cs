@@ -16,8 +16,7 @@ internal sealed partial class ProfileFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKProfileOptions options)
     {
-        if (!options.Enabled)
-            return;
+        _ = options;
 
         services.TryAddScoped<IVKPsycheProfileRepository, InMemoryProfileRepository>();
         services.TryAddSingleton<IVKProfileRenderer, DefaultProfileRenderer>();

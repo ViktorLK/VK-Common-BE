@@ -12,7 +12,6 @@ namespace VK.Blocks.AI.Psyche.Echo.Internal;
 internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
 {
     private readonly IVKTokenCounter _tokenCounter;
-    private readonly VKWeavingOptions _weavingOptions;
     private readonly VKEchoOptions _echoOptions;
     private readonly ILogger<DefaultEchoTruncateTask> _logger;
 
@@ -20,12 +19,10 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
 
     public DefaultEchoTruncateTask(
         IVKTokenCounter tokenCounter,
-        VKWeavingOptions weavingOptions,
         VKEchoOptions echoOptions,
         ILogger<DefaultEchoTruncateTask> logger)
     {
         _tokenCounter = VKGuard.NotNull(tokenCounter); // [AP.01]
-        _weavingOptions = VKGuard.NotNull(weavingOptions); // [AP.01]
         _echoOptions = VKGuard.NotNull(echoOptions); // [AP.01]
         _logger = VKGuard.NotNull(logger); // [AP.01]
     }
@@ -34,11 +31,9 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
     {
         VKGuard.NotNull(context); // [AP.01]
 
-        // 1. Resolve Total Limit from Weaving budget or resolved model metadata
-        var modelMetadata = context.State<VKAIModelMetadata>();
-        var configuredBudget = context.Args<VKWeavingArgs>()?.MaxContextBudget ?? _weavingOptions.MaxContextBudget;
-        var totalLimit = configuredBudget ?? modelMetadata?.ContextWindowSize;
-        if (!totalLimit.HasValue)
+        // 1. Resolve Total Limit from context TokenBudget
+        var budget = context.TokenBudget;
+        if (budget?.TotalLimit is not { } totalLimit)
         {
             return Task.FromResult(VKResult.Success()); // [CS.01]
         }
@@ -49,9 +44,9 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
         foreach (var segment in context.Segments)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            nonHistoryTokens += segment.TokenCount > 0
-                ? segment.TokenCount
-                : (!string.IsNullOrWhiteSpace(segment.Content) ? _tokenCounter.CountTokens(segment.Content) : 0);
+            nonHistoryTokens += segment.Payload.TokenCount > 0
+                ? segment.Payload.TokenCount
+                : (!string.IsNullOrWhiteSpace(segment.Payload.Content) ? _tokenCounter.CountTokens(segment.Payload.Content) : 0);
         }
 
         if (!string.IsNullOrWhiteSpace(context.Request.UserInput))
@@ -62,9 +57,8 @@ internal sealed class DefaultEchoTruncateTask : IVKWeavingPipelineTask
             nonHistoryTokens += userTokens;
         }
 
-        // 3. Compute available prompt budget after subtracting reserved response tokens
-        var reservedResponse = context.Args<VKWeavingArgs>()?.ResponseReservedTokens ?? _weavingOptions.ResponseReservedTokens;
-        int availablePromptBudget = Math.Max(0, totalLimit.Value - reservedResponse);
+        // 3. Compute available prompt budget directly from TokenBudget
+        int availablePromptBudget = budget.AvailablePromptBudget;
 
         // Fail-fast if non-history tokens alone already exceed the available prompt budget
         if (nonHistoryTokens > availablePromptBudget)

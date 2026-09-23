@@ -16,33 +16,7 @@ internal sealed class DefaultPsycheModelFactory(
     private readonly IVKGuidGenerator _guidGenerator = VKGuard.NotNull(guidGenerator);
     private readonly TimeProvider _timeProvider = VKGuard.NotNull(timeProvider);
 
-    // --- Segment & Key ---
-
-    /// <inheritdoc />
-    public VKPromptSegment CreateSegment(
-        string content,
-        VKChatRole role = VKChatRole.System,
-        string? name = null,
-        string? tagName = null,
-        int? absoluteDepth = null,
-        VKPromptRelativeDepth? relativeDepth = null,
-        int depthPriority = 0,
-        int tokenCount = 0)
-    {
-        VKGuard.NotNull(content);
-
-        return new VKPromptSegment
-        {
-            Content = content,
-            Role = role,
-            Name = name,
-            TagName = tagName,
-            TimelineDepth = absoluteDepth,
-            RelativeDepth = relativeDepth,
-            DepthPriority = Math.Clamp(depthPriority, 0, 999),
-            TokenCount = tokenCount
-        };
-    }
+    // --- Key ---
 
     /// <inheritdoc />
     public VKKnowledgeKey CreateKey(
@@ -192,13 +166,14 @@ internal sealed class DefaultPsycheModelFactory(
         string? displayName = null,
         string? preferredLanguage = null,
         string? description = null,
-        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
-        int depthPriority = 10,
-        int? absoluteDepth = null,
-        string? tagName = null,
-        int tokenCount = 0)
+        VKPromptCoordinates? coordinates = null,
+        int tokenCount = 0,
+        string? addressingTerm = null,
+        VKInteractionTone? interactionTone = null,
+        VKResponseVerbosity? responseVerbosity = null,
+        VKEmojiPolicy? emojiPolicy = null)
     {
-        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, description, relativeDepth, depthPriority, absoluteDepth, tagName, tokenCount);
+        return CreateProfile(new VKProfileId(_guidGenerator.Create()), displayName, preferredLanguage, description, coordinates, tokenCount, addressingTerm, interactionTone, responseVerbosity, emojiPolicy);
     }
 
     /// <inheritdoc />
@@ -207,13 +182,14 @@ internal sealed class DefaultPsycheModelFactory(
         string? displayName = null,
         string? preferredLanguage = null,
         string? description = null,
-        VKPromptRelativeDepth? relativeDepth = VKPromptRelativeDepth.AfterDirective,
-        int depthPriority = 10,
-        int? absoluteDepth = null,
-        string? tagName = null,
-        int tokenCount = 0)
+        VKPromptCoordinates? coordinates = null,
+        int tokenCount = 0,
+        string? addressingTerm = null,
+        VKInteractionTone? interactionTone = null,
+        VKResponseVerbosity? responseVerbosity = null,
+        VKEmojiPolicy? emojiPolicy = null)
     {
-        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, description, relativeDepth, depthPriority, absoluteDepth, tagName, tokenCount).Value);
+        return VKGuard.NotNull(VKProfilePresence.Create(id, displayName, preferredLanguage, description, coordinates, tokenCount, addressingTerm, interactionTone, responseVerbosity, emojiPolicy).Value);
     }
 
     // --- Echo ---

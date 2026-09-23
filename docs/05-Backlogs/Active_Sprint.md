@@ -178,6 +178,7 @@
 - [ ] [AI.PSYCHE-003: Implement Channels-based asynchronous pipeline post-processing and backpressure](./AI.Psyche/003-implement-channels-based-asynchronous-pipeline-post-processing-and-backpressure.md)
 - [ ] [AI.PSYCHE-004: Design pluggable semantic knowledge retrieval abstraction and external adapter](./AI.Psyche/004-design-pluggable-semantic-knowledge-retrieval-abstraction-and-external-adapter.md)
 - [ ] [AI.PSYCHE-005: Implement external distributed persistence adapters for Redis and EFCore](./AI.Psyche/005-implement-external-distributed-persistence-adapters-for-redis-and-efcore.md)
+- [ ] [AI.PSYCHE-006: Prompt Cache Linter & Advisory System (PCA)](./AI.Psyche/006-prompt-cache-linter-&-advisory-system-(pca).md)
 ## 📋 AI.Eidos Tasks
 - [ ] [AI.EIDOS-001: Implement Streaming Contract Transformer and End-of-Stream Sealing](./AI.Eidos/001-implement-streaming-contract-transformer-and-end-of-stream-sealing.md)
 - [ ] [AI.EIDOS-002: Implement Lenient and Partial ToleranceModes in Materialization Binder](./AI.Eidos/002-implement-lenient-and-partial-tolerancemodes-in-materialization-binder.md)

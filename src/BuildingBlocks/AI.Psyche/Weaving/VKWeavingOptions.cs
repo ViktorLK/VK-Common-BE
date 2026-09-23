@@ -1,5 +1,5 @@
-using VK.Blocks.Core;
 using VK.Blocks.AI.Psyche.Common.Internal;
+using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche;
 

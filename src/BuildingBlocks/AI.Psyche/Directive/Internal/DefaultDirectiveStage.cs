@@ -35,6 +35,8 @@ internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
 
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheDirective;
     public bool IsActive => _options.Enabled;
+    public string TraceName => "psyche.stage.directive";
+    public string StageName => "Directive";
 
     public async Task<VKResult> ExecuteAsync(VKPsycheContext context, CancellationToken cancellationToken)
     {
@@ -77,14 +79,12 @@ internal sealed class DefaultDirectiveStage : IVKPsychePipelineStage
             var content = _directiveRenderer.Render(directive);
             if (!string.IsNullOrWhiteSpace(content))
             {
-                context.AddSegment(new VKPromptSegment
+                context.AddSegment(new VKPromptCoordinates
                 {
                     Tier = VKPromptTierType.Directive,
                     TagName = PsycheConstants.XmlTags.SystemDirective,
-                    Content = content,
-                    DepthPriority = i,
-                    TokenCount = directive.TokenCount
-                });
+                    DepthPriority = i
+                }.ToSegment(content, directive.TokenCount));
             }
         }
 

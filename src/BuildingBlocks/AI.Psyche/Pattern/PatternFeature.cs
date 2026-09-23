@@ -16,8 +16,7 @@ internal sealed partial class PatternFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPatternOptions options)
     {
-        if (!options.Enabled)
-            return;
+        _ = options;
 
         services.TryAddSingleton<IVKPsychePatternRepository, InMemoryPatternRepository>();
         services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, DefaultPatternStage>());

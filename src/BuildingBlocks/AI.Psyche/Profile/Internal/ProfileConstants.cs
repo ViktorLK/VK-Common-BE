@@ -14,13 +14,6 @@ internal static class ProfileConstants
         public const string CustomInstructions = "custom_instructions";
     }
 
-    public static class Defaults
-    {
-        public const VKPromptRelativeDepth RelativeDepth = VKPromptRelativeDepth.AfterDirective;
-        public const int DepthPriority = 10;
-        public const string TagName = XmlTags.Profile;
-    }
-
     /// <summary>
     /// Actionable operational directives placed within XML tags for maximum LLM adherence.
     /// </summary>

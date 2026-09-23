@@ -25,6 +25,8 @@ internal sealed class DefaultWeavingStage : IVKPsychePipelineStage
     public VKPipelineSchedule Schedule => VKPsychePipelineScheduler.Before.PsycheWeaving;
 
     public bool IsActive => true;
+    public string TraceName => "psyche.stage.weaving";
+    public string StageName => "Weaving";
 
     public IEnumerable<IVKStageChild<VKPsycheContext>> Children => _tasks;
 

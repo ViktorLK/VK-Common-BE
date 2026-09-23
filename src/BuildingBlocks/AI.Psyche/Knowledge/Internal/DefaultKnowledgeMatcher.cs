@@ -113,7 +113,8 @@ internal static class DefaultKnowledgeMatcher
                     }
                 }
                 return true;
-            },
+            }
+            ,
             VKKnowledgeFilterLogic.NotAny => text =>
             {
                 if (string.IsNullOrWhiteSpace(text))
@@ -129,7 +130,8 @@ internal static class DefaultKnowledgeMatcher
                     }
                 }
                 return true;
-            },
+            }
+            ,
             VKKnowledgeFilterLogic.NotAll => text =>
             {
                 if (string.IsNullOrWhiteSpace(text))
@@ -145,7 +147,8 @@ internal static class DefaultKnowledgeMatcher
                     }
                 }
                 return false;
-            },
+            }
+            ,
             VKKnowledgeFilterLogic.AndAny or _ => text =>
             {
                 if (string.IsNullOrWhiteSpace(text))
