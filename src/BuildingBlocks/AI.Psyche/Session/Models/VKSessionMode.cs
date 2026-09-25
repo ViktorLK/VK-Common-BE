@@ -14,11 +14,5 @@ public enum VKSessionMode : byte
     /// <summary>
     /// Continuous session: Automatically traces single-level ParentSessionId to inherit parent Echo history and L2 summary.
     /// </summary>
-    Continuous = 1,
-
-    /// <summary>
-    /// Sandbox / Trial session: Runs normally in execution context, but strictly bypasses L2 summary distillation and L3 fact consolidation.
-    /// Does not pollute long-term memory store.
-    /// </summary>
-    Sandbox = 2
+    Continuous = 1
 }

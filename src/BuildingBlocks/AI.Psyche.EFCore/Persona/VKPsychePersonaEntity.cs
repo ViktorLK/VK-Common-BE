@@ -48,6 +48,16 @@ public sealed class VKPsychePersonaEntity : IVKTenantScoped, IVKFullAuditable
     [VKPersistJson(MaxLength = 8000)]
     public IReadOnlyDictionary<string, object> Extensions { get; set; } = new Dictionary<string, object>();
 
+    /// <summary>
+    /// Gets or sets the layout priority order within this tier (0 = highest priority, rendered earliest).
+    /// </summary>
+    public int Priority { get; set; }
+
+    /// <summary>
+    /// Gets or sets the precalculated token count for this persona's prompt text.
+    /// </summary>
+    public int TokenCount { get; set; }
+
     /// <inheritdoc />
     public bool IsDeleted { get; set; }
 
