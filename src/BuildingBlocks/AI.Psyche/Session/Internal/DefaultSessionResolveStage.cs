@@ -70,8 +70,21 @@ internal sealed class DefaultSessionResolveStage : IVKPsychePipelineStage
             return VKResult.Failure(VKSessionErrors.SessionNotActive);
         }
 
+        if (session.Mode == VKSessionMode.Continuous
+            && session.ParentSessionId.HasValue
+            && session.BaseTurnOffset == 0
+            && session.TurnCount == 0
+            && !session.ForkPointEchoId.HasValue)
+        {
+            var parentResolveResult = await _sessionRepository.FindByIdAsync(session.ParentSessionId.Value, cancellationToken).ConfigureAwait(false);
+            if (parentResolveResult.IsSuccess && parentResolveResult.Value is not null && parentResolveResult.Value.AbsoluteTurnCount > 0)
+            {
+                session.SetBaseTurnOffset(parentResolveResult.Value.AbsoluteTurnCount);
+            }
+        }
+
         context.SetState(session);
-        _logger.SessionResolved(session.Id, session.Mode, session.TurnCount);
+        _logger.SessionResolved(session.Id, session.Mode, session.AbsoluteTurnCount);
         SessionDiagnostics.RecordSessionResolve(durationMs, StageName, success: true);
         SessionDiagnostics.RecordActiveSessionsResolved(1, StageName);
 

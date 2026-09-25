@@ -14,12 +14,17 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
     // =========================================================================
 
     /// <summary>
-    /// Gets the session execution mode (Isolated, Shared, Forked).
+    /// Gets the session execution mode (Isolated, Continuous).
     /// </summary>
     public VKSessionMode Mode { get; private set; }
 
     /// <summary>
-    /// Gets the optional parent session identifier.
+    /// Gets a value indicating whether this session operates under Sandbox trial mode (bypasses L2/L3 memory persistence).
+    /// </summary>
+    public bool IsSandbox { get; private set; }
+
+    /// <summary>
+    /// Gets the optional parent session identifier for continuous dialogue chaining.
     /// </summary>
     public VKSessionId? ParentSessionId { get; private set; }
 
@@ -29,9 +34,9 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
     public VKSessionId? ForkSourceSessionId { get; private set; }
 
     /// <summary>
-    /// Gets the optional message ID or checkpoint reference where the fork occurred.
+    /// Gets the optional strongly-typed echo checkpoint identifier where the fork occurred.
     /// </summary>
-    public string? ForkPointRef { get; private set; }
+    public VKEchoId? ForkPointEchoId { get; private set; }
 
     /// <summary>
     /// Gets the operational lifecycle status of the session thread.
@@ -42,6 +47,16 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
     /// Gets the total number of dialogue turns recorded in this session.
     /// </summary>
     public int TurnCount { get; private set; }
+
+    /// <summary>
+    /// Gets the baseline turn offset inherited from parent session in Continuous mode.
+    /// </summary>
+    public int BaseTurnOffset { get; private set; }
+
+    /// <summary>
+    /// Gets the absolute turn count across the session lineage (BaseTurnOffset + TurnCount).
+    /// </summary>
+    public int AbsoluteTurnCount => BaseTurnOffset + TurnCount;
 
     /// <summary>
     /// Gets the timestamp when the session thread was created.
@@ -70,24 +85,28 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
         VKSessionMode mode,
         VKSessionId? parentSessionId,
         VKSessionId? forkSourceSessionId,
-        string? forkPointRef,
+        VKEchoId? forkPointEchoId,
         VKSessionStatus status,
         int turnCount,
         DateTimeOffset createdAt,
         DateTimeOffset? updatedAt,
         DateTimeOffset? lastActivityAt,
-        byte[]? rowVersion = null) : base(id)
+        byte[]? rowVersion = null,
+        int baseTurnOffset = 0,
+        bool isSandbox = false) : base(id)
     {
         Mode = mode;
         ParentSessionId = parentSessionId;
         ForkSourceSessionId = forkSourceSessionId;
-        ForkPointRef = forkPointRef;
+        ForkPointEchoId = forkPointEchoId;
         Status = status;
         TurnCount = turnCount;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
         LastActivityAt = lastActivityAt;
         RowVersion = rowVersion ?? [];
+        BaseTurnOffset = baseTurnOffset;
+        IsSandbox = isSandbox;
     }
 
     // =========================================================================
@@ -103,10 +122,22 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null)
+        VKEchoId? forkPointEchoId = null,
+        int baseTurnOffset = 0,
+        bool isSandbox = false)
     {
         // [AP.01]
         VKGuard.NotDefault(id);
+
+        if (baseTurnOffset < 0)
+        {
+            return VKResult.Failure<VKSessionThread>(VKSessionErrors.InvalidTurnCount);
+        }
+
+        if (forkSourceSessionId.HasValue && !forkPointEchoId.HasValue)
+        {
+            return VKResult.Failure<VKSessionThread>(VKSessionErrors.MissingForkPoint);
+        }
 
         // [CS.08] UpdatedAt is null on creation, updated only on actual modification.
         var thread = new VKSessionThread(
@@ -114,12 +145,14 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
             mode: mode,
             parentSessionId: parentSessionId,
             forkSourceSessionId: forkSourceSessionId,
-            forkPointRef: forkPointRef,
+            forkPointEchoId: forkPointEchoId,
             status: VKSessionStatus.Active,
             turnCount: 0,
             createdAt: now,
             updatedAt: null,
-            lastActivityAt: now);
+            lastActivityAt: now,
+            baseTurnOffset: baseTurnOffset,
+            isSandbox: isSandbox);
 
         return VKResult.Success(thread);
     }
@@ -132,26 +165,30 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
         VKSessionMode mode,
         VKSessionId? parentSessionId,
         VKSessionId? forkSourceSessionId,
-        string? forkPointRef,
+        VKEchoId? forkPointEchoId,
         VKSessionStatus status,
         int turnCount,
         DateTimeOffset createdAt,
         DateTimeOffset? updatedAt,
         DateTimeOffset? lastActivityAt,
-        byte[]? rowVersion = null)
+        byte[]? rowVersion = null,
+        int baseTurnOffset = 0,
+        bool isSandbox = false)
     {
         return new VKSessionThread(
             id,
             mode,
             parentSessionId,
             forkSourceSessionId,
-            forkPointRef,
+            forkPointEchoId,
             status,
             turnCount,
             createdAt,
             updatedAt,
             lastActivityAt,
-            rowVersion);
+            rowVersion,
+            baseTurnOffset,
+            isSandbox);
     }
 
     // =========================================================================
@@ -197,19 +234,63 @@ public sealed class VKSessionThread : VKAggregateRoot<VKSessionId>, IVKConcurren
     public VKResult Close(DateTimeOffset now) => ChangeStatus(VKSessionStatus.Closed, now);
 
     /// <summary>
-    /// Creates a forked child session derived from this session thread at the given checkpoint reference.
+    /// Sets the baseline turn offset inherited from parent session in continuous lineage.
     /// </summary>
-    public VKResult<VKSessionThread> Fork(VKSessionId newSessionId, string forkPointRef, DateTimeOffset now)
+    public VKResult SetBaseTurnOffset(int offset)
     {
+        if (offset < 0)
+        {
+            return VKResult.Failure(VKSessionErrors.InvalidTurnCount);
+        }
+
+        BaseTurnOffset = offset;
+        return VKResult.Success();
+    }
+
+    /// <summary>
+    /// Creates a continuous child session derived from this session thread, inheriting turn offset and lineage.
+    /// </summary>
+    public VKResult<VKSessionThread> CreateContinuousChild(
+        VKSessionId childSessionId,
+        DateTimeOffset now,
+        bool? isSandbox = null)
+    {
+        VKGuard.NotDefault(childSessionId);
+
+        return Create(
+            id: childSessionId,
+            now: now,
+            mode: VKSessionMode.Continuous,
+            parentSessionId: Id,
+            forkSourceSessionId: null,
+            forkPointEchoId: null,
+            baseTurnOffset: AbsoluteTurnCount,
+            isSandbox: isSandbox ?? IsSandbox);
+    }
+
+    /// <summary>
+    /// Creates a forked child session derived from this session thread at the given echo checkpoint.
+    /// Forked sessions branch into a new dialogue thread inheriting history and mode up to the checkpoint.
+    /// </summary>
+    public VKResult<VKSessionThread> Fork(
+        VKSessionId newSessionId,
+        VKEchoId forkPointEchoId,
+        DateTimeOffset now,
+        int baseTurnOffset = 0,
+        bool? isSandbox = null)
+    {
+        // [AP.01]
         VKGuard.NotDefault(newSessionId);
-        VKGuard.NotNullOrWhiteSpace(forkPointRef);
+        VKGuard.NotDefault(forkPointEchoId);
 
         return Create(
             id: newSessionId,
             now: now,
             mode: Mode,
-            parentSessionId: ParentSessionId,
+            parentSessionId: Id,
             forkSourceSessionId: Id,
-            forkPointRef: forkPointRef);
+            forkPointEchoId: forkPointEchoId,
+            baseTurnOffset: baseTurnOffset,
+            isSandbox: isSandbox ?? IsSandbox);
     }
 }

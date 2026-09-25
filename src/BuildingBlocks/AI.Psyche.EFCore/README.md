@@ -87,11 +87,11 @@ AI.Psyche.EFCore/
 │   └── Internal/
 │       └── PersonaDiagnostics.cs   # [LoggerMessage] + [VKMetricHistogram/Counter]
 ├── Profile/                         # ユーザープロファイル
-│   ├── VKPsycheProfileEntity.cs    # [VKPersistEntity] + VKPersistJson
+│   ├── VKPsycheProfileEntity.cs    # [VKPersistEntity] + IVKAuditable
 │   └── Internal/
 │       └── ProfileDiagnostics.cs   # [LoggerMessage] + [VKMetricHistogram/Counter]
 ├── Session/                         # セッション (対話スレッド)
-│   ├── VKPsycheSessionEntity.cs    # [VKPersistEntity] + VKPersistJson + IVKConcurrency
+│   ├── VKPsycheSessionEntity.cs    # [VKPersistEntity] + IVKAuditable + IVKConcurrency
 │   └── Internal/
 │       └── SessionDiagnostics.cs   # [LoggerMessage] + [VKMetricHistogram/Counter]
 ├── VKPsycheEFCoreBlock.cs           # [VKBlockMarker] ブロックマーカー
@@ -215,6 +215,8 @@ erDiagram
         string Description
         json Traits
         json Extensions
+        int Priority
+        int TokenCount
         bool IsDeleted
         datetimeoffset CreatedAt
         datetimeoffset UpdatedAt
@@ -225,12 +227,13 @@ erDiagram
         guid Id PK
         guid TenantId
         int Mode
+        bool IsSandbox
         guid ParentSessionId FK
         guid ForkSourceSessionId
-        string ForkPointRef
+        guid ForkPointEchoId
         int Status
         int TurnCount
-        json KnowledgeState
+        int BaseTurnOffset
         datetimeoffset CreatedAt
         datetimeoffset LastActivityAt
         byte[] RowVersion
@@ -253,8 +256,13 @@ erDiagram
         string Name
         bool IsEnabled
         int Role
+        int TimelineDepth
+        int RelativeDepth
+        int DepthPriority
         int TriggerType
         int FilterLogic
+        string TagName
+        int TokenCount
         bool IsDeleted
     }
 
@@ -268,10 +276,13 @@ erDiagram
     VK_AI_Psyche_Directive {
         guid Id PK
         guid TenantId
+        string Name
         string BehaviorRules
         string SafetyRules
         string OutputConstraints
         string Overview
+        int Priority
+        int TokenCount
         bool IsDeleted
     }
 
@@ -280,8 +291,12 @@ erDiagram
         guid TenantId
         string Content
         string Name
-        bool IsEnabled
         int Role
+        int TimelineDepth
+        int RelativeDepth
+        int DepthPriority
+        string TagName
+        int TokenCount
         bool IsDeleted
     }
 
@@ -291,7 +306,12 @@ erDiagram
         string DisplayName
         string PreferredLanguage
         string TimeZone
-        json Preferences
+        string Description
+        int TimelineDepth
+        int RelativeDepth
+        int DepthPriority
+        string TagName
+        int TokenCount
     }
 
     VK_AI_Psyche_Session ||--o{ VK_AI_Psyche_Echo : "has many"
@@ -302,18 +322,21 @@ erDiagram
 
 ## 🏛️ アーキテクチャ監査
 
-最新の監査レポートは [AI.Psyche.EFCore_20260901.md](/docs/04-AuditReports/AI.Psyche.EFCore/AI.Psyche.EFCore_20260901.md) を参照してください。
+最新の監査レポートは [AI.Psyche.EFCore_20260916.md](/docs/04-AuditReports/AI.Psyche.EFCore/AI.Psyche.EFCore_20260916.md) を参照してください。
 
 | 項目                | 結果         |
 | ------------------- | ------------ |
-| **総合スコア**      | 100 / 100    |
-| **Fast Audit**      | 22/22 (100%) |
+| **総合スコア**      | 92 / 100     |
+| **Fast Audit**      | 16/17 (94%)  |
 | **DI Registration** | ✅ PASS      |
 | **重大な懸念事項**  | なし         |
 
 ### 監査による改善提案
 
-_該当なし_ — 全ての改善提案が実装完了済み。
+| # | 提案 | 優先度 |
+|:--|:-----|:------:|
+| R1 | `EchoStore` 内の手動 `Stopwatch` + Diagnostics パターンの DRY 化（共通ヘルパーまたは AOP 統合） | Medium |
+| R2 | `VKPersistenceErrors.Database.ExecutionFailed` のみでなく、`ConcurrencyConflict` 等の具体的エラー定数の導入検討 | Low |
 
 ---
 

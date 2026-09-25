@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Psyche.EFCore;
 /// Database entity representing a Pattern Entry (Few-Shot pattern/schema).
 /// Follows CS.05, CS.08.
 /// </summary>
-[VKPersistEntity(typeof(VKPatternEntry), TableName = "VK_AI_Psyche_Pattern", FlattenBy = [nameof(VKPatternEntry.Segment)])]
+[VKPersistEntity(typeof(VKPatternEntry), TableName = "VK_AI_Psyche_Pattern", FlattenBy = [nameof(VKPatternEntry.Coordinates), nameof(VKPatternEntry.Payload)])]
 public sealed class VKPsychePatternEntity : IVKTenantScoped, IVKFullAuditable
 {
     /// <inheritdoc />
@@ -34,20 +34,17 @@ public sealed class VKPsychePatternEntity : IVKTenantScoped, IVKFullAuditable
     [MaxLength(128)]
     public string? Name { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether this pattern is active.
-    /// </summary>
-    public bool IsEnabled { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the target chat role when this pattern is rendered in prompt context.
     /// </summary>
     public VKChatRole Role { get; set; } = VKChatRole.System;
 
+
     /// <summary>
-    /// Gets or sets the absolute position depth in prompt assembly if specified.
+    /// Gets or sets the timeline position depth in prompt assembly if specified.
     /// </summary>
-    public int? AbsoluteDepth { get; set; }
+    public int? TimelineDepth { get; set; }
 
     /// <summary>
     /// Gets or sets the relative position section (e.g. SystemTop, ContextAfter, UserBefore).
@@ -58,6 +55,17 @@ public sealed class VKPsychePatternEntity : IVKTenantScoped, IVKFullAuditable
     /// Gets or sets the tie-breaking priority when multiple segments share the same position.
     /// </summary>
     public int DepthPriority { get; set; }
+
+    /// <summary>
+    /// Gets or sets the optional XML wrapper tag name when injected into prompt context.
+    /// </summary>
+    [MaxLength(64)]
+    public string? TagName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the estimated or evaluated token count for this prompt segment.
+    /// </summary>
+    public int TokenCount { get; set; }
 
     /// <inheritdoc />
     public bool IsDeleted { get; set; }
