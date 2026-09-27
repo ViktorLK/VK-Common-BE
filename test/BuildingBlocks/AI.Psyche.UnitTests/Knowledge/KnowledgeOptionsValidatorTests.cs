@@ -104,4 +104,3 @@ public sealed class KnowledgeOptionsValidatorTests : VKUnitTestBase
         result.FailureMessage.Should().Contain("ReservedTokens, if set, must be greater than zero.");
     }
 }
-

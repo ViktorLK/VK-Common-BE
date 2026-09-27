@@ -22,9 +22,14 @@ public sealed class VKPsycheSessionEntity : IVKTenantScoped, IVKAuditable, IVKCo
     public required VKSessionId Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the session execution mode (Isolated, Shared, Forked).
+    /// Gets or sets the session execution mode (Isolated, Continuous).
     /// </summary>
     public VKSessionMode Mode { get; set; } = VKSessionMode.Isolated;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the session operates under Sandbox trial mode.
+    /// </summary>
+    public bool IsSandbox { get; set; }
 
     /// <summary>
     /// Gets or sets the parent session identifier for hierarchy or tree tracking.
@@ -38,10 +43,9 @@ public sealed class VKPsycheSessionEntity : IVKTenantScoped, IVKAuditable, IVKCo
     public VKSessionId? ForkSourceSessionId { get; set; }
 
     /// <summary>
-    /// Gets or sets the optional message ID or checkpoint reference where the fork occurred.
+    /// Gets or sets the optional checkpoint echo identifier where the fork occurred.
     /// </summary>
-    [MaxLength(256)]
-    public string? ForkPointRef { get; set; }
+    public VKEchoId? ForkPointEchoId { get; set; }
 
     /// <summary>
     /// Gets or sets the current lifecycle status of the session.
@@ -54,10 +58,9 @@ public sealed class VKPsycheSessionEntity : IVKTenantScoped, IVKAuditable, IVKCo
     public int TurnCount { get; set; }
 
     /// <summary>
-    /// Gets or sets the dynamic knowledge activation state and token tracking.
+    /// Gets or sets the baseline turn offset inherited from parent session in Continuous mode.
     /// </summary>
-    [VKPersistJson(MaxLength = 8000)]
-    public VKSessionKnowledgeState KnowledgeState { get; set; } = new();
+    public int BaseTurnOffset { get; set; }
 
     /// <inheritdoc />
     public DateTimeOffset CreatedAt { get; set; }

@@ -66,7 +66,7 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var newGuid = Guid.NewGuid();
         var fakeGuidGen = new VKFakeGuidGenerator(newGuid);
         var factory = new DefaultPsycheModelFactory(fakeGuidGen, TimeProvider.System);
-        var segment = new VKPromptSegment { Content = "Knowledge Item", TagName = "lore" };
+        var segment = new VKPromptCoordinates { TagName = "lore" }.ToSegment("Knowledge Item");
 
         // Act
         var entry = factory.CreateKnowledge(
@@ -77,10 +77,10 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
 
         // Assert
         entry.Id.Value.Should().Be(newGuid);
-        entry.Segment.Content.Should().Be("Knowledge Item");
+        entry.Payload.Content.Should().Be("Knowledge Item");
         entry.TriggerType.Should().Be(VKKnowledgeTriggerType.Keyword);
         entry.FilterLogic.Should().Be(VKKnowledgeFilterLogic.AndAll);
-        entry.Segment.TagName.Should().Be("lore");
+        entry.Coordinates.TagName.Should().Be("lore");
         entry.Keys.Should().HaveCount(1);
     }
 
@@ -91,14 +91,14 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var newGuid = Guid.NewGuid();
         var fakeGuidGen = new VKFakeGuidGenerator(newGuid);
         var factory = new DefaultPsycheModelFactory(fakeGuidGen, TimeProvider.System);
-        var segment = new VKPromptSegment { Content = "Pattern Item" };
+        var segment = VKPromptCoordinates.Default.ToSegment("Pattern Item");
 
         // Act
         var entry = factory.CreatePattern(segment);
 
         // Assert
         entry.Id.Value.Should().Be(newGuid);
-        entry.Segment.Content.Should().Be("Pattern Item");
+        entry.Payload.Content.Should().Be("Pattern Item");
     }
 
     [Fact]
@@ -127,6 +127,7 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var sessionId = new VKSessionId(Guid.NewGuid());
         var parentSessionId = new VKSessionId(Guid.NewGuid());
         var forkSourceSessionId = new VKSessionId(Guid.NewGuid());
+        var forkPointEchoId = new VKEchoId(Guid.NewGuid());
 
         // Act
         var session = factory.CreateSession(
@@ -134,14 +135,14 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
             VKSessionMode.Continuous,
             parentSessionId,
             forkSourceSessionId,
-            forkPointRef: "cp-1");
+            forkPointEchoId: forkPointEchoId);
 
         // Assert
         session.Id.Should().Be(sessionId);
         session.Mode.Should().Be(VKSessionMode.Continuous);
         session.ParentSessionId.Should().Be(parentSessionId);
         session.ForkSourceSessionId.Should().Be(forkSourceSessionId);
-        session.ForkPointRef.Should().Be("cp-1");
+        session.ForkPointEchoId.Should().Be(forkPointEchoId);
         session.Status.Should().Be(VKSessionStatus.Active);
         session.TurnCount.Should().Be(0);
     }
@@ -153,16 +154,13 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var newGuid = Guid.NewGuid();
         var fakeGuidGen = new VKFakeGuidGenerator(newGuid);
         var factory = new DefaultPsycheModelFactory(fakeGuidGen, TimeProvider.System);
-        var segment = new VKPromptSegment { Content = "Hero bio" };
-
         // Act
-        var profile = factory.CreateProfile("Hero", "zh-CN", "UTC", description: "Hero bio");
+        var profile = factory.CreateProfile(displayName: "Hero", preferredLanguage: "zh-CN", description: "Hero bio");
 
         // Assert
         profile.Id.Value.Should().Be(newGuid);
         profile.DisplayName.Should().Be("Hero");
         profile.PreferredLanguage.Should().Be("zh-CN");
-        profile.TimeZone.Should().Be("UTC");
         profile.Description.Should().Be("Hero bio");
     }
 
@@ -196,18 +194,19 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var factory = new DefaultPsycheModelFactory(fakeGuidGen, TimeProvider.System);
 
         // Act
-        var segment = factory.CreateSegment(
-            "Content",
-            absoluteDepth: 1,
-            relativeDepth: VKPromptRelativeDepth.AfterEcho,
-            depthPriority: 100);
+        var segment = new VKPromptCoordinates
+        {
+            TimelineDepth = 1,
+            RelativeDepth = VKPromptRelativeDepth.AfterDirective,
+            DepthPriority = 100
+        }.ToSegment("Content");
         var key = factory.CreateKey("term", VKKnowledgeMatchType.WholeWord, caseSensitive: true);
 
         // Assert
-        segment.Content.Should().Be("Content");
-        segment.TimelineDepth.Should().Be(1);
-        segment.RelativeDepth.Should().Be(VKPromptRelativeDepth.AfterEcho);
-        segment.DepthPriority.Should().Be(100);
+        segment.Payload.Content.Should().Be("Content");
+        segment.Coordinates.TimelineDepth.Should().Be(1);
+        segment.Coordinates.RelativeDepth.Should().Be(VKPromptRelativeDepth.AfterDirective);
+        segment.Coordinates.DepthPriority.Should().Be(100);
 
         key.Text.Should().Be("term");
         key.MatchType.Should().Be(VKKnowledgeMatchType.WholeWord);
@@ -227,7 +226,7 @@ public sealed class DefaultPsycheModelFactoryTests : VKUnitTestBase
         var sessionId = new VKSessionId(Guid.NewGuid());
         var profileId = new VKProfileId(Guid.NewGuid());
         var echoId = new VKEchoId(Guid.NewGuid());
-        var segment = new VKPromptSegment { Content = "Segment" };
+        var segment = VKPromptCoordinates.Default.ToSegment("Segment");
 
         // Act
         var persona = factory.CreatePersona(personaId, "P", "Desc");

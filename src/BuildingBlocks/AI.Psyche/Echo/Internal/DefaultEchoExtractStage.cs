@@ -82,20 +82,33 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             context.UserEchoTrace = userTrace;
         }
 
-        // 1. Phase 1: Fetch lightweight metadata (supports Continuous multi-level parent ancestry tracing)
+        // 1. Phase 1: Fetch lightweight metadata (supports Continuous multi-level parent ancestry tracing and fork cutoffs)
         var allMetas = new List<VKEchoMetadata>();
         var currentSessionId = (VKSessionId?)session.Id;
         var mode = session.Mode;
 
         var visitedSessions = new HashSet<VKSessionId>();
+        VKEchoId? cutoffEchoId = null;
 
         while (currentSessionId.HasValue && visitedSessions.Add(currentSessionId.Value))
         {
             var metadataResult = await _echoStore.GetMetadataAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
             if (metadataResult.IsSuccess && metadataResult.Value.Count > 0)
             {
+                var metas = metadataResult.Value.ToList();
+
+                // If a child session branched from this session at a specific fork point, cut off history after that checkpoint
+                if (cutoffEchoId.HasValue)
+                {
+                    var cutoffIdx = metas.FindIndex(e => e.Id == cutoffEchoId.Value);
+                    if (cutoffIdx >= 0)
+                    {
+                        metas = metas.Take(cutoffIdx + 1).ToList();
+                    }
+                }
+
                 // Prepend parent echoes before child echoes
-                allMetas.InsertRange(0, metadataResult.Value);
+                allMetas.InsertRange(0, metas);
             }
 
             // Only trace parent dynamically if mode is Continuous
@@ -103,12 +116,22 @@ internal sealed class DefaultEchoExtractStage : IVKPsychePipelineStage
             {
                 if (session.Id == currentSessionId.Value)
                 {
+                    cutoffEchoId = session.ForkPointEchoId;
                     currentSessionId = session.ParentSessionId;
                 }
                 else
                 {
                     var sessionResult = await _sessionRepository.FindByIdAsync(currentSessionId.Value, cancellationToken).ConfigureAwait(false);
-                    currentSessionId = sessionResult.IsSuccess ? sessionResult.Value.ParentSessionId : null;
+                    if (sessionResult.IsSuccess && sessionResult.Value is not null)
+                    {
+                        cutoffEchoId = sessionResult.Value.ForkPointEchoId;
+                        currentSessionId = sessionResult.Value.ParentSessionId;
+                    }
+                    else
+                    {
+                        currentSessionId = null;
+                        cutoffEchoId = null;
+                    }
                 }
             }
             else

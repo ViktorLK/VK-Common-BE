@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Knowledge;
 
@@ -16,7 +13,7 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
     {
         // Arrange
         var id = new VKKnowledgeId(Guid.NewGuid());
-        var segment = new VKPromptSegment { Content = "Knowledge Text", TagName = "lore" };
+        var segment = new VKPromptCoordinates { TagName = "lore" }.ToSegment("Knowledge Text");
         var keys = new List<VKKnowledgeKey>
         {
             new() { Text = "dragon", MatchType = VKKnowledgeMatchType.Contains, CaseSensitive = false }
@@ -34,10 +31,10 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
         result.Should().BeSuccess();
         var entry = result.Value!;
         entry.Id.Should().Be(id);
-        entry.Segment.Content.Should().Be("Knowledge Text");
+        entry.Payload.Content.Should().Be("Knowledge Text");
         entry.TriggerType.Should().Be(VKKnowledgeTriggerType.Keyword);
         entry.FilterLogic.Should().Be(VKKnowledgeFilterLogic.AndAll);
-        entry.Segment.TagName.Should().Be("lore");
+        entry.Coordinates.TagName.Should().Be("lore");
         entry.Keys.Should().HaveCount(1);
     }
 
@@ -45,7 +42,7 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
     public void Create_WithEmptyId_ThrowsException()
     {
         // Act
-        Action act = () => VKKnowledgeEntry.Create(VKKnowledgeId.Empty, new VKPromptSegment { Content = "C" });
+        Action act = () => VKKnowledgeEntry.Create(VKKnowledgeId.Empty, VKPromptCoordinates.Default.ToSegment("C"));
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -56,7 +53,7 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
     {
         // Arrange
         var id = new VKKnowledgeId(Guid.NewGuid());
-        var segment = new VKPromptSegment { Content = "Rehydrated", TagName = "tag" };
+        var segment = new VKPromptCoordinates { TagName = "tag" }.ToSegment("Rehydrated");
 
         // Act
         var entry = VKKnowledgeEntry.Rehydrate(
@@ -69,7 +66,7 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
         // Assert
         entry.Id.Should().Be(id);
         entry.TriggerType.Should().Be(VKKnowledgeTriggerType.Constant);
-        entry.Segment.TagName.Should().Be("tag");
+        entry.Coordinates.TagName.Should().Be("tag");
     }
 
     [Fact]
@@ -80,14 +77,14 @@ public sealed class VKKnowledgeEntryTests : VKUnitTestBase
             .WithContent("Original")
             .Build();
 
-        var newSegment = new VKPromptSegment { Content = "New Segment" };
+        var newSegment = VKPromptCoordinates.Default.ToSegment("New Segment");
 
         // Act
         var result = entry.UpdateSegment(newSegment);
 
         // Assert
         result.Should().BeSuccess();
-        entry.Segment.Content.Should().Be("New Segment");
+        entry.Payload.Content.Should().Be("New Segment");
     }
 
     [Fact]

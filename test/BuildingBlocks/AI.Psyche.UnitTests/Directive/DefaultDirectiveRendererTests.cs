@@ -1,7 +1,5 @@
-using System;
 using VK.Blocks.AI.Psyche.Directive.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Directive;
 

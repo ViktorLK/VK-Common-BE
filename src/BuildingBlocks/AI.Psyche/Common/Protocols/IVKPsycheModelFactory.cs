@@ -115,7 +115,9 @@ public interface IVKPsycheModelFactory
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null);
+        VKEchoId? forkPointEchoId = null,
+        int baseTurnOffset = 0,
+        bool isSandbox = false);
 
     /// <summary>
     /// Creates a new <see cref="VKSessionThread"/> with an explicitly specified ID.
@@ -125,7 +127,9 @@ public interface IVKPsycheModelFactory
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null);
+        VKEchoId? forkPointEchoId = null,
+        int baseTurnOffset = 0,
+        bool isSandbox = false);
 
     // --- Profile ---
 

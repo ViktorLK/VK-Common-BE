@@ -136,9 +136,11 @@ internal sealed class DefaultPsycheModelFactory(
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null)
+        VKEchoId? forkPointEchoId = null,
+        int baseTurnOffset = 0,
+        bool isSandbox = false)
     {
-        return CreateSession(new VKSessionId(_guidGenerator.Create()), mode, parentSessionId, forkSourceSessionId, forkPointRef);
+        return CreateSession(new VKSessionId(_guidGenerator.Create()), mode, parentSessionId, forkSourceSessionId, forkPointEchoId, baseTurnOffset, isSandbox);
     }
 
     /// <inheritdoc />
@@ -147,7 +149,9 @@ internal sealed class DefaultPsycheModelFactory(
         VKSessionMode mode = VKSessionMode.Isolated,
         VKSessionId? parentSessionId = null,
         VKSessionId? forkSourceSessionId = null,
-        string? forkPointRef = null)
+        VKEchoId? forkPointEchoId = null,
+        int baseTurnOffset = 0,
+        bool isSandbox = false)
     {
         var now = _timeProvider.GetUtcNow();
         return VKGuard.NotNull(VKSessionThread.Create(
@@ -156,7 +160,9 @@ internal sealed class DefaultPsycheModelFactory(
             mode: mode,
             parentSessionId: parentSessionId,
             forkSourceSessionId: forkSourceSessionId,
-            forkPointRef: forkPointRef).Value);
+            forkPointEchoId: forkPointEchoId,
+            baseTurnOffset: baseTurnOffset,
+            isSandbox: isSandbox).Value);
     }
 
     // --- Profile ---

@@ -12,7 +12,7 @@ namespace VK.Blocks.AI.Psyche.EFCore;
 [VKPersistEntity(
     typeof(VKKnowledgeEntry),
     TableName = "VK_AI_Psyche_Knowledge",
-    FlattenBy = [nameof(VKKnowledgeEntry.Segment)],
+    FlattenBy = [nameof(VKKnowledgeEntry.Coordinates), nameof(VKKnowledgeEntry.Payload)],
     ProjectBy = [nameof(VKKnowledgeEntry.Keys)])]
 public sealed class VKPsycheKnowledgeEntity : IVKTenantScoped, IVKFullAuditable
 {
@@ -50,9 +50,9 @@ public sealed class VKPsycheKnowledgeEntity : IVKTenantScoped, IVKFullAuditable
     public VKChatRole Role { get; set; } = VKChatRole.System;
 
     /// <summary>
-    /// Gets or sets the absolute position depth in prompt assembly if specified.
+    /// Gets or sets the timeline position depth in prompt assembly if specified.
     /// </summary>
-    public int? AbsoluteDepth { get; set; }
+    public int? TimelineDepth { get; set; }
 
     /// <summary>
     /// Gets or sets the relative position section (e.g. SystemTop, ContextAfter, UserBefore).
@@ -79,7 +79,12 @@ public sealed class VKPsycheKnowledgeEntity : IVKTenantScoped, IVKFullAuditable
     /// Gets or sets the optional XML wrapper tag name when injected into prompt context.
     /// </summary>
     [MaxLength(64)]
-    public string? XmlTag { get; set; }
+    public string? TagName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the estimated or evaluated token count for this prompt segment.
+    /// </summary>
+    public int TokenCount { get; set; }
 
     /// <summary>
     /// Gets or sets the collection of trigger keywords / matching keys.

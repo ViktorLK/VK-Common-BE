@@ -24,4 +24,14 @@ public static class VKSessionErrors
     /// Error returned when the session thread is not in an active operational status.
     /// </summary>
     public static readonly VKError SessionNotActive = new("AI.Session.NotActive", "The requested session thread is not in an active status.");
+
+    /// <summary>
+    /// Error returned when the turn offset or count is negative or invalid.
+    /// </summary>
+    public static readonly VKError InvalidTurnCount = new("AI.Session.InvalidTurnCount", "The turn offset or count is invalid.");
+
+    /// <summary>
+    /// Error returned when a fork source is specified without a valid fork checkpoint echo ID.
+    /// </summary>
+    public static readonly VKError MissingForkPoint = new("AI.Session.MissingForkPoint", "A valid fork checkpoint echo ID is required when creating a forked session.");
 }

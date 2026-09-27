@@ -22,6 +22,12 @@ public sealed class VKPsycheDirectiveEntity : IVKTenantScoped, IVKFullAuditable
     public required VKDirectiveId Id { get; set; }
 
     /// <summary>
+    /// Gets or sets the administrative human-readable name or title for this directive.
+    /// </summary>
+    [MaxLength(128)]
+    public string? Name { get; set; }
+
+    /// <summary>
     /// Gets or sets behavioral boundaries and agent conduct rules.
     /// </summary>
     [MaxLength(4000)]
@@ -44,6 +50,16 @@ public sealed class VKPsycheDirectiveEntity : IVKTenantScoped, IVKFullAuditable
     /// </summary>
     [MaxLength(4000)]
     public string? Overview { get; set; }
+
+    /// <summary>
+    /// Gets or sets the layout priority order within this tier (0 = highest priority, rendered earliest).
+    /// </summary>
+    public int Priority { get; set; }
+
+    /// <summary>
+    /// Gets or sets the precalculated token count for this directive's prompt text.
+    /// </summary>
+    public int TokenCount { get; set; }
 
     /// <inheritdoc />
     public bool IsDeleted { get; set; }

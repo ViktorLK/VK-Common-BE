@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.AI.Psyche.Knowledge.Internal;
@@ -63,7 +58,7 @@ public sealed class DefaultKnowledgeStageTests : VKUnitTestBase
         // Assert
         result.Should().BeSuccess();
         var segment = context.Segments.Should().ContainSingle().Subject;
-        segment.Content.Should().Be("Apples are delicious fruits.");
+        segment.Payload.Content.Should().Be("Apples are delicious fruits.");
     }
 
     [Fact]
@@ -95,7 +90,7 @@ public sealed class DefaultKnowledgeStageTests : VKUnitTestBase
         // Assert
         result.Should().BeSuccess();
         var segment = context.Segments.Should().ContainSingle().Subject;
-        segment.Content.Should().Be("Constant lore.");
+        segment.Payload.Content.Should().Be("Constant lore.");
     }
 
     [Fact]

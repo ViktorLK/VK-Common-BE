@@ -40,7 +40,7 @@ public sealed class VKPsycheContext
     /// Gets a value indicating whether the current execution is running under Sandbox trial mode.
     /// Downstream consumers (Efferent state mutations, Corpus usage tracking, Engram memory consolidation) MUST inspect this to strictly skip permanent DB side-effects.
     /// </summary>
-    public bool IsSandbox => State<VKSessionThread>()?.Mode == VKSessionMode.Sandbox;
+    public bool IsSandbox => State<VKSessionThread>()?.IsSandbox ?? false;
 
     /// <summary>
     /// Gets or sets the resolved token budget snapshot for this pipeline execution.
