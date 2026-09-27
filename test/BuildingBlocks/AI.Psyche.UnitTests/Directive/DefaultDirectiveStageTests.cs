@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.AI.Psyche.Directive.Internal;
@@ -48,8 +45,8 @@ public sealed class DefaultDirectiveStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        var segment = context.Segments.Should().ContainSingle(s => s.Tier == VKPromptTierType.Directive).Subject;
-        segment.Content.Should().Be("Rendered Directive Text");
+        var segment = context.Segments.Should().ContainSingle(s => s.Coordinates.Tier == VKPromptTierType.Directive).Subject;
+        segment.Payload.Content.Should().Be("Rendered Directive Text");
     }
 
     [Fact]
@@ -74,7 +71,7 @@ public sealed class DefaultDirectiveStageTests : VKUnitTestBase
 
         // Assert
         result.Should().BeSuccess();
-        context.Segments.Should().NotContain(s => s.Tier == VKPromptTierType.Directive);
+        context.Segments.Should().NotContain(s => s.Coordinates.Tier == VKPromptTierType.Directive);
         GetMock<IVKPsycheDirectiveRepository>()
             .Verify(s => s.ListByIdsAsync(It.IsAny<IReadOnlyList<VKDirectiveId>>(), It.IsAny<CancellationToken>()), Times.Never);
     }

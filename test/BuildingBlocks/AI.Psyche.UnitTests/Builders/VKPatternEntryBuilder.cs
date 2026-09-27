@@ -9,11 +9,10 @@ namespace VK.Blocks.AI.Psyche.UnitTests.Builders;
 public sealed class VKPatternEntryBuilder : VKTestDataBuilder<VKPatternEntry>
 {
     private VKPatternId _id = new(Guid.NewGuid());
-    private VKPromptSegment _segment = new()
+    private VKPromptSegment _segment = new VKPromptCoordinates
     {
-        Content = "Default Pattern Segment Content",
         Tier = VKPromptTierType.Pattern
-    };
+    }.ToSegment("Default Pattern Segment Content");
 
     public VKPatternEntryBuilder WithId(VKPatternId id)
     {
@@ -23,11 +22,7 @@ public sealed class VKPatternEntryBuilder : VKTestDataBuilder<VKPatternEntry>
 
     public VKPatternEntryBuilder WithContent(string content)
     {
-        _segment = new VKPromptSegment
-        {
-            Content = content,
-            Tier = VKPromptTierType.Pattern
-        };
+        _segment = _segment with { Payload = _segment.Payload with { Content = content } };
         return this;
     }
 

@@ -1,9 +1,5 @@
-using System;
-using Moq;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Psyche.Common.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Common;
 
@@ -161,7 +157,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(35);
-        knowledge.Segment.TokenCount.Should().Be(35);
+        knowledge.Payload.TokenCount.Should().Be(35);
     }
 
     [Fact]
@@ -177,7 +173,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(0);
-        knowledge.Segment.TokenCount.Should().Be(0);
+        knowledge.Payload.TokenCount.Should().Be(0);
     }
 
     [Fact]
@@ -202,7 +198,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(18);
-        pattern.Segment.TokenCount.Should().Be(18);
+        pattern.Payload.TokenCount.Should().Be(18);
     }
 
     [Fact]
@@ -218,7 +214,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(0);
-        pattern.Segment.TokenCount.Should().Be(0);
+        pattern.Payload.TokenCount.Should().Be(0);
     }
 
     [Fact]
@@ -274,7 +270,7 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
     public void Evaluate_WhenSegmentHasContent_ReturnsNewSegmentWithTokenCount()
     {
         // Arrange
-        var segment = new VKPromptSegment { Content = "Segment Text", TokenCount = 0 };
+        var segment = VKPromptCoordinates.Default.ToSegment("Segment Text", 0);
         GetMock<IVKTokenCounter>()
             .Setup(c => c.CountTokens("Segment Text", "custom-model"))
             .Returns(25);
@@ -283,23 +279,23 @@ public sealed class DefaultPsycheTokenEvaluatorTests : VKUnitTestBase
         var evaluated = _evaluator.Evaluate(segment, "custom-model");
 
         // Assert
-        evaluated.TokenCount.Should().Be(25);
-        evaluated.Content.Should().Be("Segment Text");
+        evaluated.Payload.TokenCount.Should().Be(25);
+        evaluated.Payload.Content.Should().Be("Segment Text");
     }
 
     [Fact]
     public void Evaluate_WhenSegmentContentIsEmpty_ReturnsSegmentWithZeroTokens()
     {
         // Arrange
-        var segmentWithTokens = new VKPromptSegment { Content = "   ", TokenCount = 10 };
-        var segmentWithoutTokens = new VKPromptSegment { Content = null!, TokenCount = 0 };
+        var segmentWithTokens = VKPromptCoordinates.Default.ToSegment("   ", 10);
+        var segmentWithoutTokens = VKPromptCoordinates.Default.ToSegment(string.Empty, 0);
 
         // Act
         var res1 = _evaluator.Evaluate(segmentWithTokens);
         var res2 = _evaluator.Evaluate(segmentWithoutTokens);
 
         // Assert
-        res1.TokenCount.Should().Be(0);
-        res2.TokenCount.Should().Be(0);
+        res1.Payload.TokenCount.Should().Be(0);
+        res2.Payload.TokenCount.Should().Be(0);
     }
 }

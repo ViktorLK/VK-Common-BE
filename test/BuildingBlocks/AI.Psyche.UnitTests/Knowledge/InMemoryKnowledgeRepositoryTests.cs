@@ -10,7 +10,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var entry = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc" }).Build();
+        var entry = new VKKnowledgeEntryBuilder().WithContent("Doc").Build();
         repository.Seed(entry);
 
         // Act
@@ -41,7 +41,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
         var entry = new VKKnowledgeEntryBuilder()
-            .WithSegment(new VKPromptSegment { Content = "Knowledge Text" })
+            .WithContent("Knowledge Text")
             .Build();
         repository.Seed(entry);
 
@@ -72,8 +72,8 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var entry1 = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc 1" }).Build();
-        var entry2 = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc 2" }).Build();
+        var entry1 = new VKKnowledgeEntryBuilder().WithContent("Doc 1").Build();
+        var entry2 = new VKKnowledgeEntryBuilder().WithContent("Doc 2").Build();
         repository.Seed([entry1, entry2]);
 
         // Act
@@ -89,7 +89,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var entry = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc" }).Build();
+        var entry = new VKKnowledgeEntryBuilder().WithContent("Doc").Build();
         repository.Seed(entry);
 
         // Act
@@ -108,7 +108,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var item = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc" }).Build();
+        var item = new VKKnowledgeEntryBuilder().WithContent("Doc").Build();
 
         // Act
         var result = await repository.AddAsync(item, CancellationToken.None);
@@ -123,7 +123,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var item = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc" }).Build();
+        var item = new VKKnowledgeEntryBuilder().WithContent("Doc").Build();
         repository.Seed(item);
 
         // Act
@@ -138,10 +138,10 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var item = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Old" }).Build();
+        var item = new VKKnowledgeEntryBuilder().WithContent("Old").Build();
         repository.Seed(item);
 
-        var updated = new VKKnowledgeEntryBuilder().WithId(item.Id).WithSegment(new VKPromptSegment { Content = "New" }).Build();
+        var updated = new VKKnowledgeEntryBuilder().WithId(item.Id).WithContent("New").Build();
 
         // Act
         var result = await repository.UpdateAsync(updated, CancellationToken.None);
@@ -150,7 +150,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
         result.Should().BeSuccess();
         var found = await repository.FindByIdAsync(item.Id, CancellationToken.None);
         found.Should().BeSuccess();
-        found.Value!.Segment.Content.Should().Be("New");
+        found.Value!.Payload.Content.Should().Be("New");
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var item = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc" }).Build();
+        var item = new VKKnowledgeEntryBuilder().WithContent("Doc").Build();
 
         // Act
         var result = await repository.UpdateAsync(item, CancellationToken.None);
@@ -172,7 +172,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var entry = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc" }).Build();
+        var entry = new VKKnowledgeEntryBuilder().WithContent("Doc").Build();
         repository.Seed(entry);
 
         // Act
@@ -203,7 +203,7 @@ public sealed class InMemoryKnowledgeRepositoryTests : VKUnitTestBase
     {
         // Arrange
         var repository = new InMemoryKnowledgeRepository();
-        var entry = new VKKnowledgeEntryBuilder().WithSegment(new VKPromptSegment { Content = "Doc" }).Build();
+        var entry = new VKKnowledgeEntryBuilder().WithContent("Doc").Build();
         repository.Seed(entry);
 
         // Act

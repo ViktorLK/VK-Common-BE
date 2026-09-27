@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VK.Blocks.AI.Psyche.Echo.Internal;
@@ -38,7 +33,7 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
                 .Build());
     }
 
-    private DefaultEchoExtractStage CreateStage(VKEchoOptions echoOptions, VKWeavingOptions? weavingOptions = null)
+    private DefaultEchoExtractStage CreateStage(VKEchoOptions echoOptions)
     {
         return new DefaultEchoExtractStage(
             GetMockObject<IVKEchoStore>(),
@@ -47,7 +42,6 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
             GetMockObject<IVKPsycheModelFactory>(),
             GetMockObject<IVKTokenCounter>(),
             echoOptions,
-            weavingOptions ?? new VKWeavingOptions(),
             GetMockObject<ILogger<DefaultEchoExtractStage>>());
     }
 
@@ -354,5 +348,53 @@ public sealed class DefaultEchoExtractStageTests : VKUnitTestBase
         context.Echoes.Should().HaveCount(2);
         context.Echoes[0].Content.Should().Be("T2 User");
         context.Echoes[1].Content.Should().Be("T2 Assistant");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenForkedContinuousSession_CutsOffParentEchoesAtForkPoint()
+    {
+        // Arrange
+        var parentSession = new VKSessionThreadBuilder().WithMode(VKSessionMode.Continuous).Build();
+        var parentId = parentSession.Id;
+
+        var e1 = new VKEchoTraceBuilder().WithSessionId(parentId).WithRole(VKChatRole.User).WithContent("P1").Build();
+        var e2 = new VKEchoTraceBuilder().WithSessionId(parentId).WithRole(VKChatRole.Assistant).WithContent("P2").Build();
+        var e3 = new VKEchoTraceBuilder().WithSessionId(parentId).WithRole(VKChatRole.User).WithContent("P3 (after fork)").Build();
+        var e4 = new VKEchoTraceBuilder().WithSessionId(parentId).WithRole(VKChatRole.Assistant).WithContent("P4 (after fork)").Build();
+
+        SetupEchoStore(parentId, [e1, e2, e3, e4]);
+
+        var childId = new VKSessionId(Guid.NewGuid());
+        var forkedChild = parentSession.Fork(childId, e2.Id, DateTimeOffset.UtcNow).Value!;
+
+        var c1 = new VKEchoTraceBuilder().WithSessionId(childId).WithRole(VKChatRole.User).WithContent("C1").Build();
+        SetupEchoStore(childId, [c1]);
+
+        var allTraces = new List<VKEchoTrace> { e1, e2, e3, e4, c1 };
+        GetMock<IVKEchoStore>()
+            .Setup(s => s.GetTracesByIdsAsync(It.IsAny<IReadOnlyCollection<VKEchoId>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<VKEchoId> ids, CancellationToken _) =>
+            {
+                var idSet = new HashSet<VKEchoId>(ids);
+                return VKResult.Success<IReadOnlyCollection<VKEchoTrace>>(allTraces.Where(t => idSet.Contains(t.Id)).ToList());
+            });
+
+        GetMock<IVKPsycheSessionRepository>()
+            .Setup(r => r.FindByIdAsync(parentId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(VKResult.Success(parentSession));
+
+        var stage = CreateStage(new VKEchoOptions { Enabled = true });
+        var (context, _) = new VKPsycheRequestBuilder().WithSessionId(childId).BuildContext();
+        context.SetState(forkedChild);
+
+        // Act
+        var result = await stage.ExecuteAsync(context, CancellationToken.None);
+
+        // Assert
+        result.Should().BeSuccess();
+        context.Echoes.Should().HaveCount(3);
+        context.Echoes[0].Content.Should().Be("P1");
+        context.Echoes[1].Content.Should().Be("P2");
+        context.Echoes[2].Content.Should().Be("C1");
     }
 }

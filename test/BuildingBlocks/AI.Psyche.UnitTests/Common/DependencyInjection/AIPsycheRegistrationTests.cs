@@ -125,7 +125,7 @@ public sealed class AIPsycheRegistrationTests : VKUnitTestBase
             })
             .AddVKWeaving(transform: options => options with
             {
-                DefaultResponseReservedTokens = 4096
+                ResponseReservedTokens = 4096
             })
             .AddVKPipeline();
 
@@ -148,7 +148,7 @@ public sealed class AIPsycheRegistrationTests : VKUnitTestBase
         personaOptions.Enabled.Should().BeTrue();
         profileOptions.Enabled.Should().BeTrue();
         sessionOptions.Enabled.Should().BeTrue();
-        weavingOptions.DefaultResponseReservedTokens.Should().Be(4096);
+        weavingOptions.ResponseReservedTokens.Should().Be(4096);
     }
 
     [Fact]

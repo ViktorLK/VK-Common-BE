@@ -11,7 +11,7 @@ public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry
     private VKKnowledgeId _id = new(Guid.NewGuid());
     private VKKnowledgeTriggerType _triggerType = VKKnowledgeTriggerType.Constant;
     private VKKnowledgeFilterLogic _filterLogic = VKKnowledgeFilterLogic.AndAny;
-    private VKPromptSegment _segment = new() { Content = "Knowledge Content" };
+    private VKPromptSegment _segment = VKPromptCoordinates.Default.ToSegment("Knowledge Content");
     private string? _xmlTag;
     private List<VKKnowledgeKey> _keys = [];
 
@@ -35,7 +35,7 @@ public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry
 
     public VKKnowledgeEntryBuilder WithContent(string content)
     {
-        _segment = new VKPromptSegment { Content = content };
+        _segment = _segment with { Payload = _segment.Payload with { Content = content } };
         return this;
     }
 
@@ -65,7 +65,9 @@ public sealed class VKKnowledgeEntryBuilder : VKTestDataBuilder<VKKnowledgeEntry
 
     protected override VKKnowledgeEntry CreateDefault()
     {
-        var segment = _xmlTag is not null ? _segment with { TagName = _xmlTag } : _segment;
+        var segment = _xmlTag is not null
+            ? _segment with { Coordinates = _segment.Coordinates with { TagName = _xmlTag } }
+            : _segment;
         return VKGuard.NotNull(VKKnowledgeEntry.Create(
             _id,
             segment,

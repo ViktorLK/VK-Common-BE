@@ -1,6 +1,8 @@
-using VK.Blocks.AI.Afferent.IngressSensors.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Afferent.IngressSensors.Internal;
+using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent;
@@ -14,8 +16,10 @@ internal sealed partial class IngressSensorsFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKIngressSensorsOptions options)
     {
-        _ = services;
         _ = options;
+
+        services.TryAddSingleton<IVKSystemEventDispatcher, DefaultSystemEventDispatcher>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, IngressSensorsPipelineStage>());
     }
 
     // [SG Hook]

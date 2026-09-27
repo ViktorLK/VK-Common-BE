@@ -1,9 +1,5 @@
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using VK.Blocks.AI.Psyche.Echo.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Echo;
 

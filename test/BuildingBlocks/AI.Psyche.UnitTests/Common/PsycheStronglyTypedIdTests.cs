@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Text.Json;
-using Moq;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Common;

@@ -11,11 +11,9 @@ public sealed class VKProfilePresenceBuilder : VKTestDataBuilder<VKProfilePresen
     private VKProfileId _id = new(Guid.NewGuid());
     private string? _displayName = "Default User";
     private string? _preferredLanguage = "en-US";
-    private string? _timeZone = "UTC";
     private string? _description = null;
     private VKPromptRelativeDepth? _relativeDepth = VKPromptRelativeDepth.AfterDirective;
     private int _depthPriority = 10;
-    private int? _absoluteDepth = null;
     private string? _tagName = null;
     private int _tokenCount = 0;
 
@@ -39,7 +37,7 @@ public sealed class VKProfilePresenceBuilder : VKTestDataBuilder<VKProfilePresen
 
     public VKProfilePresenceBuilder WithTimeZone(string? timeZone)
     {
-        _timeZone = timeZone;
+        // Deprecated post-refactoring; retained for builder backward compatibility
         return this;
     }
 
@@ -63,7 +61,6 @@ public sealed class VKProfilePresenceBuilder : VKTestDataBuilder<VKProfilePresen
     {
         _relativeDepth = relativeDepth;
         _depthPriority = depthPriority;
-        _absoluteDepth = absoluteDepth;
         _tagName = tagName;
         return this;
     }
@@ -76,16 +73,19 @@ public sealed class VKProfilePresenceBuilder : VKTestDataBuilder<VKProfilePresen
 
     protected override VKProfilePresence CreateDefault()
     {
+        var coordinates = new VKPromptCoordinates
+        {
+            RelativeDepth = _relativeDepth,
+            DepthPriority = _depthPriority,
+            TagName = _tagName
+        };
+
         return VKGuard.NotNull(VKProfilePresence.Create(
             _id,
             displayName: _displayName,
             preferredLanguage: _preferredLanguage,
-            timeZone: _timeZone,
             description: _description,
-            relativeDepth: _relativeDepth,
-            depthPriority: _depthPriority,
-            absoluteDepth: _absoluteDepth,
-            tagName: _tagName,
+            coordinates: coordinates,
             tokenCount: _tokenCount).Value);
     }
 }

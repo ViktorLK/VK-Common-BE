@@ -1,8 +1,5 @@
-using System;
 using Moq;
-using VK.Blocks.AI;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
-using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Psyche.UnitTests.Common;
 
@@ -99,7 +96,7 @@ public sealed class VKPsycheTokenExtensionsTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(20);
-        knowledge.Segment.TokenCount.Should().Be(20);
+        knowledge.Payload.TokenCount.Should().Be(20);
     }
 
     [Fact]
@@ -132,7 +129,7 @@ public sealed class VKPsycheTokenExtensionsTests : VKUnitTestBase
 
         // Assert
         tokens.Should().Be(15);
-        pattern.Segment.TokenCount.Should().Be(15);
+        pattern.Payload.TokenCount.Should().Be(15);
     }
 
     [Fact]

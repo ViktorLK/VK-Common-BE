@@ -12,8 +12,10 @@ public sealed class VKSessionThreadBuilder : VKTestDataBuilder<VKSessionThread>
     private VKSessionMode _mode = VKSessionMode.Isolated;
     private VKSessionId? _parentSessionId;
     private VKSessionId? _forkSourceSessionId;
-    private string? _forkPointRef;
+    private VKEchoId? _forkPointEchoId;
     private DateTimeOffset _createdAt = DateTimeOffset.UtcNow;
+    private int _baseTurnOffset;
+    private bool _isSandbox;
 
     public VKSessionThreadBuilder WithId(VKSessionId id)
     {
@@ -33,16 +35,28 @@ public sealed class VKSessionThreadBuilder : VKTestDataBuilder<VKSessionThread>
         return this;
     }
 
-    public VKSessionThreadBuilder WithForkSource(VKSessionId forkSourceSessionId, string forkPointRef)
+    public VKSessionThreadBuilder WithForkSource(VKSessionId forkSourceSessionId, VKEchoId forkPointEchoId)
     {
         _forkSourceSessionId = forkSourceSessionId;
-        _forkPointRef = forkPointRef;
+        _forkPointEchoId = forkPointEchoId;
         return this;
     }
 
     public VKSessionThreadBuilder WithCreatedAt(DateTimeOffset createdAt)
     {
         _createdAt = createdAt;
+        return this;
+    }
+
+    public VKSessionThreadBuilder WithBaseTurnOffset(int baseTurnOffset)
+    {
+        _baseTurnOffset = baseTurnOffset;
+        return this;
+    }
+
+    public VKSessionThreadBuilder WithIsSandbox(bool isSandbox = true)
+    {
+        _isSandbox = isSandbox;
         return this;
     }
 
@@ -54,6 +68,8 @@ public sealed class VKSessionThreadBuilder : VKTestDataBuilder<VKSessionThread>
             mode: _mode,
             parentSessionId: _parentSessionId,
             forkSourceSessionId: _forkSourceSessionId,
-            forkPointRef: _forkPointRef).Value);
+            forkPointEchoId: _forkPointEchoId,
+            baseTurnOffset: _baseTurnOffset,
+            isSandbox: _isSandbox).Value);
     }
 }

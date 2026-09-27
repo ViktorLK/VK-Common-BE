@@ -1,6 +1,8 @@
-using VK.Blocks.AI.Afferent.IngressAudio.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Afferent.IngressAudio.Internal;
+using VK.Blocks.AI.Psyche;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Afferent;
@@ -14,8 +16,10 @@ internal sealed partial class IngressAudioFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKIngressAudioOptions options)
     {
-        _ = services;
         _ = options;
+
+        services.TryAddScoped<IVKIngressAudioService, DefaultIngressAudioService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IVKPsychePipelineStage, IngressAudioPipelineStage>());
     }
 
     // [SG Hook]

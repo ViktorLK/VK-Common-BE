@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.AI.Psyche.Knowledge.Internal;
 using VK.Blocks.AI.Psyche.UnitTests.Builders;
@@ -89,7 +87,7 @@ public sealed class DefaultKnowledgeFinalizerStageTests : VKUnitTestBase
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
 
         var entry = new VKKnowledgeEntryBuilder()
-            .WithSegment(new VKPromptSegment { Content = "Doc without tag", TagName = null })
+            .WithSegment(new VKPromptCoordinates { TagName = null }.ToSegment("Doc without tag"))
             .Build();
 
         var state = new VKKnowledgeCandidatesState();
@@ -102,8 +100,8 @@ public sealed class DefaultKnowledgeFinalizerStageTests : VKUnitTestBase
         // Assert
         result.Should().BeSuccess();
         var segment = context.Segments.Should().ContainSingle().Subject;
-        segment.TagName.Should().Be("knowledge");
-        segment.Tier.Should().Be(VKPromptTierType.Knowledge);
+        segment.Coordinates.TagName.Should().Be("knowledge");
+        segment.Coordinates.Tier.Should().Be(VKPromptTierType.Knowledge);
     }
 
     [Fact]
@@ -137,7 +135,7 @@ public sealed class DefaultKnowledgeFinalizerStageTests : VKUnitTestBase
         var (context, _) = new VKPsycheRequestBuilder().WithUserInput("test").BuildContext();
 
         var entry = new VKKnowledgeEntryBuilder()
-            .WithSegment(new VKPromptSegment { Content = "Doc with custom tag", TagName = "custom_lore" })
+            .WithSegment(new VKPromptCoordinates { TagName = "custom_lore" }.ToSegment("Doc with custom tag"))
             .Build();
 
         var state = new VKKnowledgeCandidatesState();
@@ -150,7 +148,7 @@ public sealed class DefaultKnowledgeFinalizerStageTests : VKUnitTestBase
         // Assert
         result.Should().BeSuccess();
         var segment = context.Segments.Should().ContainSingle().Subject;
-        segment.TagName.Should().Be("custom_lore");
+        segment.Coordinates.TagName.Should().Be("custom_lore");
     }
 
 
@@ -178,4 +176,3 @@ public sealed class DefaultKnowledgeFinalizerStageTests : VKUnitTestBase
         context.Segments.Should().HaveCount(10);
     }
 }
-
