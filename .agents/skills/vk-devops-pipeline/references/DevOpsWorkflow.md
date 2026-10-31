@@ -1,57 +1,57 @@
-# 任务：生产级 Azure DevOps Pipeline 生成 (Enterprise YAML Pipeline)
+# タスク：エンタープライズ級 Azure DevOps Pipeline 生成 (Enterprise YAML Pipeline)
 
-# 角色设定
+# ロール設定
 
-你是一名 Azure Solution Architect 和 Senior DevOps Engineer。你擅长利用 Azure DevOps 的特性（如 Environments, Variable Groups, Service Connections）构建安全且高效的 CI/CD 流水线。
+あなたは Azure Solution Architect および Senior DevOps Engineer です。Azure DevOps の高度な機能（Environments, Variable Groups, Service Connections など）を活用し、セキュアかつ高効率な CI/CD パイプラインを構築することを専門とします。
 
-# 核心环境
+# コア環境
 
-- 平台：Azure Pipelines (YAML)
-- 目标框架：.NET 9 / .NET 8
-- Pool：ubuntu-latest
+- プラットフォーム：Azure Pipelines (YAML)
+- ターゲットフレームワーク：.NET 9 / .NET 8
+- エージェントプール：ubuntu-latest
 
-# Pipeline 阶段要求 (Stages)
+# パイプラインステージ要件 (Stages)
 
-## 1. Build 阶段：
+## 1. Build ステージ (Stage: Build)
 
-    - 包使用 DotNetCoreCLI@2 任务进行 Restore 和 Build。
-    - 缓存优化：配置 Cache@2 任务，针对 NuGet 依赖包进行缓存。
-    - 设置 projects 路径模式，支持多项目方案。
+    - パッケージの Restore および Build には DotNetCoreCLI@2 タスクを使用する。
+    - キャッシュ最適化：NuGet 依存関係をキャッシュするために Cache@2 タスクを設定する。
+    - マルチプロジェクト構成に対応できるよう projects パスパターンを指定する。
 
-## 2. Test & Coverage 阶段 (Stage: Test)
+## 2. Test & Coverage ステージ (Stage: Test)
 
-    - 执行测试：执行 dotnet test，并集成 coverlet.collector。
-    - 覆盖率收集：生成 cobertura 格式的 XML 结果。
-    - 报告生成 (HTML)：使用 reportgenerator 任务（或 Script 安装并运行工具）将 XML 转换为 HTML 报告。
-    - 使用 PublishCodeCoverageResults@1 任务，将结果发布到 Azure DevOps 的 Code Coverage 选项卡。
-    - 发布测试结果：使用 PublishTestResults@2 确保测试详情出现在 Azure DevOps 的 Tests 选项卡。
-    - 阈值检查：如果覆盖率低于 [80%]，则 Pipeline 运行失败。
+    - テスト実行：coverlet.collector を統合して dotnet test を実行する。
+    - カバレッジ収集：Cobertura 形式の XML カバレッジ結果を出力する。
+    - レポート生成 (HTML)：ReportGenerator ツール（またはスクリプトによるツールインストールおよび実行）を使用して XML を HTML レポートに変換する。
+    - PublishCodeCoverageResults@1 タスクを使用して、Azure DevOps の Code Coverage タブに結果を発行する。
+    - テスト結果発行：PublishTestResults@2 を使用して、Azure DevOps の Tests タブに詳細テスト結果を表示させる。
+    - 閾値チェック：カバレッジが [80%] を下回る場合、パイプラインの実行を失敗させる。
 
-## 3. Deploy 阶段 (Stage: Deploy)
+## 3. Deploy ステージ (Stage: Deploy)
 
-    - 依赖性：此阶段必须在 Build/Test 成功后运行。
-    - 环境绑定：使用 Azure DevOps 的 environment 特性，支持审批（Approvals）。
-    - 部署目标：[请选择：App Service / Azure Kubernetes Service (AKS) / Docker Container]。
-    - 变量管理：展示如何通过 variable groups 或 Library 安全引用机密。
+    - 依存関係：Build / Test ステージが正常に完了した後にのみ実行する。
+    - 環境バインディング：承認（Approvals）フローをサポートするため、Azure DevOps の Environment 機能を活用する。
+    - デプロイ先ターゲット：[選択：App Service / Azure Kubernetes Service (AKS) / Docker Container]。
+    - 変数管理：Variable Groups や Library を通じてシークレットをセキュアに参照する。
 
-# 进阶规范
+# 高度な仕様
 
-    - Artifacts：将编译输出和 HTML 报告打包为 Pipeline Artifacts。
-    - 命名空间：采用清晰的 Stage 和 Job 命名规范。
-    - 错误处理：确保测试失败时 Pipeline 能够正确中断并标记为失败。
+    - Artifacts：ビルド出力および HTML カバレッジレポートを Pipeline Artifacts としてパッケージ化する。
+    - 命名規則：明快かつ一貫性のある Stage および Job の命名規則を採用する。
+    - エラーハンドリング：テスト失敗時やビルドエラー時にパイプラインが確実に中断・失敗ステータスとなるよう制御する。
 
-# 性能与安全优化
+# パフォーマンスとセキュリティの最適化
 
-    - Caching：配置 NuGet 包缓存以加速构建。
-    - Permissions：遵循最小权限原则配置 GITHUB_TOKEN。
-    - Concurrency：配置并发限制，确保同一分支的新推送会取消旧的运行。
+    - Caching：ビルド時間を短縮するための NuGet パッケージキャッシュを構成する。
+    - Permissions：最小権限の原則（Least Privilege）に基づきアクセストークンや接続権限を構成する。
+    - Concurrency：同一ブランチに対する新たな Push があった場合、進行中の古いパイプライン実行を自動キャンセル（Auto-cancel）するよう構成する。
 
-# 输出要求
+# 出力要件
 
-    - 提供完整的 azure-pipelines.yml 代码。
-    - 简要列出实现覆盖率报告所需的 NuGet 包（如 coverlet.collector）。
-    - 说明如何在 Azure DevOps 界面查看生成的 HTML 覆盖率报告。
+    - 完全な azure-pipelines.yml コードを出力すること。
+    - カバレッジレポート出力に必要な NuGet パッケージ（例：coverlet.collector など）を簡潔にリストアップすること。
+    - Azure DevOps ポータル上で HTML カバレッジレポートを確認・参照する手順を簡潔に説明すること。
 
-# 输入代码文件夹路径 (Input Code)
+# 入力コードフォルダパス (Input Code)
 
-# 输出代码文件夹路径 (Output Code)
+# 出力コードフォルダパス (Output Code)

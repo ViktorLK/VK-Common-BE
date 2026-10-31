@@ -10,9 +10,13 @@
 
 # Constraints & Language
 
-1. **保存先**: `docs/07-Backlogs/{ModuleName}/{NNN}-{kebab-case-slug}.md`（MCP ツール `vk_be_add_backlog_item` による自動生成・`Active_Sprint.md` 同期と完全互換）
-2. **トレーサビリティ**: なぜこのタスクが必要なのか、発生源となる Audit Report、ADR、RFC、または違反しているルール ID（例: `CS.01`, `BB.03`）を必ず `Ref` に明記すること。
-3. **出力言語**: 英語またはビジネスIT日本語（コード要素・ルール ID は英語表記、`BASE-09` 準拠）。
+1. **保存先**: `docs/07-Backlogs/{ParentModule}/{NNN}-{kebab-case-slug}.md`（MCP ツール `vk_be_add_backlog_item` による自動生成・ボード同期と完全互換）
+   - ディレクトリは必ず **トップレベルの父ライブラリ（Pillar）** に集約されます（例: `AI`, `Core`, `Persistence`, `Validation`, `Labs`）。
+2. **SSoT (Single Source of Truth)**: ファイル先頭に必ず **YAML Front-Matter** を含めること。
+3. **ID 体系**: 全ライブラリ横断の **3桁グローバル増序番号 (`#NNN`)** を使用。
+4. **階層分類**: `category: feature | story | task | debt | spike` および必要に応じた `parent: "#NNN" | "RFC-NNN"` の指定。
+5. **トレーサビリティ**: なぜこのタスクが必要なのか、発生源となる Audit Report、ADR、RFC、または違反しているルール ID（例: `CS.01`, `BB.03`）を必ず `refs` に明記すること。
+6. **出力言語**: 英語またはビジネスIT日本語（コード要素・ルール ID は英語表記、`BASE-09` 準拠）。
 
 ---
 
@@ -20,20 +24,39 @@
 
 | Priority | Indicator | Criteria (基準) |
 | :--- | :---: | :--- |
-| **`High`** | 🔴 | **Type A (Logic Bottom Line) 違反**: `CS.01` (`Result<T>` 欠如), `CS.03` (`CancellationToken` 欠落), `CS.06` (`DateTime.UtcNow`/`Guid.NewGuid()` 直呼び), `OR.01` (`[LoggerMessage]` 未使用), `AP.01` (`VKGuard` 欠落), または重大なセキュリティ・マルチテナント境界リスク。 |
-| **`Medium`** | 🟡 | **Type B (Industrial Habit) 違反または機能拡張**: `AP.03` (Visibility・命名規約), `BB.03` (DI 順序), `BB.07` (Options 分離), `DL.05` (`[SG Hook]` タグ欠落), または承認済み RFC の標準実装フェーズ。 |
-| **`Low`** | 🔵 | **将来の最適化・DX 向上**: パフォーマンスのさらなる微調整、ドキュメント拡充、実験的 Lab モジュールのリファクタリング。 |
+| **`P0`** | 🚨 | **緊急障害・ブロッカー**: ビルド不能、本番稼働不能、重大なセキュリティ欠陥。 |
+| **`P1`** | 🔴 | **Type A (Logic Bottom Line) 違反**: `CS.01` (`Result<T>` 欠如), `CS.03` (`CancellationToken` 欠落), `CS.06` (`DateTime.UtcNow`/`Guid.NewGuid()` 直呼び), `OR.01` (`[LoggerMessage]` 未使用), `AP.01` (`VKGuard` 欠落)。 |
+| **`P2`** | 🟡 | **Type B (Industrial Habit) 違反または標準機能開発**: `AP.03` (Visibility・命名規約), `BB.03` (DI 順序), `BB.07` (Options 分離), `DL.05` (`[SG Hook]` 属性), 承認済み RFC の実装。 |
+| **`P3`** | 🔵 | **将来の最適化・DX 向上**: パフォーマンス微調整、ドキュメント拡充、実験的 Lab モジュールのリファクタリング。 |
 
 ---
 
-# Atomic Task Structure (Must Follow — Compatible with `vk_be_add_backlog_item`)
+# Atomic Task Structure (YAML Front-Matter SSoT)
 
 ```markdown
+---
+id: "#024"
+legacy_id: "CORE-024"
+category: task            # feature | story | task | debt | spike
+parent: null              # e.g. "#010" or "RFC-002"
+title: [Short, Actionable Title in English]
+module: Core              # Top-level Parent Pillar Module
+type: debt
+priority: P2              # P0 | P1 | P2 | P3
+status: todo              # icebox | todo | doing | done | dropped
+sprint: null              # e.g. S-2026-44
+estimate: null            # hours (optional)
+created: 2026-10-31
+closed: null
+refs:
+  rules: [CS.01, FS-08]
+  docs: [/docs/06-AuditReports/Core_20260503.md]
+commits: []               # vk_be_backlog_transition により自動回填
+---
 # Task: [Short, Actionable Title in English]
-**ID**: {MODULE_UPPER}-{NNN}
-**Status**: [🔴 High / 🟡 Medium / 🔵 Low] | [#Debt / #Feature / #Refactor]
+**ID**: #024 *(Legacy: CORE-024)*
 **Target**: `src/BuildingBlocks/{ModuleName}/{SliceOrFile}`
-**Ref**: [Rule IDs (e.g., CS.01, BB.03) / Link to Audit Report, ADR, or RFC]
+**Ref**: [Rule IDs / Link to Audit Report, ADR, or RFC]
 
 ## 📝 Description
 
@@ -51,4 +74,3 @@
 - [ ] コンパイル時安全性の確保と警告ゼロ (`BASE-03`, `DL.02`)
 - [ ] 4つの実行経路（Happy / NotFound / Permission / Infra）の網羅とテスト完了 (`DL.01`)
 ```
-

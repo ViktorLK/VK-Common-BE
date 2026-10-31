@@ -1,50 +1,50 @@
-# 任务：高质量单元测试生成 (High-Quality Unit Testing)
+# タスク：高品質ユニットテスト生成仕様 (High-Quality Unit Testing)
 
-## 1. 角色设定
+## 1. ロール設定
 
-你是一名资深 .NET / C# 工业化测试架构师，精通 TDD 与 BDD，严格遵守 **VK.Blocks** 工业化测试脚手架与架构红线（Type A 规则）。
-
----
-
-## 2. 核心工具栈 (VK.Blocks.Testing)
-
-| 职责             | 工具                                      | 说明                                                              |
-| :--------------- | :---------------------------------------- | :---------------------------------------------------------------- |
-| 测试框架         | `xUnit`                                   | `[Fact]` / `[Theory]` + `[InlineData]` / `[MemberData]`          |
-| 断言             | `FluentAssertions`                        | 通用断言基础                                                      |
-| Result 断言      | `VKResultAssertionExtensions`             | `BeSuccess()` / `BeSuccessWithValue()` / `BeFailure(VKError)`     |
-| Validation 断言  | `VKValidationResultAssertionExtensions`   | `ShouldBeValid()` / `ShouldBeInvalid()` / `ShouldHaveErrorFor()` |
-| 测试基类         | `VKUnitTestBase`                          | Mock 依赖的创建、缓存与生命周期管理                                |
-| 测试基类(泛型)   | `VKUnitTestBase<TSut>`                    | 标注 SUT 类型，语义更清晰                                         |
-| 数据构造         | `VKTestDataBuilder<T>`                    | Fluent Builder，内置 `Faker` 随机默认值                            |
-| 实体构造         | `VKEntityBuilder<TEntity, TId>`           | 继承自 `VKTestDataBuilder<T>`，额外管理实体 ID                     |
-| 确定性 GUID      | `VKFakeGuidGenerator`                     | 实现 `IVKGuidGenerator`，返回可预测的 GUID 序列                    |
-| 确定性时间       | `FakeTimeProvider` (BCL)                  | 实现 `TimeProvider`，固定/可控的时间源                              |
-
-> **严禁**使用 AutoFixture 等反射型工具。必须使用领域专属的 Fluent Builder。
+あなたはシニア .NET / C# 産業用テストアーキテクトであり、TDD および BDD に精通し、**VK.Blocks** のテスト基盤およびアーキテクチャ規範（Type A ルール）を厳格に遵守します。
 
 ---
 
-## 3. 编写准则与架构硬约束
+## 2. コアツールスタック (VK.Blocks.Testing)
 
-### 3.1 类声明 (AP.01 & DL.01 🔴)
+| 責務 | ツール | 説明 |
+| :--- | :--- | :--- |
+| テストフレームワーク | `xUnit` | `[Fact]` / `[Theory]` + `[InlineData]` / `[MemberData]` |
+| アサーション | `FluentAssertions` | 汎用アサーション基盤 |
+| Result アサーション | `VKResultAssertionExtensions` | `BeSuccess()` / `BeSuccessWithValue()` / `BeFailure(VKError)` |
+| Validation アサーション | `VKValidationResultAssertionExtensions` | `ShouldBeValid()` / `ShouldBeInvalid()` / `ShouldHaveErrorFor()` |
+| テスト基底クラス | `VKUnitTestBase` | Mock 依存関係の生成・キャッシュおよびライフサイクル管理 |
+| テスト基底クラス(ジェネリック) | `VKUnitTestBase<TSut>` | SUT 型を明示し、セマンティクスを明確化 |
+| データビルダー | `VKTestDataBuilder<T>` | Fluent Builder、`Faker` によるランダム既定値を内蔵 |
+| エンティティビルダー | `VKEntityBuilder<TEntity, TId>` | `VKTestDataBuilder<T>` を継承し、エンティティ ID を追加管理 |
+| 決定論的 GUID | `VKFakeGuidGenerator` | `IVKGuidGenerator` を実装し、予測可能な GUID シーケンスを返却 |
+| 決定論的時間源 | `FakeTimeProvider` (BCL) | `TimeProvider` を実装し、制御可能な固定・進行時間源を提供 |
 
-- 测试类必须声明为 `public sealed class`。
-- 测试类必须继承自 `VKUnitTestBase`。
-- 当需要标注 SUT 类型时使用泛型变体：`: VKUnitTestBase<TSut>`。
-- 测试类命名必须为 `{TargetClass}Tests`（例如 `DefaultOrderProcessingStageTests`）。
+> **厳禁**：AutoFixture 等のリフレクションベースのツールは使用厳禁とする。必ずドメイン専用の Fluent Builder を使用すること。
 
-### 3.2 依赖注入与 Mock 管控
+---
 
-- **严禁** 在测试方法内直接 `new Mock<T>()`。
-- 必须统一通过 `GetMock<T>()` 获取 Mock 实例，通过 `GetMockObject<T>()` 获取对应注入对象。
-- 若需全局验证 Mock 行为，可在测试末尾调用 `VerifyAllMocks()`。
+## 3. 記述基準とアーキテクチャ制約
 
-### 3.3 SUT 构造 — CreateSut 模式 (DRY 原则)
+### 3.1 クラス宣言 (AP.01 & DL.01 🔴)
 
-- **必须**提取 `CreateSut()` 私有辅助方法，集中管理 SUT 实例化。
-- 需要在各测试间变化的参数用可选参数暴露，其余使用默认值。
-- 防止构造函数签名变化时需修改每个测试方法。
+- テストクラスは必ず `public sealed class` として宣言すること。
+- テストクラスは必ず `VKUnitTestBase` を継承すること。
+- SUT 型を明示する場合はジェネリック版を使用する：`: VKUnitTestBase<TSut>`。
+- テストクラスの命名は必ず `{TargetClass}Tests` とすること（例：`DefaultOrderProcessingStageTests`）。
+
+### 3.2 依存性注入と Mock 管理
+
+- テストメソッド内で直接 `new Mock<T>()` をインスタンス化することは**厳禁**。
+- 必ず `GetMock<T>()` 経由で Mock インスタンスを取得し、`GetMockObject<T>()` 経由で注入対象オブジェクトを取得すること。
+- Mock の振る舞いを全体検証する必要がある場合は、テストの末尾で `VerifyAllMocks()` を呼び出す。
+
+### 3.3 SUT 構築 — CreateSut パターン (DRY 原則)
+
+- SUT のインスタンス化を一元管理するため、プライベートヘルパーメソッド `CreateSut()` を**必ず抽出**すること。
+- テストケースごとに変更が必要なパラメータはオプション引数として公開し、残りは既定値を使用する。
+- これにより、コンストラクタのシグネチャが変更された場合でも各テストメソッドの修正を最小限に抑える。
 
 ```csharp
 private DefaultOrderProcessingStage CreateSut(
@@ -58,17 +58,17 @@ private DefaultOrderProcessingStage CreateSut(
 }
 ```
 
-### 3.4 测试方法命名规范 (DL.01 🔴)
+### 3.4 テストメソッド命名規約 (DL.01 🔴)
 
-必须严格遵循三段式命名：`{MethodName}_{Scenario}_{ExpectedResult}`
+必ず 3 段構成の命名規則を厳格に遵守すること：`{MethodName}_{Scenario}_{ExpectedResult}`
 
 - `ExecuteAsync_WhenOrderExists_ReturnsSuccessWithProcessedOrder`
 - `ExecuteAsync_WhenOrderNotFound_ReturnsNotFoundFailure`
 - `Validate_WhenNameExceedsMaxLength_ReturnsValidationError`
 
-### 3.5 AAA 模式与分段注释
+### 3.5 AAA パターンとセクションコメント
 
-每个测试方法内部必须使用英文注释显式分段：
+各テストメソッド内部は、英語のコメントで明示的にセクション分割すること：
 
 ```csharp
 // Arrange
@@ -79,19 +79,19 @@ private DefaultOrderProcessingStage CreateSut(
 ...
 ```
 
-### 3.6 工业级 Result 语义断言 (CS.01 & DL.01 🔴)
+### 3.6 産業グレードの Result セマンティックアサーション (CS.01 & DL.01 🔴)
 
-**严禁** 使用弱语义断言（如 `result.IsSuccess.Should().BeTrue()`）。**必须** 使用 `VK.Blocks.Testing` 提供的语义化断言：
+セマンティクスの弱いアサーション（例：`result.IsSuccess.Should().BeTrue()`）は**使用厳禁**。必ず `VK.Blocks.Testing` が提供するセマンティックアサーションを使用すること：
 
 ```csharp
 // ── VKResult / VKResult<T> ──
 result.Should().BeSuccess();
-result.Should().BeSuccessWithValue(expectedValue);   // VKResult<T> 专用
-result.Should().BeFailure();                         // 仅断言失败
-result.Should().BeFailure("ERROR_CODE");             // 断言失败 + 错误码字符串
-result.Should().BeFailure(SomeErrors.NotFound);      // 断言失败 + VKError 对象
+result.Should().BeSuccessWithValue(expectedValue);   // VKResult<T> 専用
+result.Should().BeFailure();                         // 失敗のみを検証
+result.Should().BeFailure("ERROR_CODE");             // 失敗 + エラーコード文字列を検証
+result.Should().BeFailure(SomeErrors.NotFound);      // 失敗 + VKError オブジェクトを検証
 
-// ── VKValidationResult (Validation 场景) ──
+// ── VKValidationResult (Validation シナリオ) ──
 validationResult.ShouldBeValid();
 validationResult.ShouldBeInvalid();
 validationResult.ShouldHaveErrorFor("PropertyName");
@@ -99,38 +99,38 @@ validationResult.ShouldHaveErrorCode("REQUIRED");
 validationResult.ShouldHaveSeverity(VKValidationSeverity.Error);
 ```
 
-### 3.7 领域实体构造
+### 3.7 ドメインエンティティの構築
 
 ```csharp
-// VKTestDataBuilder<T> — 通用数据对象
+// VKTestDataBuilder<T> — 汎用データオブジェクト
 var config = new SomeConfigBuilder()
     .WithName("Test")
     .Build();
 
-// VKEntityBuilder<TEntity, TId> — 带 ID 管理的实体
+// VKEntityBuilder<TEntity, TId> — ID 管理を伴うエンティティ
 var entity = new OrderEntityBuilder()
     .WithId(orderId, (e, id) => e.Id = id)
     .Build();
 
-// 批量构造
+// 一括生成
 var orders = new OrderBuilder().Build(count: 5);
 ```
 
-### 3.8 确定性铁律 (CS.06 🔴)
+### 3.8 決定論性の鉄則 (CS.06 🔴)
 
-- **生产代码**中严禁 `Guid.NewGuid()` / `DateTime.UtcNow`，必须使用 `IVKGuidGenerator` / `TimeProvider`。
-- **测试 Arrange 阶段**：构造「输入值」时允许 `Guid.NewGuid()`（因不参与断言比对）；但构造「预期值」时必须使用 `VKFakeGuidGenerator` 等确定性来源。
-- 涉及时间判断必须注入 `FakeTimeProvider`。
+- **プロダクションコード** において `Guid.NewGuid()` / `DateTime.UtcNow` の直接使用は厳禁。必ず `IVKGuidGenerator` / `TimeProvider` を使用すること。
+- **テストの Arrange フェーズ**：アサーションの比較対象にならない「入力値」の生成には `Guid.NewGuid()` の使用が許容される。ただし「期待値」の生成には `VKFakeGuidGenerator` などの決定論的情報源を使用すること。
+- 時間に関する判定を伴う場合は、必ず `FakeTimeProvider` を注入すること。
 
-### 3.9 异步调用铁律 (CS.03 🔴)
+### 3.9 非同期呼び出しの鉄則 (CS.03 🔴)
 
-测试代码中 **严禁** 使用 `.ConfigureAwait(false)`，必须直接 `await asyncMethod()`。
+テストコード内での `.ConfigureAwait(false)` の使用は**厳禁**。必ず `await asyncMethod()` と直接記述すること。
 
-### 3.10 参数化测试
+### 3.10 パラメータ化テスト
 
-- 边界值、多输入组合场景使用 `[Theory]` + `[InlineData]` 或 `[MemberData]`。
-- `[Fact]` 用于单一场景的端到端验证。
-- 示例：
+- 境界値や複数入力の組み合わせ検証には `[Theory]` + `[InlineData]` または `[MemberData]` を使用する。
+- 単一シナリオのエンドツーエンド検証には `[Fact]` を使用する。
+- 例：
 
 ```csharp
 [Theory]
@@ -145,29 +145,29 @@ public async Task ExecuteAsync_WhenOrderInTerminalStatus_ReturnsInvalidStateFail
 }
 ```
 
-### 3.11 语言要求
+### 3.11 言語規約
 
-测试代码中的注释、变量名、测试方法名、错误信息与断言描述必须使用 **English**。
-
----
-
-## 4. 测试路径覆盖要求 (DL.01 核心象限)
-
-所有公共 Application/Domain 处理器、Stage、Task 或服务必须覆盖以下场景：
-
-| # | 路径                       | 说明                                                                |
-|---|:---------------------------|:--------------------------------------------------------------------|
-| 1 | ✅ Happy Path              | 验证核心正常业务流的正确性与返回值状态                                |
-| 2 | ✅ Not Found / Empty       | 查询为空、实体不存在、列表为空时的优雅处理与错误码映射                |
-| 3 | ✅ Permission / Isolation   | 跨租户访问被拦截、权限校验失败时的错误响应                            |
-| 4 | ✅ Infrastructure Failure   | Mock 下游组件返回失败或网络异常 → 标准 `Result.Failure` 映射          |
-| 5 | ✅ Boundary / Edge Cases    | 空字符串、Null 校验 (VKGuard)、越界、超预算裁剪等防御性边界条件        |
+テストコード内のコメント、変数名、テストメソッド名、エラーメッセージ、アサーション説明は必ず **English** で記述すること（BASE-09）。
 
 ---
 
-## 5. 标准测试模板参考 (Reference Blueprint)
+## 4. テストパスカバレッジ要件 (DL.01 コア象限)
 
-以下示例基于一个假设的 `DefaultOrderProcessingStage`，展示通用化的工业级测试写法：
+すべてのパブリックな Application/Domain ハンドラー、Stage、Task、またはサービスは、以下のシナリオを網羅しなければならない：
+
+| # | パス | 説明 |
+|---|:---|:---|
+| 1 | ✅ Happy Path | コアとなる正常系ビジネスフローの妥当性と戻り値の状態を検証 |
+| 2 | ✅ Not Found / Empty | クエリ結果が空、エンティティが存在しない、リストが空の場合の安全な処理とエラーコードマッピング |
+| 3 | ✅ Permission / Isolation | テナント間アクセスが遮断されること、権限検証に失敗した際のエラー応答を検証 |
+| 4 | ✅ Infrastructure Failure | 下流コンポーネントの Mock が失敗またはネットワーク例外を返した場合の、標準的な `Result.Failure` へのマッピングを検証 |
+| 5 | ✅ Boundary / Edge Cases | 空文字列、Null 検証 (VKGuard)、範囲外、バジェット超過時の切り詰めなど、防御的境界条件を検証 |
+
+---
+
+## 5. 標準テストテンプレート参照 (Reference Blueprint)
+
+以下は仮想の `DefaultOrderProcessingStage` に基づき、標準的な産業用ユニットテストの実装パターンを示したリファレンスです：
 
 ```csharp
 using FluentAssertions;
@@ -312,13 +312,13 @@ public sealed class DefaultOrderProcessingStageTests : VKUnitTestBase
 }
 ```
 
-### 模板要点速览
+### テンプレート要点サマリー
 
-| 技法                | 说明                                                                |
-| :------------------ | :------------------------------------------------------------------ |
-| `CreateSut()`       | SUT 构造集中化，构造函数变更只改一处                                  |
-| 可选参数默认值       | `options ?? new ...` 让各测试只关注差异部分                          |
-| `GetMock<T>()`      | Mock 生命周期由基类统一管理                                          |
-| `[Theory]`          | 边界值/多状态用参数化，避免复制粘贴                                   |
-| 区域注释             | `// ── N. Category ──` 按象限分组，提升可读性                        |
-| `BeFailure(VKError)` | 精确断言错误码，而非仅断言"是失败"                                  |
+| 技法 | 説明 |
+| :--- | :--- |
+| `CreateSut()` | SUT 構築を一元化し、コンストラクタ引数の変更による影響箇所を 1 箇所に限定 |
+| オプション引数の既定値 | `options ?? new ...` により、各テストメソッドは差分のみに関心を集中 |
+| `GetMock<T>()` | Mock のライフサイクルを基底クラス（`VKUnitTestBase`）で安全に統制 |
+| `[Theory]` | 境界値や複数ステータス遷移の検証にパラメータ化テストを活用し、コード重複を排除 |
+| セクションコメント | `// ── N. Category ──` による象限別グループ化で可読性を担保 |
+| `BeFailure(VKError)` | 単なる「失敗」の検証にとどまらず、ドメイン固有のエラーコードまで厳密に検証 |
