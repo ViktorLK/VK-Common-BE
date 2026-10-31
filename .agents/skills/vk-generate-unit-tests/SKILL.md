@@ -1,0 +1,58 @@
+---
+name: vk-generate-unit-tests
+description: Generate high-quality unit tests for a target class or handler using the UnitTest.md prompt.
+---
+
+# Workflow: Generate Unit Tests (Industrial Testing)
+
+## Goal
+
+Generate production-ready unit tests for a user-specified C# class, handler, or service, following the guidelines in `references/UnitTest.md` and the `always_on` architectural rules (especially DL.01).
+
+## Steps
+
+1. **Identify Target & Load Context**:
+    - Determine the **absolute path of the C# file or class** to generate tests for.
+    - If the target is unclear, ask the user: `"Which class or file would you like me to generate unit tests for?"`
+    - **Mandatory (PS.04)**: Call `vk_be_get_module_context(path)`.
+    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+
+2. **Load Rules**:
+    - Read the `references/UnitTest.md` (or `.agents/skills/vk-generate-unit-tests/references/UnitTest.md`) file to understand the testing guidelines (xUnit, Moq, FluentAssertions, AAA pattern, naming conventions).
+
+3. **Analyze the Target Code**:
+    - Read the target file and identify all public methods, their dependencies (constructor-injected interfaces), and edge cases.
+    - Determine which interfaces need to be mocked.
+
+4. **Generate Tests (DL.01) 🔴**:
+    - Inherit `VKUnitTestBase` for all unit test classes (`public sealed class {TargetClass}Tests : VKUnitTestBase`).
+    - When marking SUT type is beneficial, use `VKUnitTestBase<TSut>`.
+    - **CreateSut Pattern (DRY)**: Extract a private `CreateSut()` helper method to centralize SUT construction. Expose parameters that vary across tests as optional arguments with sensible defaults.
+    - Use `GetMock<T>()` / `GetMockObject<T>()` for mock dependencies; do not use raw `new Mock<T>()`.
+    - Use `VKTestDataBuilder<T>` for general data objects, `VKEntityBuilder<TEntity, TId>` for entities with ID management, and `VKFakeGuidGenerator` for deterministic GUIDs.
+    - Use `VKResultAssertionExtensions` (`.Should().BeSuccess()`, `.Should().BeSuccessWithValue()`, `.Should().BeFailure(VKError)`).
+    - For Validation scenarios, use `VKValidationResultAssertionExtensions` (`.ShouldBeValid()`, `.ShouldBeInvalid()`, `.ShouldHaveErrorFor()`).
+    - For each public method, generate tests covering the following scenarios as required by **DL.01**:
+        - ✅ **Happy Path**: Core success scenario.
+        - ✅ **Not Found / Empty Result**: Cases where the operation returns no data.
+        - ✅ **Permission / Tenant Isolation Failure**: Unauthorized access or tenant mismatch.
+        - ✅ **Infrastructure Failure → Result.Failure**: Simulated exceptions from dependencies mapped to `Result.Failure`.
+        - ✅ **Boundary / Edge Cases**: Null, empty collections, empty strings, special characters, etc.
+    - Use `[Theory]` with `[InlineData]` or `[MemberData]` when the same logic has multiple input combinations.
+    - Method naming (DL.01): `{MethodName}_{Scenario}_{ExpectedResult}`.
+    - **Async Hygiene (CS.03)**: **PROHIBITED** to use `.ConfigureAwait(false)` in test code.
+    - **Determinism (CS.06)**: Use `FakeTimeProvider` (BCL) or `VKFakeGuidGenerator`. In test Arrange phase, `Guid.NewGuid()` is allowed for constructing input values (not assertions), but expected values must use deterministic sources.
+    - Use `// Arrange`, `// Act`, `// Assert` comments to clearly separate sections.
+    - Each test method should have exactly **one Act**. Do not combine multiple scenarios into a single method.
+
+5. **Save and Report (Audit by Exception)**:
+    - Determine the appropriate test project path (mirror the source structure under `test/`).
+    - Save the generated test file.
+    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - Audit: `Audit: ✅ All testing DNA constraints satisfied.`
+    - Report: ✅ Test file saved to `[path]` with `[N]` test methods covering `[M]` scenarios.
+    - Verify with `dotnet build`.
+    - // turbo
+    ```powershell
+    dotnet build test/
+    ```

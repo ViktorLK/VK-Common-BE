@@ -1,0 +1,160 @@
+# ADR Index — Core
+
+このディレクトリには、`VK.Blocks.Core` モジュールの主要な設計決定を記録した ADR が含まれています。
+
+## 📚 ADR 一覧
+
+#### [ADR-001: Expanding Global ErrorType for Enterprise-Grade Error Handling](/docs/04-ArchitectureDecisionRecords/Core/adr-001-expanding-global-errortype-for-enterprise-grade-error-handling.md)
+
+**Status**: ✅ Accepted  
+**概要**: 全局 `ErrorType` 枚举を拡張し、429, 503, 502/504 等の工業級 HTTP マッピングをサポート。  
+**キーワード**: Result Pattern, RESTful, Enterprise Error Handling
+
+---
+
+#### [ADR-002: Idempotent BuildingBlock Options Registration in DI Container](/docs/04-ArchitectureDecisionRecords/Core/adr-002-idempotent-buildingblock-options-registration-in-di-container.md)
+
+**Status**: ✅ Accepted  
+**概要**: `AddVKBlockOptions` において、`Any()` チェックと `TryAddSingleton` を組み合わせ、重複した検証ロジックと DI 記述子の登録を防止。  
+**キーワード**: Idempotency, DI Container, Startup Performance
+
+---
+
+#### [ADR-003: Introducing Service Marker Pattern for BuildingBlock Modularization](/docs/04-ArchitectureDecisionRecords/Core/adr-003-introducing-service-marker-pattern-for-buildingblock-modularization.md)
+
+**Status**: ✅ Accepted  
+**概要**: オプション型に基づいた間接的な依存性チェックを廃止し、`AddVKBlockMarker<T>` を用いたセマンティックなサービス登録確認を導入。  
+**キーワード**: Service Marker, Modularity, Dependency Validation
+
+---
+
+#### [ADR-004: Unified Synchronization State Abstraction in Core](/docs/04-ArchitectureDecisionRecords/Core/adr-004-unified-synchronization-state-abstraction-in-core.md)
+
+**Status**: ✅ Accepted  
+**概要**: メタデータ同期用のハッシュ指紋を管理する `ISyncStateStore` 抽象を導入。全 Building Block で一貫した同期プロトコルを確立。  
+**キーワード**: Synchronization, Abstraction, Idempotency, No-Op Fallback
+
+---
+
+#### [ADR-005: Use Static Abstract Interface for Configuration Section Resolution](./adr-005-use-static-abstract-interface-for-configuration-section-resolution.md)
+
+**Status**: ✅ Accepted  
+**概要**: `IVKBlockOptions` に `static abstract SectionName` を導入し、リフレクションなしでの構成セクション自動解決を実現。  
+**キーワード**: Static Abstract, Configuration, Zero-Reflection
+
+---
+
+#### [ADR-006: Establishing Granular Capability-Based Structure and Namespace Alignment in Core](./adr-006-restructuring-core-module-into-semantic-pillars.md)
+
+**Status**: ✅ Accepted  
+**概要**: 大雑把な「5つの柱」への集約案を却下し、厳密な機能・責務単位での高解像度なアプローチ（12のCapabilityエリア）とフォルダ・Namespaceの1対1対応を採用。  
+**キーワード**: Refactoring, Capability Boundaries, Explicit Namespaces, Anti-Utility-Bucket
+
+---
+
+#### [ADR-007: Unified BuildingBlock Identification and Source-Generated Zero-Reflection Validation](./adr-007-unified-buildingblock-identification-and-source-generated-zero-reflection-validation.md)
+
+**Status**: ✅ Accepted  
+**概要**: プロパティを `IVKBlockMarker` に集約し、Source Generator による `Instance` シングルトン注入を導入。再帰的な依存関係検証をリフレクションなしで高速化。  
+**キーワード**: Source Generator, Singleton Pattern, Zero-Reflection, Dependency Tree
+
+---
+
+#### [ADR-008: Robust BuildingBlock Dependency Validation through Pre-order Traversal and Cycle Detection](./adr-008-robust-building-block-dependency-validation.md)
+
+**Status**: ✅ Accepted  
+**概要**: 親の検証を先行させる Pre-order 走査と、`HashSet` による循環参照検知を導入。依存関係エラーの特定を容易にし、`StackOverflow` を防止。  
+**キーワード**: Pre-order Traversal, Circular Dependency, Cycle Detection
+
+---
+
+#### [ADR-009: Standardization of Building Block Naming and Structural Conventions](./adr-009-standardization-of-building-block-naming-and-structural-conventions.md)
+
+**Status**: ✅ Accepted  
+**概要**: 公開 API への `VK` プレフィックス付与と第1層階層への配置、および内部実装からのプレフィックス除去と `Internal/` フォルダへの隠蔽を全モジュール共通の標準規約として定義。  
+**キーワード**: Naming Convention, Project Structure, Encapsulation, VK Prefix
+
+---
+
+#### [ADR-010: High-Performance Infrastructure Optimizations in Core Library](./adr-010-high-performance-infrastructure-optimizations-in-core-library.md)
+
+**Status**: ✅ Accepted  
+**概要**: AggressiveInlining の徹底、成功結果のキャッシュ、および InnerCache パターンによる CA1000 警告の根本解決を含む、Core ライブラリの包括的な高速化。  
+**キーワード**: Performance, Inlining, GC Optimization, Static Generic Caching
+
+---
+
+#### [ADR-011: Standardized Exception Hierarchy and Fault Modeling](./adr-011-standardized-exception-hierarchy-and-fault-modeling.md)
+
+**Status**: ✅ Accepted  
+**概要**: `VKBaseException` を基底とする例外階層を導入し、エラーコード、ステータスコード、拡張メタデータを標準化。API 境界での RFC 7807 変換を一貫してサポート。  
+**キーワード**: Exception Hierarchy, Fault Modeling, RFC 7807, Extensions
+
+---
+
+#### [ADR-012: Functional Decoupling of Dependency Injection Extensions](./adr-012-functional-decoupling-of-dependency-injection-extensions.md)
+
+**Status**: ✅ Accepted  
+**概要**: DI 拡張メソッドを Registration, Query, Builder の 3 つの責務に分離。複雑な依存関係検証ロジックの保守性を向上し、インテリセンスの利便性を最適化。  
+**キーワード**: Dependency Injection, Separation of Concerns, DX, Builder Pattern
+
+---
+
+#### [ADR-013: Comprehensive Result Pattern Standardization with VKError](./adr-013-comprehensive-result-pattern-standardization-with-vkerror.md)
+
+**Status**: ✅ Accepted  
+**概要**: `Result` 型を `VKResult` へ刷新し、成功インスタンスのキャッシュによる GC 負荷低減と、`VKError` によるエラー定数管理を標準化。  
+**キーワード**: Result Pattern, VKError, Performance, Standardization
+
+---
+
+#### [ADR-014: Adoption of Hierarchical Configuration Pattern for Dynamic Call Behaviors](/docs/04-ArchitectureDecisionRecords/Core/adr-014-adoption-of-hierarchical-configuration-pattern-for-dynamic-call-behaviors.md)
+
+**Status**: ✅ Accepted  
+**概要**: 静的な構成（Options）と動的な上書き（ExecutionSettings）をマージする「階層的構成パターン」を全ビルドブロックの標準ルールとして採用する。  
+**キーワード**: Hierarchical Configuration, Dynamic Overrides, Default Priority
+
+---
+
+#### [ADR-015: Adopt Vertical Slices and Mandatory Core Abstractions in Building Blocks](./adr-015-adopt-vertical-slices-and-mandatory-core-abstractions-in-building-blocks.md)
+
+**Status**: ✅ Accepted  
+**概要**: 技術レイヤーベースのフォルダ構成を廃止し、ドメイン駆動の垂直スライスを採用。非決定論的 API（Guid, DateTime）の直接使用を禁止し、Core 抽象の利用を義務化。  
+**キーワード**: Vertical Slices, Deterministic Logic, CS.06, BB.01
+
+---
+
+#### [ADR-016: Functional Options Transformation for Immutable Building Blocks](./adr-016-functional-options-transformation-for-immutable-building-blocks.md)
+
+**Status**: ✅ Accepted  
+**概要**: .NET 標準の `Action<T>` による変異型構成を廃止し、`Func<T, T>` と `with` 式を用いた関数型変換を導入。Options の不変性とコードによる柔軟な構成を両立させる。  
+**キーワード**: Immutability, Record, Functional Transformation
+
+---
+
+#### [ADR-017: Options Registration Robustness and Double Binding Elimination](./adr-017-options-registration-robustness-and-double-binding-elimination.md)
+
+**Status**: ✅ Accepted  
+**概要**: `AddVKBlockOptions` における二重バインディングの冗長性を排除し、`TryAddSingleton` を `Replace` に置き換えることで DI コンテナ登録の順序依存の脆弱性を完全解消。  
+**キーワード**: Options Pattern, DI Registration Order, Double Binding, Robustness
+
+---
+
+#### [ADR-018: Standardized Entry Filtering and Verdict Engine](./adr-018-standardized-entry-filtering-and-verdict-engine.md)
+
+**Status**: ✅ Accepted  
+**概要**: 複数モジュールに跨るオブジェクトやデータの評価・サニタイズ処理を統一するため、`IVKEntryFilter<TItem, TContext>` および共通の判定レコード `VKFilterVerdict` を Core 側に一元定義する設計。  
+**キーワード**: Entry Filtering, VKFilterVerdict, Composable Filters, Code Sharing
+
+---
+
+#### [ADR-019: Standardized Pipeline Execution Framework](./adr-019-standardized-pipeline-execution-framework.md)
+
+**Status**: ✅ Accepted  
+**概要**: 状態コンテキストを共有する多段階のワークフロー実行を標準化するため、Core 側にジェネリックな `IVKPipeline`、`VKPipelineExecutorBase`、およびミドルウェア機構を定義する設計。  
+**キーワード**: Pipeline Executor, Composable Stages, Middleware Hook
+
+---
+
+**Last Updated**: 2026-06-22  
+**Total ADRs**: 19

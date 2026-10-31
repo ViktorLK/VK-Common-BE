@@ -1,0 +1,190 @@
+# Architecture Decision Records (ADR) - Index
+
+このディレクトリには、VK.Blocks.AI モジュールの主要な設計決定を記録した ADR が含まれています。
+
+## 📚 ADR 一覧
+
+### Core Architecture
+
+#### [ADR-001: Provider-Agnostic Engine Abstraction](./adr-001-provider-agnostic-engine-abstraction.md)
+
+**Status**: ✅ Accepted  
+**概要**: LLM プロバイダーやオーケストレーター SDK（Semantic Kernel 等）への直接依存を排除し、将来の技術変更に強い抽象化 Engine 層を定義します。  
+**キーワード**: Vendor Neutral, Portability, Result Pattern
+
+---
+
+#### [ADR-002: Polymorphic Multi-modal Message Schema](./adr-002-polymorphic-multi-modal-message-schema.md)
+
+**Status**: ✅ Accepted  
+**概要**: テキスト、画像、音声、ファイルなどの多様なコンテンツを統一的に扱うための、拡張可能なポリモーフィックなメッセージ構造を定義します。  
+**キーワード**: Multi-modal, Polymorphism, Content Schema
+
+---
+
+#### [ADR-003: Hierarchical Configuration Pattern](./adr-003-hierarchical-configuration-pattern.md)
+
+**Status**: ✅ Accepted  
+**概要**: 複数の機能を内包する AI モジュールにおいて、命名衝突を防ぎ可読性を高めるための階層的な設定管理構造を定義します。  
+**キーワード**: Options Pattern, Configuration, Hierarchical
+
+---
+
+#### [ADR-004: Standardized Execution Arguments (Args Pattern)](./adr-004-standardized-execution-arguments-args-pattern.md)
+
+**Status**: ✅ Accepted  
+**概要**: リクエスト単位での挙動制御（Temperature 等）を安全かつ拡張可能な方法で実現するための、Args レコードを用いたオーバーライドパターンを定義します。  
+**キーワード**: Args Pattern, Overrides, Immutable
+
+---
+
+#### [ADR-005: AI Options Architecture: Interface Segregation over Class Inheritance](./adr-005-ai-options-architecture-interface-segregation-over-class-inheritance.md)
+
+**Status**: ✅ Accepted  
+**概要**: Options の設計をクラス継承からインターフェースベースの組合せへと転換し、ISP に準拠した柔軟で明示的な設定構造を定義します。  
+**キーワード**: Interface Segregation, Composition, Explicit Over Implicit
+
+---
+
+#### [ADR-015: Rename IVKxxxSettings interfaces to IVKxxxOptions in AI module](./adr-015-rename-ivkxxxsettings-interfaces-to-ivkxxxoptions-in-ai-module.md)
+
+**Status**: ✅ Accepted  
+**概要**: AIモジュール内のすべての設定インターフェース（IVKxxxSettings）を統一的な Options 命名規則（IVKxxxOptions）へとリネームし、アーキテクチャ標準に完全整合させます。  
+**キーワード**: Options Suffix, Naming Convention, Symmetry
+
+---
+
+#### [ADR-017: Extraction of Vectorics Abstractions to Standalone Modules](./adr-017-extraction-of-vectorics-abstractions-to-standalone-modules.md)
+
+**Status**: ✅ Accepted  
+**概要**: ベクトル空間インデクシングと生成推論の責務をクリーンに分離するため、埋め込み生成、リランキング、RAG、セマンティックキャッシュといった Vectorics 関連機能群を `VK.Blocks.AI` から廃止し、独立した Building Block（`VectorStore`, `VectorSearch`）へと再編成する設計。  
+**キーワード**: Code Decoupling, Assembly Separation, Vectorics Demarcation
+
+---
+
+#### [ADR-018: Context Expansion Architecture for Context-Aware Prompt Enrichment](./adr-018-context-expansion-architecture-for-context-aware-prompt-enrichment.md)
+
+**Status**: ✅ Accepted  
+**概要**: システムプロンプトやユーザー指示のコンテキストを安全かつ動的に拡張するため、不変なオプション設計に基づき `IVKContextExpansionStrategy` と標準化された実行ステージ `DefaultContextExpansionStage` を導入する設計。  
+**キーワード**: Context Expansion, Strategy Pattern, Prompt Enrichment
+
+---
+
+### Observability & Cost Control
+
+#### [ADR-006: Unified Token Usage Tracking and Cost Observation](./adr-006-unified-token-usage-tracking-and-cost-observation.md)
+
+**Status**: 📝 Draft  
+**概要**: プロバイダー間で異なるトークン計数方式を統一し、コストの透明性と予算ベースの制御（サーキットブレーカー）を実現するための基盤を定義します。  
+**キーワード**: Token Usage, Cost Control, Circuit Breaker
+
+---
+
+#### [ADR-016: Standardized Observability Diagnostics Constants](./adr-016-standardized-observability-diagnostics-constants.md)
+
+**Status**: ✅ Accepted  
+**概要**: 各AIサブ機能にオフセットベースの一意イベントIDと標準化診断定数クラスを導入し、ログやメトリクスの競合を防ぎつつ一貫した監視を可能にする可観測性設計。  
+**キーワード**: Event ID Offset, OpenTelemetry, LoggerMessage
+
+---
+
+### Logic & Protocol
+
+#### [ADR-007: Standardized Streaming Protocol with Result Pattern](./adr-007-standardized-streaming-protocol-with-result-pattern.md)
+
+**Status**: 📝 Draft  
+**概要**: IAsyncEnumerable を用いたストリーミングにおいて、エラーハンドリング（Result パターン）とメタデータ集計を一貫させるためのプロトコルを定義します。  
+**キーワード**: Streaming, IAsyncEnumerable, Error Handling
+
+---
+
+#### [ADR-013: Industrialization of AI Engine Infrastructure and Streaming Resilience](./adr-013-industrialization-of-ai-engine-infrastructure-and-streaming-resilience.md)
+
+**Status**: ✅ Accepted  
+**概要**: 推理モデル（CoT）への対応、統一エラーマッピング、および Channel を用いた高性能な非ブロッキング流式プロトコルを定義します。  
+**キーワード**: Reasoning Support, Channels, Error Mapping
+
+---
+
+### Governance & Security
+
+#### [ADR-008: Integrated Moderation and Governance Middleware](./adr-008-integrated-moderation-and-governance-middleware.md)
+
+**Status**: 📝 Draft  
+**概要**: 入出力の安全性（不適切コンテンツの遮断）を、Decorator パターンを用いてエンジンから独立して自動的に適用するガバナンス機構を定義します。  
+**キーワード**: Governance, Content Filter, Decorator Pattern
+
+---
+
+#### [ADR-014: Standardize AI Overrides Inheritance to IVKAIGovernanceOverrides](./adr-014-standardize-ai-overrides-inheritance-to-ivkaigovernanceoverrides.md)
+
+**Status**: ✅ Accepted  
+**概要**: 各サブ機能のオーバーライド用インターフェースが統合ガバナンス（IVKAIGovernanceOverrides）を継承するように統一し、安全フィルターや監査ログのリクエストレベルでの動的トグルを完全補完します。  
+**キーワード**: Overrides, Symmetry, AP.05 Contract
+
+---
+
+### Advanced Features (RAG & Resiliency)
+
+#### [ADR-009: Retrieval-Augmented Generation (RAG) Interface Strategy](<./adr-009-retrieval-augmented-generation-(rag)-interface-strategy.md>)
+
+**Status**: 📝 Draft  
+**概要**: 検索（Retrieval）と生成（Generation）をクリーンに分離し、特定のベクトル DB に依存しないポータブルな RAG 実装の指針を定義します。  
+**キーワード**: RAG, Retrieval Engine, Knowledge Injection
+
+---
+
+#### [ADR-010: Multi-Engine Failover and Load Balancing](./adr-010-multi-engine-failover-and-load-balancing.md)
+
+**Status**: 📝 Draft  
+**概要**: 複数の AI プロバイダーを束ね、レート制限やサービス停止時に自動的にフェイルオーバー（または負荷分散）を行うためのレジリエンス戦略を定義します。  
+**キーワード**: High Availability, Failover, Load Balancing
+
+---
+
+### Lifecycle & QA
+
+#### [ADR-011: Standardized Prompt Templating and Versioning](./adr-011-standardized-prompt-templating-and-versioning.md)
+
+**Status**: 📝 Draft  
+**概要**: プロンプトのハードコードを排除し、Liquid テンプレートと外部プロバイダーを用いることで、デプロイなしでの挙動更新とバージョン管理を実現します。  
+**キーワード**: Prompt Engineering, Templating, Versioning
+
+---
+
+#### [ADR-012: Automated AI Evaluation Framework](./adr-012-automated-ai-evaluation-framework.md)
+
+**Status**: 📝 Draft  
+**概要**: 非決定的な AI の出力を定量的に評価するための「LLM-as-a-Judge」パターンと、CI/CD における品質ゲートの構築方針を定義します。  
+**キーワード**: QA, Evaluation, LLM-as-a-Judge
+
+---
+
+## 🎯 ADR の読み方ガイド
+
+### アーキテクチャとポータビリティの理解用
+
+1. **ADR-001**: なぜ AI ライブラリにおいてプロバイダー抽象化が不可欠なのか、その背景とトレードオフを理解するために最初に読んでください。
+2. **ADR-005**: 柔軟な設定管理を実現するための「継承から組合せへ」の転換理由と、その実装方針を理解するために読んでください。
+3. **ADR-015**: 設定インターフェース命名のOptionsサフィックス標準化について理解するために読んでください。
+4. **ADR-017**: ベクトルインデクシングや検索の技術と、LLM生成のオーケストレーションを物理アセンブリ・名前空間レベルで疎結合にする意義を学ぶために読んでください。
+5. **ADR-018**: プロンプトテンプレートを静的・動的ナレッジで安全に拡張するための、Context Expansion 構造とトークン管理について理解するために読んでください。
+
+### 運用、コスト、レジリエンスの理解用
+
+1. **ADR-006**: 産業レベルの AI 運用に不可欠なトークン管理とコスト制御の考え方を理解するために読んでください。
+2. **ADR-010**: クラウド障害に強い、複数のプロバイダーを組み合わせた高可用な設計を理解するために読んでください。
+3. **ADR-016**: 複数の AI サブ機能にまたがるトレース、ログ ID、メトリクス名を衝突なく設計し、統一ダッシュボードを構築する手法を理解するために読んでください。
+
+### 品質管理とガバナンスの理解用
+
+1. **ADR-008**: 企業レベルで必須となる安全性（検閲）の自動化とガバナンス戦略について理解するために読んでください。
+2. **ADR-012**: 非決定的な AI システムの品質をどのように「数値」で保証し、継続的デリバリーを実現するかを理解するために読んでください。
+3. **ADR-014**: 静的解析による安全なオプション制御（AP.05）と、Settings側とOverrides側の美しい対称設計について理解するために読んでください。
+
+## 🔗 関連ドキュメント
+
+- [AI Module Manifest](/src/BuildingBlocks/AI/.prompts/module-manifest.md)
+
+**Last Updated**: 2026-06-24  
+**Total ADRs**: 18
