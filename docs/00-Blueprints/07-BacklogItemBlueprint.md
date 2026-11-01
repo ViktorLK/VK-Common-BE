@@ -10,13 +10,15 @@
 
 # Constraints & Language
 
-1. **保存先**: `docs/07-Backlogs/{ParentModule}/{NNN}-{kebab-case-slug}.md`（MCP ツール `vk_be_add_backlog_item` による自動生成・ボード同期と完全互換）
+1. **保存先**: `docs/07-Backlogs/{ParentModule}/pbi-{NNN}-{kebab-case-slug}.md`（MCP ツール `vk_be_add_backlog_item` による自動生成・ボード同期と完全互換）
    - ディレクトリは必ず **トップレベルの父ライブラリ（Pillar）** に集約されます（例: `AI`, `Core`, `Persistence`, `Validation`, `Labs`）。
-2. **SSoT (Single Source of Truth)**: ファイル先頭に必ず **YAML Front-Matter** を含めること。
+2. **SSoT (Single Source of Truth)**: ファイル先頭に必ず **YAML Front-Matter v2** を含めること。
 3. **ID 体系**: 全ライブラリ横断の **3桁グローバル増序番号 (`#NNN`)** を使用。
 4. **階層分類**: `category: feature | story | task | debt | spike` および必要に応じた `parent: "#NNN" | "RFC-NNN"` の指定。
-5. **トレーサビリティ**: なぜこのタスクが必要なのか、発生源となる Audit Report、ADR、RFC、または違反しているルール ID（例: `CS.01`, `BB.03`）を必ず `refs` に明記すること。
-6. **出力言語**: 英語またはビジネスIT日本語（コード要素・ルール ID は英語表記、`BASE-09` 準拠）。
+5. **規模見積もり**: Story Points (フィボナッチ数: 1, 2, 3, 5, 8, 13) を標準採用（ADR-004）。13 を超える場合は Sprint コミット前に分割必須。
+6. **DoR (Definition of Ready)**: Sprint コミットの必須前提条件として DoR を満たし、`ready: true` とすること。
+7. **トレーサビリティ**: なぜこのタスクが必要なのか、発生源となる Audit Report、ADR、RFC、または違反しているルール ID（例: `CS.01`, `BB.03`）を必ず `refs` に明記すること。
+8. **出力言語**: 英語またはビジネスIT日本語（コード要素・ルール ID は英語表記、`BASE-09` 準拠）。
 
 ---
 
@@ -31,7 +33,17 @@
 
 ---
 
-# Atomic Task Structure (YAML Front-Matter SSoT)
+# DoR (Definition of Ready) Criteria
+
+Sprint Planning でタスクを確約（Commit）するには、以下の条件をすべて満たして `ready: true` に昇格している必要があります：
+1. **見積もり完了**: `points` が 1, 2, 3, 5, 8, 13 のいずれかに設定されていること（13 超は分割）。
+2. **課題と方針の明確化**: Description に `### 1. Problem / Context` と `### 2. Proposed Changes` が記載されていること。
+3. **明確な完了条件**: DoD にタイトル行以外のチェックボックス項目が最低 1 つ以上定義されていること。
+4. **アトミック性**: `category` が `feature` ではないこと（feature は story/task に分解してから Sprint 対象とする）。
+
+---
+
+# Atomic Task Structure (YAML Front-Matter v2 SSoT)
 
 ```markdown
 ---
@@ -45,8 +57,13 @@ type: debt
 priority: P2              # P0 | P1 | P2 | P3
 status: todo              # icebox | todo | doing | done | dropped
 sprint: null              # e.g. S-2026-44
-estimate: null            # hours (optional)
+points: 3                 # 1 | 2 | 3 | 5 | 8 | 13 (Fibonacci)
+rank: null                # int? (within priority)
+ready: false              # bool (DoR check passed)
+carry_over_count: 0       # int (incremented on sprint close if incomplete)
+estimate: null            # hours (optional legacy)
 created: 2026-10-31
+started: null             # yyyy-MM-dd (set when transitioning to doing)
 closed: null
 refs:
   rules: [CS.01, FS-08]
