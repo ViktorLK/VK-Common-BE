@@ -10,7 +10,7 @@
 
 # Constraints & Language
 
-1. **保存先**: `docs/04-ArchitectureDecisionRecords/{ModuleName}/adr-{NNN}-{slug}.md`（MCP ツール `vk_be_draft_architecture_decision_record` の自動生成と完全互換）
+1. **保存先**: `docs/04-ArchitectureDecisionRecords/{ModuleName}/adr-{NNN}-{slug}.md`（MCP ツール `vk_be_draft_adr` の自動生成と完全互換）
 2. **出力言語**: ビジネスIT日本語（見出しおよび主要技術用語は英語併記、`BASE-09` 準拠）
 3. **トーン＆マナー**: 客観的・論理的かつ厳格。アーキテクトとして複数の代替案（Trade-offs）を比較衡量した思考プロセスを明確に示すこと。
 4. **README 同期**: ADR 新設・更新時は、同階層の `README.md`（ADR 索引）を必ず更新・再同期すること（`vk-draft-adr` ツールにより自動化可能）。

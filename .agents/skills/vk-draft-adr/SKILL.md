@@ -1,6 +1,6 @@
 ---
 name: vk-draft-adr
-description: Generate an Architecture Decision Record (ADR) and update the module ADR index in docs/04-ArchitectureDecisionRecords/ using vk_be_draft_architecture_decision_record and docs/00-Blueprints/04-AdrBlueprint.md (DL.03, PS.02).
+description: Generate an Architecture Decision Record (ADR) and update the module ADR index in docs/04-ArchitectureDecisionRecords/ using vk_be_draft_adr and docs/00-Blueprints/04-AdrBlueprint.md (DL.03, PS.02).
 ---
 
 # Skill: Draft Architecture Decision Record (`DL.03`, `PS.02`)
@@ -25,7 +25,7 @@ Use this skill whenever an architectural decision point is reached (new cross-cu
      - `summary`: Japanese 1-2 sentence executive summary for the index.
      - `keywords`: 2-3 relevant tags (e.g. `SSOT, Identity, Zero-Allocation`).
      - `supersedes`: (Optional) Previous ADR number if replacing an older decision (e.g. `001`).
-   - Call `vk_be_draft_architecture_decision_record` from `vk-blocks-be-manager`.
+   - Call `vk_be_draft_adr` from `vk-blocks-be-manager`.
    - The MCP tool deterministically:
      - Computes next sequential `adr-{NNN}` number and safe kebab-case filename.
      - Auto-updates previous superseded ADRs (status and link).

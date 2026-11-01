@@ -1,0 +1,35 @@
+﻿---
+id: "#065"
+legacy_id: "AI.PSYCHE-004"
+category: debt
+parent: null
+title: Design pluggable semantic knowledge retrieval abstraction and external adapter
+module: AI
+type: debt
+priority: P3
+status: icebox
+sprint: 
+estimate: 
+created: 2026-05-01
+closed: 
+refs:
+  rules:
+  - AP.07
+  - BB.01
+  docs: []
+commits: []
+---
+# Task: Design pluggable semantic knowledge retrieval abstraction and external adapter
+**ID**: #065 *(Legacy: AI.PSYCHE-004)*
+**Status**: 🔵 Low | #Debt
+**Target**: `src/BuildingBlocks/AI.Psyche/Knowledge`
+**Ref**: AP.07, BB.01
+
+## 📝 Description
+Define the pluggable semantic vector search abstraction (IVKKnowledgeSemanticMatcher) in AI.Psyche Protocols, and plan the external adapter library (VK.Blocks.AI.Psyche.Knowledge.Semantic) integrating with VectorStore to maintain zero heavy dependencies in the core micro-kernel.
+
+## ✅ DoD (Definition of Done)
+- [ ] Design pluggable semantic knowledge retrieval abstraction and external adapter
+- [ ] **Assess if an ADR is required (DL.03)**
+- [ ] Verify changes
+- [ ] Run tests
