@@ -1,13 +1,10 @@
----
+﻿---
 trigger: manual
 ---
 
-# VK.Blocks BE: Building Block Blueprint (BB)
+<ruleset category="BB" name="Building Block Blueprint">
 
-> **Note**: This file provides the concrete blueprint and implementation templates for the architectural principles defined in `l3-vk-be-ap-architecture-patterns.md` (specifically AP.02–AP.04).
-
-### BB.01 — Standard Folder Structure (Vertical Slice Priority)
-
+<rule id="BB.01" type="B" name="Standard Folder Structure (Vertical Slice Priority)">
 Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Generic technical folders should be used sparingly as a last resort.
 
 **Internal Scoping Rule**: An `Internal/` folder at any level means implementation details that MUST NOT be accessible outside that folder's parent scope (via `internal` keyword).
@@ -30,29 +27,22 @@ Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Gener
     - **`Protocols/` (Optional)**: Public cross-boundary interface and delegate definitions.
     - **`Shared/` (Optional)**: Cross-cutting foundation utilities used by 2 or more features. **Strictly Internal** (Visibility governed by **AP.03**).
 - **`VK{ModuleName}Block.cs`**: **Public** marker type placed directly in the module's root directory.
-- **`VK{ModuleName}Options.cs`**: **Public** block-level configuration options class (implementing `IVKBlockOptions` or `IVKToggleableBlockOptions`). MUST be hand-written and declared as `partial` to allow the Source Generator to generate the `SectionName` constant. Contains the actual configuration properties for the block.
+- **`VK{ModuleName}Options.cs`**: **Public** block-level configuration options class (implementing `IVKBlockOptions` or `IVKToggleableBlockOptions`). MUST be hand-written and declared as `partial`.
+</rule>
 
-### BB.02 — The Marker Pattern ([VKBlockMarker])
-
+<rule id="BB.02" type="B" name="The Marker Pattern ([VKBlockMarker])">
 Each module MUST define a sealed partial class decorated with the `[VKBlockMarker]` attribute, placed in the module's root directory:
-
-- **Source Generation**: DO NOT manually implement `IVKBlockMarker`. The interface and its properties (BlockName, ActivitySource, etc.) are automatically implemented via Source Generation based on the attribute metadata.
+- **Source Generation**: DO NOT manually implement `IVKBlockMarker`.
 - **Partial Declaration**: The class MUST be declared as `sealed partial class`.
-- **Namespace**: `VK.Blocks.{ModuleName}` (library root namespace, per AP.03 — public API surface).
+- **Namespace**: `VK.Blocks.{ModuleName}` (library root namespace, per AP.03).
 - **Dependencies**: Explicitly define prerequisite blocks using the `Dependencies` property (e.g., `[VKBlockMarker(Dependencies = [typeof(VKCoreBlock)])]`).
 - **Activity/Meter**: The generated implementation uses `VKBlocksConstants.VKBlocksPrefix + ModuleName`.
+</rule>
 
-### BB.03 — Idempotent DI Registration (SG-Automated)
+<rule id="BB.03" type="B" name="Idempotent DI Registration (SG-Automated)">
+**STRICT CONSTRAINT**: The entire registration flow MUST be synchronous. Executing I/O operations or using blocking async calls inside DI extensions is STRICTLY PROHIBITED.
 
-**STRICT CONSTRAINT**: The entire registration flow MUST be synchronous. Executing I/O operations (e.g., database calls, network requests) or using blocking async calls (`Task.Wait()`, `.GetAwaiter().GetResult()`) inside DI extensions is STRICTLY PROHIBITED as it leads to startup deadlocks and thread pool starvation.
-
-#### SG-Generated Registration (Do NOT Hand-Write)
-
-The `VKBlockGenerator` Source Generator automatically emits two files based on the `[VKBlockMarker]` attribute:
-
-1.  **Public Wrapper** (`VK{ModuleName}BlockExtensions.g.cs`): The public `AddVK{ModuleName}Block()` extension method on `IServiceCollection`, delegating to the internal registration class.
-2.  **Internal Core** (`{ModuleName}BlockRegistration.g.cs`): An `internal static partial class` in `Common/DependencyInjection/Internal/` containing the `Register` method with the following **exact sequence**:
-
+#### Registration Order Sequence
 | Step | Action | Code |
 |:-----|:-------|:-----|
 | 1 | **Check-Self** | `if (services.IsVKBlockRegistered<VK{ModuleName}Block>()) return builder;` |
@@ -64,53 +54,42 @@ The `VKBlockGenerator` Source Generator automatically emits two files based on t
 | 6 | **Custom Hook** | `{ModuleName}Block.Register(builder);` |
 
 #### Developer-Owned Customization (`{ModuleName}Block.cs`)
+- When custom service registration or options validation is required, create a hand-written partial class at `Common/DependencyInjection/Internal/{ModuleName}Block.cs`.
+- Implement `static partial void RegisterBlockCustom(IVK{ModuleName}Builder builder)` or `partial ValidateOptionsResult ValidateBlockCustom(...)`.
+</rule>
 
-When a block requires custom service registration or complex options validation, create a hand-written partial class at `Common/DependencyInjection/Internal/{ModuleName}Block.cs`:
-
-- **Class**: `internal sealed partial class {ModuleName}Block` — merges with the SG-generated `{ModuleName}Block.g.cs` that implements `IValidateOptions<VK{ModuleName}Options>`.
-- **Registration Hook**: Implement the `static partial void RegisterBlockCustom(IVK{ModuleName}Builder builder)` method for custom service bindings.
-- **Validation Hook**: Implement the `partial ValidateOptionsResult ValidateBlockCustom(VK{ModuleName}Options options)` method for complex cross-property validation.
-- If **no custom logic** is needed, this file can be omitted entirely — the SG-generated defaults are sufficient.
-
-### BB.04 — Diagnostics Blueprint
-
+<rule id="BB.04" type="B" name="Diagnostics Blueprint">
 - **Metadata**: Register an `ISecurityMetadataProvider` (if applicable) to provide version info to diagnostics.
 - **Diagnostics Class**: Annotated with `[VKBlockDiagnostics(typeof({ModuleName}Block))]`.
-- **Constants**: Defined in `VK{ModuleName}DiagnosticsConstants.cs` or feature-level `VK{FeatureName}DiagnosticsConstants.cs`. Block/Feature-level diagnostics constants MUST be declared as `public static class` using the `VK` prefix (e.g., `VKPsycheDiagnosticsConstants.cs`).
+- **Constants**: Defined in `VK{ModuleName}DiagnosticsConstants.cs` or feature-level `VK{FeatureName}DiagnosticsConstants.cs` (public static class with `VK` prefix).
 - **Feature-level Diagnostics**: Complex features can have their own feature-level diagnostics under `{FeatureName}/Diagnostics/`.
+</rule>
 
-### BB.05 — Options Architecture
-
+<rule id="BB.05" type="B" name="Options Architecture">
 - **Immutability**: MUST be a `sealed record` with `init` properties.
-- **Functional Transformation (ADR-016)**: ANY code-based configuration MUST use the **`Func<T, T> transform`** pattern (instead of mutating `Action<T>`) to support immutability via `with` expressions. (A backward-compatible `Action<T> configure` bridge wrapper MAY be provided by `AddVKBlockOptions`).
-- **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions` or `VKXxxDefaultsOptions`).
-- **Interface**: MUST implement `IVKBlockOptions` (or its variant `IVKToggleableBlockOptions` for blocks supporting feature toggles with an `Enabled` property).
-- **SectionName**: Formatted according to AP.04.
+- **Functional Transformation**: Configuration MUST use the **`Func<T, T> transform`** pattern.
+- **Naming**: MUST use `VK` prefix (e.g., `VKXxxOptions`).
+- **Interface**: MUST implement `IVKBlockOptions` (or `IVKToggleableBlockOptions`).
 - **Validation**: MUST have a corresponding `IValidateOptions` implementation.
+</rule>
 
-### BB.06 — Modular Feature Pattern
-
+<rule id="BB.06" type="B" name="Modular Feature Pattern">
 Complex blocks containing multiple independent features MUST follow this sub-registration pattern:
-
 - **Chained Builder**: Use extension methods on `IVK{ModuleName}Builder` to add features (e.g., `builder.AddFeatureA()`).
 - **Idempotent Feature Registration**: Each feature registration method MUST check its own feature marker class/registration state before proceeding.
-- **Hierarchical Options**: Feature options MUST reside under the parent block's configuration section (e.g., `VKBlocks:Parent:Feature`).
-- **Convention-over-Configuration (Attribute Inference)**: Annotate features using standard attribute markers:
-  ```csharp
-  [VKFeature(typeof(ParentBlock), GenerateArgs = true, GenerateValidator = true)]
-  ```
-  This is preferred over hardcoded name/namespace strings.
+- **Hierarchical Options**: Feature options MUST reside under the parent block's configuration section.
+- **Convention-over-Configuration**: Annotate features using standard attribute markers: `[VKFeature(typeof(ParentBlock))]`.
+</rule>
 
-### BB.07 — Options Isolation (One Class, One File)
-
-To maintain vertical slice integrity and prevent structural rot:
-
+<rule id="BB.07" type="B" name="Options Isolation (One Class, One File)">
 - **No Nesting**: Options classes MUST reside in their own dedicated `.cs` files at the root of their functional module/feature.
 - **Strict Prohibition**: It is STRICTLY PROHIBITED to nest Options records within interface files, internal handler files, or other shared classes.
+</rule>
 
-### BB.08 — Implicit Dependency (Automated Pull-up)
-
+<rule id="BB.08" type="B" name="Implicit Dependency (Automated Pull-up)">
 Sub-features MUST ensure their architectural hierarchy is preserved:
-
 - **Parent First**: Every sub-feature's `Register` method MUST call its parent pillar's registration logic if the pillar is not yet registered.
 - **Source Generation Implementation**: This logic SHOULD be automated via the Source Generator based on the `[VKFeature]` parent type metadata.
+</rule>
+
+</ruleset>

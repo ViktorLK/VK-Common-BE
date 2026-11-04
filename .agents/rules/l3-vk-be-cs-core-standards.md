@@ -1,11 +1,10 @@
----
+﻿---
 trigger: manual
 ---
 
-# VK.Blocks BE: Core Standards (CS)
+<ruleset category="CS" name="Core Standards">
 
-### CS.01 — Result Pattern
-
+<rule id="CS.01" type="A" name="Result Pattern">
 - Application Layer: RETURN `Result<T>` only. NEVER return null.
 - For void operations, use `Result` (non-generic) or `Result<Unit>`. NEVER return bare `void` or `Task` from Application Layer handlers.
 - NEVER use `Result.Failure("raw string")`. ALWAYS use predefined `Error` constants.
@@ -13,24 +12,24 @@ trigger: manual
 - Infrastructure Layer: exceptions ARE allowed, but MUST be caught at the boundary and mapped to `Result<T>`.
 - Follow RFC 7807 for HTTP error responses.
 - Result<T> MUST carry structured Error objects, never raw strings or Exception objects.
+</rule>
 
-### CS.02 — Layer Dependencies
-
+<rule id="CS.02" type="B" name="Layer Dependencies">
 - Core/Application Layer: NO direct dependency on infrastructure libraries (EF Core / Redis / Azure SDK).
 - MediatR is allowed as the ONLY orchestration mechanism in the Application Layer.
 - All infrastructure concerns (DB / Cache / Messaging) MUST be abstracted behind interfaces.
+</rule>
 
-### CS.03 — Async
-
+<rule id="CS.03" type="A" name="Async">
 - Use `async/await` + `CancellationToken` for ALL I/O operations.
 - NO `.Result`, `.Wait()`, or blocking calls.
 - Prefer `ValueTask<T>` over `Task<T>` for **internal** hot-path methods where synchronous completion is the common case (cache hits, in-memory checks). **Public API interfaces (`IVK...`) MUST use `Task<T>`** to prevent consumer-side misuse (double-await, premature access). Avoid `ValueTask` when the operation is always async or may be awaited multiple times.
 - ALL `await` calls within BuildingBlock/library code MUST use `.ConfigureAwait(false)` to prevent synchronization-context deadlocks.
 - **Exception**: DO NOT use `.ConfigureAwait(false)` in Test methods (xUnit). Test code should maintain the synchronization context for stable assertion handling and parallelism management.
 - **Enforcement**: Configure `.editorconfig` (e.g., `dotnet_diagnostic.xUnit1030.severity = error`) or use custom analyzers to automatically prevent IDE auto-completion from injecting `.ConfigureAwait(false)` into test projects.
+</rule>
 
-### CS.04 — Performance
-
+<rule id="CS.04" type="B" name="Performance">
 - NO database queries inside loops.
 - `.AsNoTracking()` is DEFAULT for all read queries.
 - Batch operations MUST use `ExecuteUpdateAsync` / `ExecuteDeleteAsync` where applicable.
@@ -39,29 +38,29 @@ trigger: manual
 - Prefer `ReadOnlySpan<T>` / `Span<T>` for string parsing and manipulation to avoid heap allocations.
 - Only use `stackalloc` for constant or provably small sizes (≤ 256 bytes) to prevent stack overflow risks.
 - Prefer `ArrayPool<T>.Shared` for large temporary buffers (> 256 bytes) to reduce GC pressure and avoid LOH allocations. ALWAYS return the array in a `finally` block.
+</rule>
 
-### CS.05 — Automation
-
+<rule id="CS.05" type="B" name="Automation">
 - `IAuditable` fields (CreatedAt / UpdatedAt / CreatedBy) MUST be handled via DbContext Interceptors.
 - `ISoftDelete` MUST be handled via DbContext Interceptors + Global Query Filters.
 - NO manual audit or soft-delete logic in application code.
+</rule>
 
-### CS.06 — Core Abstractions
-
+<rule id="CS.06" type="A" name="Core Abstractions">
 - **Deterministic Logic**: PROHIBIT direct use of non-deterministic system APIs within BuildingBlocks.
 - **GUIDs**: Use `IVKGuidGenerator` (injected) instead of `Guid.NewGuid()`.
 - **Time**: Use `TimeProvider` (injected) instead of `DateTime.UtcNow` or `DateTimeOffset.Now`.
 - **Serialization**: Use `IVKJsonSerializer` (injected) for all JSON operations to ensure consistent behavior and standard options.
+</rule>
 
-### CS.07 — Dependency Resolution
-
+<rule id="CS.07" type="A" name="Dependency Resolution">
 - **Mandatory Registration**: ALWAYS use `GetRequiredService<T>()` or `GetRequiredService(Type)` when retrieving services from `IServiceProvider` that are expected to be registered.
 - **Prohibit GetService**: The use of `GetService<T>()` or `GetService(Type)` is STRICTLY PROHIBITED for required dependencies, as it returns `null` and violates the deterministic failure principle.
 - **Optional Services**: For truly optional services, use `GetServices<T>()` and check for an empty collection, or explicitly document why `GetService` is used with a null-coalescing fallback (e.g., `sp.GetService<T>() ?? Default`).
 - **Fail Fast**: Prefer container-level failure over manual null checks in application logic.
+</rule>
 
-### CS.08 — Persistence & Database Standards
-
+<rule id="CS.08" type="A" name="Persistence & Database Standards">
 - **Tenant Isolation**:
   - `TenantId` in DB MUST be `NOT NULL` (enforce via DbContext conventions/configurations).
   - Multi-tenant high-frequency query indexes MUST use `TenantId` as the leading column (`IX_{Table}_TenantId_{BizKey}`).
@@ -83,3 +82,6 @@ trigger: manual
 - **Migrations & Delivery**:
   - EF Core Migrations are owned EXCLUSIVELY by the Application Host (BuildingBlocks only provide models/conventions).
   - Production deployment scripts MUST be generated using `dotnet ef migrations script --idempotent`.
+</rule>
+
+</ruleset>

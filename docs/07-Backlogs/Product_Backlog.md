@@ -7,14 +7,14 @@ VK.Blocks 全モジュールの未完了・保留タスク一覧です。優先�
 
 | ID | Priority | Points | Ready | Module | Status | Title |
 |:---:|:---:|:---:|:---:|:---:|:---:|---|
-| [#081](./Authorization/pbi-081-di-normalization.md) | 🔴 P1 | 3 pts | ✅ | `Authorization` | 🏃 `done` | Authorization DI Normalization |
-| [#047](./AI/pbi-047-implement-streaming-contract-transformer-and-end-of-stream-sealing.md) | 🔴 P1 | - | — | `AI` | `todo` | Implement Streaming Contract Transformer and End-of-Stream Sealing |
-| [#050](./AI/pbi-050-support-streaming-pipeline-(ivkpsychestreamingpipeline-&-ttft-profiling).md) | 🔴 P1 | - | — | `AI` | `todo` | Support Streaming Pipeline & Tapestry (IVKPsycheStreamingPipeline & TTFT Profiling) |
-| [#053](./AI/pbi-053-full-implementation-of-aisk-retrieval-engine.md) | 🔴 P1 | - | — | `AI` | `todo` | Full implementation of AISK Retrieval Engine |
 | [#055](./AI/pbi-055-industrialize-token-counter-implementation.md) | 🔴 P1 | - | — | `AI` | `todo` | Industrialize Token Counter Implementation |
-| [#060](./AI/pbi-060-industrial-telemetry-and-semantic-logging-implementation.md) | 🔴 P1 | - | — | `AI` | `todo` | Industrial Telemetry and Semantic Logging Implementation |
-| [#061](./AI/pbi-061-integrate-opentelemetry-native-instrumentation-and-metrics-observability.md) | 🔴 P1 | - | — | `AI` | `todo` | Integrate OpenTelemetry Native Instrumentation and Metrics Observability |
 | [#074](./AI/pbi-074-audit-and-fix-feature-toggle-(enabled)-orthogonality.md) | 🔴 P1 | - | — | `AI` | `todo` | Audit and Fix Feature Toggle (Enabled) Orthogonality |
+| [#047](./AI.Eidos/pbi-047-implement-streaming-contract-transformer-and-end-of-stream-sealing.md) | 🔴 P1 | - | — | `AI.Eidos` | `todo` | Implement Streaming Contract Transformer and End-of-Stream Sealing |
+| [#061](./AI.Eidos/pbi-061-integrate-opentelemetry-native-instrumentation-and-metrics-observability.md) | 🔴 P1 | - | — | `AI.Eidos` | `todo` | Integrate OpenTelemetry Native Instrumentation and Metrics Observability |
+| [#129](./AI.Engram/pbi-129-engram-v1-architecture-revision-3-layer-memory-engine-l0-episode-l1-derived-l2-recall-presentation.md) | 🔴 P1 | - | — | `AI.Engram` | `todo` | Engram v1 Architecture Revision: 3-Layer Memory Engine (L0 Episode / L1 Derived / L2 Recall & Presentation) |
+| [#130](./AI.Engram/pbi-130-l0-immutable-episode-store-ivkepisoderepository-sourceepisodeids-provenance-tracking.md) | 🔴 P1 | 5 pts | ✅ | `AI.Engram` | `todo` | L0 Immutable Episode Store (IVKEpisodeRepository) & SourceEpisodeIds Provenance Tracking |
+| [#131](./AI.Engram/pbi-131-l1-derived-memory-stores-bi-temporal-schema-validfromvalidto-entity-links-reminder-workflow-delegation.md) | 🔴 P1 | 8 pts | ✅ | `AI.Engram` | `todo` | L1 Derived Memory Stores: Bi-Temporal Schema (ValidFrom/ValidTo), Entity Links, & Reminder Workflow Delegation |
+| [#132](./AI.Engram/pbi-132-single-pass-llm-extraction-scoring-integration-with-eidos-structured-output.md) | 🔴 P1 | 8 pts | ✅ | `AI.Engram` | `todo` | Single-Pass LLM Extraction & Scoring Integration with Eidos Structured Output |
 
 ## 🏗️ Core (10)
 
@@ -31,42 +31,85 @@ VK.Blocks 全モジュールの未完了・保留タスク一覧です。優先�
 | [#022](./Core/pbi-022-explore-c-12-interceptors-for-compile-time-di-registration-verification.md) | 🔵 P3 | - | — | `debt` | `icebox` | Explore C# 12 Interceptors for Compile-Time DI Registration Verification | - |
 | [#024](./Core/pbi-024-code-quality-alignment-vkerrortype-order-and-pagination-types-consolidation.md) | 🔵 P3 | 3 pts | ✅ | `debt` | `icebox` | Code Quality Alignment: VKErrorType Order and Pagination Types Consolidation | - |
 
-## 🧠 AI (32)
+## 🧠 AI (4)
 
 | ID | Priority | Points | Ready | Category | Status | Title | Sprint |
 |:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
-| [#047](./AI/pbi-047-implement-streaming-contract-transformer-and-end-of-stream-sealing.md) | 🔴 P1 | - | — | `debt` | `todo` | Implement Streaming Contract Transformer and End-of-Stream Sealing | - |
-| [#050](./AI/pbi-050-support-streaming-pipeline-(ivkpsychestreamingpipeline-&-ttft-profiling).md) | 🔴 P1 | - | — | `debt` | `todo` | Support Streaming Pipeline & Tapestry (IVKPsycheStreamingPipeline & TTFT Profiling) | - |
-| [#053](./AI/pbi-053-full-implementation-of-aisk-retrieval-engine.md) | 🔴 P1 | - | — | `debt` | `todo` | Full implementation of AISK Retrieval Engine | - |
 | [#055](./AI/pbi-055-industrialize-token-counter-implementation.md) | 🔴 P1 | - | — | `debt` | `todo` | Industrialize Token Counter Implementation | - |
-| [#060](./AI/pbi-060-industrial-telemetry-and-semantic-logging-implementation.md) | 🔴 P1 | - | — | `debt` | `todo` | Industrial Telemetry and Semantic Logging Implementation | - |
-| [#061](./AI/pbi-061-integrate-opentelemetry-native-instrumentation-and-metrics-observability.md) | 🔴 P1 | - | — | `debt` | `todo` | Integrate OpenTelemetry Native Instrumentation and Metrics Observability | - |
 | [#074](./AI/pbi-074-audit-and-fix-feature-toggle-(enabled)-orthogonality.md) | 🔴 P1 | - | — | `debt` | `todo` | Audit and Fix Feature Toggle (Enabled) Orthogonality | - |
-| [#046](./AI/pbi-046-implement-provider-level-failover-for-ai-engines.md) | 🟡 P2 | - | — | `debt` | `icebox` | Implement Provider-Level Failover for AI Engines | - |
-| [#048](./AI/pbi-048-streaming-egress-traffic-shaping-and-sentence-chunking.md) | 🟡 P2 | - | — | `debt` | `icebox` | Streaming Egress Traffic Shaping and Sentence Chunking | - |
-| [#052](./AI/pbi-052-eliminate-redundant-optionsenabled-checks-in-feature-hooks.md) | 🟡 P2 | - | — | `debt` | `icebox` | Eliminate redundant options.Enabled checks in feature hooks | - |
-| [#054](./AI/pbi-054-implement-lenient-and-partial-tolerancemodes-in-materialization-binder.md) | 🟡 P2 | - | — | `debt` | `icebox` | Implement Lenient and Partial ToleranceModes in Materialization Binder | - |
-| [#056](./AI/pbi-056-multimodal-prosody-and-viseme-alignment.md) | 🟡 P2 | - | — | `debt` | `icebox` | Multimodal Prosody and Viseme Alignment | - |
-| [#058](./AI/pbi-058-actuator-idempotency-and-hitl-confirmation-gate.md) | 🟡 P2 | - | — | `debt` | `icebox` | Actuator Idempotency and HITL Confirmation Gate | - |
-| [#059](./AI/pbi-059-implement-channels-based-asynchronous-pipeline-post-processing-and-backpressure.md) | 🟡 P2 | - | — | `debt` | `icebox` | Implement Channels-based asynchronous pipeline post-processing and backpressure | - |
-| [#062](./AI/pbi-062-integrate-real-intent-routing-in-defaultreasoningpipelinestage.md) | 🟡 P2 | - | — | `debt` | `icebox` | Integrate real intent routing in DefaultReasoningPipelineStage | - |
-| [#063](./AI/pbi-063-barge-in-interruption-and-delivery-watermark-telemetry.md) | 🟡 P2 | - | — | `debt` | `icebox` | Barge-in Interruption and Delivery Watermark Telemetry | - |
-| [#064](./AI/pbi-064-complete-governance-filters-and-token-counting-logic.md) | 🟡 P2 | - | — | `debt` | `icebox` | Complete Governance Filters and Token Counting Logic | - |
-| [#066](./AI/pbi-066-support-streaming-partial-materialization-and-json-patch-incremental-push.md) | 🟡 P2 | - | — | `debt` | `icebox` | Support Streaming Partial Materialization and JSON Patch Incremental Push | - |
-| [#067](./AI/pbi-067-adaptive-multi-model-fallback-and-reflective-circuit-breaker-routing.md) | 🟡 P2 | - | — | `debt` | `icebox` | Adaptive Multi-Model Fallback and Reflective Circuit Breaker Routing | - |
-| [#070](./AI/pbi-070-refactor-aisemantickernel-registration-using-vkblockbuilderextensions-syntax-sugar.md) | 🟡 P2 | - | — | `debt` | `icebox` | Refactor AI.SemanticKernel registration using VKBlockBuilderExtensions syntax sugar | - |
-| [#072](./AI/pbi-072-prompt-cache-linter-&-advisory-system-(pca).md) | 🟡 P2 | - | — | `debt` | `icebox` | Prompt Cache Linter & Advisory System (PCA) | - |
 | [#075](./AI/pbi-075-decouple-hardcoded-ai-dependencies-from-di-source-generator.md) | 🟡 P2 | - | — | `debt` | `icebox` | Decouple Hardcoded AI Dependencies from DI Source Generator | - |
-| [#076](./AI/pbi-076-extension-libraries-vkpsycheresponse-modelresult-strongly-typed-extension-methods-(dx).md) | 🟡 P2 | - | — | `debt` | `icebox` | Extension Libraries VKPsycheResponse ModelResult Strongly-Typed Extension Methods (DX) | - |
-| [#077](./AI/pbi-077-decouple-ai-governance-and-consolidate-into-synapse.md) | 🟡 P2 | - | — | `debt` | `icebox` | Decouple AI Governance Abstractions and Consolidate Traffic Management into AI.Synapse | - |
 | [#078](./AI/pbi-078-evaluate-and-cleanup-redundant-ivkaiprovideroverrides-interface.md) | 🟡 P2 | - | — | `debt` | `icebox` | Evaluate and Cleanup Redundant IVKAIProviderOverrides Interface | - |
-| [#079](./AI/pbi-079-001-Tokenomics.md) | 🟡 P2 | - | — | `debt` | `icebox` | AI.SEMANTICKERNEL-001-Tokenomics | - |
-| [#049](./AI/pbi-049-support-streaming-compression-for-large-token-jobs.md) | 🔵 P3 | - | — | `debt` | `icebox` | Support Streaming Compression for Large Token Jobs | - |
-| [#065](./AI/pbi-065-design-pluggable-semantic-knowledge-retrieval-abstraction-and-external-adapter.md) | 🔵 P3 | - | — | `debt` | `icebox` | Design pluggable semantic knowledge retrieval abstraction and external adapter | - |
-| [#068](./AI/pbi-068-ai-watermarking-and-regulatory-compliance-injection.md) | 🔵 P3 | - | — | `debt` | `icebox` | AI Watermarking and Regulatory Compliance Injection | - |
-| [#069](./AI/pbi-069-implement-external-distributed-persistence-adapters-for-redis-and-efcore.md) | 🔵 P3 | - | — | `debt` | `icebox` | Implement external distributed persistence adapters for Redis and EFCore | - |
-| [#071](./AI/pbi-071-deep-integration-with-json-schema-based-guided-decoding-engine.md) | 🔵 P3 | - | — | `debt` | `icebox` | Deep Integration with JSON Schema-Based Guided Decoding Engine | - |
-| [#073](./AI/pbi-073-raw-response-audit-storage-and-contract-schema-master-registry.md) | 🔵 P3 | - | — | `debt` | `icebox` | Raw Response Audit Storage and Contract Schema Master Registry | - |
+
+## 📋 AI.Cognitive (1)
+
+| ID | Priority | Points | Ready | Category | Status | Title | Sprint |
+|:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
+| [#062](./AI.Cognitive/pbi-062-integrate-real-intent-routing-in-defaultreasoningpipelinestage.md) | 🟡 P2 | - | — | `debt` | `icebox` | Integrate real intent routing in DefaultReasoningPipelineStage | - |
+
+## 📋 AI.Efferent (5)
+
+| ID | Priority | Points | Ready | Category | Status | Title | Sprint |
+|:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
+| [#048](./AI.Efferent/pbi-048-streaming-egress-traffic-shaping-and-sentence-chunking.md) | 🟡 P2 | - | — | `debt` | `icebox` | Streaming Egress Traffic Shaping and Sentence Chunking | - |
+| [#056](./AI.Efferent/pbi-056-multimodal-prosody-and-viseme-alignment.md) | 🟡 P2 | - | — | `debt` | `icebox` | Multimodal Prosody and Viseme Alignment | - |
+| [#058](./AI.Efferent/pbi-058-actuator-idempotency-and-hitl-confirmation-gate.md) | 🟡 P2 | - | — | `debt` | `icebox` | Actuator Idempotency and HITL Confirmation Gate | - |
+| [#063](./AI.Efferent/pbi-063-barge-in-interruption-and-delivery-watermark-telemetry.md) | 🟡 P2 | - | — | `debt` | `icebox` | Barge-in Interruption and Delivery Watermark Telemetry | - |
+| [#068](./AI.Efferent/pbi-068-ai-watermarking-and-regulatory-compliance-injection.md) | 🔵 P3 | - | — | `debt` | `icebox` | AI Watermarking and Regulatory Compliance Injection | - |
+
+## 📋 AI.Eidos (7)
+
+| ID | Priority | Points | Ready | Category | Status | Title | Sprint |
+|:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
+| [#047](./AI.Eidos/pbi-047-implement-streaming-contract-transformer-and-end-of-stream-sealing.md) | 🔴 P1 | - | — | `debt` | `todo` | Implement Streaming Contract Transformer and End-of-Stream Sealing | - |
+| [#061](./AI.Eidos/pbi-061-integrate-opentelemetry-native-instrumentation-and-metrics-observability.md) | 🔴 P1 | - | — | `debt` | `todo` | Integrate OpenTelemetry Native Instrumentation and Metrics Observability | - |
+| [#054](./AI.Eidos/pbi-054-implement-lenient-and-partial-tolerancemodes-in-materialization-binder.md) | 🟡 P2 | - | — | `debt` | `icebox` | Implement Lenient and Partial ToleranceModes in Materialization Binder | - |
+| [#066](./AI.Eidos/pbi-066-support-streaming-partial-materialization-and-json-patch-incremental-push.md) | 🟡 P2 | - | — | `debt` | `icebox` | Support Streaming Partial Materialization and JSON Patch Incremental Push | - |
+| [#067](./AI.Eidos/pbi-067-adaptive-multi-model-fallback-and-reflective-circuit-breaker-routing.md) | 🟡 P2 | - | — | `debt` | `icebox` | Adaptive Multi-Model Fallback and Reflective Circuit Breaker Routing | - |
+| [#071](./AI.Eidos/pbi-071-deep-integration-with-json-schema-based-guided-decoding-engine.md) | 🔵 P3 | - | — | `debt` | `icebox` | Deep Integration with JSON Schema-Based Guided Decoding Engine | - |
+| [#073](./AI.Eidos/pbi-073-raw-response-audit-storage-and-contract-schema-master-registry.md) | 🔵 P3 | - | — | `debt` | `icebox` | Raw Response Audit Storage and Contract Schema Master Registry | - |
+
+## 📋 AI.Engram (9)
+
+| ID | Priority | Points | Ready | Category | Status | Title | Sprint |
+|:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
+| [#129](./AI.Engram/pbi-129-engram-v1-architecture-revision-3-layer-memory-engine-l0-episode-l1-derived-l2-recall-presentation.md) | 🔴 P1 | - | — | `feature` | `todo` | Engram v1 Architecture Revision: 3-Layer Memory Engine (L0 Episode / L1 Derived / L2 Recall & Presentation) | - |
+| [#130](./AI.Engram/pbi-130-l0-immutable-episode-store-ivkepisoderepository-sourceepisodeids-provenance-tracking.md) | 🔴 P1 | 5 pts | ✅ | `story` | `todo` | L0 Immutable Episode Store (IVKEpisodeRepository) & SourceEpisodeIds Provenance Tracking | - |
+| [#131](./AI.Engram/pbi-131-l1-derived-memory-stores-bi-temporal-schema-validfromvalidto-entity-links-reminder-workflow-delegation.md) | 🔴 P1 | 8 pts | ✅ | `story` | `todo` | L1 Derived Memory Stores: Bi-Temporal Schema (ValidFrom/ValidTo), Entity Links, & Reminder Workflow Delegation | - |
+| [#132](./AI.Engram/pbi-132-single-pass-llm-extraction-scoring-integration-with-eidos-structured-output.md) | 🔴 P1 | 8 pts | ✅ | `story` | `todo` | Single-Pass LLM Extraction & Scoring Integration with Eidos Structured Output | - |
+| [#134](./AI.Engram/pbi-134-persistent-tiered-compression-outbox-job-state-session-serialization-prompt-cache-prefix-stabilization.md) | 🔴 P1 | 8 pts | ✅ | `story` | `todo` | Persistent Tiered Compression: Outbox Job State, Session Serialization, & Prompt-Cache Prefix Stabilization | - |
+| [#135](./AI.Engram/pbi-135-l2-recall-engine-humanlikepresentationpolicy-hybrid-search-l2-decay-spaced-repetition-character-parameters.md) | 🔴 P1 | 8 pts | ✅ | `story` | `todo` | L2 Recall Engine & HumanLikePresentationPolicy (Hybrid Search, L2 Decay, Spaced Repetition, & Character Parameters) | - |
+| [#133](./AI.Engram/pbi-133-bi-temporal-contradiction-arbitration-non-destructive-fact-invalidation.md) | 🟡 P2 | 5 pts | ✅ | `story` | `todo` | Bi-Temporal Contradiction Arbitration & Non-Destructive Fact Invalidation | - |
+| [#136](./AI.Engram/pbi-136-separation-of-forgetting-erasure-index-archival-pruning-vs-gdprappi-cascade-physical-deletion.md) | 🟡 P2 | 5 pts | ✅ | `story` | `todo` | Separation of Forgetting & Erasure: Index Archival Pruning vs. GDPR/APPI Cascade Physical Deletion | - |
+| [#049](./AI.Engram/pbi-049-support-streaming-compression-for-large-token-jobs.md) | 🔵 P3 | - | — | `debt` | `icebox` | Support Streaming Compression for Large Token Jobs | - |
+
+## 📋 AI.Psyche (7)
+
+| ID | Priority | Points | Ready | Category | Status | Title | Sprint |
+|:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
+| [#050](./AI.Psyche/pbi-050-support-streaming-pipeline-(ivkpsychestreamingpipeline-&-ttft-profiling).md) | 🔴 P1 | - | — | `debt` | `todo` | Support Streaming Pipeline & Tapestry (IVKPsycheStreamingPipeline & TTFT Profiling) | - |
+| [#052](./AI.Psyche/pbi-052-eliminate-redundant-optionsenabled-checks-in-feature-hooks.md) | 🟡 P2 | - | — | `debt` | `icebox` | Eliminate redundant options.Enabled checks in feature hooks | - |
+| [#059](./AI.Psyche/pbi-059-implement-channels-based-asynchronous-pipeline-post-processing-and-backpressure.md) | 🟡 P2 | - | — | `debt` | `icebox` | Implement Channels-based asynchronous pipeline post-processing and backpressure | - |
+| [#072](./AI.Psyche/pbi-072-prompt-cache-linter-&-advisory-system-(pca).md) | 🟡 P2 | - | — | `debt` | `icebox` | Prompt Cache Linter & Advisory System (PCA) | - |
+| [#076](./AI.Psyche/pbi-076-extension-libraries-vkpsycheresponse-modelresult-strongly-typed-extension-methods-(dx).md) | 🟡 P2 | - | — | `debt` | `icebox` | Extension Libraries VKPsycheResponse ModelResult Strongly-Typed Extension Methods (DX) | - |
+| [#065](./AI.Psyche/pbi-065-design-pluggable-semantic-knowledge-retrieval-abstraction-and-external-adapter.md) | 🔵 P3 | - | — | `debt` | `icebox` | Design pluggable semantic knowledge retrieval abstraction and external adapter | - |
+| [#069](./AI.Psyche/pbi-069-implement-external-distributed-persistence-adapters-for-redis-and-efcore.md) | 🔵 P3 | - | — | `debt` | `icebox` | Implement external distributed persistence adapters for Redis and EFCore | - |
+
+## 📋 AI.SemanticKernel (6)
+
+| ID | Priority | Points | Ready | Category | Status | Title | Sprint |
+|:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
+| [#053](./AI.SemanticKernel/pbi-053-full-implementation-of-aisk-retrieval-engine.md) | 🔴 P1 | - | — | `debt` | `todo` | Full implementation of AISK Retrieval Engine | - |
+| [#060](./AI.SemanticKernel/pbi-060-industrial-telemetry-and-semantic-logging-implementation.md) | 🔴 P1 | - | — | `debt` | `todo` | Industrial Telemetry and Semantic Logging Implementation | - |
+| [#046](./AI.SemanticKernel/pbi-046-implement-provider-level-failover-for-ai-engines.md) | 🟡 P2 | - | — | `debt` | `icebox` | Implement Provider-Level Failover for AI Engines | - |
+| [#064](./AI.SemanticKernel/pbi-064-complete-governance-filters-and-token-counting-logic.md) | 🟡 P2 | - | — | `debt` | `icebox` | Complete Governance Filters and Token Counting Logic | - |
+| [#070](./AI.SemanticKernel/pbi-070-refactor-aisemantickernel-registration-using-vkblockbuilderextensions-syntax-sugar.md) | 🟡 P2 | - | — | `debt` | `icebox` | Refactor AI.SemanticKernel registration using VKBlockBuilderExtensions syntax sugar | - |
+| [#079](./AI.SemanticKernel/pbi-079-001-Tokenomics.md) | 🟡 P2 | - | — | `debt` | `icebox` | AI.SEMANTICKERNEL-001-Tokenomics | - |
+
+## 📋 AI.Synapse (1)
+
+| ID | Priority | Points | Ready | Category | Status | Title | Sprint |
+|:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
+| [#077](./AI.Synapse/pbi-077-decouple-ai-governance-and-consolidate-into-synapse.md) | 🟡 P2 | - | — | `debt` | `icebox` | Decouple AI Governance Abstractions and Consolidate Traffic Management into AI.Synapse | - |
 
 ## 🔑 Authentication (1)
 
@@ -74,11 +117,10 @@ VK.Blocks 全モジュールの未完了・保留タスク一覧です。優先�
 |:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
 | [#080](./Authentication/pbi-080-audit-commit-aa832af89a41f065792ddecf22d65ce3ed57013a-in-authentication.md) | 🟡 P2 | - | — | `debt` | `todo` | Audit Commit aa832af89a41f065792ddecf22d65ce3ed57013a in Authentication | - |
 
-## 🔐 Authorization (11)
+## 🔐 Authorization (10)
 
 | ID | Priority | Points | Ready | Category | Status | Title | Sprint |
 |:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
-| [#081](./Authorization/pbi-081-di-normalization.md) | 🔴 P1 | 3 pts | ✅ | `debt` | `done` | Authorization DI Normalization | S-2026-44 |
 | [#086](./Authorization/pbi-086-audit-log-integration.md) | 🔴 P1 | 3 pts | ✅ | `debt` | `todo` | Audit Log Integration | S-2026-44 |
 | [#082](./Authorization/pbi-082-api-gateway-integration-(yarp-ocelot).md) | 🟡 P2 | - | — | `debt` | `todo` | API Gateway Integration (YARP-Ocelot) | - |
 | [#084](./Authorization/pbi-084-policy-synthesis-engine.md) | 🟡 P2 | - | — | `debt` | `todo` | Policy Synthesis Engine | - |
