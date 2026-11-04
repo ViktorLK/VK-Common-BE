@@ -48,7 +48,7 @@
 
 ## 🔗 関連ドキュメント
 - [VectorStore Module Manifest](/src/BuildingBlocks/VectorStore/.prompts/module-manifest.md)
-- [RFC-001: Vector Ecosystem Modernization](/docs/02-RFCs/VectorStore/001-v2-vector-ecosystem-modernization.md)
+- [RFC-001: Vector Ecosystem Modernization](/docs/02-RFCs/VectorStore/rfc-001-v2-vector-ecosystem-modernization.md)
 
 **Last Updated**: 2026-10-30  
 **Total ADRs**: 4

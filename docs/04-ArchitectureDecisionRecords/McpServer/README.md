@@ -28,16 +28,25 @@
 
 ---
 
+#### [ADR-004: Backlog Front-Matter v2 and Fibonacci Story Points Estimation Model](./adr-004-backlog-front-matter-v2-and-estimation-unit.md)
+
+**Status**: ✅ Accepted  
+**概要**: 見積もり欠落・DoR 未整備・閉ループ不足を解消するため、Fibonacci Story Points（1, 2, 3, 5, 8, 13）、Front-Matter v2 スキーマ（points, rank, started, ready, carry_over_count）、決定論的 DoR ゲート、および容量超過防止ガードを導入する設計。  
+**キーワード**: Story Points, Estimation, DoR, Capacity Guard, Front-Matter v2, Scope Changes
+
+---
+
 ## 🎯 ADR の読み方ガイド
 
 ### アーキテクチャとエコシステムの理解用
 1. **ADR-001**: なぜ TypeScript を捨てて .NET へ移行したのか、その技術的背景とトレードオフを理解するために読んでください。
 2. **ADR-002**: 開発補助用のクローズドなツール群と公開製品ライブラリを物理および名前空間レベルでどのように分離・構造化しているかを理解するために読んでください。
 3. **ADR-003**: 個人開発におけるバックログと Sprint の自動化、および front-matter による機械的追跡性（Traceability）の実現方法を理解するために読んでください。
+4. **ADR-004**: Story Points による規模見積もり、DoR 適合判定、およびスプリント計画時の容量ガードの仕組みを理解するために読んでください。
 
 ## 🔗 関連ドキュメント
 - [Project Documentation](/README.md)
 - [BuildingBlock Standards](/docs/01-Standards/README.md)
 
-**Last Updated**: 2026-10-31  
-**Total ADRs**: 3
+**Last Updated**: 2026-11-01  
+**Total ADRs**: 4

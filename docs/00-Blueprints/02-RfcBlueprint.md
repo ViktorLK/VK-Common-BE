@@ -10,7 +10,7 @@
 
 # Constraints & Language
 
-1. **保存先**: `docs/02-RFCs/{NNN}-{kebab-case-slug}.md`
+1. **保存先**: `docs/02-RFCs/{ModuleName}/rfc-{NNN}-{kebab-case-slug}.md`
 2. **出力言語**: ビジネスIT日本語（見出しおよび技術識別子は英語併記、`BASE-09` 準拠）
 3. **過剰設計の排除 (`BASE-06`)**: 具体的なコンシューマ（利用箇所）が存在しない抽象化やオプションの追加は厳禁とし、必ず `Non-Goals`（スコープ外）を明記すること。
 

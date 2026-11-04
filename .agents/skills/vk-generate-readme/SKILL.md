@@ -1,4 +1,4 @@
----
+﻿---
 name: vk-generate-readme
 description: Generate an evidence-based Japanese README.md for a single publishable module using the ReadMeGenerator.md spec.
 ---
@@ -42,7 +42,9 @@ Every claim in the README must be traceable to the module's files. Unknowns are 
     - Code and code comments in English; type, package, and API names kept in original English.
     - Include a Mermaid diagram only when the module has a non-trivial flow or layered structure.
 
-6. **Self-check**
+6. **Verify DoD & Self-check**
+    - Verify all Definition of Done (DoD) criteria in `ReadMeGenerator.md` before saving.
+    - Ensure zero upward relative paths (`../`); all cross-directory links MUST be repository-root-relative (`/docs/...`, `/src/...`, `/LICENSE`) per BASE-11.
     - Run through the Self-check list in `ReadMeGenerator.md`.
     - Verify that every type, method, and Options property used in code samples exists in the source.
     - Verify that no technology appears that the module does not actually use.
