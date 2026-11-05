@@ -1,9 +1,4 @@
----
-layer: 3
-id: caching-manifest
-scope: building-blocks/caching
-requires: CS.02, CS.06, AP.04, BB.07, OR.03
----
+﻿<manifest id="caching-manifest" layer="Tier 1 — Foundations" scope="building-blocks/caching" requires="CS.02, CS.06, AP.04, BB.07, OR.03">
 
 # VK.Blocks Caching Manifest (Layer 3)
 
@@ -76,3 +71,5 @@ Scope is strictly business-object caching (DTOs, aggregate query results, comput
 ### 16. Test-Friendly In-Memory Fake
 
 - A pure in-memory fake implementation of `IVKCache` MUST be available for unit tests without requiring a real Redis instance.
+
+</manifest>

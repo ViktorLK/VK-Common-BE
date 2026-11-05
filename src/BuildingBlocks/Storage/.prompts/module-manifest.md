@@ -1,9 +1,4 @@
----
-layer: 3
-id: storage-manifest
-scope: building-blocks/storage
-requires: CS.02, CS.06, AP.04, BB.07, OR.03
----
+﻿<manifest id="storage-manifest" layer="Tier 1 — Foundations" scope="building-blocks/storage" requires="CS.02, CS.06, AP.04, BB.07, OR.03">
 
 # VK.Blocks Storage Manifest (Layer 3)
 
@@ -66,3 +61,5 @@ Defines the provider-agnostic contract for blob/file storage — upload, downloa
 ### 14. Test-Friendly Fake Implementation
 
 - An in-memory or local-disk fake implementation of `IVKBlobStorage` MUST be available for unit testing without requiring a real cloud storage account.
+
+</manifest>

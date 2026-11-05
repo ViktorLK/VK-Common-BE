@@ -1,9 +1,4 @@
----
-layer: 3
-id: ai-efferent-manifest
-scope: building-blocks/ai-efferent
-requires: CS.01, CS.03, AP.01, AP.05, BB.06, OR.01, OR.03
----
+﻿<manifest id="ai-efferent-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/ai-efferent" requires="CS.01, CS.03, AP.01, AP.05, BB.06, OR.01, OR.03">
 
 # VK.Blocks AI.Efferent Manifest (Layer 3)
 
@@ -58,4 +53,4 @@ The egress gateway — symmetric counterpart to AI.Afferent. Governs all output 
 - **Provenance & Watermarking**: Invisible or cryptographic digital watermarking (e.g., zero-width steganography for text, inaudible acoustic watermarking for speech) MUST be applied at the final egress stage.
 - **Regulatory Disclaimers**: Automatic injection of mandatory jurisdiction-specific AI disclosures where required by compliance policy.
 
-
+</manifest>

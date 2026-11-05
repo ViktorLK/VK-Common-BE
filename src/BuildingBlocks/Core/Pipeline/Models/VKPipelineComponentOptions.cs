@@ -1,3 +1,4 @@
+using VK.Blocks.Core;
 using System;
 
 namespace VK.Blocks.Core;
@@ -9,6 +10,7 @@ namespace VK.Blocks.Core;
 /// </summary>
 /// <typeparam name="TContext">The context type.</typeparam>
 /// <typeparam name="TResult">The result type.</typeparam>
+[VKOptions]
 public sealed record VKPipelineComponentOptions<TContext, TResult>(
     Func<TResult, bool>? ShortCircuitPredicate = null,
     Func<TContext, bool>? AbortPredicate = null,
