@@ -1,9 +1,4 @@
----
-layer: 3
-id: exceptionhandling-manifest
-scope: building-blocks/exceptionhandling
-requires: CS.02, CS.06, AP.04, BB.07
----
+﻿<manifest id="exceptionhandling-manifest" layer="Tier 1 — Foundations" scope="building-blocks/exceptionhandling" requires="CS.02, CS.06, AP.04, BB.07">
 
 # VK.Blocks ExceptionHandling Manifest (Layer 3)
 
@@ -39,3 +34,4 @@ Defines the framework-independent exception-to-response contract shared across a
 ### 9. Extensibility Without Reflection
 - Custom exception → status/code mappings MUST be registered declaratively at startup, not resolved via runtime reflection or type-scanning in the hot path.
 
+</manifest>

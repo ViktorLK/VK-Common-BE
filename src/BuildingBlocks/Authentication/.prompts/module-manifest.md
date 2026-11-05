@@ -1,9 +1,4 @@
----
-layer: 3
-id: auth-manifest
-scope: building-blocks/authentication
-requires: CS.02, CS.06, OR.02, OR.03, AP.04
----
+﻿<manifest id="auth-manifest" layer="Tier 1 — Foundations" scope="building-blocks/authentication" requires="CS.02, CS.06, OR.02, OR.03, AP.04">
 
 # VK.Blocks Authentication Manifest (Layer 3)
 
@@ -50,3 +45,5 @@ Handles "who you are" — identity verification, token lifecycle, and IDP integr
 ### 10. Test-Friendly IDP Abstraction
 
 - IDP integration MUST be mockable via a provider abstraction, enabling integration tests to run without a real external IDP dependency.
+
+</manifest>

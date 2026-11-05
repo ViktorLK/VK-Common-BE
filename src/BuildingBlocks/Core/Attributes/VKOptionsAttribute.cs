@@ -11,14 +11,14 @@ namespace VK.Blocks.Core;
 public sealed class VKOptionsAttribute : Attribute
 {
     /// <summary>
-    /// Gets or sets the request-level argument record generation mode. Default is <see cref="VKArgsGenerationMode.Explicit"/>.
+    /// Gets or sets the request-level argument record generation mode. Default is <see cref="VKArgsGenerationMode.None"/>.
     /// </summary>
-    public VKArgsGenerationMode ArgsMode { get; set; } = VKArgsGenerationMode.Explicit;
+    public VKArgsGenerationMode ArgsMode { get; set; } = VKArgsGenerationMode.None;
 
     /// <summary>
-    /// Gets or sets a value indicating whether to generate high-performance <c>ApplyArgs</c> merge extension methods. Default is <c>true</c>.
+    /// Gets or sets a value indicating whether to generate high-performance <c>ApplyArgs</c> merge extension methods. Default is <c>false</c>.
     /// </summary>
-    public bool GenerateMerge { get; set; } = true;
+    public bool GenerateMerge { get; set; } = false;
 
     /// <summary>
     /// Gets or sets a value indicating whether to export JSON Schema for IDE appsettings autocompletion during compilation. Default is <c>false</c>.

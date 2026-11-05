@@ -1,9 +1,4 @@
----
-layer: 3
-id: vectorstore-sqlite-manifest
-scope: building-blocks/vectorstore-sqlite
-requires: CS.01, CS.03, CS.04, AP.01, OR.01, OR.03
----
+﻿<manifest id="vectorstore-sqlite-manifest" layer="Tier 3 — Concrete Adapters" scope="building-blocks/vectorstore-sqlite" requires="CS.01, CS.03, CS.04, AP.01, OR.01, OR.03">
 
 # VK.Blocks VectorStore.Sqlite Manifest (Layer 3)
 
@@ -36,3 +31,4 @@ SQLite provider implementation of `IVKVectorStore` using the `sqlite-vec` native
 ### 7. Resilience
 - All operations MUST be wrapped in a named Polly resilience pipeline.
 
+</manifest>

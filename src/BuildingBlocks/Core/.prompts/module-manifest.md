@@ -1,9 +1,4 @@
----
-layer: 3
-id: core-manifest
-scope: building-blocks/core
-requires: CS.01, CS.02, CS.04, AP.01, AP.02, AP.04, AP.05
----
+﻿<manifest id="core-manifest" layer="Tier 0 — Primitives" scope="building-blocks/core" requires="CS.01, CS.02, CS.04, AP.01, AP.02, AP.04, AP.05">
 
 # VK.Blocks Core Manifest (Layer 3)
 
@@ -65,3 +60,5 @@ Defines the foundational abstractions that all other modules depend on. Represen
 ### 11. Planning Discipline
 
 - Architectural changes to Core MUST include a formal ADR and a full regression-test plan in the Walkthrough. This includes any change to dependency direction between slices (Rule 7), any expansion of `Security/` beyond metadata (Rule 8), and any reconsideration of Rule 9's Filtering/Specification boundary.
+
+</manifest>

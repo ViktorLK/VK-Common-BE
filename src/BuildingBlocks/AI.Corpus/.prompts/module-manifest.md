@@ -1,9 +1,4 @@
----
-layer: 3
-id: ai-corpus-manifest
-scope: building-blocks/ai-corpus
-requires: CS.01, CS.03, CS.04, CS.06, AP.01, AP.02, BB.01, BB.02, BB.03, BB.04, BB.05, OR.01
----
+﻿<manifest id="ai-corpus-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/ai-corpus" requires="CS.01, CS.03, CS.04, CS.06, AP.01, AP.02, BB.01, BB.02, BB.03, BB.04, BB.05, OR.01">
 
 # VK.Blocks AI.Corpus Manifest (L3 — 静态权威知识治理与检出/注入生命周期)
 
@@ -52,3 +47,5 @@ Manages Gathering, Filtering, Context Compression, Poisoning Protection, Workflo
 | Instrument OpenTelemetry metrics (`CorpusDiagnostics`) for candidate gathering, filter verdicts, injection counts, and ingestion operations. | [BB.04] |
 | Use `TimeProvider` and `IVKGuidGenerator` for deterministic timestamps and identifier creation. | [CS.06] |
 | Register all block dependencies idempotently using `TryAdd` / `TryAddEnumerable`. | [AP.02, BB.03] |
+
+</manifest>

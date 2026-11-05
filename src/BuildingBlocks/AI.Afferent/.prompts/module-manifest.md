@@ -1,9 +1,4 @@
----
-layer: 3
-id: ai-afferent-manifest
-scope: building-blocks/ai-afferent
-requires: CS.01, CS.03, AP.01, AP.05, BB.06, OR.01, OR.03
----
+﻿<manifest id="ai-afferent-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/ai-afferent" requires="CS.01, CS.03, AP.01, AP.05, BB.06, OR.01, OR.03">
 
 # VK.Blocks AI.Afferent Manifest (Layer 3)
 
@@ -30,3 +25,4 @@ The ingress gateway — single entry point for all external signals (text, audio
 ### 5. Stream Ownership
 - Audio stages MUST NOT dispose input streams — ownership belongs to the caller.
 
+</manifest>

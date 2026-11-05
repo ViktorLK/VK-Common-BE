@@ -29,6 +29,7 @@ public sealed class VKFeatureAttribute(Type parent, string? name = null) : Attri
     /// <summary>
     /// Gets or sets the argument generation mode for this feature.
     /// </summary>
+    [Obsolete("Args generation is now controlled directly on Options records via [VKOptions(ArgsMode = ...)]. This property will be removed in a future release. (CORE-017)")]
     public VKArgsGenerationMode ArgsGenerationMode { get; set; } = VKArgsGenerationMode.None;
 
     /// <summary>

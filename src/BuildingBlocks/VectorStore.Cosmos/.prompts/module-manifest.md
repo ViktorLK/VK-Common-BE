@@ -1,9 +1,4 @@
----
-layer: 3
-id: vectorstore-cosmos-manifest
-scope: building-blocks/vectorstore-cosmos
-requires: CS.01, CS.03, CS.04, AP.01, OR.01, OR.03
----
+﻿<manifest id="vectorstore-cosmos-manifest" layer="Tier 3 — Concrete Adapters" scope="building-blocks/vectorstore-cosmos" requires="CS.01, CS.03, CS.04, AP.01, OR.01, OR.03">
 
 # VK.Blocks VectorStore.Cosmos Manifest (Layer 3)
 
@@ -30,3 +25,4 @@ Azure Cosmos DB provider implementation of `IVKVectorStore` using native NoSQL V
 ### 6. Resilience
 - All operations MUST be wrapped in a named Polly resilience pipeline. Connection strings MUST NOT be logged.
 
+</manifest>

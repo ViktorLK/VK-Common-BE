@@ -1,9 +1,4 @@
----
-layer: 3
-id: persistence-manifest
-scope: building-blocks/persistence
-requires: CS.01, CS.02, CS.04, CS.05, CS.06, AP.02, AP.04, BB.03, BB.04, BB.05
----
+﻿<manifest id="persistence-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/persistence" requires="CS.01, CS.02, CS.04, CS.05, CS.06, AP.02, AP.04, BB.03, BB.04, BB.05">
 
 # Persistence Manifest (L3 — ORM-Agnostic Contracts)
 
@@ -25,3 +20,5 @@ Zero references to any concrete ORM, driver, or SDK. Purely BCL + Core.
 | **Registration** | One builder entry point. Providers extend — never introduce parallel entry points. Fixed, deterministic step order. [BB.03] |
 | **Extensibility** | New query needs = compose existing contracts. Never grow single-purpose provider-shaped methods. |
 | **Provider Neutrality** | Nothing here may assume shape, capability, or limitation of any single provider. |
+
+</manifest>

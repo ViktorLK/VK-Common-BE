@@ -1,9 +1,4 @@
----
-layer: 3
-id: ai-eidos-manifest
-scope: building-blocks/ai-eidos
-requires: CS.01, CS.03, CS.04, CS.06, AP.01, AP.02, AP.05, BB.01, BB.02, BB.03, BB.05, BB.06
----
+﻿<manifest id="ai-eidos-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/ai-eidos" requires="CS.01, CS.03, CS.04, CS.06, AP.01, AP.02, AP.05, BB.01, BB.02, BB.03, BB.05, BB.06">
 
 # AI.Eidos Manifest (Response Contract, Expression Negotiation & Output Parsing)
 
@@ -58,3 +53,4 @@ Does not assemble prompt text/messages, does not implement provider-specific sch
 | Emit diagnostic metrics and telemetry solely via unified framework diagnostics conventions; do not create local telemetry slices. | [CS.06] |
 | Mask raw output content in diagnostic logs when it may contain sensitive user or PII data. | [CS.06] |
 
+</manifest>
