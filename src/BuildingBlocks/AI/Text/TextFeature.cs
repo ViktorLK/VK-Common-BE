@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Text feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKTextOptions), ArgsGenerationMode = VKArgsGenerationMode.Implicit, ArgsBaseType = typeof(IVKAIArgs))]
+[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKTextOptions))]
 internal sealed partial class TextFeature
 {
     // [SG Hook]

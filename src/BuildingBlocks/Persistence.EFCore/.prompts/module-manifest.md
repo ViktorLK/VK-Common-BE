@@ -1,10 +1,4 @@
----
-layer: 3
-id: persistence-efcore-manifest
-scope: building-blocks/persistence/efcore
-requires: CS.01, CS.02, CS.05, AP.02, AP.04, BB.03, BB.04, BB.05, BB.06
-depends-on: persistence-manifest
----
+﻿<manifest id="persistence-efcore-manifest" layer="Tier 3 — Concrete Adapters" scope="building-blocks/persistence/efcore" requires="CS.01, CS.02, CS.05, AP.02, AP.04, BB.03, BB.04, BB.05, BB.06">
 
 # Persistence.EFCore Manifest (L3 — EF Core Provider-Agnostic Implementation)
 
@@ -55,3 +49,5 @@ Concrete EF Core implementation of `persistence-manifest`. References EF Core co
 | Migration out of scope. No shipped migrations, no auto-apply, no `EnsureCreated`. | — |
 | Slow-query thresholds = Block Options, not hard-coded. EF `DiagnosticSource` events MUST NOT be suppressed. | BB.04 |
 | Test-support utilities in dedicated test package only. No test code in production assembly. | — |
+
+</manifest>

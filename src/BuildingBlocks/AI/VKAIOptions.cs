@@ -7,6 +7,7 @@ namespace VK.Blocks.AI;
 /// Governs transport channel and sensitive logging compliance.
 /// Feature-specific settings (Chat, Embeddings) belong to their respective feature options.
 /// </summary>
+[VKOptions]
 public sealed partial record VKAIOptions : IVKBlockOptions
 {
     /// <summary>

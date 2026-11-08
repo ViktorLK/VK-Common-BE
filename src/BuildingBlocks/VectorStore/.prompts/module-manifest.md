@@ -1,39 +1,29 @@
----
-layer: 3
-id: vectorstore-manifest
-scope: building-blocks/vectorstore
-requires: CS.01, CS.03, CS.04, AP.01, AP.04, OR.02
----
+<manifest id="vectorstore-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/vectorstore" requires="CS.01, CS.03, CS.04, AP.01, AP.04, OR.02">
 
 # VK.Blocks VectorStore Manifest (Layer 3)
 
-Pure abstraction layer for vector storage and retrieval. Defines the unified API surface and domain models without binding to any concrete database. Persistence is delegated to provider packages (Sqlite, Cosmos, etc.).
+Thin governance facade built directly on `Microsoft.Extensions.VectorData`. Provides unified VK governance (VKResult, strict tenant isolation, logical alias routing, startup dimension validation, and telemetry) without maintaining speculative database abstractions. Persistence and connectors are delegated to official vector data providers (SqliteVec, Qdrant, pgvector, InMemory).
 
 ## Architectural Boundaries
 
-### 1. Strict Abstraction Boundary
-- This package MUST depend only on `VK.Blocks.Core`. No database client libraries permitted.
-- All concrete implementations MUST reside in separate provider packages. Only InMemory is built-in (zero-infrastructure default, not for production).
+### 1. Thin Governance Facade
+- Wraps `Microsoft.Extensions.VectorData.VectorStoreCollection<TKey, TRecord>` via a single thin facade (`VKVectorCollectionFacade<TRecord>`).
+- Does NOT duplicate low-level CRUD or capability models already provided by official VectorData.
+- Enforces `VKResult<T>` failure semantics [CS.01] across all boundaries.
 
-### 2. Collection-Centric Design
-- The store exposes named, typed collections. All CRUD and search operations are scoped to a collection.
-- Vectors are NEVER stored without their associated document.
+### 2. Tenant Isolation & Security
+- `TenantId` is strictly injected into query filter expressions and verified on stored records [OR.02].
+- Tenant filtering is applied at the query level against the underlying provider; cross-tenant data leakage is prohibited.
 
-### 3. Capability Interfaces (Progressive Enhancement)
-- Base interface = minimum contract (CRUD + similarity search). Optional capabilities (Bulk, Hybrid) are additive — callers MUST check via `is` pattern.
-- Base methods MUST still work correctly on providers that also implement capability interfaces.
+### 3. Logical Collection Registry & Alias Routing
+- Exposes a logical name registry mapping logical collection names to physical collections or active aliases.
+- Blue-green re-embedding and index migrations switch aliases deterministically without application restart.
+- Validates configured `EmbeddingModelId` and vector `Dimensions` at application startup [BASE-03].
 
-### 4. Tenant Isolation
-- `TenantId` is `required` on both search args and stored metadata. Every operation MUST be tenant-scoped.
-- Provider implementations MUST enforce tenant filtering at the query level, not application-level post-filter.
+### 4. Direct Embeddings Generation Integration
+- Supports pairing collections directly with `IEmbeddingGenerator` via official VectorData conventions, while allowing explicit vector queries.
 
-### 5. Vector Model
-- Vectors use `ReadOnlyMemory<float>` (zero-copy). Implementations MUST NOT copy vector data unnecessarily.
-- Provider implementations MUST normalize similarity scores to 0.0–1.0 range regardless of underlying distance metric.
+### 5. Capability Resolution via Runtime Reflection
+- Optional capabilities (such as hybrid keyword search) are determined at runtime by checking standard interfaces (`is IKeywordHybridSearchable<TRecord>`), not static capability flags.
 
-### 6. Embeddings Separation
-- Embedding generation (text → vector) and vector storage (vector → persist/search) are separate concerns and MUST NOT be coupled. The calling layer orchestrates both.
-
-### 7. Provider Registration
-- Single active provider — last registration wins. Provider packages expose their own strongly-typed extension methods.
-
+</manifest>

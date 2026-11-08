@@ -1,9 +1,4 @@
----
-layer: 3
-id: validation-manifest
-scope: building-blocks/validation
-requires: CS.02, CS.04, AP.04, BB.07
----
+﻿<manifest id="validation-manifest" layer="Tier 1 — Foundations" scope="building-blocks/validation" requires="CS.02, CS.04, AP.04, BB.07">
 
 # VK.Blocks Validation Manifest (Layer 3)
 
@@ -54,3 +49,5 @@ Defines the framework-independent rule evaluation contract for all input/busines
 ### 11. Schema Exportability
 
 - Rule metadata MUST be structured such that it can be exported (e.g. JSON Schema) for client-side/front-end reuse, without requiring a parallel rule definition.
+
+</manifest>

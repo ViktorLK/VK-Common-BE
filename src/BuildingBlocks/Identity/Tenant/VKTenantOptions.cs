@@ -7,6 +7,7 @@ namespace VK.Blocks.Identity;
 /// Configuration options for Tenant feature slice.
 /// Follows [BB.05].
 /// </summary>
+[VKOptions]
 public sealed partial record VKTenantOptions : IVKBlockOptions
 {
     /// <summary>

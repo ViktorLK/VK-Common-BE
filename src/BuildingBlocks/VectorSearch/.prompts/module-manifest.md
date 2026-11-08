@@ -1,28 +1,24 @@
----
-layer: 3
-id: vectorsearch-manifest
-scope: building-blocks/vectorsearch
-requires: CS.01, CS.03, CS.04, AP.01, OR.03
----
+<manifest id="vectorsearch-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/vectorsearch" requires="CS.01, CS.03, CS.04, AP.01, OR.03">
 
 # VK.Blocks VectorSearch Manifest (Layer 3)
 
-High-level retrieval pipeline built on the VectorStore abstraction — coordinates Query Rewrite, Hybrid Search, Semantic Cache, Reranking, and Score Fusion.
+Focused retrieval enhancement layer providing hybrid Reciprocal Rank Fusion (RRF), Rerank ports, and relational join integration on top of `VectorStore`. Heavy, speculative, or overlapping stages (Compression, unproven query rewriting, semantic caching) are excised or demoted to optional extensions.
 
 ## Architectural Boundaries
 
-### 1. Pipeline Flow
-- Before Stages (Query Rewrite, Cache, Expansion) → Terminal Execution (search strategy) → After Stages (Rerank, Fusion, Compression).
-- Semantic Cache failures MUST fail-open — fallback to actual retrieval, never fail the pipeline.
+### 1. Minimalistic Core Retrieval Scope
+- Owns RRF score fusion when underlying stores lack native hybrid search, or when merging hits across multiple collections.
+- Owns a lightweight port for Cross-Encoder / Cohere reranking.
+- Owns relational join helpers to correlate vector hits back to domain entities.
 
-### 2. Hybrid Retrieval
-- If the store supports native hybrid search, delegate to it. Otherwise, execute Dense + Sparse in parallel and merge locally.
-- Results merging MUST support both Reciprocal Rank Fusion (RRF) and Weighted Score Fusion.
+### 2. No Duplicate Storage or CRUD Contracts
+- Prohibits duplicate storage abstractions like `IVKRetrievalStore`. All operations delegate directly to `VectorStore` facades.
+- Paging and filtering use official VectorData options (`Top`, `Skip`, filter expressions).
 
-### 3. Abstraction Over Store
-- MUST NOT query databases directly. All retrievals go through `IVKVectorStore` / `IVKRetrievalStore`.
-- Embedding generation MUST be coordinated via `IVKEmbeddingsEngine` — no implicit embedding inside store operations.
+### 3. Context & Budgeting Boundary
+- Prompt compression and token budget truncations are NOT owned here. They are delegated to domain orchestration (`Corpus`, `Weaving`, `Engram`).
 
-### 4. Safe Fallback
-- If LLM-based Query Rewrite or Reranking fails or times out, MUST fall back to original query and vector distance scores. Retrieval MUST NOT fail due to post-processing helper failures.
+### 4. Optional / Experimental Features
+- Semantic caching, HyDE, and query expansion remain optional off-by-default extensions, enabled only when empirical retrieval evaluation proves net benefit.
 
+</manifest>

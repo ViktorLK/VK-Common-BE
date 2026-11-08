@@ -10,7 +10,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.Authorization;
 
 [ExcludeFromCodeCoverage]
-[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKTenantIsolationOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKTenantIsolationOptions))]
 internal sealed partial class TenantIsolationFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKTenantIsolationOptions options)

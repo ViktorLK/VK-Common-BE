@@ -1,9 +1,4 @@
----
-layer: 3
-id: web-manifest
-scope: building-blocks/web
-requires: CS.02, CS.06, AP.04, BB.07, BB.08, OR.02
----
+﻿<manifest id="web-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/web" requires="CS.02, CS.06, AP.04, BB.07, BB.08, OR.02">
 
 # VK.Blocks Web Manifest (Layer 3)
 
@@ -46,3 +41,5 @@ Defines the ASP.NET Core presentation-layer infrastructure — controllers, midd
 ### 9. Environment-Differentiated CORS
 
 - CORS policy MUST be explicitly configured per environment. A permissive/wildcard policy MUST NOT be reachable in a production configuration path, even as a fallback default.
+
+</manifest>

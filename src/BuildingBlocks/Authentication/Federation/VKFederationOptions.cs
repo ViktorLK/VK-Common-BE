@@ -5,6 +5,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration options for Identity Federation and Account Linking.
 /// </summary>
+[VKOptions]
 public sealed partial record VKFederationOptions : IVKToggleableBlockOptions
 {
     /// <summary>

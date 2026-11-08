@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Content Guard (formerly Moderation) feature.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKContentOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>

@@ -7,6 +7,7 @@ namespace VK.Blocks.Identity;
 /// Top-level configuration options for the Identity Building Block.
 /// Follows [BB.05].
 /// </summary>
+[VKOptions]
 public sealed partial record VKIdentityOptions : IVKBlockOptions
 {
     /// <summary>

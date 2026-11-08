@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Token Budgeting feature.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKBudgetingOptions : IVKToggleableBlockOptions
 {
     /// <summary>

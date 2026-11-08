@@ -4,6 +4,7 @@ namespace VK.Blocks.Caching;
 
 /// <summary>
 /// Unified entry point for all caching operations.
+/// Follows CS.01, CS.03, AP.01.
 /// </summary>
 public interface IVKCacheBlock
 {
@@ -39,5 +40,5 @@ public interface IVKCacheBlock
     /// <summary>
     /// Creates a distributed lock for the specified resource.
     /// </summary>
-    Task<VKResult<IVKDistributedLock>> AcquireLockAsync(string resourceKey, VKLockOptions? options = null, CancellationToken ct = default);
+    Task<VKResult<IVKDistributedLockHandle>> AcquireLockAsync(string resourceKey, VKLockOptions? options = null, CancellationToken ct = default);
 }

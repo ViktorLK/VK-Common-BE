@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Audio Transcription feature.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true, ArgsBaseType = typeof(IVKAIArgs))]
 public sealed partial record VKTranscriptionOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>

@@ -10,7 +10,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Echo feature marker and registration hub.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKEchoOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKEchoOptions))]
 internal sealed partial class EchoFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKEchoOptions options)

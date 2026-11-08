@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Token Budgeting feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.TokenicsFeature), OptionsType = typeof(VKBudgetingOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(global::VK.Blocks.AI.TokenicsFeature), OptionsType = typeof(VKBudgetingOptions))]
 internal sealed partial class BudgetingFeature
 {
     /// <summary>Add budgeting services here</summary>

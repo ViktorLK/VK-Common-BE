@@ -9,7 +9,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.Authorization;
 
 [ExcludeFromCodeCoverage]
-[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKDynamicPoliciesOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKDynamicPoliciesOptions))]
 internal sealed partial class DynamicPoliciesFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKDynamicPoliciesOptions options)

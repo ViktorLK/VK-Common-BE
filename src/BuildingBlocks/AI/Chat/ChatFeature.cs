@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Chat feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKChatOptions), ArgsGenerationMode = VKArgsGenerationMode.Implicit, ArgsBaseType = typeof(IVKAIArgs))]
+[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKChatOptions))]
 internal sealed partial class ChatFeature
 {
     // [SG Hook]

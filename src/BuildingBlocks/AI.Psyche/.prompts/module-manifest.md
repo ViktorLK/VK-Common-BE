@@ -1,9 +1,4 @@
----
-layer: 3
-id: ai-psyche-manifest
-scope: building-blocks/ai-psyche
-requires: CS.01, CS.03, CS.04, AP.01, AP.05, OR.03
----
+﻿<manifest id="ai-psyche-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/ai-psyche" requires="CS.01, CS.03, CS.04, AP.01, AP.05, OR.03">
 
 # VK.Blocks AI.Psyche Manifest (Layer 3)
 
@@ -28,3 +23,4 @@ High-performance prompt orchestration and onion-middleware execution pipeline fo
 ### 5. Onion Middleware
 - Chat engine interceptions MUST follow the Onion Middleware Pattern. Custom middleware MUST register via `TryAddEnumerable`.
 
+</manifest>

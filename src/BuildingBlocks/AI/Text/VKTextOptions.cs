@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Options for the text generation feature.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Implicit, GenerateMerge = true, ArgsBaseType = typeof(IVKAIArgs))]
 public sealed partial record VKTextOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <inheritdoc />

@@ -7,6 +7,7 @@ namespace VK.Blocks.Authentication;
 /// Configuration options for JWT tokens.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKJwtOptions : IVKToggleableBlockOptions
 {
 

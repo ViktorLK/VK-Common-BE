@@ -5,6 +5,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration options for tracking login states and client device fingerprints.
 /// </summary>
+[VKOptions]
 public sealed partial record VKTrackingOptions : IVKToggleableBlockOptions
 {
     /// <summary>

@@ -1,10 +1,4 @@
----
-layer: 3
-id: ai-manifest
-scope: building-blocks/ai
-# [Specialized Rules for AI] Resilience, Performance, and Testing
-requires: CS.04, OR.03, AP.05, BB.08
----
+﻿<manifest id="ai-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/ai" requires="CS.04, OR.03, AP.05, BB.08">
 
 # 🤖 VK.Blocks AI Manifest (Layer 3)
 
@@ -18,4 +12,4 @@ The AI module orchestrates non-deterministic LLM calls and handles high-throughp
     - **Security by Default**: Properties in Options NOT present in a matching Overrides interface are automatically excluded from the generated Args surface area.
 4. **Contextual Instrumentation**: AI orchestration (Chat/Agents) MUST implement hierarchical tracing and metric recording using the `AiDiagnostics` hub.
 
-
+</manifest>

@@ -5,6 +5,7 @@ namespace VK.Blocks.AI.Psyche;
 /// <summary>
 /// Configuration settings for the Knowledge feature.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKKnowledgeOptions : IVKToggleableBlockOptions
 {
     /// <summary>

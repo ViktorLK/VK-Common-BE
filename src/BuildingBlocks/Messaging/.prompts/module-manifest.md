@@ -1,9 +1,4 @@
----
-layer: 3
-id: messaging-manifest
-scope: building-blocks/messaging
-requires: CS.02, CS.06, AP.04, BB.07, BB.08, OR.03
----
+﻿<manifest id="messaging-manifest" layer="Tier 1 — Foundations" scope="building-blocks/messaging" requires="CS.02, CS.06, AP.04, BB.07, BB.08, OR.03">
 
 # VK.Blocks Messaging Manifest (Layer 3)
 
@@ -72,3 +67,5 @@ Scope is cross-service/cross-boundary event-driven communication where the publi
 ### 15. Test-Friendly In-Memory Bus
 
 - An in-memory message bus implementation MUST be available for unit/integration tests without requiring a real broker.
+
+</manifest>

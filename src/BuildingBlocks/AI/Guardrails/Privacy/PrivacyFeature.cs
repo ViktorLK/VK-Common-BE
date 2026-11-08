@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Privacy Guard feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.GuardrailsFeature), OptionsType = typeof(VKPrivacyOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(global::VK.Blocks.AI.GuardrailsFeature), OptionsType = typeof(VKPrivacyOptions))]
 internal sealed partial class PrivacyFeature
 {
     /// <summary>Add privacy services here</summary>

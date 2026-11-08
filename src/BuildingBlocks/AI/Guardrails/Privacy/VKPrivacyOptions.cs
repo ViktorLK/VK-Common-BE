@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Privacy Guard (PII detection) feature.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKPrivacyOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>

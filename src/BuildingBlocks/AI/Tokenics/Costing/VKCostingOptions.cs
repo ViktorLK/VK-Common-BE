@@ -5,6 +5,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Token Costing feature.
 /// </summary>
+[VKOptions]
 public sealed partial record VKCostingOptions : IVKToggleableBlockOptions
 {
 

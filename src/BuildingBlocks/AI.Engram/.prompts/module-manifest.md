@@ -1,47 +1,39 @@
----
-layer: 3
-id: ai-engram-manifest
-scope: building-blocks/ai-engram
-requires: CS.01, CS.03, CS.04, CS.06, AP.01, AP.02, BB.01, BB.02, BB.03, BB.05
----
+<manifest id="ai-engram" layer="Tier 2" scope="src/BuildingBlocks/AI.Engram" requires="CS.01, CS.03, CS.04, CS.06, OR.01, BB.04, BB.06">
 
-# AI.Engram Manifest (L3 — Cognitive Memory Lifecycle & Retention Governance)
+# 📦 Module Manifest: AI.Engram
 
-Manages Compression, Consolidation, Decay, Pruning, and Contradiction Arbitration of AI conversation memories.
+## 1. Layer & Purpose (ARCH-01)
+- **Layer**: Tier 2 — Domain Capability (`VK.Blocks.AI.Engram`).
+- **Purpose**: Owns 3-layer cognitive context engineering & memory lifecycle:
+  - **L0 Episode Log (`Episodes/`)**: Immutable, append-only conversational experiences (`IVKEpisodeRepository`, `VKEpisode`) serving as single source of truth.
+  - **L1 Derived Memory (`MemorySemantic/`, `MemoryStructured/`, `MemorySummary/`)**: Bi-temporal validity (`ValidFrom`/`ValidTo`), entity links, and L0 provenance tracking (`SourceEpisodeIds`). Outbound reminder dispatch is delegated to `IVKReminderWorkflowPort`.
+  - **L2 Recall & Presentation (`Recall/`)**: Hybrid search over `VK.Blocks.VectorSearch`, side-effect-free cognitive decay (`IVKRecallDecayStrategy`), and human-like presentation policy (`IVKRecallPresentationPolicy`).
+  - **Governance (`Reclamation/`)**: Distinguishes index-cost archival/pruning from GDPR/APPI cascade physical deletion (`IVKMemoryErasureService`).
 
-## Architectural Boundaries
+## 2. Dependency Boundaries (ARCH-01, ARCH-02)
+- **Allowed Dependencies**:
+  - `VK.Blocks.Core` (Primitives, `Result<T>`, `TimeProvider`, `IVKGuidGenerator`)
+  - `VK.Blocks.AI` / `VK.Blocks.AI.Psyche` / `VK.Blocks.AI.Eidos` (Dialogue, prompt context, and schema-driven extraction)
+  - `VK.Blocks.VectorStore` / `VK.Blocks.VectorSearch` (Vector persistence and hybrid retrieval)
+- **Forbidden Dependencies**:
+  - Direct third-party Vector DB drivers (Qdrant, Milvus SDKs) or EF Core in domain layers.
+  - Ownership of background scheduling or job workers for external workflows (reminders delegated via port).
 
-| Boundary / Constraint | Rule |
-| :--- | :--- |
-| Never couple directly to specific Vector DBs; access long-term storage via `IVKMemoryEchoes` / `VectorSearch` APIs. | [BB.01] |
-| Separate objective facts (Core shared, `PersonaId = null`) from persona relationship memories (`PersonaId` scoped). | — |
-| Keep structured KV facts (`IVKMemoryStructured`) isolated from vector Decay & Pruning score pipelines. | — |
+## 3. Public Surface & Extension Contracts (ARCH-07, BASE-12)
+- **L0 Invariant**: `VKEpisode` is strictly append-only and immutable.
+- **L1 Invariant**: All derived memories implement `IVKDerivedMemory` exposing `SourceEpisodeIds`. State updates close `ValidTo` non-destructively.
+- **L2 Invariant**: Recall operates within `TokenBudget` without mutating L1 importance or database storage. Presentation applies deterministic hedging without additional LLM round-trips.
+- **Reclamation Invariant**: Routine background pruning never permanently deletes database entities (`ADR-002`); physical erasure is executed strictly via `IVKMemoryErasureService` for GDPR/APPI compliance and hard TTL expiration.
 
-## Memory Tier Transitions & Compression
+## 4. Defaults & Overrides (ARCH-05, AP.02)
+- **Co-Located Defaults**:
+  - In-memory repositories (`InMemoryEpisodeRepository`, `InMemoryMemorySemanticRepository`, `InMemoryMemoryStructuredRepository`, `InMemoryMemorySummaryRepository`, `InMemoryCompressionJobStore`) registered via `TryAdd` in vertical slice features.
+  - Default policies (`HumanLikePresentationPolicy`, `ExponentialRecallDecayStrategy`, `DefaultMemoryRecallService`, `DefaultMemoryErasureService`).
+- **Override Mechanism**: Downstream hosts replace repositories, compression strategies, or presentation policies via standard DI builder registration.
 
-| Boundary / Constraint | Rule |
-| :--- | :--- |
-| Trigger L1 (Echo) → L2 (Summary) compression via turn threshold or timer asynchronously. | [CS.03] |
-| Execute L2 → L3 consolidation during `AfterStage` or background execution. | [CS.03] |
-| Guarantee consolidation idempotency using marker records within `VKPsycheContext.SetState`. | [AP.01] |
-| Enforce length (&gt;2000 chars) and prompt injection keyword checks before persisting memory. | [AP.01] |
+## 5. Domain Invariants (BASE-01)
+- **Scope Separation**: Multi-tenant isolation (`TenantId NOT NULL`) is strictly enforced across L0, L1, and Vector collections.
+- **Single-Pass Extraction**: Fact extraction, categorization, scoring, and arbitration are coordinated in a single Eidos structured JSON call.
+- **Telemetry & Privacy**: PII is scrubbed before emitting OpenTelemetry tags or structured logs (`CS.06`, `OR.01`).
 
-## Decay, Pruning & Revision
-
-| Boundary / Constraint | Rule |
-| :--- | :--- |
-| Enforce Ebbinghaus forgetting curve with access-frequency adjusted half-life for `RetentionScore`. | — |
-| Respect `IsPinned` flag by skipping pruning and decay processing completely. | — |
-| Force prune entries exceeding `HardTtl` regardless of `RetentionScore`. | — |
-| Execute similarity deduplication at the end of consolidation/pruning using Cosine Similarity. | [CS.04] |
-| Arbitrate fact contradictions using `IVKContradictionArbitrator` and mark overruled memories as `IsSuperseded = true`. | [CS.01] |
-
-## Registration & Infrastructure Isolation
-
-| Boundary / Constraint | Rule |
-| :--- | :--- |
-| Register all block services via idempotent `TryAdd` methods in `VKAIEngramBlock`. | [AP.02, BB.03] |
-| Isolate all background processors (Decay, Pruning, Compression, Reminders) from client pipeline exceptions. | [CS.03] |
-| Use `IVKDistributedLockProvider` for background job coordination across multiple replicas. | [CS.03] |
-| Mask PII content (SHA256 log hashing) in diagnostic logging and telemetry. | [CS.06] |
-| Delegate DLQ fallback to `IVKConsolidationDlqHandler` or logging without direct `Messaging` package coupling. | [BB.01] |
+</manifest>

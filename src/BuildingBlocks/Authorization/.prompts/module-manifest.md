@@ -1,9 +1,4 @@
----
-layer: 3
-id: authz-manifest
-scope: building-blocks/authorization
-requires: CS.02, CS.06, AP.04, BB.07
----
+﻿<manifest id="authz-manifest" layer="Tier 1 — Foundations" scope="building-blocks/authorization" requires="CS.02, CS.06, AP.04, BB.07">
 
 # VK.Blocks Authorization Manifest (Layer 3)
 
@@ -50,3 +45,5 @@ Handles "what you can do" — permission definition, policy evaluation, and reso
 ### 10. Test-Friendly Evaluation Context
 
 - The evaluator MUST be mockable to simulate "execute as user with permission set X" in unit tests, without requiring a real Claims/Token pipeline.
+
+</manifest>

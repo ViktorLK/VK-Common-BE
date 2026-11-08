@@ -1,11 +1,14 @@
+using System;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Caching;
 
 /// <summary>
 /// Partial class for caching diagnostics implementation.
+/// Follows OR.01, BB.04.
 /// </summary>
 [VKBlockDiagnostics<VKCachingBlock>]
 internal static partial class CachingDiagnostics
@@ -31,4 +34,10 @@ internal static partial class CachingDiagnostics
     {
         _cacheErrors.Add(1, new TagList { { "operation", operation } });
     }
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Error, Message = "Cache operation '{Operation}' failed for key '{Key}'.")]
+    internal static partial void LogCacheOperationFailed(this ILogger logger, Exception ex, string operation, string key);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "Cache miss or entry unavailable for key '{Key}'.")]
+    internal static partial void LogCacheMiss(this ILogger logger, string key);
 }

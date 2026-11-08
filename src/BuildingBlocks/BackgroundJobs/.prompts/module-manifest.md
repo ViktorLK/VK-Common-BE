@@ -1,9 +1,4 @@
----
-layer: 3
-id: backgroundjobs-manifest
-scope: building-blocks/backgroundjobs
-requires: CS.02, CS.06, AP.04, BB.07, BB.08, OR.03
----
+﻿<manifest id="backgroundjobs-manifest" layer="Tier 1 — Foundations" scope="building-blocks/backgroundjobs" requires="CS.02, CS.06, AP.04, BB.07, BB.08, OR.03">
 
 # VK.Blocks BackgroundJobs Manifest (Layer 3)
 
@@ -74,3 +69,5 @@ Defines the scheduler-agnostic contract for fire-and-forget, delayed, recurring,
 ### 16. Test-Friendly Synchronous Scheduler
 
 - A synchronous, in-process fake scheduler MUST be available so unit tests can assert "was this job enqueued with these parameters" without requiring a real backend scheduler.
+
+</manifest>

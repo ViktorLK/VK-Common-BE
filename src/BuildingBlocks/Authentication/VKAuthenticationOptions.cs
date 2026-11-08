@@ -8,6 +8,7 @@ namespace VK.Blocks.Authentication;
 /// These values serve as fallbacks for all Authentication features.
 /// Following BB.06: Modular Feature Pattern.
 /// </summary>
+[VKOptions]
 public sealed partial record VKAuthenticationOptions : IVKBlockOptions
 {
     /// <summary>

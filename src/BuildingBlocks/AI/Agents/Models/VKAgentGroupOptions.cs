@@ -1,3 +1,4 @@
+using VK.Blocks.Core;
 using System.Collections.Generic;
 
 namespace VK.Blocks.AI;
@@ -5,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Options for configuring a multi-agent group execution.
 /// </summary>
+[VKOptions]
 public sealed record VKAgentGroupOptions
 {
     /// <summary>

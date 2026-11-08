@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Injection Guard feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.GuardrailsFeature), OptionsType = typeof(VKInjectionOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(global::VK.Blocks.AI.GuardrailsFeature), OptionsType = typeof(VKInjectionOptions))]
 internal sealed partial class InjectionFeature
 {
     // [SG Hook]

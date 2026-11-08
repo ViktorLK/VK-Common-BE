@@ -8,6 +8,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Follows BB.05 (Options pattern with sealed record).
 /// Uses <see cref="VKArgsGenerationMode.Implicit"/> so all options are automatically available for request-level override.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Implicit, GenerateMerge = true)]
 public sealed partial record VKWeavingOptions : IVKBlockOptions
 {
     /// <summary>

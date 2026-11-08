@@ -6,6 +6,7 @@ namespace VK.Blocks.AI.Synapse;
 /// <summary>
 /// Configuration options for AI Synapse Quota & Rate Limiting feature slice.
 /// </summary>
+[VKOptions]
 public sealed partial record VKQuotaOptions : IVKBlockOptions
 {
     /// <summary>
