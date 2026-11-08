@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Audio Speech (TTS) feature.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true, ArgsBaseType = typeof(IVKAIArgs))]
 public sealed partial record VKSpeechOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>

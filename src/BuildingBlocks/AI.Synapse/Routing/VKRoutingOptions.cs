@@ -7,6 +7,7 @@ namespace VK.Blocks.AI.Synapse;
 /// Configuration options for the AI routing and fallback feature.
 /// Follows AP.04 (IVKBlockOptions) and BB.05 (immutable record with init).
 /// </summary>
+[VKOptions]
 public sealed partial record VKRoutingOptions : IVKBlockOptions
 {
     /// <summary>

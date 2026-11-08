@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Prompting feature.
 /// </summary>
+[VKOptions]
 public sealed partial record VKPromptingOptions : IVKToggleableBlockOptions
 {
     /// <summary>

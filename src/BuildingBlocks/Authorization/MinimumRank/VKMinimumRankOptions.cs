@@ -7,6 +7,7 @@ namespace VK.Blocks.Authorization;
 /// Configuration options for the Minimum Rank authorization feature.
 /// </summary>
 
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKMinimumRankOptions : IVKToggleableBlockOptions
 {
     /// <summary>

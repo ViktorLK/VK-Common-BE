@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Speech (TTS) feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.AudioFeature), OptionsType = typeof(VKSpeechOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit, ArgsBaseType = typeof(IVKAIArgs))]
+[VKFeature(typeof(global::VK.Blocks.AI.AudioFeature), OptionsType = typeof(VKSpeechOptions))]
 internal sealed partial class SpeechFeature
 {
     // [SG Hook]

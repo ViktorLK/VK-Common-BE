@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Knowledge feature marker and registration hub.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKKnowledgeOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKKnowledgeOptions))]
 internal sealed partial class KnowledgeFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKKnowledgeOptions options)

@@ -10,7 +10,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.Authorization;
 
 [ExcludeFromCodeCoverage]
-[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKWorkingHoursOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKWorkingHoursOptions))]
 internal sealed partial class WorkingHoursFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKWorkingHoursOptions options)

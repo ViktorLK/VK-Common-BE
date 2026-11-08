@@ -7,6 +7,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
 
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKEchoOptions : IVKToggleableBlockOptions
 {
     /// <summary>

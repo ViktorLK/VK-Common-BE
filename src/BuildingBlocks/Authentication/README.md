@@ -402,7 +402,7 @@ services.TryAddEnumerableSingleton<IValidateOptions<MyOptions>, MyValidator>();
 
 ## 🏛️ アーキテクチャ監査
 
-最新の監査レポートは [Authentication_20260510.md](/docs/04-AuditReports/Authentication/Authentication_20260510.md) を参照してください。
+最新の監査レポートは [Authentication_20260510.md](/docs/06-AuditReports/Authentication/Authentication_20260510.md) を参照してください。
 
 | 項目 | 結果 |
 | ---- | ---- |

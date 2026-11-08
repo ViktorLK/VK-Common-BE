@@ -7,6 +7,7 @@ namespace VK.Blocks.AI.Synapse;
 /// Configuration options for AI Synapse Cost & Token Pricing feature slice.
 /// Follows AP.04 and BB.05.
 /// </summary>
+[VKOptions]
 public sealed partial record VKCostOptions : IVKBlockOptions
 {
     /// <summary>

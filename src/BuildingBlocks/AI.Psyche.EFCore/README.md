@@ -322,7 +322,7 @@ erDiagram
 
 ## 🏛️ アーキテクチャ監査
 
-最新の監査レポートは [AI.Psyche.EFCore_20260916.md](/docs/04-AuditReports/AI.Psyche.EFCore/AI.Psyche.EFCore_20260916.md) を参照してください。
+最新の監査レポートは [AI.Psyche.EFCore_20260916.md](/docs/06-AuditReports/AI.Psyche.EFCore/AI.Psyche.EFCore_20260916.md) を参照してください。
 
 | 項目                | 結果         |
 | ------------------- | ------------ |

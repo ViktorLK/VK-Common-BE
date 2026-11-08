@@ -6,6 +6,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Configuration options for Cookie-based session authentication.
 /// </summary>
+[VKOptions]
 public sealed partial record VKCookieOptions : IVKToggleableBlockOptions
 {
     /// <summary>

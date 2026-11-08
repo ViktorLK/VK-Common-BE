@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Image Generation feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKImageGenerationOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit, ArgsBaseType = typeof(IVKAIArgs))]
+[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKImageGenerationOptions))]
 internal sealed partial class ImageGenerationFeature
 {
     // [SG Hook]

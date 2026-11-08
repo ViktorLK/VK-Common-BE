@@ -6,6 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Configuration options for the Profile feature slice in Psyche.
 /// Follows BB.05 and BB.07.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKProfileOptions : IVKToggleableBlockOptions
 {
     /// <summary>

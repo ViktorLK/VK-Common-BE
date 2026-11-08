@@ -294,7 +294,7 @@ builder.Services.TryAddEnumerable(
 
 ## 🏛️ アーキテクチャ監査
 
-最新の監査レポートは [AI.Psyche_20260922.md](/docs/04-AuditReports/AI.Psyche/AI.Psyche_20260922.md) を参照してください。
+最新の監査レポートは [AI.Psyche_20260922.md](/docs/06-AuditReports/AI.Psyche/AI.Psyche_20260922.md) を参照してください。
 
 | 項目                | 結果                        |
 | ------------------- | --------------------------- |

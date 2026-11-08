@@ -13,7 +13,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.Authorization;
 
 [ExcludeFromCodeCoverage]
-[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKInternalNetworkOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKInternalNetworkOptions))]
 internal sealed partial class InternalNetworkFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKInternalNetworkOptions options)

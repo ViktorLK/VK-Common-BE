@@ -6,6 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Options for the Directive feature.
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKDirectiveOptions : IVKToggleableBlockOptions
 {
     /// <summary>

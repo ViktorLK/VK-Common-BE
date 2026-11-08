@@ -1,3 +1,4 @@
+using VK.Blocks.Core;
 using System.Collections.Generic;
 
 namespace VK.Blocks.Authentication;
@@ -5,6 +6,7 @@ namespace VK.Blocks.Authentication;
 /// <summary>
 /// Represents the configuration options for a single OAuth provider.
 /// </summary>
+[VKOptions]
 public sealed record VKOAuthProviderOptions
 {
     /// <summary>

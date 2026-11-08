@@ -6,6 +6,7 @@ namespace VK.Blocks.Authorization.DynamicPolicies;
 /// Configuration options for the Dynamic Policies authorization feature.
 /// </summary>
 
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKDynamicPoliciesOptions : IVKToggleableBlockOptions
 {
     /// <summary>

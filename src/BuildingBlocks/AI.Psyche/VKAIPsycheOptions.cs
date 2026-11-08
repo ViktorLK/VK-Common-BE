@@ -7,6 +7,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Governs global token budget bounds, fallback policies, and pipeline defaults.
 /// Follows BB.05 (Options pattern with sealed partial record).
 /// </summary>
+[VKOptions]
 public sealed partial record VKAIPsycheOptions : IVKBlockOptions
 {
     /// <summary>

@@ -1,8 +1,10 @@
+using VK.Blocks.Core;
 namespace VK.Blocks.Caching;
 
 /// <summary>
 /// Configuration for a specific cache operation.
 /// </summary>
+[VKOptions]
 public sealed record VKCacheOptions
 {
     /// <summary>

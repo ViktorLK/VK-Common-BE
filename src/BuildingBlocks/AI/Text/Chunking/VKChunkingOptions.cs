@@ -5,6 +5,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Text Chunking feature.
 /// </summary>
+[VKOptions]
 public sealed partial record VKChunkingOptions : IVKBlockOptions
 {
     /// <summary>

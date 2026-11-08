@@ -7,6 +7,7 @@ namespace VK.Blocks.AI.Synapse;
 /// Configuration options for AI resilience, provider failover, and rate-limit retry policies.
 /// Follows [AP.01], [BB.05].
 /// </summary>
+[VKOptions]
 public sealed partial record VKAIResilienceOptions : IVKBlockOptions
 {
     /// <summary>

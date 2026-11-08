@@ -498,7 +498,7 @@ dotnet test --filter "FullyQualifiedName~VK.Blocks.Authorization"
 
 | 日付       | スコア             | レポート                                                                                   |
 | ---------- | ------------------ | ------------------------------------------------------------------------------------------ |
-| 2026-05-10 | 96/100 (Fast: 98%) | [Authorization_20260510.md](/docs/04-AuditReports/Authorization/Authorization_20260510.md) |
+| 2026-05-10 | 96/100 (Fast: 98%) | [Authorization_20260510.md](/docs/06-AuditReports/Authorization/Authorization_20260510.md) |
 
 ---
 

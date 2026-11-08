@@ -5,10 +5,11 @@ namespace VK.Blocks.Caching.ObjectCache.Internal;
 
 /// <summary>
 /// Standardized cache key builder enforcing tenant prefix isolation.
+/// Follows AP.01, AP.03.
 /// </summary>
 internal sealed class DefaultCacheKeyBuilder(
     IOptions<VKCachingOptions> options,
-    IVKTenantCoordinate tenantCoordinate) : ICacheKeyBuilder
+    IVKTenantCoordinate tenantCoordinate) : IVKCacheKeyBuilder
 {
     private readonly string _globalPrefix = options.Value.KeyPrefix;
 

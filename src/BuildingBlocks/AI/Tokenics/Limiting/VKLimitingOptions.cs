@@ -5,6 +5,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Token Rate Limiting feature.
 /// </summary>
+[VKOptions]
 public sealed partial record VKLimitingOptions : IVKToggleableBlockOptions
 {
 

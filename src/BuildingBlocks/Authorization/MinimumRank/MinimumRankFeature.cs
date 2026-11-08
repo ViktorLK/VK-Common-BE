@@ -10,7 +10,7 @@ using VK.Blocks.Core;
 namespace VK.Blocks.Authorization;
 
 [ExcludeFromCodeCoverage]
-[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKMinimumRankOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAuthorizationBlock), OptionsType = typeof(VKMinimumRankOptions))]
 internal sealed partial class MinimumRankFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKMinimumRankOptions options)

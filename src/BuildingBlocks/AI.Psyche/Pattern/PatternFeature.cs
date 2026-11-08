@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Pattern feature marker and registration hub.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPatternOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPatternOptions))]
 internal sealed partial class PatternFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPatternOptions options)

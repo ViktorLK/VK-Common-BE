@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Content Guard feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.GuardrailsFeature), OptionsType = typeof(VKContentOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(global::VK.Blocks.AI.GuardrailsFeature), OptionsType = typeof(VKContentOptions))]
 internal sealed partial class ContentFeature
 {
     // [SG Hook]

@@ -8,6 +8,7 @@ namespace VK.Blocks.AI;
 /// Non-toggleable core infrastructure options.
 /// Allows custom registration of proprietary/local model capabilities via configuration.
 /// </summary>
+[VKOptions]
 public sealed partial record VKCatalogOptions : IVKBlockOptions
 {
     /// <summary>

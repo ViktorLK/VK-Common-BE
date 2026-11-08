@@ -1,21 +1,24 @@
+using System;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Caching;
 
 /// <summary>
 /// Default configuration settings for the Caching building block.
+/// Follows AP.04, BB.05, BB.07.
 /// </summary>
+[VKOptions]
 public sealed partial record VKCachingOptions : IVKBlockOptions
 {
-    /// <summary>
-    /// Gets the cache provider type.
-    /// </summary>
-    public CacheProviderType Provider { get; init; } = CacheProviderType.Memory;
-
     /// <summary>
     /// Gets the default expiration time for cache entries.
     /// </summary>
     public TimeSpan DefaultExpiration { get; init; } = TimeSpan.FromMinutes(30);
+
+    /// <summary>
+    /// Gets the default local L1 expiration time for cache entries.
+    /// </summary>
+    public TimeSpan DefaultLocalExpiration { get; init; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
     /// Gets the prefix for all cache keys.
@@ -23,17 +26,7 @@ public sealed partial record VKCachingOptions : IVKBlockOptions
     public string KeyPrefix { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets the Redis specific configuration.
+    /// Gets the maximum payload size in bytes for cache entries.
     /// </summary>
-    public RedisCacheOptions Redis { get; init; } = new();
-
-    /// <summary>
-    /// Gets the Hybrid specific configuration.
-    /// </summary>
-    public HybridCacheOptions Hybrid { get; init; } = new();
-
-    /// <summary>
-    /// Gets the cache resilience strategies options.
-    /// </summary>
-    public VKResilienceOptions Resilience { get; init; } = new();
+    public long? MaximumPayloadBytes { get; init; } = 10 * 1024 * 1024; // 10MB
 }

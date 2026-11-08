@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Transcription (STT) feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.AudioFeature), OptionsType = typeof(VKTranscriptionOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit, ArgsBaseType = typeof(IVKAIArgs))]
+[VKFeature(typeof(global::VK.Blocks.AI.AudioFeature), OptionsType = typeof(VKTranscriptionOptions))]
 internal sealed partial class TranscriptionFeature
 {
     // [SG Hook]

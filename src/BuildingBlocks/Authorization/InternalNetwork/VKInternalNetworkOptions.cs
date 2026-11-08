@@ -9,6 +9,7 @@ namespace VK.Blocks.Authorization;
 /// Configuration options for the Internal Network authorization feature.
 /// </summary>
 
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKInternalNetworkOptions : IVKToggleableBlockOptions
 {
     /// <summary>

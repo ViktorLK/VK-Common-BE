@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Agents feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.VKAIBlock), OptionsType = typeof(VKAgentsOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(global::VK.Blocks.AI.VKAIBlock), OptionsType = typeof(VKAgentsOptions))]
 internal sealed partial class AgentsFeature
 {
     // [SG Hook]

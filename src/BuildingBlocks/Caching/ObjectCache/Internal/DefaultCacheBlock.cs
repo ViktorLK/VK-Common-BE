@@ -1,114 +1,113 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Polly;
-using VK.Blocks.Caching.Resilience.Avalanche;
-using VK.Blocks.Caching.Resilience.Breakdown;
-using VK.Blocks.Caching.Resilience.Penetration;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Caching.ObjectCache.Internal;
 
 /// <summary>
-/// Core implementation of IVKCacheBlock that orchestrates providers, serialization, and resilience.
+/// Production implementation of <see cref="IVKCacheBlock"/> delegating to <see cref="HybridCache"/>.
+/// Follows CS.01, CS.03, AP.01, OR.01.
 /// </summary>
 internal sealed class DefaultCacheBlock(
-    ICacheProvider provider,
-    ICacheSerializer serializer,
+    HybridCache hybridCache,
+    IVKCacheKeyBuilder keyBuilder,
     IVKDistributedLockProvider lockProvider,
-    ICacheKeyBuilder keyBuilder,
-    IJitterExpiryStrategy jitterStrategy,
-    ILockBasedGuard breakdownGuard,
-    INullValueGuard penetrationGuard,
     IOptions<VKCachingOptions> cachingOptions,
-    TimeProvider timeProvider,
     ILogger<DefaultCacheBlock> logger) : IVKCacheBlock
 {
-    private readonly VKCachingOptions _cachingOptions = cachingOptions.Value;
-    private readonly VKResilienceOptions _resilienceOptions = cachingOptions.Value.Resilience;
+    private readonly HybridCache _hybridCache = VKGuard.NotNull(hybridCache);
+    private readonly IVKCacheKeyBuilder _keyBuilder = VKGuard.NotNull(keyBuilder);
+    private readonly IVKDistributedLockProvider _lockProvider = VKGuard.NotNull(lockProvider);
+    private readonly VKCachingOptions _options = VKGuard.NotNull(cachingOptions).Value;
+    private readonly ILogger<DefaultCacheBlock> _logger = VKGuard.NotNull(logger);
 
     /// <inheritdoc />
     public async Task<VKResult<VKCacheValue<T>>> GetAsync<T>(string key, CancellationToken ct = default)
     {
+        VKGuard.NotNullOrWhiteSpace(key);
         using var activity = CachingDiagnostics.StartActivity("Cache.Get");
-        var fullKey = keyBuilder.BuildKey(key);
+        var fullKey = _keyBuilder.BuildKey(key);
         activity?.SetTag("cache.key", fullKey);
 
         try
         {
-            var providerResult = await provider.GetAsync(fullKey, ct).ConfigureAwait(false);
-            if (providerResult.IsFailure)
+            var entryOptions = new HybridCacheEntryOptions
             {
-                CachingDiagnostics.RecordError("get");
-                return VKResult.Failure<VKCacheValue<T>>(providerResult.Errors);
-            }
+                Flags = HybridCacheEntryFlags.DisableUnderlyingData
+            };
 
-            var bytes = providerResult.Value;
-            if (bytes is null)
-            {
-                CachingDiagnostics.RecordMiss();
-                return VKResult.Success(VKCacheValue<T>.NoValue);
-            }
+            var value = await _hybridCache.GetOrCreateAsync<T?>(
+                fullKey,
+                static _ => ValueTask.FromResult<T?>(default),
+                entryOptions,
+                cancellationToken: ct
+            ).ConfigureAwait(false);
 
-            var entry = serializer.Deserialize<CacheEntry<T>>(bytes);
-            if (entry is null || entry.Version != 1)
+            if (value is null)
             {
-                CachingDiagnostics.RecordMiss();
-                return VKResult.Success(VKCacheValue<T>.NoValue);
-            }
-
-            if (entry.IsExpired(timeProvider.GetUtcNow()))
-            {
-                await provider.RemoveAsync(fullKey, ct).ConfigureAwait(false);
                 CachingDiagnostics.RecordMiss();
                 return VKResult.Success(VKCacheValue<T>.NoValue);
             }
 
             CachingDiagnostics.RecordHit();
-            return VKResult.Success(VKCacheValue<T>.ValueOf(penetrationGuard.Unwrap<T>(entry.Value)));
+            return VKResult.Success(VKCacheValue<T>.ValueOf(value));
         }
-        catch (Exception ex)
+        catch
         {
-            CachingDiagnostics.RecordError("get");
-            logger.LogError(ex, "Cache get error for key: {Key}", fullKey);
-            return VKResult.Failure<VKCacheValue<T>>(VKCachingErrors.ProviderError);
+            CachingDiagnostics.RecordMiss();
+            return VKResult.Success(VKCacheValue<T>.NoValue);
         }
     }
 
     /// <inheritdoc />
-    public async Task<VKResult> SetAsync<T>(string key, T value, VKCacheOptions? options = null, CancellationToken ct = default)
+    public async Task<VKResult> SetAsync<T>(
+        string key,
+        T value,
+        VKCacheOptions? options = null,
+        CancellationToken ct = default)
     {
+        VKGuard.NotNullOrWhiteSpace(key);
         using var activity = CachingDiagnostics.StartActivity("Cache.Set");
-        var fullKey = keyBuilder.BuildKey(key);
-        options ??= VKCacheOptions.Default;
+        var fullKey = _keyBuilder.BuildKey(key);
         activity?.SetTag("cache.key", fullKey);
 
         try
         {
-            var expiration = options.Expiration ?? _cachingOptions.DefaultExpiration;
-
-            if (_resilienceOptions.EnableAvalancheProtection)
+            HybridCacheEntryOptions? entryOptions = null;
+            if (options?.Expiration.HasValue == true || options?.SlidingExpiration.HasValue == true)
             {
-                expiration = jitterStrategy.ApplyJitter(expiration, _resilienceOptions.MaxJitterRatio);
+                entryOptions = new HybridCacheEntryOptions
+                {
+                    Expiration = options.Expiration,
+                    LocalCacheExpiration = options.Expiration
+                };
             }
 
-            var wrappedValue = penetrationGuard.Wrap(value, _resilienceOptions.EnablePenetrationProtection);
-            var entry = new CacheEntry<object>(
-                wrappedValue,
-                timeProvider.GetUtcNow().Add(expiration),
-                options.SlidingExpiration);
+            var tags = options?.Tags;
 
-            var bytes = serializer.Serialize(entry);
-            var providerResult = await provider.SetAsync(fullKey, bytes, options, ct).ConfigureAwait(false);
+            await _hybridCache.SetAsync(
+                fullKey,
+                value,
+                entryOptions,
+                tags,
+                cancellationToken: ct
+            ).ConfigureAwait(false);
 
-            return providerResult;
+            return VKResult.Success();
         }
         catch (Exception ex)
         {
             CachingDiagnostics.RecordError("set");
-            logger.LogError(ex, "Cache set error for key: {Key}", fullKey);
+            _logger.LogCacheOperationFailed(ex, "Set", fullKey);
 
-            if (!options.SuppressErrors)
+            if (options?.SuppressErrors == false)
+            {
                 return VKResult.Failure(VKCachingErrors.ProviderError);
+            }
 
             return VKResult.Success();
         }
@@ -121,100 +120,123 @@ internal sealed class DefaultCacheBlock(
         VKCacheOptions? options = null,
         CancellationToken ct = default)
     {
-        options ??= VKCacheOptions.Default;
-        var fullKey = keyBuilder.BuildKey(key);
+        VKGuard.NotNullOrWhiteSpace(key);
+        VKGuard.NotNull(factory);
+        using var activity = CachingDiagnostics.StartActivity("Cache.GetOrSet");
+        var fullKey = _keyBuilder.BuildKey(key);
+        activity?.SetTag("cache.key", fullKey);
 
-        if (!options.BypassCache)
+        try
         {
-            var cachedResult = await GetAsync<T>(key, ct).ConfigureAwait(false);
-            if (cachedResult.IsSuccess && cachedResult.Value!.HasValue)
+            HybridCacheEntryOptions? entryOptions = null;
+            if (options?.Expiration.HasValue == true || options?.SlidingExpiration.HasValue == true)
             {
-                var value = cachedResult.Value.Value;
-                if (value is not null)
-                    return VKResult.Success(value);
-            }
-        }
-
-        if (_resilienceOptions.EnableBreakdownProtection)
-        {
-            var breakdownResult = await breakdownGuard.ExecuteAsync<T>(
-                lockProvider,
-                key,
-                async (c) =>
+                entryOptions = new HybridCacheEntryOptions
                 {
-                    var res = await factory(c).ConfigureAwait(false);
-                    await SetAsync(key, res, options, c).ConfigureAwait(false);
-                    return VKResult.Success(res);
-                },
-                () => GetAsync<T>(key, ct),
-                ct).ConfigureAwait(false);
+                    Expiration = options.Expiration,
+                    LocalCacheExpiration = options.Expiration
+                };
+            }
 
-            if (breakdownResult.IsSuccess && breakdownResult.Value!.HasValue)
+            var tags = options?.Tags;
+
+            var result = await _hybridCache.GetOrCreateAsync(
+                fullKey,
+                async cancel => await factory(cancel).ConfigureAwait(false),
+                entryOptions,
+                tags,
+                cancellationToken: ct
+            ).ConfigureAwait(false);
+
+            CachingDiagnostics.RecordHit();
+            return VKResult.Success(result);
+        }
+        catch (Exception ex)
+        {
+            CachingDiagnostics.RecordError("get_or_set");
+            _logger.LogCacheOperationFailed(ex, "GetOrSet", fullKey);
+
+            // Manifest Rule 4: Fallback to underlying data source on cache failure
+            try
             {
-                var value = breakdownResult.Value.Value;
-                if (value is not null)
-                    return VKResult.Success(value);
+                var direct = await factory(ct).ConfigureAwait(false);
+                return VKResult.Success(direct);
+            }
+            catch
+            {
+                return VKResult.Failure<T>(VKCachingErrors.ProviderError);
             }
         }
-
-        var result = await factory(ct).ConfigureAwait(false);
-        await SetAsync(key, result, options, ct).ConfigureAwait(false);
-        return VKResult.Success(result);
     }
 
     /// <inheritdoc />
     public async Task<VKResult> RemoveAsync(string key, CancellationToken ct = default)
     {
+        VKGuard.NotNullOrWhiteSpace(key);
         using var activity = CachingDiagnostics.StartActivity("Cache.Remove");
-        var fullKey = keyBuilder.BuildKey(key);
+        var fullKey = _keyBuilder.BuildKey(key);
         activity?.SetTag("cache.key", fullKey);
 
-        return await provider.RemoveAsync(fullKey, ct).ConfigureAwait(false);
+        try
+        {
+            await _hybridCache.RemoveAsync(fullKey, ct).ConfigureAwait(false);
+            return VKResult.Success();
+        }
+        catch (Exception ex)
+        {
+            CachingDiagnostics.RecordError("remove");
+            _logger.LogCacheOperationFailed(ex, "Remove", fullKey);
+            return VKResult.Failure(VKCachingErrors.ProviderError);
+        }
     }
 
     /// <inheritdoc />
     public async Task<VKResult> RemoveByTagAsync(string tag, CancellationToken ct = default)
     {
+        VKGuard.NotNullOrWhiteSpace(tag);
         using var activity = CachingDiagnostics.StartActivity("Cache.RemoveByTag");
         activity?.SetTag("cache.tag", tag);
 
-        return await provider.RemoveByTagAsync(tag, ct).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
-    public async Task<VKResult<IVKDistributedLock>> AcquireLockAsync(string resourceKey, VKLockOptions? options = null, CancellationToken ct = default)
-    {
-        using var activity = CachingDiagnostics.StartActivity("Cache.AcquireLock");
-        options ??= new VKLockOptions();
-        var fullKey = keyBuilder.BuildKey(resourceKey);
-        activity?.SetTag("lock.key", fullKey);
-
-        var @lock = lockProvider.CreateLock(fullKey, options.LockTimeout);
-
         try
         {
-            var retryCount = (int)(options.AcquireTimeout.TotalMilliseconds / Math.Max(1, options.RetryInterval.TotalMilliseconds));
-            var retryPolicy = Policy
-                .HandleResult<bool>(acquired => !acquired)
-                .WaitAndRetryAsync(
-                    retryCount: retryCount,
-                    sleepDurationProvider: _ => options.RetryInterval);
-
-            var success = await retryPolicy.ExecuteAsync(async (c) => await @lock.AcquireAsync(c).ConfigureAwait(false), ct).ConfigureAwait(false);
-
-            if (success)
-            {
-                return VKResult.Success(@lock);
-            }
-
-            await @lock.DisposeAsync().ConfigureAwait(false);
-            return VKResult.Failure<IVKDistributedLock>(VKCachingErrors.LockAcquisitionFailed);
+            await _hybridCache.RemoveByTagAsync(tag, ct).ConfigureAwait(false);
+            return VKResult.Success();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "VKError acquiring lock for key: {Key}", fullKey);
-            await @lock.DisposeAsync().ConfigureAwait(false);
-            return VKResult.Failure<IVKDistributedLock>(VKCachingErrors.LockAcquisitionFailed);
+            CachingDiagnostics.RecordError("remove_by_tag");
+            _logger.LogCacheOperationFailed(ex, "RemoveByTag", tag);
+            return VKResult.Failure(VKCachingErrors.ProviderError);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<VKResult<IVKDistributedLockHandle>> AcquireLockAsync(
+        string resourceKey,
+        VKLockOptions? options = null,
+        CancellationToken ct = default)
+    {
+        VKGuard.NotNullOrWhiteSpace(resourceKey);
+        using var activity = CachingDiagnostics.StartActivity("Cache.AcquireLock");
+        var fullKey = _keyBuilder.BuildKey($"lock:{resourceKey}");
+        activity?.SetTag("cache.lock_key", fullKey);
+
+        try
+        {
+            var timeout = options?.LockTimeout ?? TimeSpan.FromSeconds(30);
+            var handle = await _lockProvider.TryAcquireLockAsync(fullKey, timeout, ct).ConfigureAwait(false);
+            if (handle is null)
+            {
+                return VKResult.Failure<IVKDistributedLockHandle>(VKCachingErrors.LockAcquisitionFailed);
+            }
+
+            return VKResult.Success(handle);
+        }
+        catch (Exception ex)
+        {
+            CachingDiagnostics.RecordError("lock");
+            _logger.LogCacheOperationFailed(ex, "AcquireLock", fullKey);
+            return VKResult.Failure<IVKDistributedLockHandle>(VKCachingErrors.LockAcquisitionFailed);
         }
     }
 }

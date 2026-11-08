@@ -1,8 +1,10 @@
+using VK.Blocks.Core;
 namespace VK.Blocks.AI;
 
 /// <summary>
 /// Configuration options for creating a Prompt-based Tool.
 /// </summary>
+[VKOptions]
 public sealed record VKPromptToolOptions
 {
     /// <summary>

@@ -6,4 +6,5 @@ namespace VK.Blocks.AI.Psyche;
 /// Options for the AI Psyche Pipeline.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKPipelineOptions : IVKBlockOptions;

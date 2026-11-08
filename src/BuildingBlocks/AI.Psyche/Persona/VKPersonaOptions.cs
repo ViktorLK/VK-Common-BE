@@ -6,6 +6,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Configuration settings for the Persona feature.
 /// </summary>
 
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKPersonaOptions : IVKToggleableBlockOptions
 {
     /// <summary>

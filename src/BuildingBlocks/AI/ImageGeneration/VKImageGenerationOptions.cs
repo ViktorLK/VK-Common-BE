@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Options for the image generation feature.
 /// </summary>
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true, ArgsBaseType = typeof(IVKAIArgs))]
 public sealed partial record VKImageGenerationOptions : IVKToggleableBlockOptions, IVKAIProviderOptions, IVKAIGovernanceOptions
 {
     /// <summary>

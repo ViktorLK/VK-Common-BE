@@ -6,6 +6,7 @@ namespace VK.Blocks.Authorization;
 /// Configuration options for the Entitlements authorization feature.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKEntitlementsOptions : IVKToggleableBlockOptions
 {
     /// <summary>

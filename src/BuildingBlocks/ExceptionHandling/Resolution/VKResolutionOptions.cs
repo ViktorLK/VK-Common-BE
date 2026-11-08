@@ -7,6 +7,7 @@ namespace VK.Blocks.ExceptionHandling;
 /// <summary>
 /// Options for the exception resolution feature.
 /// </summary>
+[VKOptions]
 public sealed partial record VKResolutionOptions : IVKBlockOptions
 {
     /// <summary>

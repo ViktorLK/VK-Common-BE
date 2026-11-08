@@ -12,7 +12,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Weaving feature marker and registration hub.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKWeavingOptions), ArgsGenerationMode = VKArgsGenerationMode.Implicit)]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKWeavingOptions))]
 internal sealed partial class WeavingFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKWeavingOptions options)

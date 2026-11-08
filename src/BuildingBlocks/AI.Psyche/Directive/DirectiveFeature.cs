@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Directive feature marker and registration hub.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKDirectiveOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKDirectiveOptions))]
 internal sealed partial class DirectiveFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKDirectiveOptions options)

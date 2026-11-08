@@ -11,7 +11,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Persona feature marker and registration hub.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPersonaOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKPersonaOptions))]
 internal sealed partial class PersonaFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPersonaOptions options)

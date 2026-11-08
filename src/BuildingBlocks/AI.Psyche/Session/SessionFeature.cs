@@ -12,7 +12,7 @@ namespace VK.Blocks.AI.Psyche;
 /// Follows BB.06 and AP.02.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Feature marker and DI registration hub containing no business logic.")]
-[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKSessionOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKAIPsycheBlock), OptionsType = typeof(VKSessionOptions))]
 internal sealed partial class SessionFeature
 {
     // [SG Hook]

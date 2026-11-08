@@ -7,6 +7,7 @@ namespace VK.Blocks.Authorization;
 /// Configuration options for the Permissions authorization feature.
 /// </summary>
 
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKPermissionOptions : IVKToggleableBlockOptions
 {
     /// <summary>

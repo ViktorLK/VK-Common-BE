@@ -6,6 +6,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Configuration settings for the Tokenics feature Hub.
 /// </summary>
+[VKOptions]
 public sealed partial record VKTokenicsOptions : IVKToggleableBlockOptions
 {
     /// <summary>
