@@ -6,6 +6,7 @@ namespace VK.Blocks.VectorSearch;
 /// Options for configuring the Fusion stage.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKFusionOptions : IVKToggleableBlockOptions
 {
     /// <summary>

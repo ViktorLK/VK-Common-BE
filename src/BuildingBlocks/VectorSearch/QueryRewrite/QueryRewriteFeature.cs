@@ -8,7 +8,7 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Query Rewrite feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKQueryRewriteOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKQueryRewriteOptions))]
 internal sealed partial class QueryRewriteFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKQueryRewriteOptions options)

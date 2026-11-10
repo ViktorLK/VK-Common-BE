@@ -5,20 +5,24 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.VectorData;
+using Microsoft.SemanticKernel.Connectors.InMemory;
 using VK.Blocks.Core;
 using VK.Blocks.VectorStore.Common.Diagnostics.Internal;
 
 namespace VK.Blocks.VectorStore.VecEngine.Internal;
 
 /// <summary>
-/// Basic in-memory implementation of <see cref="IVKVectorStore"/>.
-/// Following AP.03 Naming Taxonomy.
+/// Official Microsoft InMemoryVectorStore implementation of <see cref="IVKVectorStore"/>.
+/// Delegates all storage, similarity scoring, and indexing to Microsoft.SemanticKernel.Connectors.InMemory.
 /// </summary>
-internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
+internal sealed class InMemoryVectorStore : IVKVectorStore
 {
     private readonly IVKJsonSerializer _jsonSerializer;
     private readonly VKVectorStoreOptions _options;
-    private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, (VKVector Vector, string DataJson)>> _collections = new();
+    private readonly Microsoft.SemanticKernel.Connectors.InMemory.InMemoryVectorStore _officialStore;
+    private readonly ConcurrentDictionary<string, VectorStoreCollection<string, InMemoryInternalRecord>> _collections = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, InMemoryInternalRecord>> _recordsSnapshot = new();
 
     public InMemoryVectorStore(
         IVKJsonSerializer jsonSerializer,
@@ -26,12 +30,24 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
     {
         _jsonSerializer = VKGuard.NotNull(jsonSerializer);
         _options = options?.Value ?? new VKVectorStoreOptions();
+        _officialStore = new Microsoft.SemanticKernel.Connectors.InMemory.InMemoryVectorStore();
     }
 
     public IVKVectorCollection<T> Collection<T>(string name) where T : class
     {
         VKGuard.NotNullOrWhiteSpace(name);
-        return new InMemoryVectorCollection<T>(name, this);
+        var physicalName = _options.ResolvePhysicalCollectionName(name);
+        return new InMemoryVectorCollection<T>(physicalName, this);
+    }
+
+    private VectorStoreCollection<string, InMemoryInternalRecord> GetOrCreateCollection(string collectionName)
+    {
+        return _collections.GetOrAdd(collectionName, name =>
+        {
+            var collection = _officialStore.GetCollection<string, InMemoryInternalRecord>(name);
+            collection.EnsureCollectionExistsAsync().GetAwaiter().GetResult();
+            return collection;
+        });
     }
 
     internal VKResult UpsertGeneric<T>(string collectionName, string id, T document, VKVector vector) where T : class
@@ -40,9 +56,20 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
         VKGuard.NotNull(document);
         VKGuard.NotNull(vector);
 
-        var collection = _collections.GetOrAdd(collectionName, _ => new ConcurrentDictionary<string, (VKVector, string)>());
-        collection[id] = (vector, _jsonSerializer.Serialize(document));
+        var collection = GetOrCreateCollection(collectionName);
+        var tenantId = ExtractTenantId(document);
 
+        var record = new InMemoryInternalRecord
+        {
+            Id = id,
+            DataJson = _jsonSerializer.Serialize(document),
+            TenantId = tenantId,
+            Vector = vector.Values
+        };
+
+        collection.UpsertAsync(record).GetAwaiter().GetResult();
+        var snapshot = _recordsSnapshot.GetOrAdd(collectionName, _ => new ConcurrentDictionary<string, InMemoryInternalRecord>());
+        snapshot[id] = record;
         return VKResult.Success();
     }
 
@@ -51,59 +78,83 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
         VKGuard.NotNull(vector);
         VKGuard.NotNull(args);
 
-        if (!_collections.TryGetValue(collectionName, out var collection))
-        {
-            return VKResult.Success(Enumerable.Empty<VKVectorRecord<T>>());
-        }
-
+        var collection = GetOrCreateCollection(collectionName);
         var stopwatch = Stopwatch.StartNew();
 
-        var results = collection.Select(kvp => new { Id = kvp.Key, Entry = kvp.Value })
-            .Select(x => new
-            {
-                x.Id,
-                Score = CosineSimilarity(vector.Values.Span, x.Entry.Vector.Values.Span),
-                DataJson = x.Entry.DataJson
-            })
-            .Where(r => r.Score >= (args?.MinScore ?? _options.DefaultMinScore))
-            .OrderByDescending(r => r.Score)
-            .Take(args?.Limit ?? _options.DefaultLimit)
-            .ToList();
+        var top = args.Limit > 0 ? args.Limit : _options.DefaultLimit;
+        var minScore = args.MinScore > 0 ? args.MinScore : _options.DefaultMinScore;
 
-        var genericResults = results.Select(r => new VKVectorRecord<T>(
-            r.Id,
-            _jsonSerializer.Deserialize<T>(r.DataJson)!,
-            r.Score
-        )).Where(r => r.Document is not null);
+        var searchResults = collection.SearchAsync(vector.Values, top * 2, null);
+        var enumerator = searchResults.GetAsyncEnumerator();
+
+        var records = new List<VKVectorRecord<T>>();
+
+        try
+        {
+            while (enumerator.MoveNextAsync().AsTask().GetAwaiter().GetResult())
+            {
+                var hit = enumerator.Current;
+                if (!hit.Score.HasValue || hit.Score.Value < minScore)
+                {
+                    continue;
+                }
+
+                // Tenant isolation predicate check [OR.02]
+                if (args.TenantId.Value != Guid.Empty)
+                {
+                    var targetTenantStr = args.TenantId.ToString();
+                    if (!string.Equals(hit.Record.TenantId, targetTenantStr, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                }
+
+                var doc = _jsonSerializer.Deserialize<T>(hit.Record.DataJson);
+                if (doc is not null)
+                {
+                    records.Add(new VKVectorRecord<T>(hit.Record.Id, doc, (float)hit.Score.Value));
+                }
+
+                if (records.Count >= top)
+                {
+                    break;
+                }
+            }
+        }
+        finally
+        {
+            enumerator.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
 
         VectorStoreDiagnostics.RecordSearchDuration(stopwatch.Elapsed.TotalSeconds);
-        VectorStoreDiagnostics.RecordRecallHit(results.Count > 0);
+        VectorStoreDiagnostics.RecordRecallHit(records.Count > 0);
 
-        return VKResult.Success(genericResults);
+        return VKResult.Success<IEnumerable<VKVectorRecord<T>>>(records);
     }
 
     internal VKResult DeleteGeneric(string collectionName, string id)
     {
-        if (_collections.TryGetValue(collectionName, out var collection))
+        VKGuard.NotNullOrWhiteSpace(id);
+        var collection = GetOrCreateCollection(collectionName);
+        collection.DeleteAsync(id).GetAwaiter().GetResult();
+        if (_recordsSnapshot.TryGetValue(collectionName, out var snapshot))
         {
-            collection.TryRemove(id, out _);
+            snapshot.TryRemove(id, out _);
         }
         return VKResult.Success();
     }
 
     internal VKResult<VKVectorRecord<T>?> GetByIdGeneric<T>(string collectionName, string id) where T : class
     {
-        // [AP.01] Boundary check using VKGuard
         VKGuard.NotNullOrWhiteSpace(id);
-
-        if (!_collections.TryGetValue(collectionName, out var collection) ||
-            !collection.TryGetValue(id, out var entry))
+        var collection = GetOrCreateCollection(collectionName);
+        var record = collection.GetAsync(id).GetAwaiter().GetResult();
+        if (record is null)
         {
-            // [CS.01] Return Result.Success with null to indicate not found, rather than throwing or returning null Result
             return VKResult.Success<VKVectorRecord<T>?>(null);
         }
 
-        var document = _jsonSerializer.Deserialize<T>(entry.DataJson);
+        var document = _jsonSerializer.Deserialize<T>(record.DataJson);
         if (document is null)
         {
             return VKResult.Success<VKVectorRecord<T>?>(null);
@@ -112,23 +163,6 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
         return VKResult.Success<VKVectorRecord<T>?>(new VKVectorRecord<T>(id, document, 1.0f));
     }
 
-    private static float CosineSimilarity(ReadOnlySpan<float> v1, ReadOnlySpan<float> v2)
-    {
-        if (v1.Length != v2.Length)
-            return 0;
-
-        float dot = 0, mag1 = 0, mag2 = 0;
-        for (int i = 0; i < v1.Length; i++)
-        {
-            dot += v1[i] * v2[i];
-            mag1 += v1[i] * v1[i];
-            mag2 += v2[i] * v2[i];
-        }
-
-        return mag1 <= 0 || mag2 <= 0 ? 0 : dot / (float)(Math.Sqrt(mag1) * Math.Sqrt(mag2));
-    }
-
-    /// <inheritdoc />
     public async Task<VKResult> UpsertBatchAsync<T>(
         string collectionName,
         IEnumerable<(string Id, T Document, VKVector Vector)> records,
@@ -137,34 +171,44 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
         VKGuard.NotNullOrWhiteSpace(collectionName);
         VKGuard.NotNull(records);
 
+        var collection = GetOrCreateCollection(collectionName);
+        var inMemoryRecords = new List<InMemoryInternalRecord>();
+
         foreach (var record in records)
         {
-            var result = UpsertGeneric(collectionName, record.Id, record.Document, record.Vector);
-            if (result.IsFailure)
+            inMemoryRecords.Add(new InMemoryInternalRecord
             {
-                return result;
+                Id = record.Id,
+                DataJson = _jsonSerializer.Serialize(record.Document),
+                TenantId = ExtractTenantId(record.Document),
+                Vector = record.Vector.Values
+            });
+        }
+
+        if (inMemoryRecords.Count > 0)
+        {
+            await collection.UpsertAsync(inMemoryRecords, cancellationToken).ConfigureAwait(false);
+            var snapshot = _recordsSnapshot.GetOrAdd(collectionName, _ => new ConcurrentDictionary<string, InMemoryInternalRecord>());
+            foreach (var rec in inMemoryRecords)
+            {
+                snapshot[rec.Id] = rec;
             }
         }
 
-        return await Task.FromResult(VKResult.Success()).ConfigureAwait(false);
+        return VKResult.Success();
     }
 
     internal VKResult<bool> ExistsGeneric<T>(string collectionName, VKMetadataFilter filter) where T : class
     {
-        VKGuard.NotNull(filter); // [AP.01] VKGuard boundary
-
-        if (!_collections.TryGetValue(collectionName, out var collection))
+        VKGuard.NotNull(filter);
+        if (!_recordsSnapshot.TryGetValue(collectionName, out var snapshot) || snapshot.IsEmpty)
         {
             return VKResult.Success(false);
         }
 
-        foreach (var entry in collection.Values)
+        foreach (var record in snapshot.Values)
         {
-            var document = _jsonSerializer.Deserialize<T>(entry.DataJson);
-            if (document is null)
-                continue;
-
-            if (MatchFilter(document, filter))
+            if (MatchesFilter(record.DataJson, filter))
             {
                 return VKResult.Success(true);
             }
@@ -173,30 +217,57 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
         return VKResult.Success(false);
     }
 
-    private static bool MatchFilter<T>(T document, VKMetadataFilter filter) where T : class
+    internal VKResult<IEnumerable<VKVectorRecord<T>>> QueryGeneric<T>(string collectionName, VKMetadataFilter filter) where T : class
     {
-        if (document is null || filter is null)
-            return false;
-
-        var prop = typeof(T).GetProperty("Metadata");
-        if (prop is null)
-            return false;
-
-        var metadata = prop.GetValue(document);
-        if (metadata is null)
-            return false;
-
-        var propertiesProp = metadata.GetType().GetProperty("Properties");
-        if (propertiesProp is null)
-            return false;
-
-        var properties = propertiesProp.GetValue(metadata) as IDictionary<string, string>;
-        if (properties is null)
-            return false;
-
-        foreach (var kvp in filter.EqualityFilters)
+        VKGuard.NotNull(filter);
+        if (!_recordsSnapshot.TryGetValue(collectionName, out var snapshot) || snapshot.IsEmpty)
         {
-            if (!properties.TryGetValue(kvp.Key, out var value) || value != kvp.Value?.ToString())
+            return VKResult.Success<IEnumerable<VKVectorRecord<T>>>([]);
+        }
+
+        var results = new List<VKVectorRecord<T>>();
+        foreach (var record in snapshot.Values)
+        {
+            if (MatchesFilter(record.DataJson, filter))
+            {
+                var doc = _jsonSerializer.Deserialize<T>(record.DataJson);
+                if (doc is not null)
+                {
+                    results.Add(new VKVectorRecord<T>(record.Id, doc, 1.0f));
+                }
+            }
+        }
+
+        return VKResult.Success<IEnumerable<VKVectorRecord<T>>>(results);
+    }
+
+    private static bool MatchesFilter(string dataJson, VKMetadataFilter filter)
+    {
+        if (filter.EqualityFilters.Count == 0)
+        {
+            return true;
+        }
+
+        foreach (var (key, value) in filter.EqualityFilters)
+        {
+            if (value is null)
+            {
+                continue;
+            }
+
+            var targetValueStr = value.ToString() ?? string.Empty;
+
+            // Direct substring/json fragment match or property scan
+            // Supports both direct property and Properties dictionary within JSON
+            var pattern1 = $"\"{key}\":\"{targetValueStr}\"";
+            var pattern2 = $"\"{key}\": \"{targetValueStr}\"";
+            var pattern3 = $"\"{key}\":{targetValueStr}";
+            var pattern4 = $"\"{key}\": {targetValueStr}";
+
+            if (!dataJson.Contains(pattern1, StringComparison.OrdinalIgnoreCase) &&
+                !dataJson.Contains(pattern2, StringComparison.OrdinalIgnoreCase) &&
+                !dataJson.Contains(pattern3, StringComparison.OrdinalIgnoreCase) &&
+                !dataJson.Contains(pattern4, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -205,28 +276,37 @@ internal sealed class InMemoryVectorStore : IVKBulkCapableVectorStore
         return true;
     }
 
-    internal VKResult<IEnumerable<VKVectorRecord<T>>> QueryGeneric<T>(string collectionName, VKMetadataFilter filter) where T : class
+    private static string ExtractTenantId<T>(T document) where T : class
     {
-        VKGuard.NotNull(filter); // [AP.01] VKGuard boundary
+        if (document is null)
+            return string.Empty;
 
-        if (!_collections.TryGetValue(collectionName, out var collection))
+        // 1. Direct TenantId property (e.g. CacheEntry or direct model)
+        var directTenantProp = typeof(T).GetProperty("TenantId");
+        if (directTenantProp is not null)
         {
-            return VKResult.Success(Enumerable.Empty<VKVectorRecord<T>>());
-        }
-
-        var results = new List<VKVectorRecord<T>>();
-        foreach (var entry in collection)
-        {
-            var document = _jsonSerializer.Deserialize<T>(entry.Value.DataJson);
-            if (document is null)
-                continue;
-
-            if (MatchFilter(document, filter))
+            var val = directTenantProp.GetValue(document)?.ToString();
+            if (!string.IsNullOrWhiteSpace(val))
             {
-                results.Add(new VKVectorRecord<T>(entry.Key, document, 1.0f));
+                return val;
             }
         }
 
-        return VKResult.Success<IEnumerable<VKVectorRecord<T>>>(results);
+        // 2. Nested Metadata.TenantId property (e.g. VKVectorDocument)
+        var prop = typeof(T).GetProperty("Metadata");
+        if (prop is not null)
+        {
+            var metadata = prop.GetValue(document);
+            if (metadata is not null)
+            {
+                var tenantProp = metadata.GetType().GetProperty("TenantId");
+                if (tenantProp is not null)
+                {
+                    return tenantProp.GetValue(metadata)?.ToString() ?? string.Empty;
+                }
+            }
+        }
+
+        return string.Empty;
     }
 }

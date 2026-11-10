@@ -1,10 +1,11 @@
 namespace VK.Blocks.VectorIngest; // [AP.03] public API surface in flat root namespace
 
 /// <summary>
-/// Defines standard metadata key names used during chunk enrichment.
+/// Defines standard metadata key names used during chunk enrichment and vector indexing.
 /// </summary>
 public static class VKIngestMetadataKeys
 {
+    public const string TenantId = "tenant_id";
     public const string DocumentId = "document_id";
     public const string ChunkIndex = "chunk_index";
     public const string TotalChunks = "total_chunks";
@@ -13,4 +14,6 @@ public static class VKIngestMetadataKeys
     public const string SourceUri = "source_uri";
     public const string IngestedAtUtc = "ingested_at_utc";
     public const string CollectionName = "collection_name";
+    public const string EmbeddingModelId = "embedding_model_id";
+    public const string ModelVersion = "model_version";
 }

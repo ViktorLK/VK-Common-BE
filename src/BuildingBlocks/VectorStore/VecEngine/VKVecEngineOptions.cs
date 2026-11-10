@@ -6,6 +6,7 @@ namespace VK.Blocks.VectorStore;
 /// Options for configuring the AI Vector Store VecEngine feature.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKVecEngineOptions : IVKToggleableBlockOptions
 {
     /// <summary>

@@ -24,7 +24,7 @@ public static class Program
         }
 
         var srcDir = Path.Combine(repoRoot, "src");
-        var docsDir = Path.Combine(repoRoot, "docs", "08-DataDictionary");
+        var docsDir = Path.Combine(repoRoot, "docs", "05-DataDictionary");
         Directory.CreateDirectory(docsDir);
 
         Console.WriteLine($"Scanning C# Enum definitions across: {srcDir}");

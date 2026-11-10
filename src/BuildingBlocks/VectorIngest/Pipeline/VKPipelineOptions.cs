@@ -6,4 +6,5 @@ namespace VK.Blocks.VectorIngest;
 /// Options for the Vector Ingest Pipeline feature.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKPipelineOptions : IVKBlockOptions;

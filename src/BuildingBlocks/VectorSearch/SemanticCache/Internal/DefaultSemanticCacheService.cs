@@ -16,7 +16,7 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
     private readonly IVKVectorStore _vectorStore;
     private readonly IVKEmbeddingsEngine _embeddingsEngine;
     private readonly IVKGuidGenerator _guidGenerator;
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly VKSemanticCacheOptions _options;
     private readonly TimeProvider _timeProvider;
 
@@ -24,14 +24,14 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
         IVKVectorStore vectorStore,
         IVKEmbeddingsEngine embeddingsEngine,
         IVKGuidGenerator guidGenerator,
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         IOptions<VKSemanticCacheOptions> options,
         TimeProvider? timeProvider = null)
     {
         _vectorStore = VKGuard.NotNull(vectorStore);
         _embeddingsEngine = VKGuard.NotNull(embeddingsEngine);
         _guidGenerator = VKGuard.NotNull(guidGenerator);
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _options = VKGuard.NotNull(options?.Value);
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
@@ -57,7 +57,7 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
 
         var searchArgs = new VKVectorSearchArgs
         {
-            TenantId = _identityContext.TenantId,
+            TenantId = _tenantCoordinate.TenantId,
             Limit = 1,
             MinScore = (float)_options.ScoreThreshold
         };
@@ -90,6 +90,7 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
             {
                 Content = match.Document.Content,
                 Response = match.Document.Response,
+                TenantId = match.Document.TenantId,
                 CreatedAt = _timeProvider.GetUtcNow()
             };
             _ = collection.UpsertAsync(match.Id, refreshedEntry, vector, cancellationToken);
@@ -124,6 +125,7 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
         {
             Content = prompt,
             Response = response,
+            TenantId = _tenantCoordinate.TenantId.ToString(),
             CreatedAt = _timeProvider.GetUtcNow()
         };
 
@@ -140,6 +142,7 @@ internal sealed class DefaultSemanticCacheService : IVKSemanticCacheService
     {
         public required string Content { get; init; }
         public required string Response { get; init; }
+        public required string TenantId { get; init; }
         public required DateTimeOffset CreatedAt { get; init; }
     }
 }

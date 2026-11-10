@@ -18,6 +18,11 @@ public interface IVKVectorCollection<T> where T : class
     string Name { get; }
 
     /// <summary>
+    /// Gets the declared capabilities of the underlying vector store.
+    /// </summary>
+    VKVectorStoreCapabilities Capabilities => VKVectorStoreCapabilities.EmbeddedDefaults;
+
+    /// <summary>
     /// Upserts a document and its vector representation.
     /// </summary>
     Task<VKResult> UpsertAsync(

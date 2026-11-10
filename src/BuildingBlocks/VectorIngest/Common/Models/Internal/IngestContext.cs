@@ -9,6 +9,11 @@ namespace VK.Blocks.VectorIngest.Common.Models.Internal; // [AP.03] Internal nam
 internal sealed class IngestContext // [AP.01] sealed default
 {
     /// <summary>
+    /// Gets the tenant identifier.
+    /// </summary>
+    public string TenantId { get; set; } = "Default";
+
+    /// <summary>
     /// Gets the document source.
     /// </summary>
     public string Source { get; }
@@ -27,6 +32,16 @@ internal sealed class IngestContext // [AP.01] sealed default
     /// Gets or sets the target Vector Store collection name.
     /// </summary>
     public string? CollectionName { get; set; }
+
+    /// <summary>
+    /// Gets or sets the embedding model identifier.
+    /// </summary>
+    public string? EmbeddingModelId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the embedding model version.
+    /// </summary>
+    public string? ModelVersion { get; set; }
 
     /// <summary>
     /// Gets or sets additional custom metadata to attach to the ingested chunks.

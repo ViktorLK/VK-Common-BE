@@ -13,7 +13,7 @@ public static partial class VKVectorStoreBuilderExtensions
     /// </summary>
     public static IVKVectorStoreBuilder AddInMemoryDatabase(this IVKVectorStoreBuilder builder)
     {
-        builder.WithScoped<VKVectorStoreBlock, IVKVectorStore, InMemoryVectorStore>();
+        builder.WithSingleton<VKVectorStoreBlock, IVKVectorStore, InMemoryVectorStore>();
         return builder;
     }
 

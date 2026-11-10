@@ -6,6 +6,7 @@ namespace VK.Blocks.VectorSearch;
 /// Options for the Search stage.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKRetrievalOptions : IVKToggleableBlockOptions
 {
     /// <summary>

@@ -1,7 +1,7 @@
 # VK.Tools.McpServer
 
 VK.Blocks エコシステムにおける **AI 連携の「メカニクス（機械的処理）」** を担当するツール群です。
-[ADR-001](/docs/02-ArchitectureDecisionRecords/DeveloperEcosystem/adr-001-establish-tri-layered-ai-agent-collaboration-architecture.md) に基づく三層アーキテクチャのうち、**MCP Tools レイヤー** を実装しています。
+[ADR-001](/docs/04-ArchitectureDecisionRecords/DeveloperEcosystem/adr-001-establish-tri-layered-ai-agent-collaboration-architecture.md) に基づく三層アーキテクチャのうち、**MCP Tools レイヤー** を実装しています。
 
 ## 🚀 概要
 

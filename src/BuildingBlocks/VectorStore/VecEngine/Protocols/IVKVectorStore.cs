@@ -13,4 +13,10 @@ public interface IVKVectorStore
     /// <param name="name">The unique name of the collection (maps to a table/index).</param>
     /// <returns>A typed collection proxy.</returns>
     IVKVectorCollection<T> Collection<T>(string name) where T : class;
+
+    /// <summary>
+    /// Gets the declared capabilities of this vector store.
+    /// Default implementation returns EmbeddedDefaults.
+    /// </summary>
+    VKVectorStoreCapabilities Capabilities => VKVectorStoreCapabilities.EmbeddedDefaults;
 }

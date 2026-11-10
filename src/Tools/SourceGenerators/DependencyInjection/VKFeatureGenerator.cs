@@ -83,6 +83,10 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
             {
                 registerByDefault = regVal;
             }
+            sectionNameOverride = attribute.NamedArguments.FirstOrDefault(n => n.Key == "SectionName").Value.Value?.ToString();
+            namespaceOverride = attribute.NamedArguments.FirstOrDefault(n => n.Key == "Namespace").Value.Value?.ToString();
+            optionsTypeSymbol = attribute.NamedArguments.FirstOrDefault(n => n.Key == "OptionsType").Value.Value as INamedTypeSymbol;
+
             var argsGenerationMode = ArgsMode.None;
             INamedTypeSymbol? argsBaseTypeSymbol = attribute.NamedArguments.FirstOrDefault(n => n.Key == "ArgsBaseType").Value.Value as INamedTypeSymbol;
 
@@ -122,10 +126,6 @@ public sealed class VKFeatureGenerator : IIncrementalGenerator
                     }
                 }
             }
-
-            sectionNameOverride = attribute.NamedArguments.FirstOrDefault(n => n.Key == "SectionName").Value.Value?.ToString();
-            namespaceOverride = attribute.NamedArguments.FirstOrDefault(n => n.Key == "Namespace").Value.Value?.ToString();
-            optionsTypeSymbol = attribute.NamedArguments.FirstOrDefault(n => n.Key == "OptionsType").Value.Value as INamedTypeSymbol;
 
             if (parentTypeSymbol is null)
             {

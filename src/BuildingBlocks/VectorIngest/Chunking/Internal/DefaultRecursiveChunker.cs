@@ -95,7 +95,8 @@ internal sealed class DefaultRecursiveChunker(
         }
 
         var splits = SplitOnSeparator(text, separator);
-        var currentDoc = new StringBuilder();
+        Span<char> initialBuffer = stackalloc char[256];
+        using var currentDoc = new VKValueStringBuilder(initialBuffer);
         var currentOffset = 0;
 
         foreach (var part in splits)

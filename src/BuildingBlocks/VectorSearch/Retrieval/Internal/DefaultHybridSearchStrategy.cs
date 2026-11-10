@@ -9,41 +9,38 @@ using VK.Blocks.VectorStore;
 namespace VK.Blocks.VectorSearch.Retrieval.Internal;
 
 /// <summary>
-/// Hybrid search strategy merging keyword and vector results.
+/// Hybrid search strategy merging keyword and vector results directly via <see cref="IVKVectorStore"/>.
 /// </summary>
 internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
 {
-    private readonly IVKRetrievalStore _retrievalStore;
     private readonly IVKSparseSearchEngine _sparseSearchEngine;
     private readonly IVKEmbeddingsEngine _embeddingsEngine;
     private readonly IVKVectorStore _vectorStore;
-    private readonly IVKIdentityContext _identityContext;
+    private readonly IVKTenantCoordinate _tenantCoordinate;
     private readonly VKRetrievalOptions _options;
     private readonly VKVectorStoreOptions _vectorStoreDefaults;
     private readonly IVKScoreFusion _rrfFusion = new ReciprocalRankFusion();
 
     public DefaultHybridSearchStrategy(
-        IVKRetrievalStore retrievalStore,
         IVKSparseSearchEngine sparseSearchEngine,
         IVKEmbeddingsEngine embeddingsEngine,
         IVKVectorStore vectorStore,
-        IVKIdentityContext identityContext,
+        IVKTenantCoordinate tenantCoordinate,
         IOptions<VKRetrievalOptions> options,
         IOptions<VKVectorStoreOptions> vectorStoreDefaults)
     {
-        _retrievalStore = VKGuard.NotNull(retrievalStore);
         _sparseSearchEngine = VKGuard.NotNull(sparseSearchEngine);
         _embeddingsEngine = VKGuard.NotNull(embeddingsEngine);
         _vectorStore = VKGuard.NotNull(vectorStore);
-        _identityContext = VKGuard.NotNull(identityContext);
+        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
         _options = VKGuard.NotNull(options?.Value);
         _vectorStoreDefaults = VKGuard.NotNull(vectorStoreDefaults?.Value);
     }
 
     public async Task<VKResult<VKSearchResult[]>> SearchAsync(VKSearchQuery query, CancellationToken cancellationToken = default)
     {
-        // [RuleID: AP.01]
         VKGuard.NotNull(query);
+        VKGuard.NotNullOrWhiteSpace(query.Text);
 
         var embeddingResult = await _embeddingsEngine.GenerateAsync(query.Text, cancellationToken).ConfigureAwait(false);
         if (embeddingResult.IsFailure)
@@ -52,19 +49,23 @@ internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
         }
 
         var embeddingVector = embeddingResult.Value;
+        var collectionName = string.IsNullOrWhiteSpace(query.CollectionName)
+            ? _vectorStoreDefaults.DefaultCollection
+            : query.CollectionName;
+
         var searchArgs = new VKVectorSearchArgs
         {
-            TenantId = _identityContext.TenantId,
+            TenantId = _tenantCoordinate.TenantId,
             Limit = query.TopK,
             MinScore = query.Threshold.HasValue ? (float)query.Threshold.Value : 0.0f,
-            CollectionName = query.CollectionName
+            CollectionName = collectionName
         };
 
         // Runtime Capability Check: If the vector store natively supports hybrid search, delegate directly to it.
         if (_vectorStore is IVKHybridCapableVectorStore hybridCapableStore)
         {
-            var hybridResult = await hybridCapableStore.SearchHybridAsync<DefaultRetrievalStore.VectorStoreDocument>(
-                _vectorStoreDefaults.DefaultCollection,
+            var hybridResult = await hybridCapableStore.SearchHybridAsync<VKVectorDocument>(
+                collectionName,
                 embeddingVector,
                 query.Text,
                 searchArgs,
@@ -79,7 +80,11 @@ internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
             {
                 Document = new VKDocument
                 {
-                    Id = r.Document.Metadata.Properties.TryGetValue("DocumentId", out var docId) ? docId : "Unknown",
+                    Id = r.Document.Metadata.Properties.TryGetValue("document_id", out var docId)
+                        ? docId
+                        : r.Document.Metadata.Properties.TryGetValue("DocumentId", out var docIdPascal)
+                            ? docIdPascal
+                            : r.Id,
                     Content = r.Document.Content,
                     Metadata = r.Document.Metadata.Properties.TryGetValue("DocumentMetadata", out var docMeta) ? docMeta : string.Empty
                 },
@@ -89,8 +94,9 @@ internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
             return VKResult.Success(mapped);
         }
 
-        // Parallelize Vector and Sparse (Keyword) search to optimize I/O waiting time.
-        var vectorSearchTask = _retrievalStore.SearchAsync(embeddingVector, searchArgs, cancellationToken);
+        // Parallelize Vector and Sparse (Keyword) search
+        var collection = _vectorStore.Collection<VKVectorDocument>(collectionName);
+        var vectorSearchTask = collection.SearchAsync(embeddingVector, searchArgs, cancellationToken);
         var sparseSearchTask = _sparseSearchEngine.SearchAsync(query, cancellationToken);
 
         await Task.WhenAll(vectorSearchTask, sparseSearchTask).ConfigureAwait(false);
@@ -109,8 +115,18 @@ internal sealed class DefaultHybridSearchStrategy : IVKSearchStrategy
 
         var denseCandidates = vectorResult.Value.Select((r, idx) => new VKFusionCandidate
         {
-            Chunk = r.Chunk,
-            Score = r.Score,
+            Chunk = new VKDocumentChunk
+            {
+                Id = r.Id,
+                Content = r.Document.Content,
+                DocumentId = r.Document.Metadata.Properties.TryGetValue("document_id", out var dId)
+                    ? dId
+                    : r.Document.Metadata.Properties.TryGetValue("DocumentId", out var dIdPascal)
+                        ? dIdPascal
+                        : r.Id,
+                Metadata = r.Document.Metadata
+            },
+            Score = (float)r.Score,
             Rank = idx + 1
         }).ToList();
 

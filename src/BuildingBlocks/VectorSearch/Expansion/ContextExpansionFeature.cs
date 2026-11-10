@@ -9,7 +9,7 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Context Expansion feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKContextExpansionOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKContextExpansionOptions))]
 internal sealed partial class ContextExpansionFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKContextExpansionOptions options)

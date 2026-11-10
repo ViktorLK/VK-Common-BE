@@ -402,7 +402,7 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
             }
 
             sb.AppendLine("\n## 🛡️ Audit Protocol");
-            sb.AppendLine("Follow the L3 Audit checklist in `vk-blocks-checklist.md` using the rule evidence from the flattened context above.");
+            sb.AppendLine("Follow the L3 Audit checklist in `l3-vk-be.md` using the rule evidence from the flattened context above.");
 
             return sb.ToString();
         }
@@ -417,6 +417,25 @@ Follow BB.01-BB.05 strictly. Do NOT skip any file or step. All classes must be `
         var yaml = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var body = content;
 
+        // Mode A: XML Tag format: <manifest ...> or <dna ...>
+        var xmlTagMatch = Regex.Match(content, @"^\s*<(manifest|dna)\s+([^>]*?)>([\s\S]*?)</\1>\s*$", RegexOptions.IgnoreCase);
+        if (xmlTagMatch.Success)
+        {
+            var attrsStr = xmlTagMatch.Groups[2].Value;
+            body = xmlTagMatch.Groups[3].Value.Trim();
+
+            var attrMatches = Regex.Matches(attrsStr, @"(\w+)\s*=\s*""([^""]*)""");
+            foreach (Match m in attrMatches)
+            {
+                var key = m.Groups[1].Value.Trim();
+                var value = m.Groups[2].Value.Trim();
+                yaml[key] = value;
+            }
+
+            return (yaml, body);
+        }
+
+        // Mode B: Legacy YAML Frontmatter format: ---
         if (content.StartsWith("---"))
         {
             var endOfYaml = content.IndexOf("---", 3);
