@@ -28,8 +28,8 @@ public interface IVKSpeechEngine
     /// <param name="text">The text to synthesize.</param>
     /// <param name="args">Execution arguments and overrides.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>An async enumerable of audio chunks.</returns>
-    IAsyncEnumerable<byte[]> StreamSpeechAsync(
+    /// <returns>An async enumerable of audio chunks wrapped in <see cref="VKResult{T}"/>.</returns>
+    IAsyncEnumerable<VKResult<byte[]>> StreamSpeechAsync(
         string text,
         VKSpeechArgs? args = null,
         CancellationToken cancellationToken = default);

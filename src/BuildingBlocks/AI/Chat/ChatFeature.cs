@@ -16,7 +16,7 @@ internal sealed partial class ChatFeature
     static partial void RegisterFeatureCustom(IServiceCollection services, VKChatOptions options)
     {
         _ = options;
-        services.TryAddScoped<IVKChatEngine, NoOpVKChatEngine>();
+        services.TryAddScoped<IVKChatEngine, NoOpChatEngine>();
         services.TryAddScoped<IVKChat, BasicChat>();
     }
 

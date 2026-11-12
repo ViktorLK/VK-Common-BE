@@ -8,7 +8,7 @@ namespace VK.Blocks.AI.Catalog.Internal;
 /// Default model catalog preloaded with standard industry models via <see cref="VKAIModelIds"/>,
 /// equipped with smart heuristic prefix fallback and runtime custom registration.
 /// </summary>
-internal sealed class DefaultAIModelCatalog : IVKVKAIModelCatalog
+internal sealed class DefaultAIModelCatalog : IVKAIModelCatalog
 {
     private readonly ConcurrentDictionary<string, VKAIModelMetadata> _catalog = new(StringComparer.OrdinalIgnoreCase);
 

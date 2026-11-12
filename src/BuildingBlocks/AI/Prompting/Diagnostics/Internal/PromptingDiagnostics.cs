@@ -10,13 +10,13 @@ namespace VK.Blocks.AI.Prompting.Diagnostics.Internal;
 internal static partial class PromptingDiagnostics
 {
     [LoggerMessage(
-        EventId = VKPromptingDiagnosticTokens.PromptingInitializedEventId,
+        EventId = VKPromptingDiagnosticsConstants.PromptingInitializedEventId,
         Level = LogLevel.Debug,
         Message = "Prompting feature initialized.")]
     public static partial void PromptingInitialized(ILogger logger);
 
     [LoggerMessage(
-        EventId = 5100,
+        EventId = VKPromptingDiagnosticsConstants.PromptNotFoundEventId,
         Level = LogLevel.Warning,
         Message = "[AI] Prompt template '{PromptId}' (Version: {Version}) was not found in any registered provider.")]
     public static partial void PromptNotFound(ILogger logger, string promptId, string version);

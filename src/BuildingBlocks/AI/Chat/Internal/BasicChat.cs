@@ -1,3 +1,4 @@
+using VK.Blocks.AI.Chat.Diagnostics.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -55,8 +56,8 @@ internal sealed partial class BasicChat : IVKChat
 
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            var logInput = _globalOptions.EnableSensitiveDataLogging ? prompt : ChatLog.MaskInput(prompt);
-            ChatLog.ChatRequestStarted(_logger, tenantId, traceId, logInput);
+            var logInput = _globalOptions.EnableSensitiveDataLogging ? prompt : ChatDiagnostics.MaskInput(prompt);
+            ChatDiagnostics.ChatRequestStarted(_logger, tenantId, traceId, logInput);
         }
 
         var messages = PrepareMessages(prompt, history);
@@ -68,11 +69,11 @@ internal sealed partial class BasicChat : IVKChat
 
             if (result.IsSuccess)
             {
-                ChatLog.ChatRequestCompleted(_logger, tenantId, traceId, result.Value.Message.Role.ToString(), (int)(result.Value.Usage?.TotalTokens ?? 0));
+                ChatDiagnostics.ChatRequestCompleted(_logger, tenantId, traceId, result.Value.Message.Role.ToString(), (int)(result.Value.Usage?.TotalTokens ?? 0));
             }
             else
             {
-                ChatLog.ChatRequestFailed(_logger, tenantId, traceId, result.FirstError.Code);
+                ChatDiagnostics.ChatRequestFailed(_logger, tenantId, traceId, result.FirstError.Code);
             }
 
             if (result.IsSuccess && result.Value.Usage is not null)
@@ -91,7 +92,7 @@ internal sealed partial class BasicChat : IVKChat
         }
         catch (Exception ex)
         {
-            ChatLog.UnexpectedChatError(_logger, tenantId, traceId, ex);
+            ChatDiagnostics.UnexpectedChatError(_logger, tenantId, traceId, ex);
             return VKResult.Failure<VKChatResponse>(VKChatErrors.ExecutionError);
         }
         finally
@@ -119,8 +120,8 @@ internal sealed partial class BasicChat : IVKChat
 
         if (_logger.IsEnabled(LogLevel.Information))
         {
-            var logInput = _globalOptions.EnableSensitiveDataLogging ? prompt : ChatLog.MaskInput(prompt);
-            ChatLog.ChatRequestStarted(_logger, tenantId, traceId, logInput);
+            var logInput = _globalOptions.EnableSensitiveDataLogging ? prompt : ChatDiagnostics.MaskInput(prompt);
+            ChatDiagnostics.ChatRequestStarted(_logger, tenantId, traceId, logInput);
         }
 
         var messages = PrepareMessages(prompt, history);
@@ -133,7 +134,7 @@ internal sealed partial class BasicChat : IVKChat
         }
         catch (Exception ex)
         {
-            ChatLog.UnexpectedChatError(_logger, tenantId, traceId, ex);
+            ChatDiagnostics.UnexpectedChatError(_logger, tenantId, traceId, ex);
             errorResult = VKResult.Failure<VKChatStreamingResponse>(VKChatErrors.ExecutionError);
         }
 
@@ -173,7 +174,7 @@ internal sealed partial class BasicChat : IVKChat
                 }
                 catch (Exception ex)
                 {
-                    ChatLog.UnexpectedChatError(_logger, tenantId, traceId, ex);
+                    ChatDiagnostics.UnexpectedChatError(_logger, tenantId, traceId, ex);
                     streamError = VKResult.Failure<VKChatStreamingResponse>(VKChatErrors.ExecutionError);
                 }
 

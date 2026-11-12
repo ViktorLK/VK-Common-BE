@@ -1,4 +1,4 @@
-﻿---
+---
 trigger: manual
 ---
 
@@ -10,7 +10,8 @@ Every BuildingBlock MUST prioritize a domain-driven vertical slice layout. Gener
 **Internal Scoping Rule**: An `Internal/` folder at any level means implementation details that MUST NOT be accessible outside that folder's parent scope (via `internal` keyword).
 
 - **`{FeatureName}/` (MANDATORY)**: First-level domain folders for vertical slices (e.g., `Persona/`, `Behaviors/`).
-    - MUST contain all logic related to that domain, forming a mini-vertical-slice (Interfaces, Handlers, Validators, Models, Protocols, Diagnostics, etc.).
+    - MUST contain all logic related to that domain, forming a mini-vertical-slice (Interfaces, Handlers, Validators, Models, Protocols, Errors, Diagnostics, etc.).
+    - Subfolder responsibilities MUST be strictly semantic and orthogonal (e.g., `Models/`, `Protocols/`, `Errors/`, `Args/`). Single-file subfolders are explicitly encouraged over catch-all dumping grounds (`Definitions/`, `Contracts/`).
     - `Internal/`: Encapsulated implementations for the feature. **MUST NOT** be wrapped in a `Features/` folder.
 - **`Common/` (MANDATORY)**: The unified grouping folder for system foundations.
     - **`DependencyInjection/`**:

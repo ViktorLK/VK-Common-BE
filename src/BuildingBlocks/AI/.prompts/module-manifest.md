@@ -1,15 +1,28 @@
-﻿<manifest id="ai-manifest" layer="Tier 2 — Domain Capability" scope="building-blocks/ai" requires="CS.04, OR.03, AP.05, BB.08">
+<manifest id="ai-manifest" layer="Tier 2 — Domain Port" scope="building-blocks/ai" requires="CS.01, CS.03, AP.01, AP.05, AP.06, BB.02">
 
-# 🤖 VK.Blocks AI Manifest (Layer 3)
+# VK.Blocks AI Manifest (Layer 3)
 
-The AI module orchestrates non-deterministic LLM calls and handles high-throughput token streams.
+Pure, provider-agnostic contracts for AI cognitive capabilities (chat, text, speech, transcription, image generation, agents, tools, governance). Concrete provider wiring is delegated to `VK.Blocks.AI.Extensions` and `VK.Blocks.AI.Agents`.
 
-## AI Specialized Extensions (L3)
-1. **Provider Resiliency (OR.03)**: ALL provider-bound calls (LLM/Embeddings) MUST be wrapped in a Polly resilience pipeline to handle transient external failures.
-2. **Streaming Efficiency (CS.04)**: For token streaming, MUST use `IAsyncEnumerable<T>` and strictly optimize buffer allocations via `ArrayPool` to minimize GC pressure.
-3. **Contractual Args Mapping (AP.05 Specialized)**:
-    - AI `Args` records MUST be source-generated strictly from `IVK...Overrides` interfaces to ensure security and surface area control.
-    - **Security by Default**: Properties in Options NOT present in a matching Overrides interface are automatically excluded from the generated Args surface area.
-4. **Contextual Instrumentation**: AI orchestration (Chat/Agents) MUST implement hierarchical tracing and metric recording using the `AiDiagnostics` hub.
+## Architectural Boundaries
+
+### 1. Zero-SDK Port Purity (ADR-020)
+- This package depends only on `VK.Blocks.Core` and `Microsoft.Extensions.*` abstractions.
+- `Microsoft.SemanticKernel`, `Microsoft.Extensions.AI`, and all provider SDKs (OpenAI, Azure, Ollama, Google) are FORBIDDEN. Provider types MUST NOT leak into ports, models, or errors.
+
+### 2. Result-Only Contracts
+- Every port returns `VKResult<T>`; streaming ports return `IAsyncEnumerable<VKResult<T>>` with `CancellationToken` propagated end to end.
+- Foreseeable provider failures are surfaced as centrally defined AI error constants — never as thrown exceptions or bare nulls.
+
+### 3. Co-Located NoOp Defaults
+- Every engine/governance port MUST ship a NoOp fallback in this package, registered idempotently via `TryAdd`.
+- Replacing a fallback requires an explicit builder override from a provider package; resolution MUST NOT depend on registration order. No silent fallbacks.
+
+### 4. Contractual Args Mapping (AP.05 Specialized)
+- Per-call `Args` records MUST be source-generated from Options annotated with `[VKRequestOverride]`.
+- **Security by Default**: Options properties not opted in are excluded from the generated Args surface.
+
+### 5. Perimeter Cross-Cutting
+- Resilience (Polly), governance, and instrumentation attach as decorators around ports at the provider boundary — never inside contracts or domain models.
 
 </manifest>

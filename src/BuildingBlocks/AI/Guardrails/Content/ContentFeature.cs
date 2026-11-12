@@ -16,7 +16,7 @@ internal sealed partial class ContentFeature
     {
         Microsoft.Extensions.DependencyInjection.Extensions.ServiceCollectionDescriptorExtensions.TryAddSingleton<IVKModerationEngine, NoOpVKModerationEngine>(services);
 
-        Decorate<IVKChatEngine, VKGovernanceChatDecorator>(services);
+        Decorate<IVKChatEngine, GovernanceChatDecorator>(services);
     }
 
     private static void Decorate<TInterface, TDecorator>(IServiceCollection services)
@@ -34,22 +34,36 @@ internal sealed partial class ContentFeature
 
             services.Add(new ServiceDescriptor(typeof(TInterface), provider =>
             {
-                TInterface inner;
-                if (innerFactory is not null)
+                // If a real provider engine (e.g. from AI.Extensions) is registered, resolve it as inner
+                TInterface? inner = null;
+                var candidates = provider.GetServices<TInterface>();
+                foreach (var candidate in candidates)
                 {
-                    inner = (TInterface)innerFactory(provider);
+                    if (candidate is not TDecorator && !candidate.GetType().Name.StartsWith("NoOp", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        inner = candidate;
+                        break;
+                    }
                 }
-                else if (innerInstance is not null)
+
+                if (inner is null)
                 {
-                    inner = (TInterface)innerInstance;
-                }
-                else if (innerType is not null)
-                {
-                    inner = (TInterface)ActivatorUtilities.CreateInstance(provider, innerType);
-                }
-                else
-                {
-                    throw new System.InvalidOperationException($"Cannot resolve inner service for {typeof(TInterface)}");
+                    if (innerFactory is not null)
+                    {
+                        inner = (TInterface)innerFactory(provider);
+                    }
+                    else if (innerInstance is not null)
+                    {
+                        inner = (TInterface)innerInstance;
+                    }
+                    else if (innerType is not null)
+                    {
+                        inner = (TInterface)ActivatorUtilities.CreateInstance(provider, innerType);
+                    }
+                    else
+                    {
+                        throw new System.InvalidOperationException($"Cannot resolve inner service for {typeof(TInterface)}");
+                    }
                 }
 
                 return ActivatorUtilities.CreateInstance<TDecorator>(provider, inner);

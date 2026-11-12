@@ -14,7 +14,7 @@ internal sealed partial class TextFeature
 {
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKTextOptions options) =>
-        services.TryAddSingleton<IVKTextEngine, NoOpVKTextEngine>();
+        services.TryAddSingleton<IVKTextEngine, NoOpTextEngine>();
 
     /// <summary>Add text-specific validation logic here</summary>
     // [SG Hook]

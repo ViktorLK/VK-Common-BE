@@ -13,5 +13,15 @@ public enum VKAgentSelectionMode : byte
     /// <summary>
     /// Use an LLM to dynamically determine the next agent to execute.
     /// </summary>
-    LLMBased = 1
+    LLMBased = 1,
+
+    /// <summary>
+    /// Execute agents sequentially in a deterministic 1-pass workflow pipeline.
+    /// </summary>
+    Sequential = 2,
+
+    /// <summary>
+    /// Execute agents concurrently in a fan-out / fan-in workflow.
+    /// </summary>
+    Concurrent = 3
 }

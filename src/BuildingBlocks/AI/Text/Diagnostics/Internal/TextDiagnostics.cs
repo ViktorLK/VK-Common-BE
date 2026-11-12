@@ -7,7 +7,7 @@ namespace VK.Blocks.AI.Text.Diagnostics.Internal;
 internal static partial class TextDiagnostics
 {
     [LoggerMessage(
-        EventId = VKTextDiagnosticTokens.TextInitializedEventId,
+        EventId = VKTextDiagnosticsConstants.TextInitializedEventId,
         Level = LogLevel.Debug,
         Message = "Text feature initialized.")]
     public static partial void TextInitialized(ILogger logger);

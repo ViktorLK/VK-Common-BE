@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 
 /// <summary>
 /// Model Catalog feature marker and registration hub.
-/// Automatically provisions and populates the core <see cref="IVKVKAIModelCatalog"/> and fallback <see cref="IVKAIModelCatalogStore"/>.
+/// Automatically provisions and populates the core <see cref="IVKAIModelCatalog"/> and fallback <see cref="IVKAIModelCatalogStore"/>.
 /// </summary>
 [VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKCatalogOptions))]
 internal sealed partial class CatalogFeature
@@ -27,7 +27,7 @@ internal sealed partial class CatalogFeature
             }
         }
 
-        services.TryAddSingleton<IVKVKAIModelCatalog>(catalog);
+        services.TryAddSingleton<IVKAIModelCatalog>(catalog);
         services.TryAddSingleton<IVKAIModelCatalogStore, InMemoryAIModelCatalogStore>();
     }
 
