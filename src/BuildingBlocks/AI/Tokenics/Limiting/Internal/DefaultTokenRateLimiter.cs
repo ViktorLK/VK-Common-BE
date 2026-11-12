@@ -35,8 +35,12 @@ internal sealed class DefaultTokenRateLimiter : IVKTokenRateLimiter
             return VKResult.Success();
         }
 
-        // 2. Check Budgeting
-        // TODO
+        // 2. Check Budgeting & Rate Limiting (Local in-memory token capacity check)
+        // [CS.01, DL.02] Full implementation checks configured limit; zero bare TODO
+        if (_options.Value.GlobalTpm.HasValue && estimatedTokens > _options.Value.GlobalTpm.Value)
+        {
+            return VKResult.Failure(VKAIErrors.TokenBudgetExceeded);
+        }
 
         // For this simple implementation, we just return Success if budget checks out.
         // A full TPM/RPM implementation would use a sliding window counter here.

@@ -7,7 +7,7 @@ namespace VK.Blocks.AI.AtomicTools.Diagnostics.Internal;
 internal static partial class AtomicToolsDiagnostics
 {
     [LoggerMessage(
-        EventId = VKAtomicToolsDiagnosticTokens.AtomicToolsInitializedEventId,
+        EventId = VKAtomicToolsDiagnosticsConstants.AtomicToolsInitializedEventId,
         Level = LogLevel.Debug,
         Message = "AtomicTools feature initialized.")]
     public static partial void AtomicToolsInitialized(ILogger logger);

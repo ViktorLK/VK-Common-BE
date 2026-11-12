@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
-using VK.Blocks.VectorIngest.Common.Models.Internal;
 using VK.Blocks.VectorStore;
 
 namespace VK.Blocks.VectorIngest.Deduplication.Internal; // [AP.03] Internal namespace
@@ -35,7 +34,7 @@ internal sealed class VectorStoreDeduplicationChecker : IVKDeduplicationChecker 
 
         try
         {
-            var collection = _vectorStore.Collection<VectorStoreDocument>(_defaults.DefaultCollection);
+            var collection = _vectorStore.Collection<VKVectorDocument>(_defaults.DefaultCollection);
 
             var filter = new VKMetadataFilter
             {

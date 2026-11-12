@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using VK.Blocks.Core;
@@ -5,11 +6,11 @@ using VK.Blocks.Core;
 namespace VK.Blocks.VectorSearch.Fusion.Internal;
 
 /// <summary>
-/// Implements Reciprocal Rank Fusion (RRF) algorithm.
+/// Implements Reciprocal Rank Fusion (RRF) algorithm delegating to pure <see cref="VKReciprocalRankFusion"/>.
 /// </summary>
 internal sealed class ReciprocalRankFusion : IVKScoreFusion
 {
-    private const float K = 60f;
+    private const float K = VKReciprocalRankFusion.DefaultK;
 
     public VKResult<IReadOnlyList<VKSearchResult>> Fuse(
         IReadOnlyList<IReadOnlyList<VKFusionCandidate>> runs,
@@ -17,6 +18,11 @@ internal sealed class ReciprocalRankFusion : IVKScoreFusion
     {
         // [RuleID: AP.01]
         VKGuard.NotNull(runs);
+
+        if (topK <= 0)
+        {
+            return VKResult.Success<IReadOnlyList<VKSearchResult>>([]);
+        }
 
         var initialCapacity = 0;
         var nonNullRuns = 0;
@@ -42,7 +48,7 @@ internal sealed class ReciprocalRankFusion : IVKScoreFusion
         // Fast path: Only one non-empty run
         if (nonNullRuns == 1 && singleRun is not null)
         {
-            var limit = System.Math.Min(singleRun.Count, topK);
+            var limit = Math.Min(singleRun.Count, topK);
             var fastResults = new List<VKSearchResult>(limit);
             for (var i = 0; i < limit; i++)
             {
@@ -65,7 +71,9 @@ internal sealed class ReciprocalRankFusion : IVKScoreFusion
             return VKResult.Success<IReadOnlyList<VKSearchResult>>(fastResults);
         }
 
-        var scores = new Dictionary<string, (VKDocumentChunk Chunk, float Score)>(initialCapacity);
+        // Multiple runs: Map candidates and compute fused scores
+        var candidateLookup = new Dictionary<string, VKDocumentChunk>(initialCapacity);
+        var keyRuns = new List<IReadOnlyList<string>>(runs.Count);
 
         for (var runIndex = 0; runIndex < runs.Count; runIndex++)
         {
@@ -73,39 +81,44 @@ internal sealed class ReciprocalRankFusion : IVKScoreFusion
             if (run is null)
                 continue;
 
+            var keys = new List<string>(run.Count);
             for (var i = 0; i < run.Count; i++)
             {
                 var candidate = run[i];
                 if (candidate?.Chunk is null)
                     continue;
 
-                var rank = candidate.Rank > 0 ? candidate.Rank : i + 1;
-                var scoreContribution = 1.0f / (K + rank);
-
                 var key = candidate.Chunk.Id;
-                if (scores.TryGetValue(key, out var existing))
+                if (!candidateLookup.ContainsKey(key))
                 {
-                    scores[key] = (existing.Chunk, existing.Score + scoreContribution);
+                    candidateLookup[key] = candidate.Chunk;
                 }
-                else
-                {
-                    scores[key] = (candidate.Chunk, scoreContribution);
-                }
+                keys.Add(key);
             }
+            keyRuns.Add(keys);
         }
 
-        var results = scores.Values
-            .OrderByDescending(x => x.Score)
-            .Take(topK)
-            .Select(x => new VKSearchResult
+        var fusionResult = VKReciprocalRankFusion.Compute(keyRuns, topK, K);
+        if (fusionResult.IsFailure)
+        {
+            return VKResult.Failure<IReadOnlyList<VKSearchResult>>(fusionResult.FirstError);
+        }
+
+        var results = fusionResult.Value
+            .Where(item => candidateLookup.ContainsKey(item.Key))
+            .Select(item =>
             {
-                Document = new VKDocument
+                var chunk = candidateLookup[item.Key];
+                return new VKSearchResult
                 {
-                    Id = x.Chunk.DocumentId,
-                    Content = x.Chunk.Content,
-                    Metadata = x.Chunk.Metadata.Properties.TryGetValue("DocumentMetadata", out var docMeta) ? docMeta : string.Empty
-                },
-                Score = x.Score
+                    Document = new VKDocument
+                    {
+                        Id = chunk.DocumentId,
+                        Content = chunk.Content,
+                        Metadata = chunk.Metadata.Properties.TryGetValue("DocumentMetadata", out var docMeta) ? docMeta : string.Empty
+                    },
+                    Score = item.Score
+                };
             })
             .ToList();
 

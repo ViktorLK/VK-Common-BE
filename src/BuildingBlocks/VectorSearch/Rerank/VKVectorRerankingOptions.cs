@@ -6,6 +6,7 @@ namespace VK.Blocks.VectorSearch;
 /// Options for the Vector Reranking stage.
 /// </summary>
 
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKVectorRerankingOptions : IVKToggleableBlockOptions
 {
     /// <summary>

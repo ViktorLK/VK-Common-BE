@@ -23,7 +23,10 @@ public sealed class VKValidatorGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var assemblyName = context.CompilationProvider.Select(static (c, _) => c.AssemblyName);
+        var compilationInfo = context.CompilationProvider.Select(static (c, _) => (
+            AssemblyName: c.AssemblyName,
+            HasValidationReference: c.GetTypeByMetadataName("VK.Blocks.Validation.IVKValidator`1") is not null
+        ));
 
         var validatableTargets = context.SyntaxProvider
             .CreateSyntaxProvider(
@@ -31,9 +34,17 @@ public sealed class VKValidatorGenerator : IIncrementalGenerator
                 transform: GetValidatableTarget)
             .WhereNotNull();
 
-        var combined = validatableTargets.Collect().Combine(assemblyName);
+        var combined = validatableTargets.Collect().Combine(compilationInfo);
 
-        context.RegisterSourceOutput(combined, (spc, pair) => Execute(spc, pair.Left, pair.Right, this.GetType()));
+        context.RegisterSourceOutput(combined, (spc, pair) =>
+        {
+            if (!pair.Right.HasValidationReference)
+            {
+                return;
+            }
+
+            Execute(spc, pair.Left, pair.Right.AssemblyName, this.GetType());
+        });
     }
 
     private static bool IsCandidateForValidation(SyntaxNode node, CancellationToken _)

@@ -13,4 +13,7 @@
       <_Parameter1>VK.Blocks.AI</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DataIngestion" />
+  </ItemGroup>
 </Project>

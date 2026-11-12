@@ -6,6 +6,11 @@ namespace VK.Blocks.VectorIngest; // [AP.03] public API surface in flat root nam
 public sealed record VKEnrichmentContext // [AP.01] sealed record default
 {
     /// <summary>
+    /// Gets the tenant identifier.
+    /// </summary>
+    public string TenantId { get; init; } = "Default";
+
+    /// <summary>
     /// Gets the unique identifier of the source document.
     /// </summary>
     public required string DocumentId { get; init; } // [AP.01] required keyword
@@ -29,4 +34,14 @@ public sealed record VKEnrichmentContext // [AP.01] sealed record default
     /// Gets the target collection name.
     /// </summary>
     public string? CollectionName { get; init; }
+
+    /// <summary>
+    /// Gets the optional embedding model identifier.
+    /// </summary>
+    public string? EmbeddingModelId { get; init; }
+
+    /// <summary>
+    /// Gets the optional embedding model version.
+    /// </summary>
+    public string? ModelVersion { get; init; }
 }

@@ -6,4 +6,5 @@ namespace VK.Blocks.VectorIngest; // [AP.03] flat root namespace for options mar
 /// Options for the AI Ingest Enrichment feature.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKEnrichmentOptions : IVKBlockOptions; // [BB.07] Options isolation, [AP.01] sealed partial record

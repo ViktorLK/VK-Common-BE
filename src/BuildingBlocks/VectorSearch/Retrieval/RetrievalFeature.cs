@@ -20,7 +20,6 @@ internal sealed partial class RetrievalFeature
         services.TryAddScoped<DefaultHybridSearchStrategy>();
 
         services.TryAddScoped<IVKSearchStrategy, DefaultHybridSearchStrategy>();
-        services.TryAddScoped<IVKRetrievalStore, DefaultRetrievalStore>();
     }
 
     static partial void ValidateFeatureCustom(VKRetrievalOptions options, System.Collections.Generic.List<string> failures)

@@ -8,18 +8,15 @@ namespace VK.Blocks.VectorIngest; // [AP.03] Internal namespace
 /// <summary>
 /// Configures and registers dependencies for the Chunking feature.
 /// </summary>
-[VKFeature(typeof(VKVectorIngestBlock), OptionsType = typeof(VKChunkingOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKVectorIngestBlock), OptionsType = typeof(VKChunkingOptions))]
 internal sealed partial class ChunkingFeature // [AP.01] sealed partial
 {
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKChunkingOptions options)
     {
         _ = options;
-        services.TryAddKeyedSingleton<IVKTextChunker, DefaultFixedSizeChunker>(VKChunkerType.FixedSize); // [AP.02] TryAdd idempotent registration
+        // [AP.02] TryAdd idempotent registration
         services.TryAddKeyedSingleton<IVKTextChunker, DefaultRecursiveChunker>(VKChunkerType.Recursive);
-
-        // Register Semantic and Hierarchical chunkers
-        services.TryAddKeyedScoped<IVKTextChunker, DefaultSemanticChunker>(VKChunkerType.Semantic);
         services.TryAddKeyedScoped<IVKTextChunker, DefaultHierarchicalChunker>(VKChunkerType.Hierarchical);
 
         // Also register DefaultRecursiveChunker as default and self-registration for Hierarchical dependency

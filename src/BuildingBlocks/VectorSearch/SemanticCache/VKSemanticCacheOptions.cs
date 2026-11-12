@@ -4,15 +4,16 @@ using VK.Blocks.Core;
 namespace VK.Blocks.VectorSearch;
 
 /// <summary>
-/// Options for the Semantic Cache.
+/// Options for the Semantic Cache. Disabled by default per vector pruning architecture.
 /// </summary>
-
+[VKOptions]
 public sealed partial record VKSemanticCacheOptions : IVKToggleableBlockOptions
 {
     /// <summary>
     /// Gets or sets a value indicating whether the Semantic Cache is enabled.
+    /// Defaults to false per Phase 2 ablation standards.
     /// </summary>
-    public bool Enabled { get; init; } = true;
+    public bool Enabled { get; init; } = false;
 
     /// <summary>
     /// Gets or sets the similarity score threshold above which a cache hit is registered.

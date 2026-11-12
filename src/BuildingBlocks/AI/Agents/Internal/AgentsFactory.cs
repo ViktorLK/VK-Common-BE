@@ -55,6 +55,6 @@ internal sealed class AgentsFactory : IVKAgentFactory
     /// <inheritdoc />
     public IVKAgentGroup CreateAgentGroup()
     {
-        throw new NotSupportedException("Cooperative agent group is not supported in the basic agents provider. Use the AI.SemanticKernel provider instead.");
+        throw new NotSupportedException("Cooperative agent group is not supported in the basic agents provider. Use the AI.Agents provider instead.");
     }
 }

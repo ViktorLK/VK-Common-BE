@@ -7,6 +7,7 @@ namespace VK.Blocks.VectorIngest; // [AP.03] flat root namespace for options mar
 /// Follows BB.05 (Options pattern with sealed record).
 /// </summary>
 
+[VKOptions(ArgsMode = VKArgsGenerationMode.Explicit, GenerateMerge = true)]
 public sealed partial record VKChunkingOptions : IVKBlockOptions // [BB.07] Options isolation, [AP.01] sealed partial record
 {
     /// <summary>

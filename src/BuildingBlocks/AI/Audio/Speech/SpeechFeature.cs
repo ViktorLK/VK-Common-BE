@@ -16,7 +16,7 @@ internal sealed partial class SpeechFeature
     static partial void RegisterFeatureCustom(IServiceCollection services, VKSpeechOptions options)
     {
         _ = options;
-        services.TryAddSingleton<IVKSpeechEngine, NoOpVKSpeechEngine>();
+        services.TryAddSingleton<IVKSpeechEngine, NoOpSpeechEngine>();
     }
 
     // [SG Hook]

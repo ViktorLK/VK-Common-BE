@@ -9,7 +9,7 @@ namespace VK.Blocks.VectorSearch;
 /// <summary>
 /// Vector Reranking feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKVectorRerankingOptions), ArgsGenerationMode = VKArgsGenerationMode.Explicit)]
+[VKFeature(typeof(VKVectorSearchBlock), OptionsType = typeof(VKVectorRerankingOptions))]
 internal sealed partial class VectorRerankingFeature
 {
     static partial void RegisterFeatureCustom(IServiceCollection services, VKVectorRerankingOptions options)

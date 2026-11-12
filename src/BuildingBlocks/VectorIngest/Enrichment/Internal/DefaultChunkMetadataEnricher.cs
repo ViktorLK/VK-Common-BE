@@ -37,6 +37,7 @@ internal sealed class DefaultChunkMetadataEnricher : IVKChunkMetadataEnricher //
 
             var enriched = new Dictionary<string, object>
             {
+                { VKIngestMetadataKeys.TenantId, context.TenantId },
                 { VKIngestMetadataKeys.DocumentId, context.DocumentId },
                 { VKIngestMetadataKeys.ChunkIndex, chunk.ChunkIndex },
                 { VKIngestMetadataKeys.TotalChunks, context.TotalChunks },
@@ -49,6 +50,16 @@ internal sealed class DefaultChunkMetadataEnricher : IVKChunkMetadataEnricher //
             if (context.CollectionName is not null)
             {
                 enriched[VKIngestMetadataKeys.CollectionName] = context.CollectionName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(context.EmbeddingModelId))
+            {
+                enriched[VKIngestMetadataKeys.EmbeddingModelId] = context.EmbeddingModelId;
+            }
+
+            if (!string.IsNullOrWhiteSpace(context.ModelVersion))
+            {
+                enriched[VKIngestMetadataKeys.ModelVersion] = context.ModelVersion;
             }
 
             return VKResult.Success<IReadOnlyDictionary<string, object>>(enriched);

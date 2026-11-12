@@ -1,3 +1,4 @@
+using VK.Blocks.AI.Agents.Diagnostics.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -89,7 +90,7 @@ internal sealed class BasicAgent : IVKAgent
         if (enableAudit && _logger.IsEnabled(LogLevel.Information))
         {
             var taskInput = effectiveOptions.LogToolData || _globalOptions.EnableSensitiveDataLogging ? input : "[REDACTED]";
-            AgentsLog.AgentTaskStarted(_logger, tenantId, traceId, Name, taskInput);
+            AgentsDiagnostics.AgentTaskStarted(_logger, tenantId, traceId, Name, taskInput);
         }
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -112,7 +113,7 @@ internal sealed class BasicAgent : IVKAgent
             while (iteration < effectiveOptions.MaxIterations)
             {
                 iteration++;
-                AgentsLog.AgentIterationStarted(_logger, tenantId, traceId, Name, iteration);
+                AgentsDiagnostics.AgentIterationStarted(_logger, tenantId, traceId, Name, iteration);
 
                 if (effectiveOptions.MaxHistoryMessages.HasValue && history.Count > effectiveOptions.MaxHistoryMessages.Value)
                 {
@@ -130,7 +131,7 @@ internal sealed class BasicAgent : IVKAgent
                 {
                     if (enableAudit)
                     {
-                        AgentsLog.AgentTaskFailed(_logger, tenantId, traceId, Name, chatResult.FirstError.Description);
+                        AgentsDiagnostics.AgentTaskFailed(_logger, tenantId, traceId, Name, chatResult.FirstError.Description);
                     }
                     return VKResult.Failure<string>(chatResult.FirstError);
                 }
@@ -145,7 +146,7 @@ internal sealed class BasicAgent : IVKAgent
 
                     if (effectiveOptions.MaxTotalTokens.HasValue && totalTokens > effectiveOptions.MaxTotalTokens.Value)
                     {
-                        AgentsLog.AgentTaskFailed(_logger, tenantId, traceId, Name, "Token budget exceeded.");
+                        AgentsDiagnostics.AgentTaskFailed(_logger, tenantId, traceId, Name, "Token budget exceeded.");
                         return VKResult.Failure<string>(VKAgentErrors.ExecutionFailed);
                     }
                 }
@@ -157,7 +158,7 @@ internal sealed class BasicAgent : IVKAgent
                     isSuccess = true;
                     if (enableAudit)
                     {
-                        AgentsLog.AgentTaskCompleted(_logger, tenantId, traceId, Name, assistantMessage.Content.Length, totalTokens);
+                        AgentsDiagnostics.AgentTaskCompleted(_logger, tenantId, traceId, Name, assistantMessage.Content.Length, totalTokens);
                     }
                     return VKResult.Success(assistantMessage.Content);
                 }
@@ -206,7 +207,7 @@ internal sealed class BasicAgent : IVKAgent
 
             if (enableAudit)
             {
-                AgentsLog.AgentTaskFailed(_logger, tenantId, traceId, Name, VKAgentErrors.MaxIterationsReached.Description);
+                AgentsDiagnostics.AgentTaskFailed(_logger, tenantId, traceId, Name, VKAgentErrors.MaxIterationsReached.Description);
             }
             return VKResult.Failure<string>(VKAgentErrors.MaxIterationsReached);
         }
@@ -222,7 +223,7 @@ internal sealed class BasicAgent : IVKAgent
         catch (Exception ex)
         {
             cts.Cancel();
-            AgentsLog.UnexpectedExecutionError(_logger, tenantId, traceId, Name, ex);
+            AgentsDiagnostics.UnexpectedExecutionError(_logger, tenantId, traceId, Name, ex);
             return VKResult.Failure<string>(VKAgentErrors.ExecutionFailed);
         }
         finally
@@ -254,7 +255,7 @@ internal sealed class BasicAgent : IVKAgent
             return (new VKChatMessage { Role = VKChatRole.Tool, ToolResult = errorResult }, null);
         }
 
-        AgentsLog.ToolCallStarted(_logger, tenantId, traceId, Name, tool.Manifest.Metadata.Name, toolCall.Id);
+        AgentsDiagnostics.ToolCallStarted(_logger, tenantId, traceId, Name, tool.Manifest.Metadata.Name, toolCall.Id);
 
         var toolResult = VKResult.Failure<VKAtomicToolResult>(VKAgentErrors.ExecutionFailed);
         int retryCount = options.ToolRetryCount ?? 0;
@@ -315,7 +316,7 @@ internal sealed class BasicAgent : IVKAgent
             ErrorMessage = toolResult.IsSuccess ? null : toolResult.FirstError.Description
         };
 
-        AgentsLog.ToolCallCompleted(_logger, tenantId, traceId, Name, tool.Manifest.Metadata.Name, toolCall.Id, toolResult.IsSuccess);
+        AgentsDiagnostics.ToolCallCompleted(_logger, tenantId, traceId, Name, tool.Manifest.Metadata.Name, toolCall.Id, toolResult.IsSuccess);
         AiDiagnostics.RecordToolCall(Name, tool.Manifest.Metadata.Name, toolResult.IsSuccess, tenantId);
 
         return (new VKChatMessage { Role = VKChatRole.Tool, ToolResult = vkToolResult }, toolResult.IsSuccess ? toolResult.Value : null);

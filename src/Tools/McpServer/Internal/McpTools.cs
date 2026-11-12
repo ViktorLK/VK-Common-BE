@@ -11,6 +11,17 @@ namespace VK.Tools.McpServer.Internal;
 [McpServerToolType]
 internal sealed partial class McpTools
 {
+    private readonly TimeProvider _timeProvider;
+
+    public McpTools() : this(TimeProvider.System)
+    {
+    }
+
+    public McpTools(TimeProvider timeProvider)
+    {
+        _timeProvider = timeProvider;
+    }
+
     private static string FindProjectRoot()
     {
         var currentDir = AppContext.BaseDirectory;

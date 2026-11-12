@@ -16,7 +16,7 @@ internal sealed partial class TranscriptionFeature
     static partial void RegisterFeatureCustom(IServiceCollection services, VKTranscriptionOptions options)
     {
         _ = options;
-        services.TryAddSingleton<IVKTranscriptionEngine, NoOpVKTranscriptionEngine>();
+        services.TryAddSingleton<IVKTranscriptionEngine, NoOpTranscriptionEngine>();
     }
 
     /// <summary>Add STT-specific validation logic here</summary>

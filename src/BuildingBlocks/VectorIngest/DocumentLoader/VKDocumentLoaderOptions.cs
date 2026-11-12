@@ -6,6 +6,7 @@ namespace VK.Blocks.VectorIngest;
 /// Options for the AI Ingest DocumentLoader feature.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKDocumentLoaderOptions : IVKBlockOptions
 {
     public int ChunkSize { get; init; } = 500;

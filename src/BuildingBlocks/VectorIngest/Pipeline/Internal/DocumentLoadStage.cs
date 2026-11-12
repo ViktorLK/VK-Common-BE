@@ -49,7 +49,7 @@ internal sealed class DocumentLoadStage : IVKIngestPipelineStage // [AP.01] seal
         context.DocumentHash = loadResult.Value.DocumentHash;
 
         // [Early Pruning check] Document-level duplicate detection
-        var collection = _vectorStore.Collection<VectorStoreDocument>(_defaults.DefaultCollection);
+        var collection = _vectorStore.Collection<VKVectorDocument>(_defaults.DefaultCollection);
         var filter = new VKMetadataFilter
         {
             EqualityFilters = new System.Collections.Generic.Dictionary<string, object>

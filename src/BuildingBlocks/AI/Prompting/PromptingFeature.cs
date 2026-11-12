@@ -15,18 +15,18 @@ internal sealed partial class PromptingFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKPromptingOptions options)
     {
-        services.TryAddSingleton<IVKPromptTemplateEngine, BasicVKPromptTemplateEngine>();
-        services.TryAddSingleton<IVKPromptRegistry, VKPromptRegistry>();
+        services.TryAddSingleton<IVKPromptTemplateEngine, BasicPromptTemplateEngine>();
+        services.TryAddSingleton<IVKPromptRegistry, DefaultPromptRegistry>();
 
         if (!string.IsNullOrWhiteSpace(options.BaseDirectory))
         {
-            services.AddSingleton<IVKPromptProvider>(new FileVKPromptProvider(options.BaseDirectory));
+            services.AddSingleton<IVKPromptProvider>(new FilePromptProvider(options.BaseDirectory));
         }
 
         if (!string.IsNullOrWhiteSpace(options.EmbeddedPromptNamespace))
         {
             var assembly = options.EmbeddedPromptAssembly ?? typeof(PromptingFeature).Assembly;
-            services.AddSingleton<IVKPromptProvider>(new EmbeddedVKPromptProvider(assembly, options.EmbeddedPromptNamespace));
+            services.AddSingleton<IVKPromptProvider>(new EmbeddedPromptProvider(assembly, options.EmbeddedPromptNamespace));
         }
     }
 

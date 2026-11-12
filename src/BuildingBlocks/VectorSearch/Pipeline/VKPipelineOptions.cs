@@ -6,6 +6,7 @@ namespace VK.Blocks.VectorSearch;
 /// Options for configuring the Vector Search execution pipeline.
 /// </summary>
 
+[VKOptions]
 public sealed partial record VKPipelineOptions : IVKToggleableBlockOptions
 {
     /// <summary>

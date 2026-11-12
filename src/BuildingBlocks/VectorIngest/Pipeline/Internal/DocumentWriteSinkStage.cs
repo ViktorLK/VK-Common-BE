@@ -46,11 +46,14 @@ internal sealed class DocumentWriteSinkStage : IVKIngestPipelineStage // [AP.01]
 
         var enrichmentContext = new VKEnrichmentContext
         {
+            TenantId = context.TenantId,
             DocumentId = context.DocumentId,
             TotalChunks = context.Chunks.Count,
             SourceUri = context.Source,
             DocumentHash = context.DocumentHash ?? string.Empty,
-            CollectionName = context.CollectionName
+            CollectionName = context.CollectionName,
+            EmbeddingModelId = context.EmbeddingModelId,
+            ModelVersion = context.ModelVersion
         };
 
         var itemsToIndex = new List<(VKChunk Chunk, IReadOnlyDictionary<string, object> Metadata)>();
@@ -81,7 +84,7 @@ internal sealed class DocumentWriteSinkStage : IVKIngestPipelineStage // [AP.01]
 
                 if (dupResult.Value)
                 {
-                    // Skip indexing this chunk if it is a duplicate
+                    // Chunk already indexed, skip writing this chunk
                     continue;
                 }
             }
@@ -89,15 +92,11 @@ internal sealed class DocumentWriteSinkStage : IVKIngestPipelineStage // [AP.01]
             itemsToIndex.Add((chunk, metadata));
         }
 
-        if (itemsToIndex.Count > 0)
+        if (itemsToIndex.Count == 0)
         {
-            var indexResult = await _indexingService.IndexBatchAsync(itemsToIndex, cancellationToken).ConfigureAwait(false); // [CS.03] ConfigureAwait
-            if (indexResult.IsFailure)
-            {
-                return indexResult; // [CS.01] Result only
-            }
+            return VKResult.Success();
         }
 
-        return VKResult.Success();
+        return await _indexingService.IndexBatchAsync(itemsToIndex, cancellationToken).ConfigureAwait(false); // [CS.03] ConfigureAwait
     }
 }
