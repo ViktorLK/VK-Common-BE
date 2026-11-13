@@ -30,9 +30,43 @@ public sealed class VKAIToolAttribute : Attribute
     public string[] Tags { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets whether the tool only reads data without modifying state.
+    /// </summary>
+    public bool IsReadOnly { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the tool may perform destructive updates.
+    /// </summary>
+    public bool IsDestructive { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether repeated calls with the same arguments produce no additional effect.
+    /// </summary>
+    public bool IsIdempotent { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the tool interacts with external untrusted entities (open world).
+    /// </summary>
+    public bool IsOpenWorld { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the tool is safe for concurrent execution.
+    /// </summary>
+    public bool IsConcurrencySafe { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the approval requirement mode before executing the tool.
+    /// </summary>
+    public VKToolApprovalMode ApprovalMode { get; set; } = VKToolApprovalMode.Never;
+
+    /// <summary>
     /// Gets or sets whether this tool requires explicit human confirmation before execution.
     /// </summary>
-    public bool RequiresConfirmation { get; set; }
+    public bool RequiresConfirmation
+    {
+        get => ApprovalMode != VKToolApprovalMode.Never;
+        set => ApprovalMode = value ? VKToolApprovalMode.Always : VKToolApprovalMode.Never;
+    }
 
     /// <summary>
     /// Gets or sets the specific execution timeout in milliseconds for this tool.

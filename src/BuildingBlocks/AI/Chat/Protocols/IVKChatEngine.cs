@@ -35,6 +35,19 @@ public interface IVKChatEngine
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Sends a single user prompt to the chat engine and gets a single assistant response.
+    /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
+    /// </summary>
+    Task<VKResult<VKChatResponse>> SendAsync(
+        string prompt,
+        VKChatArgs? args = null,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNullOrWhiteSpace(prompt);
+        return SendAsync([VKChatMessage.FromText(VKChatRole.User, prompt)], args, cancellationToken);
+    }
+
+    /// <summary>
     /// Sends a context payload containing messages and caching options to the chat engine.
     /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
     /// </summary>
@@ -62,6 +75,19 @@ public interface IVKChatEngine
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Sends a single user prompt to the chat engine and streams the assistant response back in chunks.
+    /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
+    /// </summary>
+    IAsyncEnumerable<VKResult<VKChatStreamingResponse>> SendStreamingAsync(
+        string prompt,
+        VKChatArgs? args = null,
+        CancellationToken cancellationToken = default)
+    {
+        VKGuard.NotNullOrWhiteSpace(prompt);
+        return SendStreamingAsync([VKChatMessage.FromText(VKChatRole.User, prompt)], args, cancellationToken);
+    }
+
+    /// <summary>
     /// Sends a context payload containing messages and caching options to the chat engine and streams response.
     /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
     /// </summary>
@@ -79,14 +105,39 @@ public interface IVKChatEngine
     /// from JSON Schema-constrained LLM output.
     /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
     /// </summary>
-    Task<VKResult<VKStructuredChatResponse<T>>> SendStructuredAsync<T>(
+    Task<VKResult<VKChatStructuredResponse<T>>> SendStructuredAsync<T>(
         IEnumerable<VKChatMessage> messages,
         VKChatArgs? args = null,
         CancellationToken cancellationToken = default) where T : class
     {
         return Task.FromResult(
-            VKResult.Failure<VKStructuredChatResponse<T>>(
-                new VKError("AI.Chat.StructuredOutputNotSupported",
-                    "This chat engine implementation does not support structured JSON output.")));
+            VKResult.Failure<VKChatStructuredResponse<T>>(VKChatErrors.StructuredOutputNotSupported));
+    }
+
+    /// <summary>
+    /// Sends a single user prompt to the chat engine and receives a structured, type-safe response deserialized
+    /// from JSON Schema-constrained LLM output.
+    /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
+    /// </summary>
+    Task<VKResult<VKChatStructuredResponse<T>>> SendStructuredAsync<T>(
+        string prompt,
+        VKChatArgs? args = null,
+        CancellationToken cancellationToken = default) where T : class
+    {
+        VKGuard.NotNullOrWhiteSpace(prompt);
+        return SendStructuredAsync<T>([VKChatMessage.FromText(VKChatRole.User, prompt)], args, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a context payload containing messages and caching options to the chat engine and receives a structured response.
+    /// Uses Default Interface Methods (DIM) for 100% backward compatibility.
+    /// </summary>
+    Task<VKResult<VKChatStructuredResponse<T>>> SendStructuredAsync<T>(
+        VKContextPayload payload,
+        VKChatArgs? args = null,
+        CancellationToken cancellationToken = default) where T : class
+    {
+        VKGuard.NotNull(payload);
+        return SendStructuredAsync<T>(payload.Messages, args, cancellationToken);
     }
 }

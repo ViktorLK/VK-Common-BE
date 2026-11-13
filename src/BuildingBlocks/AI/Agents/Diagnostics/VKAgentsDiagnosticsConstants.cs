@@ -1,4 +1,3 @@
-using VK.Blocks.Core.Diagnostics;
 namespace VK.Blocks.AI;
 
 public static class VKAgentsDiagnosticsConstants

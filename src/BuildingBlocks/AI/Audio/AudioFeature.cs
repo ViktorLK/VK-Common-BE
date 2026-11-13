@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Audio pillar marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.VKAIBlock), OptionsType = typeof(VKAudioOptions))]
+[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKAudioOptions))]
 internal sealed partial class AudioFeature
 {
     // [SG Hook]
