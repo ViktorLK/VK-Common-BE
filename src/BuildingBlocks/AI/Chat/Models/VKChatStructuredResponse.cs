@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// deserialized into a concrete type using JSON Schema-constrained generation.
 /// </summary>
 /// <typeparam name="T">The type that the LLM response was deserialized into.</typeparam>
-public sealed record VKStructuredChatResponse<T> where T : class
+public sealed record VKChatStructuredResponse<T> where T : class
 {
     /// <summary>
     /// Gets the deserialized response data from the LLM.

@@ -43,15 +43,16 @@ internal sealed class NoOpSpeechEngine : IVKSpeechEngine
         yield return await Task.FromResult(VKResult.Success(System.Array.Empty<byte>())).ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     // [SG Hook]
     public Task<VKResult<IReadOnlyList<VKAudioVoice>>> GetVoicesAsync(CancellationToken cancellationToken = default)
     {
         _ = cancellationToken;
 
-        IReadOnlyList<VKAudioVoice> result = new List<VKAudioVoice>
-        {
-            new VKAudioVoice { Id = "noop-voice", Name = "No-Op Voice", Locale = "en-US" }
-        };
+        IReadOnlyList<VKAudioVoice> result =
+        [
+            new() { Id = "noop-voice", Name = "No-Op Voice", Locale = "en-US" }
+        ];
 
         return Task.FromResult(VKResult.Success(result));
     }

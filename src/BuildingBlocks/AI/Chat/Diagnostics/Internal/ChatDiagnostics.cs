@@ -1,9 +1,10 @@
-using System;
 using Microsoft.Extensions.Logging;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Chat.Diagnostics.Internal;
 
+// [SG Diagnostics]
+// [SG Logger]
 [VKBlockDiagnostics<VKAIBlock>]
 internal static partial class ChatDiagnostics
 {

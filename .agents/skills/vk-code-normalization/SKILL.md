@@ -19,6 +19,7 @@ Apply the strict coding guidelines defined in `references/CodeNormalization.md` 
 2. **Mechanical Cleanup & Audit (Stage 1)**:
     - Run standard `dotnet format` to handle unambiguous namespaces, usings, and spacing.
     - NEW: Run `dotnet format style --verify-no-changes --severity info` to generate a quality report.
+    - **Fallback**: If `dotnet format style` throws `System.NotSupportedException: Changing document properties is not supported` (commonly caused by `IDE0130` namespace-folder mismatches), resolve `IDE0130` from the audit output first, then re-run `dotnet format style` and `dotnet format whitespace` to auto-fix `IDE0005` (unused usings) and `IMPORTS` ordering.
     - // turbo
     ```powershell
     $targetPath = "<absolute_path_to_target>"

@@ -75,7 +75,7 @@ principle: Vertical Slice Architecture, Contract-First, Result pattern, Zero Imp
 
 <dynamic_loading_protocol>
 
-> **[MCP Routing Rule]**: Backend (C#) -> MUST call `vk_be_get_architectural_rule` from `vk-blocks-be-manager`.
+> **[MCP Routing Rule]**: Backend (C#) -> MUST call `vk_be_get_architectural_rule(ruleIds: "CS.01,AP.01")` and `vk_be_get_module_context(path: "src/BuildingBlocks/...")` from `vk-blocks-be-manager`.
 > **[Rule Scope]**: `vk_be_get_architectural_rule` is EXCLUSIVELY for dynamic loading of L3 rules (`CS.*`, `AP.*`, `BB.*`, `OR.*`, `DL.*`, `PS.*`). DO NOT query globally resident L0~L2 rules (`BASE-*`, `ARCH-*`, `FS-*`) as they are already loaded in full in the global context.
 
 > **[MANDATORY]**: Rule index summaries are for awareness only. You are **STRICTLY PROHIBITED** from using memory or one-liners to decide file names, visibility, or structure. You MUST fetch the full rule specification via `vk_be_get_architectural_rule` for each matching scenario below and declare fetched Rule IDs in the Handshake `Sync: [...]`. Missing Rule Sync for a scenario → code output PROHIBITED.

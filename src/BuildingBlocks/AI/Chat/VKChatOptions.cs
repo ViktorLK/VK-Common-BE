@@ -10,6 +10,7 @@ namespace VK.Blocks.AI;
 /// Governance, routing, and connection fallbacks belong to AI.Synapse.
 /// Mind prompt assembly and persona orchestration belong to AI.Psyche.
 /// </summary>
+// [SG Marker]
 [VKOptions(ArgsMode = VKArgsGenerationMode.Implicit, GenerateMerge = true, ArgsBaseType = typeof(IVKAIArgs))]
 public sealed partial record VKChatOptions : IVKToggleableBlockOptions, IVKAIProviderOptions
 {

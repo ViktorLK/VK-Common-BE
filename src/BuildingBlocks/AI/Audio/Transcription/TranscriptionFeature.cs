@@ -1,7 +1,7 @@
-using VK.Blocks.AI.Audio.Transcription.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Audio.Transcription.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Transcription (STT) feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.AudioFeature), OptionsType = typeof(VKTranscriptionOptions))]
+[VKFeature(typeof(AudioFeature), OptionsType = typeof(VKTranscriptionOptions))]
 internal sealed partial class TranscriptionFeature
 {
     // [SG Hook]
