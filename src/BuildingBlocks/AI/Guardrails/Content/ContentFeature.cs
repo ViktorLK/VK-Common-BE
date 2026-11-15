@@ -1,6 +1,6 @@
-using VK.Blocks.AI.Guardrails.Content.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using VK.Blocks.AI.Guardrails.Content.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -8,7 +8,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Content Guard feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.GuardrailsFeature), OptionsType = typeof(VKContentOptions))]
+[VKFeature(typeof(GuardrailsFeature), OptionsType = typeof(VKContentOptions))]
 internal sealed partial class ContentFeature
 {
     // [SG Hook]

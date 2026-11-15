@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Governance.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -7,10 +9,13 @@ namespace VK.Blocks.AI;
 [VKBlockMarker(Dependencies = [typeof(VKCoreBlock)], Toggleable = false)]
 public sealed partial class VKAIBlock
 {
+    // [SG Hook]
     static partial void RegisterBlockCustom(IVKAIBuilder builder)
     {
+        builder.Services.TryAddSingleton<IVKAICache, InMemoryAICache>();
     }
 
+    // [SG Hook]
     static partial void ValidateBlockCustom(VKAIOptions options, List<string> failures)
     {
         _ = options;

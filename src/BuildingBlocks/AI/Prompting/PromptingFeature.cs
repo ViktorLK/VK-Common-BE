@@ -1,7 +1,7 @@
-using VK.Blocks.AI.Prompting.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Prompting.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Prompting feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.VKAIBlock), OptionsType = typeof(VKPromptingOptions))]
+[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKPromptingOptions))]
 internal sealed partial class PromptingFeature
 {
     // [SG Hook]
@@ -20,13 +20,15 @@ internal sealed partial class PromptingFeature
 
         if (!string.IsNullOrWhiteSpace(options.BaseDirectory))
         {
-            services.AddSingleton<IVKPromptProvider>(new FilePromptProvider(options.BaseDirectory));
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptProvider, FilePromptProvider>(
+                _ => new FilePromptProvider(options.BaseDirectory)));
         }
 
         if (!string.IsNullOrWhiteSpace(options.EmbeddedPromptNamespace))
         {
             var assembly = options.EmbeddedPromptAssembly ?? typeof(PromptingFeature).Assembly;
-            services.AddSingleton<IVKPromptProvider>(new EmbeddedPromptProvider(assembly, options.EmbeddedPromptNamespace));
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IVKPromptProvider, EmbeddedPromptProvider>(
+                _ => new EmbeddedPromptProvider(assembly, options.EmbeddedPromptNamespace)));
         }
     }
 

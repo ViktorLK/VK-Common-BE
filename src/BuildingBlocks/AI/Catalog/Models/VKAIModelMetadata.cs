@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace VK.Blocks.AI;
 
 /// <summary>
@@ -39,4 +41,19 @@ public sealed record VKAIModelMetadata
     /// Gets whether the model supports tool / function calling.
     /// </summary>
     public bool SupportsTools { get; init; } = true;
+
+    /// <summary>
+    /// Gets whether the model supports reasoning / thinking mode.
+    /// </summary>
+    public bool SupportsReasoning { get; init; } = false;
+
+    /// <summary>
+    /// Gets the supported reasoning effort levels (e.g., "low", "medium", "high"), if applicable.
+    /// </summary>
+    public IReadOnlyList<string>? ReasoningEffortLevels { get; init; }
+
+    /// <summary>
+    /// Gets whether the model is deprecated or scheduled for retirement.
+    /// </summary>
+    public bool IsDeprecated { get; init; } = false;
 }

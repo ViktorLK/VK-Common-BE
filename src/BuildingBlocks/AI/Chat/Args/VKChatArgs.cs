@@ -4,7 +4,7 @@ namespace VK.Blocks.AI;
 /// Execution arguments for chat operations.
 /// Properties (Connection, Sampling, Tools) are automatically generated via SG from <see cref="VKChatOptions"/>.
 /// </summary>
-public partial record VKChatArgs : IVKAIProviderOverrides
+public partial record VKChatArgs : IVKAIProviderOptions
 {
     /// <summary>
     /// Gets or sets the structured JSON response schema string for native structured output.

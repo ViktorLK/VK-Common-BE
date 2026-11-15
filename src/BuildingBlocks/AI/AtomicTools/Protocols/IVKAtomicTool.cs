@@ -25,7 +25,7 @@ public interface IVKAtomicTool
     /// <returns>The tool execution result.</returns>
     Task<VKResult<VKAtomicToolResult>> ExecuteAsync(
         IDictionary<string, object> arguments,
-        VKAgentExecutionContext context,
+        VKAtomicToolContext context,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -37,19 +37,22 @@ public interface IVKAtomicTool
     /// <param name="context">The execution context provided by the caller.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>An async enumerable streaming the tool execution result.</returns>
-    public async IAsyncEnumerable<VKResult<string>> ExecuteStreamingAsync(
+    async IAsyncEnumerable<VKResult<VKAtomicToolStreamChunk>> ExecuteStreamingAsync(
         IDictionary<string, object> arguments,
-        VKAgentExecutionContext context,
+        VKAtomicToolContext context,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var result = await ExecuteAsync(arguments, context, cancellationToken).ConfigureAwait(false);
         if (result.IsSuccess)
         {
-            yield return VKResult.Success(result.Value?.Content ?? string.Empty);
+            yield return VKResult.Success(new VKAtomicToolStreamChunk
+            {
+                Content = result.Value?.Content ?? string.Empty
+            });
         }
         else
         {
-            yield return VKResult.Failure<string>(result.Errors);
+            yield return VKResult.Failure<VKAtomicToolStreamChunk>(result.Errors);
         }
     }
 }

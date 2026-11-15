@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Guardrails feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.VKAIBlock), OptionsType = typeof(VKGuardrailsOptions))]
+[VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKGuardrailsOptions))]
 internal sealed partial class GuardrailsFeature
 {
     // [SG Hook]

@@ -7,5 +7,8 @@ public enum VKAIProviderType : byte
     Google = 3,
     Anthropic = 4,
     Ollama = 5,
+    DeepSeek = 6,
+    XAI = 7,
+    Mistral = 8,
     Custom = 99
 }

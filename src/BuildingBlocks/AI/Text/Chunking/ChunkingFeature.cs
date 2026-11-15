@@ -7,7 +7,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Chunking feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.TextFeature), OptionsType = typeof(VKChunkingOptions))]
+[VKFeature(typeof(TextFeature), OptionsType = typeof(VKChunkingOptions))]
 internal sealed partial class ChunkingFeature
 {
     // [SG Hook]

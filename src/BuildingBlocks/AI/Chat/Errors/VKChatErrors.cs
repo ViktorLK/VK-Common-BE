@@ -51,4 +51,11 @@ public static class VKChatErrors
     /// Error returned when the chat feature is disabled in configuration.
     /// </summary>
     public static readonly VKError FeatureDisabled = new("AI.Chat.FeatureDisabled", "The chat feature is disabled.");
+
+    /// <summary>
+    /// Error returned when the chat engine implementation does not support structured JSON output.
+    /// </summary>
+    public static readonly VKError StructuredOutputNotSupported = new(
+        "AI.Chat.StructuredOutputNotSupported",
+        "This chat engine implementation does not support structured JSON output.");
 }

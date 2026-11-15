@@ -1,7 +1,7 @@
-using VK.Blocks.AI.Audio.Speech.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Audio.Speech.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -9,7 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Speech (TTS) feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.AudioFeature), OptionsType = typeof(VKSpeechOptions))]
+[VKFeature(typeof(AudioFeature), OptionsType = typeof(VKSpeechOptions))]
 internal sealed partial class SpeechFeature
 {
     // [SG Hook]

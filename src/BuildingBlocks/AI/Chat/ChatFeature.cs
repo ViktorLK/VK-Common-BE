@@ -9,6 +9,7 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Chat feature marker and registration hub.
 /// </summary>
+// [SG Marker]
 [VKFeature(typeof(VKAIBlock), OptionsType = typeof(VKChatOptions))]
 internal sealed partial class ChatFeature
 {
@@ -17,7 +18,7 @@ internal sealed partial class ChatFeature
     {
         _ = options;
         services.TryAddScoped<IVKChatEngine, NoOpChatEngine>();
-        services.TryAddScoped<IVKChat, BasicChat>();
+        services.TryAddSingleton<IVKAIContextPruner, DefaultContextPruner>();
     }
 
     // [SG Hook] Optional validation hook

@@ -51,7 +51,42 @@ public sealed record VKChatMessage
     public IReadOnlyList<IVKChatMessagePart> Parts
     {
         get => _parts ?? [];
-        init => _parts = VKGuard.NotNull(value);
+        init
+        {
+            VKGuard.NotNull(value);
+            if (_parts is null || _parts.Count == 0)
+            {
+                _parts = value;
+                return;
+            }
+
+            var hasTextInNew = value.OfType<VKTextPart>().Any();
+            var existingText = !hasTextInNew ? _parts.OfType<VKTextPart>().FirstOrDefault() : null;
+
+            var hasReasoningInNew = value.OfType<VKReasoningPart>().Any();
+            var existingReasoning = !hasReasoningInNew ? _parts.OfType<VKReasoningPart>().FirstOrDefault() : null;
+
+            if (existingText is null && existingReasoning is null)
+            {
+                _parts = value;
+                return;
+            }
+
+            var merged = new List<IVKChatMessagePart>(value.Count + 2);
+            if (existingText is not null)
+            {
+                merged.Add(existingText);
+            }
+
+            merged.AddRange(value);
+
+            if (existingReasoning is not null)
+            {
+                merged.Add(existingReasoning);
+            }
+
+            _parts = merged;
+        }
     }
 
     /// <summary>

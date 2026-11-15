@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using VK.Blocks.Core;
@@ -17,11 +16,12 @@ internal sealed class InMemoryAIModelCatalogStore : IVKAIModelCatalogStore
 {
     private readonly ConcurrentDictionary<string, VKAIModelMetadata> _store = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <inheritdoc />
     public Task<VKResult<IReadOnlyList<VKAIModelMetadata>>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        IReadOnlyList<VKAIModelMetadata> list = _store.Values.ToList();
+        IReadOnlyList<VKAIModelMetadata> list = [.. _store.Values];
         return Task.FromResult(VKResult<IReadOnlyList<VKAIModelMetadata>>.Success(list));
     }
 

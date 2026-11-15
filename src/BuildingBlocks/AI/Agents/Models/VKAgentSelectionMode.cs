@@ -23,5 +23,10 @@ public enum VKAgentSelectionMode : byte
     /// <summary>
     /// Execute agents concurrently in a fan-out / fan-in workflow.
     /// </summary>
-    Concurrent = 3
+    Concurrent = 3,
+
+    /// <summary>
+    /// Route execution dynamically via explicit agent-to-agent handoffs.
+    /// </summary>
+    Handoff = 4
 }

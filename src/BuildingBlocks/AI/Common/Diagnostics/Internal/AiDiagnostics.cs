@@ -47,9 +47,13 @@ internal static partial class AiDiagnostics
         };
 
         if (model is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.ModelName, model);
+        }
         if (tenantId is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.TenantId, tenantId);
+        }
 
         AgentRunCount.Add(1, tags);
         AgentRunDuration.Record(durationMs, tags);
@@ -65,7 +69,9 @@ internal static partial class AiDiagnostics
         };
 
         if (tenantId is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.TenantId, tenantId);
+        }
 
         ToolCallCount.Add(1, tags);
     }
@@ -80,7 +86,9 @@ internal static partial class AiDiagnostics
         };
 
         if (tenantId is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.TenantId, tenantId);
+        }
 
         ChatRequestCount.Add(1, tags);
         ChatRequestDuration.Record(durationMs, tags);
@@ -95,7 +103,9 @@ internal static partial class AiDiagnostics
         };
 
         if (tenantId is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.TenantId, tenantId);
+        }
 
         TokenUsage.Add(tokens, tags);
         if (cost.HasValue)
@@ -113,9 +123,13 @@ internal static partial class AiDiagnostics
         };
 
         if (provider is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.ProviderName, provider);
+        }
         if (tenantId is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.TenantId, tenantId);
+        }
 
         VectorOperationCount.Add(1, tags);
     }
@@ -129,9 +143,13 @@ internal static partial class AiDiagnostics
         };
 
         if (provider is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.ProviderName, provider);
+        }
         if (tenantId is not null)
+        {
             tags.Add(VKAIDiagnosticsConstants.Tags.TenantId, tenantId);
+        }
 
         AudioOperationCount.Add(1, tags);
     }

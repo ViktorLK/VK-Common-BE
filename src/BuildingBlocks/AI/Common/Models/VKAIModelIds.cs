@@ -1,16 +1,19 @@
-namespace VK.Blocks.AI;
+using System;
 
+namespace VK.Blocks.AI;
+/// <summary>
+/// Well-known model identifiers per provider.
+/// Snapshot: 2026-11-13. Provider lifecycles move fast, so verify against each
+/// provider's deprecations page before relying on a legacy entry.
+/// </summary>
 public static class VKAIModelIds
 {
     public static class OpenAI
     {
-        public const string Gpt4O = "gpt-4o";
-        public const string Gpt4OMini = "gpt-4o-mini";
-        public const string Gpt4Turbo = "gpt-4-turbo";
-        public const string O1 = "o1";
-        public const string O1Mini = "o1-mini";
-        public const string O1Preview = "o1-preview";
-        public const string O3Mini = "o3-mini";
+        public const string Gpt6Astra = "gpt-6-astra";
+        public const string Gpt6Sol = "gpt-6-sol";
+        public const string Gpt6Luna = "gpt-6-luna";
+        public const string Gpt61Sol = "gpt-6.1-sol";
 
         public static class Embedding
         {
@@ -22,26 +25,23 @@ public static class VKAIModelIds
 
     public static class Anthropic
     {
-        public const string Claude35Sonnet = "claude-3-5-sonnet-latest";
-        public const string Claude35Haiku = "claude-3-5-haiku-latest";
-        public const string Claude3Opus = "claude-3-opus-latest";
-        public const string Claude3Sonnet = "claude-3-sonnet-20240229";
-        public const string Claude3Haiku = "claude-3-haiku-20240307";
+        public const string ClaudeFable52 = "claude-fable-5-2";
+        public const string ClaudeOpus55 = "claude-opus-5-5";
+        public const string ClaudeSonnet55 = "claude-sonnet-5-5";
+        public const string ClaudeHaiku55 = "claude-haiku-5-5";
     }
 
     public static class Google
     {
-        public const string Gemini20Flash = "gemini-2.0-flash";
-        public const string Gemini20FlashLite = "gemini-2.0-flash-lite-preview-02-05";
-        public const string Gemini20Pro = "gemini-2.0-pro-exp-02-05";
-        public const string Gemini20FlashThinking = "gemini-2.0-flash-thinking-exp-01-21";
-        public const string Gemini15Pro = "gemini-1.5-pro";
-        public const string Gemini15ProLatest = "gemini-1.5-pro-latest";
-        public const string Gemini15Flash = "gemini-1.5-flash";
-        public const string Gemini15FlashLatest = "gemini-1.5-flash-latest";
-        public const string Gemini15Flash8B = "gemini-1.5-flash-8b";
-        public const string Gemini15Flash8BLatest = "gemini-1.5-flash-8b-latest";
-        public const string Gemini10Pro = "gemini-1.0-pro";
+        public const string Gemini4Argon = "gemini-4-argon";
+        public const string Gemini38Flash = "gemini-3.8-flash";
+        public const string Gemini36Flash = "gemini-3.6-flash";
+
+        /// <summary>Pro-tier ID as listed by Google; still a preview name.</summary>
+        public const string Gemini31ProPreview = "gemini-3.1-pro-preview";
+
+        public const string Gemini38Live = "gemini-3.8-live";
+        public const string Gemini38FlashTts = "gemini-3.8-flash-tts";
 
         public static class Embedding
         {
@@ -49,10 +49,66 @@ public static class VKAIModelIds
         }
     }
 
+    public static class DeepSeek
+    {
+        public const string V4Pro = "deepseek-v4-pro";
+        public const string V4Flash = "deepseek-v4-flash";
+    }
+
+    public static class XAI
+    {
+        public const string Grok47 = "grok-4.7";
+        public const string Grok46 = "grok-4.6";
+        public const string Grok45 = "grok-4.5";
+    }
+
+    public static class Mistral
+    {
+        /// <summary>Public Preview; <c>mistral-large-latest</c> still resolves to Large 3.</summary>
+        public const string Large4 = "mistral-large-4";
+
+        public const string Large3 = "mistral-large-2512";
+        public const string Medium35 = "mistral-medium-3-5";
+        public const string Small4 = "mistral-small-2603";
+    }
+
+    /// <summary>Ollama pull tags (<c>family:size</c>).</summary>
+    public static class Ollama
+    {
+        public const string Qwen35_9B = "qwen3.5:9b";
+        public const string Qwen35_27B = "qwen3.5:27b";
+        public const string Gemma4_12B = "gemma4:12b";
+        public const string GptOss20B = "gpt-oss:20b";
+        public const string GptOss120B = "gpt-oss:120b";
+        public const string Llama33_70B = "llama3.3:70b";
+    }
+
+    private readonly record struct ProviderRule(VKAIProviderType Provider, string[] Markers);
+
+    /// <summary>
+    /// Ordered, first-match-wins. Specific markers must precede generic ones
+    /// (<c>gpt-oss</c> before <c>gpt</c>).
+    /// </summary>
+    private static readonly ProviderRule[] ProviderRules =
+    [
+        new(VKAIProviderType.Google, ["gemini"]),
+        new(VKAIProviderType.Anthropic, ["claude"]),
+        new(VKAIProviderType.XAI, ["grok"]),
+        new(VKAIProviderType.DeepSeek, ["deepseek"]),
+        new(VKAIProviderType.Mistral, ["mistral", "ministral", "codestral", "devstral"]),
+        new(VKAIProviderType.Ollama, ["gpt-oss"]),
+        new(VKAIProviderType.OpenAI, ["gpt"]),
+        new(VKAIProviderType.Ollama, ["llama", "qwen", "gemma"]),
+    ];
+
     /// <summary>
     /// Resolves the corresponding <see cref="VKAIProviderType"/> based on well-known model naming conventions.
     /// Returns <c>null</c> if the provider cannot be unambiguously inferred.
     /// </summary>
+    /// <remarks>
+    /// Known limitation: Ollama distills such as <c>deepseek-r1:70b</c> resolve to DeepSeek,
+    /// because the name alone cannot tell the host apart.
+    /// </remarks>
     public static VKAIProviderType? ResolveProvider(string? modelId)
     {
         if (string.IsNullOrWhiteSpace(modelId))
@@ -60,23 +116,27 @@ public static class VKAIModelIds
             return null;
         }
 
-        var m = modelId.ToLowerInvariant();
-        if (m.Contains("gemini"))
+        var m = modelId.Trim().ToLowerInvariant();
+
+        foreach (var rule in ProviderRules)
         {
-            return VKAIProviderType.Google;
+            foreach (var marker in rule.Markers)
+            {
+                if (m.Contains(marker, StringComparison.Ordinal))
+                {
+                    return rule.Provider;
+                }
+            }
         }
 
-        if (m.Contains("claude"))
-        {
-            return VKAIProviderType.Anthropic;
-        }
-
-        if (m.Contains("gpt") || m.Contains("o1") || m.Contains("o3") || m.Contains("o4"))
+        // OpenAI o-series (o1, o3-mini, o4-mini ...): prefix match only, so that
+        // an "o1" substring inside an unrelated name cannot misresolve.
+        if (m.Length >= 2 && m[0] == 'o' && char.IsAsciiDigit(m[1]))
         {
             return VKAIProviderType.OpenAI;
         }
 
-        if (m.Contains("llama") || m.Contains("mistral") || m.Contains("qwen") || m.Contains("deepseek") || m.Contains("phi"))
+        if (m.StartsWith("phi", StringComparison.Ordinal))
         {
             return VKAIProviderType.Ollama;
         }
