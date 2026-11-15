@@ -1,6 +1,6 @@
-using VK.Blocks.AI.Tokenics.Budgeting.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Tokenics.Budgeting.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -8,7 +8,8 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Token Budgeting feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.TokenicsFeature), OptionsType = typeof(VKBudgetingOptions))]
+// [SG Marker]
+[VKFeature(typeof(TokenicsFeature), OptionsType = typeof(VKBudgetingOptions))]
 internal sealed partial class BudgetingFeature
 {
     /// <summary>Add budgeting services here</summary>

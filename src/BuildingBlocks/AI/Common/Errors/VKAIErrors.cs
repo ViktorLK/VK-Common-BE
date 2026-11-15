@@ -126,4 +126,14 @@ public static class VKAIErrors
     /// Error returned when the requested AI cache entry was not found.
     /// </summary>
     public static readonly VKError CacheNotFound = VKError.NotFound("AI.Cache.NotFound", "The requested AI cache entry was not found.");
+
+    /// <summary>
+    /// Error returned when an atomic tool requires human or policy confirmation but no approval handler is registered.
+    /// </summary>
+    public static readonly VKError ToolApprovalRequired = VKError.Forbidden("AI.Tools.ApprovalRequired", "The tool requires confirmation before execution, but no approval handler is registered.");
+
+    /// <summary>
+    /// Error returned when an atomic tool invocation is denied by the approval handler.
+    /// </summary>
+    public static readonly VKError ToolApprovalDenied = VKError.Forbidden("AI.Tools.ApprovalDenied", "The tool execution was denied by the approval handler.");
 }

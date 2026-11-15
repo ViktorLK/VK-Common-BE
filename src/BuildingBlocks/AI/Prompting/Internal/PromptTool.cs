@@ -37,7 +37,7 @@ internal sealed class PromptTool : IVKAtomicTool
     /// <inheritdoc />
     public async Task<VKResult<VKAtomicToolResult>> ExecuteAsync(
         IDictionary<string, object> arguments,
-        VKAgentExecutionContext context,
+        VKAtomicToolContext context,
         CancellationToken cancellationToken = default)
     {
         var (template, renderedPrompt) = await RenderPromptCoreAsync(arguments, cancellationToken).ConfigureAwait(false);
@@ -72,15 +72,15 @@ internal sealed class PromptTool : IVKAtomicTool
     }
 
     /// <inheritdoc />
-    public async IAsyncEnumerable<VKResult<string>> ExecuteStreamingAsync(
+    public async IAsyncEnumerable<VKResult<VKAtomicToolStreamChunk>> ExecuteStreamingAsync(
         IDictionary<string, object> arguments,
-        VKAgentExecutionContext context,
+        VKAtomicToolContext context,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var (template, renderedPrompt) = await RenderPromptCoreAsync(arguments, cancellationToken).ConfigureAwait(false);
         if (renderedPrompt is null)
         {
-            yield return VKResult.Failure<string>(VKError.Failure("PromptTool.RenderFailed", "Failed to render the prompt template."));
+            yield return VKResult.Failure<VKAtomicToolStreamChunk>(VKError.Failure("PromptTool.RenderFailed", "Failed to render the prompt template."));
             yield break;
         }
 
@@ -96,11 +96,14 @@ internal sealed class PromptTool : IVKAtomicTool
         {
             if (chunkResult.IsFailure)
             {
-                yield return VKResult.Failure<string>(chunkResult.FirstError);
+                yield return VKResult.Failure<VKAtomicToolStreamChunk>(chunkResult.FirstError);
                 yield break;
             }
 
-            yield return VKResult.Success(chunkResult.Value?.Delta ?? string.Empty);
+            yield return VKResult.Success(new VKAtomicToolStreamChunk
+            {
+                Content = chunkResult.Value?.Delta ?? string.Empty
+            });
         }
     }
 

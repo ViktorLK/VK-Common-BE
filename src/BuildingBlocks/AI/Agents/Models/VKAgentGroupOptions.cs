@@ -23,4 +23,17 @@ public sealed record VKAgentGroupOptions
     /// Gets the termination keywords that signal completion.
     /// </summary>
     public IReadOnlyList<string> TerminationKeywords { get; init; } = ["APPROVE", "DONE", "TERMINATE"];
+
+    /// <summary>
+    /// Gets a value indicating whether <see cref="VKAgentSelectionMode.LLMBased"/> may fall back
+    /// to <see cref="VKAgentSelectionMode.RoundRobin"/> when selection fails or no selector client is available.
+    /// Defaults to false (AP.06: fail explicitly unless fallback is explicitly opted in).
+    /// </summary>
+    public bool AllowFallbackToRoundRobin { get; init; }
+
+    /// <summary>
+    /// Gets optional directional handoff routes keyed by source agent name mapping to allowed target agent names
+    /// when executing in <see cref="VKAgentSelectionMode.Handoff"/> mode.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>>? HandoffRoutes { get; init; }
 }

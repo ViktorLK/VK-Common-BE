@@ -1,6 +1,6 @@
-using VK.Blocks.AI.Tokenics.Costing.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Tokenics.Costing.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -8,7 +8,8 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Token Costing feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.TokenicsFeature), OptionsType = typeof(VKCostingOptions))]
+// [SG Marker]
+[VKFeature(typeof(TokenicsFeature), OptionsType = typeof(VKCostingOptions))]
 internal sealed partial class CostingFeature
 {
     // [SG Hook]

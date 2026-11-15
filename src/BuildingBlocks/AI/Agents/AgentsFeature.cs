@@ -15,7 +15,11 @@ internal sealed partial class AgentsFeature
     // [SG Hook]
     static partial void RegisterFeatureCustom(IServiceCollection services, VKAgentsOptions options)
     {
+        _ = options;
+        services.TryAddSingleton<IVKAgentThreadStore, InMemoryAgentThreadStore>();
         services.TryAddSingleton<IVKAgentFactory, NoOpAgentsFactory>();
+        services.TryAddSingleton<IVKAgentGroup>(_ => NoOpAgentGroup.Instance);
+        services.TryAddSingleton<IVKAgentWorkflowRunner>(_ => NoOpAgentWorkflowRunner.Instance);
     }
 
     // [SG Hook]

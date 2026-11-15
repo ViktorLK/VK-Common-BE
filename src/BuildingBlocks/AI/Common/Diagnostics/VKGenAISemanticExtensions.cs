@@ -60,7 +60,9 @@ public static class VKGenAISemanticExtensions
     public static Activity? SetGenAiTokens(this Activity? activity, int inputTokens, int outputTokens, int? totalTokens = null)
     {
         if (activity is null)
+        {
             return null;
+        }
 
         activity.SetTag(InputTokensKey, inputTokens);
         activity.SetTag(OutputTokensKey, outputTokens);
@@ -74,7 +76,9 @@ public static class VKGenAISemanticExtensions
     public static Activity? SetGenAiError(this Activity? activity, string errorCode, string? description = null)
     {
         if (activity is null)
+        {
             return null;
+        }
 
         activity.SetStatus(ActivityStatusCode.Error, description);
         activity.SetTag(ErrorCodeKey, errorCode);

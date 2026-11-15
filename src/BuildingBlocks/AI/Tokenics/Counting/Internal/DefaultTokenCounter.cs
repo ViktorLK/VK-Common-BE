@@ -5,10 +5,14 @@ namespace VK.Blocks.AI.Tokenics.Counting.Internal;
 /// </summary>
 internal sealed class DefaultTokenCounter : IVKTokenCounter
 {
+    /// <inheritdoc />
     public int CountTokens(string text, string? modelId = null)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return 0;
+        }
+
         return text.Length / 2;
     }
 }

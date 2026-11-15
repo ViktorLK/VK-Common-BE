@@ -1,7 +1,7 @@
-using VK.Blocks.AI.Tokenics.Limiting.Internal;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using VK.Blocks.AI.Tokenics.Limiting.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -9,7 +9,8 @@ namespace VK.Blocks.AI;
 /// <summary>
 /// Token Limiting feature marker and registration hub.
 /// </summary>
-[VKFeature(typeof(global::VK.Blocks.AI.TokenicsFeature), OptionsType = typeof(VKLimitingOptions))]
+// [SG Marker]
+[VKFeature(typeof(TokenicsFeature), OptionsType = typeof(VKLimitingOptions))]
 internal sealed partial class LimitingFeature
 {
     // [SG Hook]

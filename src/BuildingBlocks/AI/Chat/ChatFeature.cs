@@ -18,6 +18,7 @@ internal sealed partial class ChatFeature
     {
         _ = options;
         services.TryAddScoped<IVKChatEngine, NoOpChatEngine>();
+        services.TryAddSingleton<IVKAIContextPruner, DefaultContextPruner>();
     }
 
     // [SG Hook] Optional validation hook
