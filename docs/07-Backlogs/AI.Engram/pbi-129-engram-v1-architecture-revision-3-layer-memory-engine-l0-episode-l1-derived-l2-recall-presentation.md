@@ -7,16 +7,16 @@ parent:
 legacy_id: 
 type: feature
 priority: P1
-status: todo
+status: done
 sprint: 
 points: 
 rank: 
-started: 
+started: 2026-11-10
 carry_over_count: 0
 ready: false
 estimate: 
 created: 2026-11-03
-closed: 
+closed: 2026-11-10
 refs:
   rules:
   - ARCH-01
@@ -53,10 +53,10 @@ Re-architect `VK.Blocks.AI.Engram` into a 3-Layer Context Engineering & Memory A
 7. **Erasure vs. Forgetting Separation (`Reclamation/`)**: Restrict `IVKPruningStrategy` to index cost management (archival/cold tiering); implement deterministic physical cascade deletion across L0 and all L1/vector derivatives strictly for GDPR/APPI user requests and hard retention policies.
 
 ### 3. Acceptance Criteria
-- [ ] All 7 child stories covering L0, L1, Single-Pass Extraction, Bi-Temporal Revision, Persistent Compression, L2 Recall/Presentation, and GDPR/Archival Reclamation are defined, refined (`ready: true`), and linked to this Epic.
-- [ ] ADRs (`ADR-001` through `ADR-006`), `README.md`, and `.prompts/module-manifest.md` are aligned with the 3-layer architecture.
+- [x] All 7 child stories covering L0, L1, Single-Pass Extraction, Bi-Temporal Revision, Persistent Compression, L2 Recall/Presentation, and GDPR/Archival Reclamation are defined, refined (`ready: true`), and linked to this Epic.
+- [x] ADRs (`ADR-001` through `ADR-006`), `README.md`, and `.prompts/module-manifest.md` are aligned with the 3-layer architecture.
 
 ## ✅ DoD (Definition of Done)
-- [ ] Engram v1 Architecture Revision: 3-Layer Memory Engine (L0 Episode / L1 Derived / L2 Recall & Presentation)
-- [ ] 子 Story / Task に分解完了（各子 PBI の parent に本 ID を指定）
-- [ ] 承認済み RFC ドキュメント（`docs/02-RFCs/`）の紐付け確認
+- [x] Engram v1 Architecture Revision: 3-Layer Memory Engine (L0 Episode / L1 Derived / L2 Recall & Presentation)
+- [x] 子 Story / Task に分解完了（各子 PBI の parent に本 ID を指定）
+- [x] 承認済み RFC ドキュメント（`docs/02-RFCs/`）の紐付け確認

@@ -8,7 +8,7 @@
 
 | Total Tracked | Active Backlogs | In Progress (`doing`) | Completed (`done`) |
 |:---:|:---:|:---:|:---:|
-| **136** | **95** | **0** | **32** |
+| **144** | **88** | **0** | **47** |
 
 ## 🔥 Quick Focus Queue (Latest Active Items)
 
@@ -16,7 +16,7 @@
 - `P1` **[#074](./AI/pbi-074-audit-and-fix-feature-toggle-(enabled)-orthogonality.md)**: Audit and Fix Feature Toggle (Enabled) Orthogonality (`AI`)
 - `P1` **[#047](./AI.Eidos/pbi-047-implement-streaming-contract-transformer-and-end-of-stream-sealing.md)**: Implement Streaming Contract Transformer and End-of-Stream Sealing (`AI.Eidos`)
 - `P1` **[#061](./AI.Eidos/pbi-061-integrate-opentelemetry-native-instrumentation-and-metrics-observability.md)**: Integrate OpenTelemetry Native Instrumentation and Metrics Observability (`AI.Eidos`)
-- `P1` **[#129](./AI.Engram/pbi-129-engram-v1-architecture-revision-3-layer-memory-engine-l0-episode-l1-derived-l2-recall-presentation.md)**: Engram v1 Architecture Revision: 3-Layer Memory Engine (L0 Episode / L1 Derived / L2 Recall & Presentation) (`AI.Engram`)
+- `P1` **[#050](./AI.Psyche/pbi-050-support-streaming-pipeline-(ivkpsychestreamingpipeline-&-ttft-profiling).md)**: Support Streaming Pipeline & Tapestry (IVKPsycheStreamingPipeline & TTFT Profiling) (`AI.Psyche`)
 
 ## 🧭 Navigation
 

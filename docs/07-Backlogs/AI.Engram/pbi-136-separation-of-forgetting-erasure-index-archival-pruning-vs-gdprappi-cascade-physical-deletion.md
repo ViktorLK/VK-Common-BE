@@ -7,16 +7,16 @@ parent: '#129'
 legacy_id: 
 type: feature
 priority: P2
-status: todo
+status: done
 sprint: 
 points: 5
 rank: 
-started: 
+started: 2026-11-10
 carry_over_count: 0
 ready: true
 estimate: 
 created: 2026-11-03
-closed: 
+closed: 2026-11-10
 refs:
   rules:
   - CS.01
@@ -50,15 +50,15 @@ commits: []
   - Emit structured audit logs (`OR.01`) with PII scrubbed (`FS-11`, `OR.02`) returning a `VKErasureAuditReport`.
 
 ### 3. Acceptance Criteria
-- [ ] Background reclamation never physically deletes memories due to low decay scores (`ADR-002`); it only archives/evicts from hot vector indexes.
-- [ ] Explicit erasure API (`IVKMemoryErasureService`) performs complete physical cascade deletion across L0, L1 (via `SourceEpisodeIds`), and `IVKVectorStore` for GDPR/APPI and `HardTtl` expiration.
-- [ ] Unit tests verifying zero data loss during routine pruning and 100% cascade removal on explicit GDPR erasure (`DL.01`).
+- [x] Background reclamation never physically deletes memories due to low decay scores (`ADR-002`); it only archives/evicts from hot vector indexes.
+- [x] Explicit erasure API (`IVKMemoryErasureService`) performs complete physical cascade deletion across L0, L1 (via `SourceEpisodeIds`), and `IVKVectorStore` for GDPR/APPI and `HardTtl` expiration.
+- [x] Unit tests verifying zero data loss during routine pruning and 100% cascade removal on explicit GDPR erasure (`DL.01`).
 
 ## ✅ DoD (Definition of Done)
-- [ ] Separation of Forgetting & Erasure: Index Archival Pruning vs. GDPR/APPI Cascade Physical Deletion
-- [ ] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
-- [ ] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
-- [ ] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
-- [ ] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
-- [ ] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
-- [ ] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み
+- [x] Separation of Forgetting & Erasure: Index Archival Pruning vs. GDPR/APPI Cascade Physical Deletion
+- [x] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
+- [x] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
+- [x] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
+- [x] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
+- [x] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
+- [x] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み

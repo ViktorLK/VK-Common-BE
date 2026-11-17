@@ -7,16 +7,16 @@ parent: '#129'
 legacy_id: 
 type: feature
 priority: P2
-status: todo
+status: done
 sprint: 
 points: 5
 rank: 
-started: 
+started: 2026-11-10
 carry_over_count: 0
 ready: true
 estimate: 
 created: 2026-11-03
-closed: 
+closed: 2026-11-10
 refs:
   rules:
   - CS.01
@@ -47,15 +47,15 @@ When a user's preference, status, or attribute changes (e.g., "I moved from Toky
   - Ensure repository queries default to active records (`ValidTo == null`), while exposing `IncludeHistorical` / `AsOf(DateTimeOffset)` query options so recall can retrieve past states when temporal intent is detected.
 
 ### 3. Acceptance Criteria
-- [ ] `IVKContradictionArbitrator` and `DefaultRevisionService` perform non-destructive `ValidTo` invalidation instead of in-place overwrites (`CS.01`, `CS.06`).
-- [ ] Both `VKMemorySemantic` and `VKMemoryStructured` preserve complete revision lineage (`SupersededBy` / `Supersedes` + `SourceEpisodeIds`).
-- [ ] Unit tests verifying temporal transitions ("used to like X, now likes Y") and rollback of false-positive arbitrations (`DL.01`).
+- [x] `IVKContradictionArbitrator` and `DefaultRevisionService` perform non-destructive `ValidTo` invalidation instead of in-place overwrites (`CS.01`, `CS.06`).
+- [x] Both `VKMemorySemantic` and `VKMemoryStructured` preserve complete revision lineage (`SupersededBy` / `Supersedes` + `SourceEpisodeIds`).
+- [x] Unit tests verifying temporal transitions ("used to like X, now likes Y") and rollback of false-positive arbitrations (`DL.01`).
 
 ## ✅ DoD (Definition of Done)
-- [ ] Bi-Temporal Contradiction Arbitration & Non-Destructive Fact Invalidation
-- [ ] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
-- [ ] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
-- [ ] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
-- [ ] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
-- [ ] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
-- [ ] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み
+- [x] Bi-Temporal Contradiction Arbitration & Non-Destructive Fact Invalidation
+- [x] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
+- [x] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
+- [x] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
+- [x] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
+- [x] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
+- [x] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み

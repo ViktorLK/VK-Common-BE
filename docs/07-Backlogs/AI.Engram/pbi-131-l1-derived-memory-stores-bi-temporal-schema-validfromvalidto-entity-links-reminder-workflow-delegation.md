@@ -7,16 +7,16 @@ parent: '#129'
 legacy_id: 
 type: feature
 priority: P1
-status: todo
+status: done
 sprint: 
 points: 8
 rank: 
-started: 
+started: 2026-11-10
 carry_over_count: 0
 ready: true
 estimate: 
 created: 2026-11-03
-closed: 
+closed: 2026-11-10
 refs:
   rules:
   - CS.01
@@ -54,16 +54,16 @@ In the current L1 memory stores (`MemorySemantic`, `MemoryStructured`, `MemorySu
   - Introduce a lightweight outbound port `IVKReminderWorkflowPort` (e.g., `ScheduleReminderTaskAsync(VKReminderDispatchRequest, CancellationToken)`) with a `NoOpReminderWorkflowPort` default (`ARCH-05`) so extracted reminder intents are immediately handed off to `VK.Blocks.Workflow` without storing scheduled jobs inside `Engram`.
 
 ### 3. Acceptance Criteria
-- [ ] `VKMemorySemantic` and `VKMemoryStructured` support bi-temporal queries (`AsOf(DateTimeOffset)` and active-only `ValidTo == null`) in their repositories (`IVKMemorySemanticRepository`, `IVKMemoryStructuredRepository`).
-- [ ] `VKMemoryStructured` supports entity link metadata and learned procedural/preference categories.
-- [ ] `VKMemorySummary` tracks `SourceEpisodeIds` and hierarchical parent/child lineage.
-- [ ] `MemoryReminder` storage slice is replaced by the `IVKReminderWorkflowPort` abstraction.
+- [x] `VKMemorySemantic` and `VKMemoryStructured` support bi-temporal queries (`AsOf(DateTimeOffset)` and active-only `ValidTo == null`) in their repositories (`IVKMemorySemanticRepository`, `IVKMemoryStructuredRepository`).
+- [x] `VKMemoryStructured` supports entity link metadata and learned procedural/preference categories.
+- [x] `VKMemorySummary` tracks `SourceEpisodeIds` and hierarchical parent/child lineage.
+- [x] `MemoryReminder` storage slice is replaced by the `IVKReminderWorkflowPort` abstraction.
 
 ## ✅ DoD (Definition of Done)
-- [ ] L1 Derived Memory Stores: Bi-Temporal Schema (ValidFrom/ValidTo), Entity Links, & Reminder Workflow Delegation
-- [ ] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
-- [ ] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
-- [ ] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
-- [ ] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
-- [ ] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
-- [ ] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み
+- [x] L1 Derived Memory Stores: Bi-Temporal Schema (ValidFrom/ValidTo), Entity Links, & Reminder Workflow Delegation
+- [x] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
+- [x] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
+- [x] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
+- [x] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
+- [x] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
+- [x] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み
