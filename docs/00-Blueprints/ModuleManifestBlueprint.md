@@ -45,7 +45,8 @@ L1 `manifest_spec` に準拠し、`vk_be_manifest_lint`（[McpTools.Manifest.cs]
    - `1. Ownership` → `2. Boundaries` → `3. Public Surface`（最大 5 行）→ `4. Defaults & Overrides`（最大 3 行）→ `5. Invariants`（最大 15 ルール）→ `6. Registration & Diagnostics`（任意）。
    - 15 ルールを超える場合は詳細を `/docs/03-Architecture/{Domain}/` に逃がしてリンクする。
 3. **Ownership 参照**:
-   - `Owns` / `Delegates` は該当ドメインの Ownership Map（AI 系は [ownership-map.md](/docs/03-Architecture/AI/ownership-map.md)）の `OWN-*` 行 ID を参照する。
+   - `Owns` / `Delegates` は該当機能 Group の Ownership Map（AI 系は [ownership-map.md](/docs/03-Architecture/AI/ownership-map.md)）の `OWN-*` 行 ID を参照する。
+   - Ownership Map は原則として**複数モジュールが協調する機能 Group**（例: `AI.*`、`Vector*`、`Resilience` + `Web.Resilience`）ごとに `/docs/03-Architecture/{Group}/ownership-map.md` として作成し、他 Group の `ownership-map.md`（特に `AI/ownership-map.md`）へ混在させない。単一モジュールで完結する Group は原則不要（`vk_be_manifest_lint` 実行時は該当 Group の `mapPath` を明示指定する）。
 4. **Invariant ID**:
    - Ownership Map の `Invariant Prefix Registry` に登録された 3 文字接頭辞 `{PFX}-{NN}` を使用し、番号は不変とする（廃止時は `[Retired]` を付けて残す）。
 
