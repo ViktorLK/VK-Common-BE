@@ -7,16 +7,16 @@ parent: '#129'
 legacy_id: 
 type: feature
 priority: P1
-status: todo
+status: done
 sprint: 
 points: 5
 rank: 
-started: 
+started: 2026-11-10
 carry_over_count: 0
 ready: true
 estimate: 
 created: 2026-11-03
-closed: 
+closed: 2026-11-10
 refs:
   rules:
   - CS.01
@@ -49,16 +49,16 @@ commits: []
   - Define `IVKDerivedMemory` (or base contract) requiring `IReadOnlyList<VKEpisodeId> SourceEpisodeIds { get; }` across all L1 aggregates (`VKMemorySemantic`, `VKMemoryStructured`, `VKMemorySummary`) so every derived fact or summary can trace back to its exact L0 raw episodes.
 
 ### 3. Acceptance Criteria
-- [ ] `VKEpisode`, `VKEpisodeId`, and `IVKEpisodeRepository` implemented with `Result<T>` (`CS.01`), `VKGuard` (`AP.01`), and `CancellationToken` (`CS.03`).
-- [ ] `InMemoryEpisodeRepository` co-located default registered via `TryAdd` (`ARCH-05`, `AP.02`).
-- [ ] `SourceEpisodeIds` provenance property enforced on L1 memory creation factories.
-- [ ] Unit tests covering append-only invariants, session range queries, and provenance linking (`DL.01`).
+- [x] `VKEpisode`, `VKEpisodeId`, and `IVKEpisodeRepository` implemented with `Result<T>` (`CS.01`), `VKGuard` (`AP.01`), and `CancellationToken` (`CS.03`).
+- [x] `InMemoryEpisodeRepository` co-located default registered via `TryAdd` (`ARCH-05`, `AP.02`).
+- [x] `SourceEpisodeIds` provenance property enforced on L1 memory creation factories.
+- [x] Unit tests covering append-only invariants, session range queries, and provenance linking (`DL.01`).
 
 ## ✅ DoD (Definition of Done)
-- [ ] L0 Immutable Episode Store (IVKEpisodeRepository) & SourceEpisodeIds Provenance Tracking
-- [ ] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
-- [ ] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
-- [ ] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
-- [ ] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
-- [ ] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
-- [ ] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み
+- [x] L0 Immutable Episode Store (IVKEpisodeRepository) & SourceEpisodeIds Provenance Tracking
+- [x] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
+- [x] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
+- [x] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
+- [x] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
+- [x] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
+- [x] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み

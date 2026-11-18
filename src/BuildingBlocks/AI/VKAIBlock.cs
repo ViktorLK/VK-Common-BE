@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Governance.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -12,7 +10,7 @@ public sealed partial class VKAIBlock
     // [SG Hook]
     static partial void RegisterBlockCustom(IVKAIBuilder builder)
     {
-        builder.Services.TryAddSingleton<IVKAICache, InMemoryAICache>();
+        _ = builder;
     }
 
     // [SG Hook]

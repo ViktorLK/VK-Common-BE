@@ -11,10 +11,10 @@ VK.Blocks 全モジュールの未完了・保留タスク一覧です。優先�
 | [#074](./AI/pbi-074-audit-and-fix-feature-toggle-(enabled)-orthogonality.md) | 🔴 P1 | - | — | `AI` | `todo` | Audit and Fix Feature Toggle (Enabled) Orthogonality |
 | [#047](./AI.Eidos/pbi-047-implement-streaming-contract-transformer-and-end-of-stream-sealing.md) | 🔴 P1 | - | — | `AI.Eidos` | `todo` | Implement Streaming Contract Transformer and End-of-Stream Sealing |
 | [#061](./AI.Eidos/pbi-061-integrate-opentelemetry-native-instrumentation-and-metrics-observability.md) | 🔴 P1 | - | — | `AI.Eidos` | `todo` | Integrate OpenTelemetry Native Instrumentation and Metrics Observability |
-| [#129](./AI.Engram/pbi-129-engram-v1-architecture-revision-3-layer-memory-engine-l0-episode-l1-derived-l2-recall-presentation.md) | 🔴 P1 | - | — | `AI.Engram` | `todo` | Engram v1 Architecture Revision: 3-Layer Memory Engine (L0 Episode / L1 Derived / L2 Recall & Presentation) |
-| [#130](./AI.Engram/pbi-130-l0-immutable-episode-store-ivkepisoderepository-sourceepisodeids-provenance-tracking.md) | 🔴 P1 | 5 pts | ✅ | `AI.Engram` | `todo` | L0 Immutable Episode Store (IVKEpisodeRepository) & SourceEpisodeIds Provenance Tracking |
-| [#131](./AI.Engram/pbi-131-l1-derived-memory-stores-bi-temporal-schema-validfromvalidto-entity-links-reminder-workflow-delegation.md) | 🔴 P1 | 8 pts | ✅ | `AI.Engram` | `todo` | L1 Derived Memory Stores: Bi-Temporal Schema (ValidFrom/ValidTo), Entity Links, & Reminder Workflow Delegation |
-| [#132](./AI.Engram/pbi-132-single-pass-llm-extraction-scoring-integration-with-eidos-structured-output.md) | 🔴 P1 | 8 pts | ✅ | `AI.Engram` | `todo` | Single-Pass LLM Extraction & Scoring Integration with Eidos Structured Output |
+| [#050](./AI.Psyche/pbi-050-support-streaming-pipeline-(ivkpsychestreamingpipeline-&-ttft-profiling).md) | 🔴 P1 | - | — | `AI.Psyche` | `todo` | Support Streaming Pipeline & Tapestry (IVKPsycheStreamingPipeline & TTFT Profiling) |
+| [#053](./AI.SemanticKernel/pbi-053-full-implementation-of-aisk-retrieval-engine.md) | 🔴 P1 | - | — | `AI.SemanticKernel` | `todo` | Full implementation of AISK Retrieval Engine |
+| [#060](./AI.SemanticKernel/pbi-060-industrial-telemetry-and-semantic-logging-implementation.md) | 🔴 P1 | - | — | `AI.SemanticKernel` | `todo` | Industrial Telemetry and Semantic Logging Implementation |
+| [#086](./Authorization/pbi-086-audit-log-integration.md) | 🔴 P1 | 3 pts | ✅ | `Authorization` | `todo` | Audit Log Integration |
 
 ## 🏗️ Core (10)
 
@@ -31,7 +31,7 @@ VK.Blocks 全モジュールの未完了・保留タスク一覧です。優先�
 | [#022](./Core/pbi-022-explore-c-12-interceptors-for-compile-time-di-registration-verification.md) | 🔵 P3 | - | — | `debt` | `icebox` | Explore C# 12 Interceptors for Compile-Time DI Registration Verification | - |
 | [#024](./Core/pbi-024-code-quality-alignment-vkerrortype-order-and-pagination-types-consolidation.md) | 🔵 P3 | 3 pts | ✅ | `debt` | `icebox` | Code Quality Alignment: VKErrorType Order and Pagination Types Consolidation | - |
 
-## 🧠 AI (4)
+## 🧠 AI (5)
 
 | ID | Priority | Points | Ready | Category | Status | Title | Sprint |
 |:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
@@ -39,6 +39,7 @@ VK.Blocks 全モジュールの未完了・保留タスク一覧です。優先�
 | [#074](./AI/pbi-074-audit-and-fix-feature-toggle-(enabled)-orthogonality.md) | 🔴 P1 | - | — | `debt` | `todo` | Audit and Fix Feature Toggle (Enabled) Orthogonality | - |
 | [#075](./AI/pbi-075-decouple-hardcoded-ai-dependencies-from-di-source-generator.md) | 🟡 P2 | - | — | `debt` | `icebox` | Decouple Hardcoded AI Dependencies from DI Source Generator | - |
 | [#078](./AI/pbi-078-evaluate-and-cleanup-redundant-ivkaiprovideroverrides-interface.md) | 🟡 P2 | - | — | `debt` | `icebox` | Evaluate and Cleanup Redundant IVKAIProviderOverrides Interface | - |
+| [#144](./AI/pbi-144-audit-aiguardrails-slice-and-reconcile-overlapping-governance-contracts.md) | 🔵 P3 | 2 pts | ✅ | `debt` | `icebox` | Audit AI.Guardrails slice and reconcile overlapping Governance contracts | - |
 
 ## 📋 AI.Cognitive (1)
 
@@ -68,18 +69,10 @@ VK.Blocks 全モジュールの未完了・保留タスク一覧です。優先�
 | [#071](./AI.Eidos/pbi-071-deep-integration-with-json-schema-based-guided-decoding-engine.md) | 🔵 P3 | - | — | `debt` | `icebox` | Deep Integration with JSON Schema-Based Guided Decoding Engine | - |
 | [#073](./AI.Eidos/pbi-073-raw-response-audit-storage-and-contract-schema-master-registry.md) | 🔵 P3 | - | — | `debt` | `icebox` | Raw Response Audit Storage and Contract Schema Master Registry | - |
 
-## 📋 AI.Engram (9)
+## 📋 AI.Engram (1)
 
 | ID | Priority | Points | Ready | Category | Status | Title | Sprint |
 |:---:|:---:|:---:|:---:|:---:|:---:|---|:---:|
-| [#129](./AI.Engram/pbi-129-engram-v1-architecture-revision-3-layer-memory-engine-l0-episode-l1-derived-l2-recall-presentation.md) | 🔴 P1 | - | — | `feature` | `todo` | Engram v1 Architecture Revision: 3-Layer Memory Engine (L0 Episode / L1 Derived / L2 Recall & Presentation) | - |
-| [#130](./AI.Engram/pbi-130-l0-immutable-episode-store-ivkepisoderepository-sourceepisodeids-provenance-tracking.md) | 🔴 P1 | 5 pts | ✅ | `story` | `todo` | L0 Immutable Episode Store (IVKEpisodeRepository) & SourceEpisodeIds Provenance Tracking | - |
-| [#131](./AI.Engram/pbi-131-l1-derived-memory-stores-bi-temporal-schema-validfromvalidto-entity-links-reminder-workflow-delegation.md) | 🔴 P1 | 8 pts | ✅ | `story` | `todo` | L1 Derived Memory Stores: Bi-Temporal Schema (ValidFrom/ValidTo), Entity Links, & Reminder Workflow Delegation | - |
-| [#132](./AI.Engram/pbi-132-single-pass-llm-extraction-scoring-integration-with-eidos-structured-output.md) | 🔴 P1 | 8 pts | ✅ | `story` | `todo` | Single-Pass LLM Extraction & Scoring Integration with Eidos Structured Output | - |
-| [#134](./AI.Engram/pbi-134-persistent-tiered-compression-outbox-job-state-session-serialization-prompt-cache-prefix-stabilization.md) | 🔴 P1 | 8 pts | ✅ | `story` | `todo` | Persistent Tiered Compression: Outbox Job State, Session Serialization, & Prompt-Cache Prefix Stabilization | - |
-| [#135](./AI.Engram/pbi-135-l2-recall-engine-humanlikepresentationpolicy-hybrid-search-l2-decay-spaced-repetition-character-parameters.md) | 🔴 P1 | 8 pts | ✅ | `story` | `todo` | L2 Recall Engine & HumanLikePresentationPolicy (Hybrid Search, L2 Decay, Spaced Repetition, & Character Parameters) | - |
-| [#133](./AI.Engram/pbi-133-bi-temporal-contradiction-arbitration-non-destructive-fact-invalidation.md) | 🟡 P2 | 5 pts | ✅ | `story` | `todo` | Bi-Temporal Contradiction Arbitration & Non-Destructive Fact Invalidation | - |
-| [#136](./AI.Engram/pbi-136-separation-of-forgetting-erasure-index-archival-pruning-vs-gdprappi-cascade-physical-deletion.md) | 🟡 P2 | 5 pts | ✅ | `story` | `todo` | Separation of Forgetting & Erasure: Index Archival Pruning vs. GDPR/APPI Cascade Physical Deletion | - |
 | [#049](./AI.Engram/pbi-049-support-streaming-compression-for-large-token-jobs.md) | 🔵 P3 | - | — | `debt` | `icebox` | Support Streaming Compression for Large Token Jobs | - |
 
 ## 📋 AI.Psyche (7)

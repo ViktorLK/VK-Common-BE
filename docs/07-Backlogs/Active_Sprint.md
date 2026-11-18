@@ -2,9 +2,9 @@
 # 🚀 Current Sprint: S-2026-44
 
 **Goal**: Authorization と Persistence の DI を TryAdd + Marker 方式に統一し、監査ログ・ログマスキング基盤の確約を完了する  
-**Period**: 2026-11-01 ~ 2026-11-08 (Day 3 of 7, 5 days left)  
+**Period**: 2026-11-01 ~ 2026-11-08 (Day 8 of 7, 0 days left)  
 **Commitment**: 12 pts (Capacity: N/A pts)  
-**Progress**: 🟡 At Risk | Done: 3 / 12 pts (25%) | Doing: 0 pts | Todo: 9 pts  
+**Progress**: 🔴 Behind Pace | Done: 3 / 12 pts (25%) | Doing: 0 pts | Todo: 9 pts  
 **Sprint Spec**: [_sprints/S-2026-44.md](./Sprints/S-2026-44.md)
 
 ## 🏃 Doing (0)

@@ -7,16 +7,16 @@ parent: '#129'
 legacy_id: 
 type: feature
 priority: P1
-status: todo
+status: done
 sprint: 
 points: 8
 rank: 
-started: 
+started: 2026-11-10
 carry_over_count: 0
 ready: true
 estimate: 
 created: 2026-11-03
-closed: 
+closed: 2026-11-10
 refs:
   rules:
   - CS.01
@@ -49,16 +49,16 @@ commits: []
   - In the `Before` weaving stage, if an async compression job for the session is still `Pending` or `Running` and raw turns exceed `TokenBudget`, apply a deterministic temporary middle/oldest-turn truncation fallback (without mutating L0 storage) so the active turn degrades gracefully without failing.
 
 ### 3. Acceptance Criteria
-- [ ] Compression jobs use deterministic idempotency key `(TenantId, SessionId, StartTurnIndex, EndTurnIndex)` (`FS-06`).
-- [ ] Per-session distributed lock prevents concurrent out-of-order compression on the same session.
-- [ ] Graceful temporary truncation fallback operates when compression is still in-flight at request time.
-- [ ] Full cancellation, retry with backoff, and DLQ handoff (`IVKCompressionDlqHandler`) verified via unit tests (`DL.01`, `CS.03`).
+- [x] Compression jobs use deterministic idempotency key `(TenantId, SessionId, StartTurnIndex, EndTurnIndex)` (`FS-06`).
+- [x] Per-session distributed lock prevents concurrent out-of-order compression on the same session.
+- [x] Graceful temporary truncation fallback operates when compression is still in-flight at request time.
+- [x] Full cancellation, retry with backoff, and DLQ handoff (`IVKCompressionDlqHandler`) verified via unit tests (`DL.01`, `CS.03`).
 
 ## ✅ DoD (Definition of Done)
-- [ ] Persistent Tiered Compression: Outbox Job State, Session Serialization, & Prompt-Cache Prefix Stabilization
-- [ ] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
-- [ ] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
-- [ ] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
-- [ ] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
-- [ ] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
-- [ ] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み
+- [x] Persistent Tiered Compression: Outbox Job State, Session Serialization, & Prompt-Cache Prefix Stabilization
+- [x] `dotnet build -warnaserror` がエラー・警告ゼロで通る (`verifyBuild: true`)
+- [x] 振る舞いの変更に対するテストの追加・更新、全パス通過 (`DL.01`, `BASE-07`)
+- [x] 新規の Type A ルール違反がないこと (`CS.01`, `CS.06`, `OR.01`, `AP.01`)
+- [x] 未追跡の裸の `// TODO` がないこと（残存負債は PBI 化済み） (`DL.02`, `DL.04`)
+- [x] 公開契約またはアーキテクチャパターン変更時の ADR 作成・更新 (`DL.03`)
+- [x] Commit メッセージに `[#NNN]` が含まれ、main にマージ済み
