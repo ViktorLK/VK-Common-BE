@@ -10,6 +10,9 @@ namespace VK.Blocks.AI.Routing.Internal;
 internal sealed class NoOpAIInvocationObserver : IVKAIInvocationObserver
 {
     /// <inheritdoc />
+    public bool IsNoOp => true;
+
+    /// <inheritdoc />
     public ValueTask ReportAsync(
         VKAIInvocationOutcome outcome,
         CancellationToken cancellationToken = default)

@@ -43,5 +43,15 @@ public enum VKAIFailureKind : byte
     /// <summary>
     /// The invocation was cancelled.
     /// </summary>
-    Cancelled = 7
+    Cancelled = 7,
+
+    /// <summary>
+    /// The invocation timed out before completion.
+    /// </summary>
+    Timeout = 8,
+
+    /// <summary>
+    /// The streaming response was interrupted after initial output was committed.
+    /// </summary>
+    StreamInterrupted = 9
 }

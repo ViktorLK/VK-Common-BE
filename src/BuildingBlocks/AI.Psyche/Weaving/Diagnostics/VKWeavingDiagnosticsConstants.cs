@@ -12,10 +12,10 @@ public static class VKWeavingDiagnosticsConstants
 {
     public static class Logs
     {
-        public const int WeavingTruncated = VKDiagnosticOffsets.AI_Psyche_Weaving + 1;
-        public const int WeavingAssembled = VKDiagnosticOffsets.AI_Psyche_Weaving + 2;
-        public const int WeavingEmptyActive = VKDiagnosticOffsets.AI_Psyche_Weaving + 3;
-        public const int ContextBudgetExceeded = VKDiagnosticOffsets.AI_Psyche_Weaving + 4;
+        public const int WeavingTruncated = VKPsycheDiagnosticOffsets.Weaving + 1;
+        public const int WeavingAssembled = VKPsycheDiagnosticOffsets.Weaving + 2;
+        public const int WeavingEmptyActive = VKPsycheDiagnosticOffsets.Weaving + 3;
+        public const int ContextBudgetExceeded = VKPsycheDiagnosticOffsets.Weaving + 4;
     }
 
     public static class Metrics

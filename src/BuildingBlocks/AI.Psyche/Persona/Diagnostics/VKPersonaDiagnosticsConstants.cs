@@ -12,8 +12,8 @@ public static class VKPersonaDiagnosticsConstants
 {
     public static class Logs
     {
-        public const int PersonaResolved = VKDiagnosticOffsets.AI_Psyche_Persona + 1;
-        public const int PersonaRendered = VKDiagnosticOffsets.AI_Psyche_Persona + 2;
+        public const int PersonaResolved = VKPsycheDiagnosticOffsets.Persona + 1;
+        public const int PersonaRendered = VKPsycheDiagnosticOffsets.Persona + 2;
     }
 
     public static class Metrics

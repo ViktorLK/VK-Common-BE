@@ -13,12 +13,12 @@ public static class VKKnowledgeDiagnosticsConstants
     // Logs (Event IDs: 74000 - 74999)
     public static class Logs
     {
-        public const int KnowledgeInitialized = VKDiagnosticOffsets.AI_Psyche_Knowledge + 1;
-        public const int FactArchived = VKDiagnosticOffsets.AI_Psyche_Knowledge + 2;
-        public const int LedgerNotImplemented = VKDiagnosticOffsets.AI_Psyche_Knowledge + 3;
-        public const int KnowledgeMatched = VKDiagnosticOffsets.AI_Psyche_Knowledge + 4;
-        public const int KnowledgeEvaluationCompleted = VKDiagnosticOffsets.AI_Psyche_Knowledge + 5;
-        public const int KnowledgeFinalized = VKDiagnosticOffsets.AI_Psyche_Knowledge + 6;
+        public const int KnowledgeInitialized = VKPsycheDiagnosticOffsets.Knowledge + 1;
+        public const int FactArchived = VKPsycheDiagnosticOffsets.Knowledge + 2;
+        public const int LedgerNotImplemented = VKPsycheDiagnosticOffsets.Knowledge + 3;
+        public const int KnowledgeMatched = VKPsycheDiagnosticOffsets.Knowledge + 4;
+        public const int KnowledgeEvaluationCompleted = VKPsycheDiagnosticOffsets.Knowledge + 5;
+        public const int KnowledgeFinalized = VKPsycheDiagnosticOffsets.Knowledge + 6;
     }
 
     // Metrics (Meter/Counter/Histogram Names)

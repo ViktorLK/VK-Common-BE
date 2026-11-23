@@ -12,16 +12,16 @@ public static class VKPipelineDiagnosticsConstants
 {
     public static class Logs
     {
-        public const int ExecutionStarted = VKDiagnosticOffsets.AI_Psyche_Behaviors + 1;
-        public const int ExecutionCompleted = VKDiagnosticOffsets.AI_Psyche_Behaviors + 2;
-        public const int ExecutionFailed = VKDiagnosticOffsets.AI_Psyche_Behaviors + 3;
+        public const int ExecutionStarted = VKPsycheDiagnosticOffsets.Behaviors + 1;
+        public const int ExecutionCompleted = VKPsycheDiagnosticOffsets.Behaviors + 2;
+        public const int ExecutionFailed = VKPsycheDiagnosticOffsets.Behaviors + 3;
 
-        public const int PipelineStarted = VKDiagnosticOffsets.AI_Psyche_Behaviors + 11;
-        public const int PipelineCompleted = VKDiagnosticOffsets.AI_Psyche_Behaviors + 12;
-        public const int PipelineFailed = VKDiagnosticOffsets.AI_Psyche_Behaviors + 13;
+        public const int PipelineStarted = VKPsycheDiagnosticOffsets.Behaviors + 11;
+        public const int PipelineCompleted = VKPsycheDiagnosticOffsets.Behaviors + 12;
+        public const int PipelineFailed = VKPsycheDiagnosticOffsets.Behaviors + 13;
 
-        public const int ModelResolved = VKDiagnosticOffsets.AI_Psyche_Behaviors + 21;
-        public const int ModelResolveSkipped = VKDiagnosticOffsets.AI_Psyche_Behaviors + 22;
+        public const int ModelResolved = VKPsycheDiagnosticOffsets.Behaviors + 21;
+        public const int ModelResolveSkipped = VKPsycheDiagnosticOffsets.Behaviors + 22;
     }
 
     public static class Metrics

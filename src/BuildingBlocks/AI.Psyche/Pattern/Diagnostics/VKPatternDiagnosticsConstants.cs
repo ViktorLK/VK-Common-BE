@@ -13,8 +13,8 @@ public static class VKPatternDiagnosticsConstants
     // Logs (Event IDs: 71000 - 71999)
     public static class Logs
     {
-        public const int PatternInitialized = VKDiagnosticOffsets.AI_Psyche_Pattern + 1;
-        public const int PatternResolved = VKDiagnosticOffsets.AI_Psyche_Pattern + 2;
+        public const int PatternInitialized = VKPsycheDiagnosticOffsets.Pattern + 1;
+        public const int PatternResolved = VKPsycheDiagnosticOffsets.Pattern + 2;
     }
 
     public static class Metrics

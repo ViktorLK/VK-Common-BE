@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Core;
 
@@ -10,10 +10,10 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal;
 /// </summary>
 internal sealed class OidcPolicyConfiguration(
     IOptions<VKOidcOptions> oidcOptions,
-    IOptions<VKOidcDefaultsOptions> defaultsOptions) : IConfigureOptions<AuthorizationOptions>
+    IOptions<VKOidcOptions> defaultsOptions) : IConfigureOptions<AuthorizationOptions>
 {
     private readonly IOptions<VKOidcOptions> _oidcOptions = VKGuard.NotNull(oidcOptions);
-    private readonly IOptions<VKOidcDefaultsOptions> _defaultsOptions = VKGuard.NotNull(defaultsOptions);
+    private readonly IOptions<VKOidcOptions> _defaultsOptions = VKGuard.NotNull(defaultsOptions);
 
     /// <inheritdoc />
     public void Configure(AuthorizationOptions options)

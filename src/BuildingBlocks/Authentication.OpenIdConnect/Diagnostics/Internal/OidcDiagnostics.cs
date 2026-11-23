@@ -1,4 +1,6 @@
-using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using System;
+﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using VK.Blocks.Core;
 
@@ -9,7 +11,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics.Internal;
 /// The Source Generator automatically emits the ActivitySource and Meter fields for this class.
 /// Complies with OR.01 & BB.04 (Diagnostics Blueprint).
 /// </summary>
-[VKBlockDiagnostics<VKOidcBlock>]
+[VKBlockDiagnostics<VKAuthenticationOpenIdConnectBlock>]
 internal static partial class OidcDiagnostics
 {
     private static readonly Counter<long> AuthenticationRequests;
@@ -91,4 +93,35 @@ internal static partial class OidcDiagnostics
         activity?.SetTag(VKOidcDiagnosticsConstants.TagAuthProvider, provider);
         return activity;
     }
+
+    // --- Merged from OidcLog ---
+    [LoggerMessage(
+        EventId = 1001,
+        Level = LogLevel.Information,
+        Message = "OIDC Provider Registered: [{AuthProvider}] for Authority: [{Authority}]. TraceId: {TraceId}")]
+    public static partial void LogOidcProviderRegistered(this ILogger logger, string authProvider, string authority, string traceId);
+
+    [LoggerMessage(
+        EventId = 1002,
+        Level = LogLevel.Information,
+        Message = "OIDC Authentication Success: Provider: [{AuthProvider}], Subject: [{Subject}]. TraceId: {TraceId}")]
+    public static partial void LogOidcAuthenticationSuccess(this ILogger logger, string authProvider, string subject, string traceId);
+
+    [LoggerMessage(
+        EventId = 2001,
+        Level = LogLevel.Warning,
+        Message = "OIDC Authentication Failed: Provider: [{AuthProvider}], Error: [{vkError}]. TraceId: {TraceId}")]
+    public static partial void LogOidcAuthenticationFailed(this ILogger logger, string authProvider, string vkError, string traceId);
+
+    [LoggerMessage(
+        EventId = 3001,
+        Level = LogLevel.Error,
+        Message = "OIDC Authentication Error: Provider: [{AuthProvider}]. TraceId: {TraceId}")]
+    public static partial void LogOidcAuthenticationError(this ILogger logger, Exception exception, string authProvider, string traceId);
+
+    [LoggerMessage(
+        EventId = 3002,
+        Level = LogLevel.Error,
+        Message = "OIDC Configuration Mapping Failed: Provider: [{AuthProvider}]. TraceId: {TraceId}")]
+    public static partial void LogOidcMappingError(this ILogger logger, string authProvider, string traceId);
 }

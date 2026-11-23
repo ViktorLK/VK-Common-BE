@@ -16,9 +16,17 @@ public static class VKAIErrorMapper
     /// <returns>A specialized <see cref="VKError"/>.</returns>
     public static VKError Map(Exception exception)
     {
-        if (exception is ArgumentException or ArgumentNullException)
+        // [AP.01] [CS.01]
+        VKGuard.NotNull(exception);
+
+        if (exception is ArgumentException)
         {
             return VKAIErrors.InvalidRequest(exception.Message);
+        }
+
+        if (exception is UnauthorizedAccessException)
+        {
+            return VKAIErrors.AuthenticationFailed;
         }
 
         if (exception is TimeoutException or OperationCanceledException)

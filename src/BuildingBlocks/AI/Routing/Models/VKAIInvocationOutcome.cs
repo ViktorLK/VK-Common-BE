@@ -82,4 +82,29 @@ public sealed record VKAIInvocationOutcome
     /// Gets the optional scope key associated with the invocation.
     /// </summary>
     public VKAIScopeKey? ScopeKey { get; init; }
+
+    /// <summary>
+    /// Gets the optional HTTP status code returned by the provider.
+    /// </summary>
+    public int? HttpStatusCode { get; init; }
+
+    /// <summary>
+    /// Gets the disposition of a failed invocation for retry and failover decisions.
+    /// </summary>
+    public VKAIFailureDisposition FailureDisposition { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether at least one streaming output chunk was committed before termination.
+    /// </summary>
+    public bool FirstChunkCommitted { get; init; }
+
+    /// <summary>
+    /// Gets the optional capacity or token reservation identifier associated with the invocation.
+    /// </summary>
+    public string? ReservationId { get; init; }
+
+    /// <summary>
+    /// Gets the optional affinity key used for sticky routing pin/unpin decisions.
+    /// </summary>
+    public string? AffinityKey { get; init; }
 }

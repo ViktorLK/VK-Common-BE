@@ -1,3 +1,4 @@
+using VK.Blocks.Core;
 using System.Collections.Generic;
 
 namespace VK.Blocks.Authentication.OpenIdConnect;
@@ -5,6 +6,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect;
 /// <summary>
 /// Represents the configuration options for a single OIDC provider.
 /// </summary>
+[VKOptions]
 public sealed record VKOidcProviderOptions
 {
     /// <summary>

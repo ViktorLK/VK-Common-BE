@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VK.Blocks.Authentication.Tracking.Protocols;
-using VK.Blocks.Authentication.Tracking.Diagnostics.Internal;
+using VK.Blocks.Authentication.Common.Diagnostics.Internal;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.Authentication.Tracking.Internal;

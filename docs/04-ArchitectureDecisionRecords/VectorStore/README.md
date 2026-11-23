@@ -4,6 +4,16 @@
 
 ## 📚 ADR 一覧
 
+### Core Architecture & Storage
+
+#### [ADR-005: Consolidation of Vector BuildingBlocks onto Microsoft.Extensions.VectorData and DataIngestion](./adr-005-consolidation-of-vector-buildingblocks-onto-microsoftextensi.md)
+
+**Status**: ✅ Accepted  
+**概要**: Microsoft.Extensions.VectorDataおよびDataIngestionを標準採用し、重複・投機的な自前抽象を削除。VK固有のガバナンス（VKResult、テナント分離、論理エイリアス、起動時検証）を単一の薄いFacadeに集約する決定。  
+**キーワード**: VectorStore, VectorData, DataIngestion, Governance, TenantIsolation, RAG
+
+---
+
 ### Core Architecture
 
 #### [ADR-001: Promotion of Vector Store to Root-Level Building Block](./adr-001-promotion-of-vector-store-to-root-level-building-block.md)
@@ -50,5 +60,7 @@
 - [VectorStore Module Manifest](/src/BuildingBlocks/VectorStore/.prompts/module-manifest.md)
 - [RFC-001: Vector Ecosystem Modernization](/docs/02-RFCs/VectorStore/rfc-001-v2-vector-ecosystem-modernization.md)
 
-**Last Updated**: 2026-10-30  
-**Total ADRs**: 4
+- **ADR-005**: Microsoft.Extensions.VectorDataおよびDataIngestionを標準採用し、重複・投機的な自前抽象を削除。VK固有のガバナンス（VKResult、テナント分離、論理エイリアス、起動時検証）を単一の薄いFacadeに集約する決定。
+
+**Last Updated**: 2026-11-04
+**Total ADRs**: 5
