@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -12,7 +12,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Common.DependencyInjection.Inte
 /// Complies with BB.05.
 /// </summary>
 internal sealed class OidcFrameworkOptionsValidator(
-    IOptions<VKOidcDefaultsOptions> oidcOptions,
+    IOptions<VKOidcOptions> oidcOptions,
     ILogger<OidcFrameworkOptionsValidator> logger) : IValidateOptions<OpenIdConnectOptions>
 {
     /// <inheritdoc />

@@ -109,6 +109,15 @@ internal static class ChatOptionsTranslator
             options.AdditionalProperties["vk.turnId"] = args.TurnId;
         }
 
+        var affinityKey = !string.IsNullOrWhiteSpace(args?.AffinityKey)
+            ? args.AffinityKey
+            : args?.TurnId;
+        if (!string.IsNullOrWhiteSpace(affinityKey))
+        {
+            options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+            options.AdditionalProperties["AffinityKey"] = affinityKey;
+        }
+
         return options;
     }
 

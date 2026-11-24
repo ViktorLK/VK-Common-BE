@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using VK.Blocks.Authentication.Tracking.Diagnostics.Internal;
+using VK.Blocks.Authentication.Common.Diagnostics.Internal;
 using VK.Blocks.Authentication.Tracking.Protocols;
 using VK.Blocks.Core;
 

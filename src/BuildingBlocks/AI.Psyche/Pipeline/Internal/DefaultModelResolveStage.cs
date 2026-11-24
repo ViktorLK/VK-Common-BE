@@ -16,11 +16,11 @@ namespace VK.Blocks.AI.Psyche.Pipeline.Internal;
 [VKTrace("psyche.stage.model_resolve")]
 internal sealed class DefaultModelResolveStage : IVKPsychePipelineStage
 {
-    private readonly IVKVKAIModelCatalog _modelCatalog;
+    private readonly IVKAIModelCatalog _modelCatalog;
     private readonly ILogger<DefaultModelResolveStage> _logger;
 
     public DefaultModelResolveStage(
-        IVKVKAIModelCatalog modelCatalog,
+        IVKAIModelCatalog modelCatalog,
         ILogger<DefaultModelResolveStage> logger)
     {
         _modelCatalog = VKGuard.NotNull(modelCatalog); // [AP.01]

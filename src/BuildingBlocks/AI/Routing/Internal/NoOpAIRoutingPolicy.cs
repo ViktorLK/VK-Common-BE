@@ -19,8 +19,35 @@ internal sealed class NoOpAIRoutingPolicy : IVKAIRoutingPolicy
     };
 
     /// <inheritdoc />
+    public bool IsNoOp => true;
+
+    /// <inheritdoc />
     public ValueTask<VKResult<VKAIRouteDecision>> DecideAsync(
         VKAIRouteRequest request,
         CancellationToken cancellationToken = default)
         => ValueTask.FromResult(VKResult.Success(EmptyDecision));
+
+    /// <inheritdoc />
+    public ValueTask<VKResult<VKAIRouteSelection>> SelectCandidateAsync(
+        VKAIRouteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        // [AP.01]
+        VKGuard.NotNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return ValueTask.FromResult(VKResult.Failure<VKAIRouteSelection>(VKAIErrors.ServiceUnavailable));
+    }
+
+    /// <inheritdoc />
+    public ValueTask<VKResult<VKAIRouteSelection>> SelectNextCandidateAsync(
+        VKAIFailoverRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        // [AP.01]
+        VKGuard.NotNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return ValueTask.FromResult(VKResult.Failure<VKAIRouteSelection>(VKAIErrors.ServiceUnavailable));
+    }
 }

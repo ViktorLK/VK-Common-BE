@@ -13,10 +13,10 @@ public static class VKSessionDiagnosticsConstants
     // Logs (Event IDs: 78000 - 78999)
     public static class Logs
     {
-        public const int SessionInitialized = VKDiagnosticOffsets.AI_Psyche_Session + 1;
-        public const int SessionResolved = VKDiagnosticOffsets.AI_Psyche_Session + 2;
-        public const int SessionUpdated = VKDiagnosticOffsets.AI_Psyche_Session + 3;
-        public const int SessionNotActive = VKDiagnosticOffsets.AI_Psyche_Session + 4;
+        public const int SessionInitialized = VKPsycheDiagnosticOffsets.Session + 1;
+        public const int SessionResolved = VKPsycheDiagnosticOffsets.Session + 2;
+        public const int SessionUpdated = VKPsycheDiagnosticOffsets.Session + 3;
+        public const int SessionNotActive = VKPsycheDiagnosticOffsets.Session + 4;
     }
 
     public static class Metrics

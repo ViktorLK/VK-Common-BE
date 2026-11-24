@@ -10,6 +10,11 @@ namespace VK.Blocks.AI;
 public interface IVKAIInvocationObserver
 {
     /// <summary>
+    /// Gets a value indicating whether this observer is a no-op fallback implementation.
+    /// </summary>
+    bool IsNoOp => false;
+
+    /// <summary>
     /// Reports the outcome of an AI provider invocation.
     /// </summary>
     /// <param name="outcome">The invocation outcome.</param>

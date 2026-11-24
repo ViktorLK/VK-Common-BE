@@ -13,8 +13,8 @@ public static class VKDirectiveDiagnosticsConstants
     // Logs (Event IDs: 72000 - 72999)
     public static class Logs
     {
-        public const int DirectiveInitialized = VKDiagnosticOffsets.AI_Psyche_Directive + 1;
-        public const int DirectiveResolved = VKDiagnosticOffsets.AI_Psyche_Directive + 2;
+        public const int DirectiveInitialized = VKPsycheDiagnosticOffsets.Directive + 1;
+        public const int DirectiveResolved = VKPsycheDiagnosticOffsets.Directive + 2;
     }
 
     public static class Metrics

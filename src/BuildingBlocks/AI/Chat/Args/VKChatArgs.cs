@@ -17,4 +17,9 @@ public partial record VKChatArgs : IVKAIProviderOptions
     /// Adheres to FS-06.
     /// </summary>
     public string? TurnId { get; init; }
+
+    /// <summary>
+    /// Gets or sets an optional affinity key used for sticky provider/connection routing.
+    /// </summary>
+    public string? AffinityKey { get; init; }
 }

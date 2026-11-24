@@ -1,3 +1,4 @@
+using VK.Blocks.Authentication.Common.Diagnostics.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI;
@@ -6,27 +8,53 @@ namespace VK.Blocks.AI;
 /// Defines common errors for AI building blocks.
 /// Following CS.01: Error constants on Errors class.
 /// </summary>
+// [CS.01] [FS-02]
 public static class VKAIErrors
 {
     /// <summary>
+    /// Metadata key storing retry-after delay in milliseconds.
+    /// </summary>
+    public const string RetryAfterMsMetadataKey = "RetryAfterMs";
+
+    /// <summary>
+    /// Metadata key storing the serialized <see cref="VKAIFailureDisposition"/> for an AI error.
+    /// </summary>
+    public const string FailureDispositionMetadataKey = "FailureDisposition";
+
+    /// <summary>
     /// Error returned when an AI operation times out.
     /// </summary>
-    public static readonly VKError Timeout = VKError.Failure("AI.Timeout", "The AI operation timed out.");
+    public static readonly VKError Timeout = VKError.Timeout("AI.Timeout", "The AI operation timed out.");
 
     /// <summary>
     /// Error returned when the AI service is unavailable.
     /// </summary>
-    public static readonly VKError ServiceUnavailable = VKError.Failure("AI.ServiceUnavailable", "The AI service is temporarily unavailable.");
+    public static readonly VKError ServiceUnavailable = VKError.ServiceUnavailable("AI.ServiceUnavailable", "The AI service is temporarily unavailable.");
+
+    /// <summary>
+    /// Error returned when a transient AI transport or provider error occurs before request acceptance.
+    /// </summary>
+    public static readonly VKError TransientError = VKError.ServiceUnavailable("AI.TransientError", "A transient AI transport or provider error occurred before the request was accepted.");
+
+    /// <summary>
+    /// Error returned when an AI request times out or fails after transmission and provider-side outcome is unknown.
+    /// </summary>
+    public static readonly VKError OutcomeUnknown = VKError.Timeout("AI.OutcomeUnknown", "The AI request timed out or failed after transmission; provider-side outcome is unknown.");
+
+    /// <summary>
+    /// Error returned when an AI streaming response is interrupted after initial output has been committed.
+    /// </summary>
+    public static readonly VKError StreamInterrupted = VKError.ExternalError("AI.StreamInterrupted", "The AI streaming response was interrupted after initial output was committed.");
 
     /// <summary>
     /// Error returned when the AI provider rate limit or quota has been reached.
     /// </summary>
-    public static readonly VKError QuotaExceeded = VKError.Failure("AI.QuotaExceeded", "The AI provider quota has been exceeded or rate limit reached.");
+    public static readonly VKError QuotaExceeded = VKError.TooManyRequests("AI.QuotaExceeded", "The AI provider quota has been exceeded or rate limit reached.");
 
     /// <summary>
     /// Error returned when the AI provider authentication failed.
     /// </summary>
-    public static readonly VKError AuthenticationFailed = VKError.Failure("AI.AuthenticationFailed", "The AI provider authentication failed. Check API keys.");
+    public static readonly VKError AuthenticationFailed = VKError.Unauthorized("AI.AuthenticationFailed", "The AI provider authentication failed. Check API keys.");
 
     /// <summary>
     /// Error returned when the content was filtered by the provider's safety systems.
@@ -47,7 +75,7 @@ public static class VKAIErrors
     /// Error returned when the AI request is invalid.
     /// </summary>
     public static VKError InvalidRequest(string? detail = null) =>
-        VKError.Failure("AI.InvalidRequest", detail ?? "The AI request is invalid.");
+        VKError.Validation("AI.InvalidRequest", detail ?? "The AI request is invalid.");
 
     /// <summary>
     /// Error returned when an unexpected error occurs during AI execution.
@@ -63,7 +91,59 @@ public static class VKAIErrors
     /// <summary>
     /// Error returned when the underlying AI provider returns an error.
     /// </summary>
-    public static readonly VKError ProviderError = VKError.Failure("AI.ProviderError", "The AI provider returned an error.");
+    public static readonly VKError ProviderError = VKError.ExternalError("AI.ProviderError", "The AI provider returned an error.");
+
+    /// <summary>
+    /// Creates a rate-limited error carrying optional retry-after metadata in milliseconds.
+    /// </summary>
+    /// <param name="retryAfter">The optional retry-after duration suggested by the provider.</param>
+    /// <returns>A <see cref="QuotaExceeded"/> error optionally enriched with <see cref="RetryAfterMsMetadataKey"/>.</returns>
+    public static VKError RateLimited(TimeSpan? retryAfter = null)
+    {
+        if (retryAfter is { } ra && ra > TimeSpan.Zero)
+        {
+            return QuotaExceeded.WithMetadata(new Dictionary<string, object>
+            {
+                [RetryAfterMsMetadataKey] = ra.TotalMilliseconds
+            });
+        }
+
+        return QuotaExceeded;
+    }
+
+    /// <summary>
+    /// Safely extracts the retry-after duration from an error's <see cref="RetryAfterMsMetadataKey"/> metadata.
+    /// </summary>
+    /// <param name="error">The error to inspect.</param>
+    /// <returns>The positive retry-after <see cref="TimeSpan"/> if present and valid; otherwise, <see langword="null"/>.</returns>
+    public static TimeSpan? ExtractRetryAfter(VKError error)
+    {
+        // [AP.01]
+        VKGuard.NotNull(error);
+
+        if (error.Metadata is null ||
+            !error.Metadata.TryGetValue(RetryAfterMsMetadataKey, out object? rawValue))
+        {
+            return null;
+        }
+
+        double? milliseconds = rawValue switch
+        {
+            double d => d,
+            int i => i,
+            long l => l,
+            _ => null
+        };
+
+        if (milliseconds is { } value && double.IsFinite(value) && value > 0)
+        {
+            return value >= TimeSpan.MaxValue.TotalMilliseconds
+                ? TimeSpan.MaxValue
+                : TimeSpan.FromMilliseconds(value);
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Error returned when the content violates safety or governance policies.

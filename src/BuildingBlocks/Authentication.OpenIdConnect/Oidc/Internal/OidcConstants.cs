@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace VK.Blocks.Authentication.OpenIdConnect.Oidc.Internal;
@@ -60,7 +60,7 @@ internal static class OidcConstants
     internal const string DefaultResponseType = OpenIdConnectParameterNames.Code;
 
     internal const string MapperNotFoundMessage = "OIDC Claims Mapper was not found.";
-    internal const string DependencyMissingMessage = "AddVKOidcBlock requires AddVKAuthenticationBlock to be called first.";
+    internal const string DependencyMissingMessage = "AddVKAuthenticationOpenIdConnectBlock requires AddVKAuthenticationBlock to be called first.";
     internal const string MissingConfigErrorMessage = "OIDC Provider configuration missing for scheme: {0}";
 
     internal const string ClaimSub = JwtRegisteredClaimNames.Sub;

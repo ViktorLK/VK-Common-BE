@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +13,7 @@ namespace VK.Blocks.Authentication.OpenIdConnect.Diagnostics.Internal;
 internal sealed class OidcMetadataProvider : IVKSecurityMetadataProvider
 {
     /// <inheritdoc />
-    public string Module => nameof(VKOidcBlock);
+    public string Module => nameof(VKAuthenticationOpenIdConnectBlock);
 
     /// <inheritdoc />
     public ValueTask<VKSecurityTopology> GetSecurityTopologyAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)

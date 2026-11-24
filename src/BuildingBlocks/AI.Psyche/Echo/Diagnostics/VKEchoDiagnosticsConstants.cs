@@ -13,11 +13,11 @@ public static class VKEchoDiagnosticsConstants
     // Logs (Event IDs: 75000 - 75999)
     public static class Logs
     {
-        public const int EchoInitialized = VKDiagnosticOffsets.AI_Psyche_Echo + 1;
-        public const int EchoRecorded = VKDiagnosticOffsets.AI_Psyche_Echo + 2;
-        public const int EchoTrimmed = VKDiagnosticOffsets.AI_Psyche_Echo + 3;
-        public const int EchoSaved = VKDiagnosticOffsets.AI_Psyche_Echo + 4;
-        public const int EchoSaveFailed = VKDiagnosticOffsets.AI_Psyche_Echo + 5;
+        public const int EchoInitialized = VKPsycheDiagnosticOffsets.Echo + 1;
+        public const int EchoRecorded = VKPsycheDiagnosticOffsets.Echo + 2;
+        public const int EchoTrimmed = VKPsycheDiagnosticOffsets.Echo + 3;
+        public const int EchoSaved = VKPsycheDiagnosticOffsets.Echo + 4;
+        public const int EchoSaveFailed = VKPsycheDiagnosticOffsets.Echo + 5;
     }
 
     // Metrics (Meter/Counter/Histogram Names)
