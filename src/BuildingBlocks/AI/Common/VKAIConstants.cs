@@ -17,4 +17,9 @@ public static class VKAIConstants
     /// The default logical turn deadline applied to AI orchestration turns.
     /// </summary>
     public static readonly TimeSpan DefaultTurnDeadline = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Metadata key used to attach a materialized structured output model or <see cref="IVKStructuredModelEnvelope"/>.
+    /// </summary>
+    public const string StructuredModelMetadataKey = "vk.eidos.model";
 }

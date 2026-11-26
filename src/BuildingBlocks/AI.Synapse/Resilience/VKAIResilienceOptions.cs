@@ -14,9 +14,4 @@ public sealed partial record VKAIResilienceOptions : IVKBlockOptions
     /// Gets or sets the cooldown duration before attempting to retry an open circuit for a provider.
     /// </summary>
     public TimeSpan ProviderCooldown { get; init; } = TimeSpan.FromSeconds(30);
-
-    /// <summary>
-    /// Gets or sets the default base delay for rate-limit retries if no Retry-After header is present.
-    /// </summary>
-    public TimeSpan DefaultRateLimitRetryDelay { get; init; } = TimeSpan.FromSeconds(2);
 }

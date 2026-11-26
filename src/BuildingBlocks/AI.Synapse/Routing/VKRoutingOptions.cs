@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using VK.Blocks.Core;
 
 namespace VK.Blocks.AI.Synapse;
@@ -11,9 +12,19 @@ namespace VK.Blocks.AI.Synapse;
 public sealed partial record VKRoutingOptions : IVKBlockOptions
 {
     /// <summary>
+    /// Gets whether AI routing is enabled. When <see langword="false"/>, routing profile and connection validation is bypassed for cost-only gateway mode.
+    /// </summary>
+    public bool Enabled { get; init; } = true;
+
+    /// <summary>
     /// Gets the routing strategy used to prioritize candidate providers.
     /// </summary>
-    public VKAIRoutingStrategy Strategy { get; init; } = VKAIRoutingStrategy.Preference;
+    public VKAIRoutingStrategy Strategy { get; init; } = VKAIRoutingStrategy.Priority;
+
+    /// <summary>
+    /// Gets the configured named routing profiles.
+    /// </summary>
+    public IReadOnlyList<VKAIProfile> Profiles { get; init; } = Array.Empty<VKAIProfile>();
 
     /// <summary>
     /// Gets the maximum number of fallback candidates to attempt before returning an error.
@@ -29,14 +40,4 @@ public sealed partial record VKRoutingOptions : IVKBlockOptions
     /// Gets whether cross-provider fallback (e.g. from OpenAI to Azure/Anthropic) is permitted.
     /// </summary>
     public bool EnableCrossProviderFallback { get; init; } = true;
-
-    /// <summary>
-    /// Gets the per-attempt request timeout duration. Default is 60 seconds.
-    /// </summary>
-    public TimeSpan RequestTimeout { get; init; } = TimeSpan.FromSeconds(60);
-
-    /// <summary>
-    /// Gets the overall execution timeout duration across all fallback attempts. Default is 120 seconds.
-    /// </summary>
-    public TimeSpan OverallTimeout { get; init; } = TimeSpan.FromSeconds(120);
 }

@@ -8,5 +8,11 @@ public interface IVKAICostCalculator
     /// <summary>
     /// Calculates total USD cost based on token consumption.
     /// </summary>
-    double CalculateCost(string provider, string modelId, long promptTokens, long completionTokens);
+    VKAICostResult CalculateCost(
+        string provider,
+        string modelId,
+        long inputTokens,
+        long outputTokens,
+        long cachedTokens = 0,
+        long reasoningTokens = 0);
 }

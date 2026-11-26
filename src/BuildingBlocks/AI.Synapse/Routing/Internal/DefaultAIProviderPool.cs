@@ -11,18 +11,12 @@ namespace VK.Blocks.AI.Synapse.Routing.Internal;
 internal sealed class DefaultAIProviderPool : IVKAIProviderPool
 {
     private readonly IVKAIConnectionStore? _connectionStore;
-    private readonly IVKTenantCoordinate _tenantCoordinate;
-    private readonly IVKAISynapseModelFactory _modelFactory;
     private readonly IEnumerable<IVKAIProviderOptions> _staticProviders;
 
     public DefaultAIProviderPool(
-        IVKTenantCoordinate tenantCoordinate,
-        IVKAISynapseModelFactory modelFactory,
         IEnumerable<IVKAIProviderOptions>? staticProviders = null,
         IVKAIConnectionStore? connectionStore = null)
     {
-        _tenantCoordinate = VKGuard.NotNull(tenantCoordinate);
-        _modelFactory = VKGuard.NotNull(modelFactory);
         _staticProviders = staticProviders ?? Enumerable.Empty<IVKAIProviderOptions>();
         _connectionStore = connectionStore;
     }
@@ -35,31 +29,24 @@ internal sealed class DefaultAIProviderPool : IVKAIProviderPool
         // 1. Convert any static DI options into VKAIConnection models
         foreach (var staticOpt in _staticProviders)
         {
-            var conn = _modelFactory.CreateConnection(
-                id: $"{staticOpt.Provider}_{staticOpt.ModelId}",
-                name: $"Static-{staticOpt.Provider}",
-                provider: staticOpt.Provider ?? VKAIProviderType.OpenAI,
-                modelId: staticOpt.ModelId ?? VKAIModelIds.OpenAI.Gpt4OMini,
-                apiKey: staticOpt.ApiKey?.ToString(),
-                endpoint: staticOpt.Endpoint,
-                isDefault: false);
+            var conn = new VKAIConnection
+            {
+                Id = $"{staticOpt.Provider}_{staticOpt.ModelId}",
+                Name = $"Static-{staticOpt.Provider}",
+                Provider = staticOpt.Provider ?? VKAIProviderType.OpenAI,
+                ModelId = staticOpt.ModelId ?? VKAIModelIds.OpenAI.Gpt6Luna,
+                Endpoint = staticOpt.Endpoint
+            };
             list.Add(conn);
         }
 
-        // 2. Fetch tenant-scoped connections from connection store
+        // 2. Fetch connections from connection store
         if (_connectionStore != null)
         {
             var connectionsResult = await _connectionStore.GetConnectionListAsync(cancellationToken).ConfigureAwait(false);
             if (connectionsResult.IsSuccess)
             {
-                var currentTenantId = _tenantCoordinate.TenantId;
-                foreach (var conn in connectionsResult.Value)
-                {
-                    if (conn.TenantId.IsEmpty || conn.TenantId == currentTenantId)
-                    {
-                        list.Add(conn);
-                    }
-                }
+                list.AddRange(connectionsResult.Value);
             }
         }
 

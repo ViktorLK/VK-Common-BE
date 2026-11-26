@@ -1,22 +1,29 @@
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace VK.Blocks.AI.Synapse;
 
 /// <summary>
-/// Manages request rates (RPM) and concurrency (active requests) limits for AI connections.
+/// Manages request rates (RPM) and concurrency (active requests) limits for AI connections via capacity leases.
 /// </summary>
 public interface IVKAIRateLimiter
 {
     /// <summary>
-    /// Checks if a request is allowed under concurrency and rate limits.
+    /// Checks non-destructively whether the specified connection currently has available concurrency and rate capacity.
     /// </summary>
-    bool IsAllowed(VKAIConnection connection);
+    /// <param name="connection">The AI connection to inspect.</param>
+    /// <returns><see langword="true"/> if capacity appears available; otherwise, <see langword="false"/>.</returns>
+    bool HasAvailableCapacity(VKAIConnection connection);
 
     /// <summary>
-    /// Acquires a slot for in-flight requests and records the request timestamp.
+    /// Acquires a capacity lease for the specified connection, optionally bound to a reservation identifier.
     /// </summary>
-    void Acquire(VKAIConnection connection);
-
-    /// <summary>
-    /// Releases a concurrency slot for a completed request.
-    /// </summary>
-    void Release(VKAIConnection connection);
+    /// <param name="connection">The AI connection to acquire capacity for.</param>
+    /// <param name="reservationId">An optional reservation identifier associated with the attempt.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IVKAICapacityLease"/> whose <see cref="IVKAICapacityLease.IsAcquired"/> indicates success.</returns>
+    ValueTask<IVKAICapacityLease> AcquireLeaseAsync(
+        VKAIConnection connection,
+        string? reservationId = null,
+        CancellationToken cancellationToken = default);
 }

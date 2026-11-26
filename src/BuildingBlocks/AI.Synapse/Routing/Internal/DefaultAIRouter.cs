@@ -13,16 +13,20 @@ internal sealed class DefaultAIRouter : IVKAIRouter
 {
     private readonly IVKAIProviderTracker _tracker;
     private readonly VKRoutingOptions _options;
-    private readonly IVKAIMetricsCollector? _metricsCollector;
+    private readonly IVKAIPriceSource _priceSource;
+    private readonly IVKAIMetricsCollector _metricsCollector;
+    private int _roundRobinCounter;
 
     public DefaultAIRouter(
         IVKAIProviderTracker tracker,
         VKRoutingOptions options,
-        IVKAIMetricsCollector? metricsCollector = null)
+        IVKAIPriceSource priceSource,
+        IVKAIMetricsCollector metricsCollector)
     {
         _tracker = VKGuard.NotNull(tracker);
         _options = VKGuard.NotNull(options);
-        _metricsCollector = metricsCollector;
+        _priceSource = VKGuard.NotNull(priceSource);
+        _metricsCollector = VKGuard.NotNull(metricsCollector);
     }
 
     public Task<VKResult<IReadOnlyList<VKAIConnection>>> ResolveCandidatesAsync(
@@ -30,6 +34,7 @@ internal sealed class DefaultAIRouter : IVKAIRouter
         IEnumerable<VKAIConnection> pool,
         CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         args ??= new VKAIRouteArgs();
         VKGuard.NotNull(pool);
 
@@ -39,9 +44,12 @@ internal sealed class DefaultAIRouter : IVKAIRouter
             return Task.FromResult(VKResult.Failure<IReadOnlyList<VKAIConnection>>(VKAISynapseErrors.NoAvailableProvider));
         }
 
-        // 1. Filter only available connections (health & rate limit check)
+        // 1. Filter by Enabled, Region, RequiredTags, and health (_tracker.IsAvailable)
         var healthy = candidateList
-            .Where(p => _tracker.IsAvailable(p))
+            .Where(p => p.Enabled
+                && MatchesRegion(args, p)
+                && MatchesTags(args, p)
+                && _tracker.IsAvailable(p))
             .ToList();
 
         if (healthy.Count == 0)
@@ -50,60 +58,98 @@ internal sealed class DefaultAIRouter : IVKAIRouter
         }
 
         // 2. Order based on configured strategy
-        IReadOnlyList<VKAIConnection> sorted;
-        switch (_options.Strategy)
+        List<VKAIConnection> sorted = _options.Strategy switch
         {
-            case VKAIRoutingStrategy.CostOptimized:
-                sorted = healthy.OrderBy(p => GetCostScore(p)).ToList();
-                break;
+            VKAIRoutingStrategy.Weighted => healthy.OrderByDescending(GetWeightedScore).ToList(),
+            VKAIRoutingStrategy.RoundRobin => Rotate(healthy, (uint)Interlocked.Increment(ref _roundRobinCounter)),
+            VKAIRoutingStrategy.SessionAffinity => !string.IsNullOrEmpty(args.AffinityKey)
+                ? Rotate(healthy, ComputeDeterministicHash(args.AffinityKey))
+                : OrderByPriority(args, healthy),
+            VKAIRoutingStrategy.LowestCost => healthy.OrderBy(GetEstimatedCostScore).ToList(),
+            VKAIRoutingStrategy.Priority or _ => OrderByPriority(args, healthy)
+        };
 
-            case VKAIRoutingStrategy.WeightedRoundRobin:
-                sorted = healthy.OrderByDescending(p => GetWeightedScore(p)).ToList();
-                break;
+        // 3. Apply explicit PreferredConnectionId override if present
+        if (!string.IsNullOrEmpty(args.PreferredConnectionId))
+        {
+            var preferred = sorted.FirstOrDefault(p =>
+                string.Equals(p.Id, args.PreferredConnectionId, StringComparison.OrdinalIgnoreCase));
 
-            case VKAIRoutingStrategy.LatencyOptimized:
-                sorted = healthy.OrderBy(p => GetLatencyScore(p)).ToList();
-                break;
+            if (preferred is not null)
+            {
+                var reordered = new List<VKAIConnection>(sorted.Count) { preferred };
+                foreach (var item in sorted)
+                {
+                    if (!ReferenceEquals(item, preferred))
+                    {
+                        reordered.Add(item);
+                    }
+                }
 
-            case VKAIRoutingStrategy.Preference:
-            default:
-                sorted = healthy.OrderByDescending(p => GetPreferenceScore(args, p)).ToList();
-                break;
+                sorted = reordered;
+            }
         }
 
-        return Task.FromResult(VKResult.Success(sorted));
+        return Task.FromResult(VKResult.Success<IReadOnlyList<VKAIConnection>>(sorted));
     }
 
-    private static int GetPreferenceScore(VKAIRouteArgs args, VKAIConnection p)
+    private static bool MatchesRegion(VKAIRouteArgs args, VKAIConnection connection)
+    {
+        if (string.IsNullOrEmpty(args.Region))
+        {
+            return true;
+        }
+
+        return string.Equals(connection.Region, args.Region, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool MatchesTags(VKAIRouteArgs args, VKAIConnection connection)
+    {
+        if (args.RequiredTags is null || args.RequiredTags.Count == 0)
+        {
+            return true;
+        }
+
+        foreach (var required in args.RequiredTags)
+        {
+            if (!connection.Tags.TryGetValue(required.Key, out var value)
+                || !string.Equals(value, required.Value, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static int GetPriorityScore(VKAIRouteArgs args, VKAIConnection p)
     {
         int score = 0;
-        if (p.IsDefault)
-        {
-            score += 10;
-        }
         if (args.PreferredProvider.HasValue && p.Provider.HasValue && p.Provider.Value == args.PreferredProvider.Value)
         {
             score += 100;
         }
-        if (!string.IsNullOrEmpty(args.PreferredModelId) && !string.IsNullOrEmpty(p.ModelId) && string.Equals(p.ModelId, args.PreferredModelId, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(args.PreferredModelId) && !string.IsNullOrEmpty(p.ModelId)
+            && string.Equals(p.ModelId, args.PreferredModelId, StringComparison.OrdinalIgnoreCase))
         {
             score += 50;
         }
         return score;
     }
 
-    private static double GetCostScore(VKAIConnection p)
+    private List<VKAIConnection> OrderByPriority(VKAIRouteArgs args, List<VKAIConnection> healthy)
     {
-        string model = p.ModelId ?? string.Empty;
-        if (model.Contains("mini", StringComparison.OrdinalIgnoreCase) || model.Contains("haiku", StringComparison.OrdinalIgnoreCase) || model.Contains("flash", StringComparison.OrdinalIgnoreCase))
-        {
-            return 1.0;
-        }
-        if (model.Contains("gpt-4o", StringComparison.OrdinalIgnoreCase) || model.Contains("sonnet", StringComparison.OrdinalIgnoreCase))
-        {
-            return 10.0;
-        }
-        return 5.0;
+        return _options.PreferLowestLatency
+            ? healthy.OrderByDescending(p => GetPriorityScore(args, p)).ThenBy(p => _metricsCollector.GetAverageLatencyMs(p)).ToList()
+            : healthy.OrderByDescending(p => GetPriorityScore(args, p)).ToList();
+    }
+
+    private decimal GetEstimatedCostScore(VKAIConnection p)
+    {
+        var provider = (p.Provider ?? VKAIProviderType.OpenAI).ToString();
+        var modelId = p.ModelId ?? VKAIModelIds.OpenAI.Gpt6Luna;
+        var pricing = _priceSource.GetPricing(provider, modelId);
+        return pricing is not null ? pricing.CostPer1KInputTokens + pricing.CostPer1KOutputTokens : decimal.MaxValue;
     }
 
     private static int GetWeightedScore(VKAIConnection p)
@@ -111,17 +157,40 @@ internal sealed class DefaultAIRouter : IVKAIRouter
         return p.MaxConcurrency > 0 ? p.MaxConcurrency : 10;
     }
 
-    private double GetLatencyScore(VKAIConnection p)
+    private static List<VKAIConnection> Rotate(List<VKAIConnection> items, uint offset)
     {
-        if (_metricsCollector is not null)
+        if (items.Count <= 1)
         {
-            double latency = _metricsCollector.GetAverageLatencyMs(p);
-            if (latency > 0)
-            {
-                return latency;
-            }
+            return items;
         }
 
-        return p.IsDefault ? 0.0 : 1000.0;
+        int start = (int)(offset % (uint)items.Count);
+        if (start == 0)
+        {
+            return items;
+        }
+
+        var rotated = new List<VKAIConnection>(items.Count);
+        for (int i = 0; i < items.Count; i++)
+        {
+            rotated.Add(items[(start + i) % items.Count]);
+        }
+
+        return rotated;
+    }
+
+    private static uint ComputeDeterministicHash(string key)
+    {
+        unchecked
+        {
+            uint hash = 2166136261u;
+            foreach (char c in key)
+            {
+                hash ^= c;
+                hash *= 16777619u;
+            }
+
+            return hash;
+        }
     }
 }

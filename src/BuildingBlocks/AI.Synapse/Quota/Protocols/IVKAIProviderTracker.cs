@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace VK.Blocks.AI.Synapse;
 
@@ -9,24 +11,9 @@ namespace VK.Blocks.AI.Synapse;
 public interface IVKAIProviderTracker
 {
     /// <summary>
-    /// Checks if the connection is currently available (not on cooldown and within rate limits).
+    /// Checks non-destructively whether the connection is currently available (not open/isolated and within rate/concurrency limits).
     /// </summary>
     bool IsAvailable(VKAIConnection connection);
-
-    /// <summary>
-    /// Marks that a request to the connection failed.
-    /// </summary>
-    void MarkFailure(VKAIConnection connection, Exception ex);
-
-    /// <summary>
-    /// Marks that a request to the connection succeeded, resolving cooldown.
-    /// </summary>
-    void MarkSuccess(VKAIConnection connection);
-
-    /// <summary>
-    /// Records a successful request for rate limit tracking.
-    /// </summary>
-    void RecordRequest(VKAIConnection connection);
 
     /// <summary>
     /// Records the latency and token usage metrics for a completed request.
@@ -34,7 +21,13 @@ public interface IVKAIProviderTracker
     void RecordMetrics(VKAIConnection connection, int tokens, TimeSpan latency);
 
     /// <summary>
-    /// Gets all connections that are currently in cooldown.
+    /// Gets all connections that are currently open/in cooldown or isolated.
     /// </summary>
     IReadOnlyList<VKAIConnection> GetProvidersOnCooldown();
+
+    /// <summary>
+    /// Asynchronously gets all connections that are currently open/in cooldown or isolated.
+    /// </summary>
+    Task<IReadOnlyList<VKAIConnection>> GetProvidersOnCooldownAsync(CancellationToken cancellationToken = default)
+        => Task.FromResult(GetProvidersOnCooldown());
 }

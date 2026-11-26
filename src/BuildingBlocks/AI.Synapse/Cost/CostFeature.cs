@@ -11,7 +11,9 @@ internal sealed partial class CostFeature
     static partial void RegisterFeatureCustom(IServiceCollection services, VKCostOptions options)
     {
         _ = options;
+        services.TryAddSingleton<IVKAIPriceSource, ConfigurationAIPriceSource>();
         services.TryAddSingleton<IVKAICostCalculator, DefaultAICostCalculator>();
+        services.TryAddSingleton<IVKAICostLedger, InMemoryAICostLedger>();
     }
 
     static partial void ValidateFeatureCustom(VKCostOptions options, System.Collections.Generic.List<string> failures)

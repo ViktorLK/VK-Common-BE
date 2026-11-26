@@ -69,6 +69,17 @@ public static class VKAgentErrors
     public static readonly VKError CheckpointNotFound = VKError.NotFound("AI.Agents.CheckpointNotFound", "The requested workflow checkpoint or session state was not found.");
 
     /// <summary>
+    /// Error returned when no IChatClient is registered for agent execution.
+    /// </summary>
+    public static readonly VKError ChatClientNotRegistered = VKError.Failure("AI.Agents.ChatClientNotRegistered", "No IChatClient is registered for agent execution.");
+
+    /// <summary>
+    /// Creates an error returned when no keyed IChatClient is registered for the requested model profile.
+    /// </summary>
+    public static VKError ProfileNotFound(string profile) =>
+        VKError.NotFound("AI.Agents.ProfileNotFound", $"No keyed IChatClient is registered for model profile '{profile}'.");
+
+    /// <summary>
     /// Creates an execution failure error with a custom detail message.
     /// </summary>
     public static VKError ExecutionFailure(string detail) =>
