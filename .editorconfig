@@ -292,7 +292,18 @@ dotnet_diagnostic.IDE0130.severity = none
 [src/BuildingBlocks/**/Internal/**/*.cs]
 dotnet_diagnostic.IDE0130.severity = error
 
+# VK.Blocks Compile-Time Hard Walls (Rule 2 / BASE-03)
+[src/BuildingBlocks/**/*.cs]
+dotnet_diagnostic.CA2007.severity = warning   # CS.03: ConfigureAwait(false)
+dotnet_diagnostic.VK0001.severity = warning   # AP.01: Sealed by default
+dotnet_diagnostic.VK0002.severity = warning   # CS.06: TimeProvider over DateTime.Now/UtcNow
+dotnet_diagnostic.VK0003.severity = warning   # CS.06: IVKGuidGenerator over Guid.NewGuid()
+dotnet_diagnostic.VK0004.severity = warning   # CS.06: IVKJsonSerializer over JsonSerializer
+dotnet_diagnostic.VK0005.severity = warning   # CS.03: Prohibit sync-over-async (.Result/.Wait/.GetResult)
+dotnet_diagnostic.VK0006.severity = warning   # AP.01: Prohibit default! property initializers
+
 [**/*Tests.cs]
 # xUnit1030: Do not use ConfigureAwait(false) in test methods
 dotnet_diagnostic.xUnit1030.severity = error
+dotnet_diagnostic.CA2007.severity = none
 

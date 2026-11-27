@@ -90,4 +90,9 @@ commits: []               # vk_be_backlog_transition により自動回填
 - [ ] **ADR 作成の要否判定 (`DL.03`)** — 公開契約またはアーキテクチャパターン変更時は `docs/04-ArchitectureDecisionRecords/` に決定を記録
 - [ ] コンパイル時安全性の確保と警告ゼロ (`BASE-03`, `DL.02`)
 - [ ] 4つの実行経路（Happy / NotFound / Permission / Infra）の網羅とテスト完了 (`DL.01`)
+
+## 🧭 Working Notes (Tried / Pitfalls — Optional Cross-Session Memory)
+- **Decided**: [実装中に確定した設計方針]
+- **Tried (Failed)**: [試して失敗したアプローチと原因 — 次回セッションでの再踏襲を防止]
+- **Open**: [未解決の確認事項]
 ```

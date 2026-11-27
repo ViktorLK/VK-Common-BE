@@ -14,8 +14,8 @@ Identify legacy exception-throwing patterns (e.g., `throw new Exception`, `throw
 1. **Identify Target & Load Context**:
     - Get the absolute path of the directory or file to refactor.
     - If not provided, ask: `"Which directory or file would you like me to refactor exceptions for?"`
-    - **Mandatory (PS.04)**: Call `vk_get_module_context(path)`.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - **Mandatory (PS.04)**: Call `vk_be_get_module_context(path)`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
 
 2. **Scan for Violations**:
     - Read the `.cs` files in the target path.
@@ -36,7 +36,7 @@ Identify legacy exception-throwing patterns (e.g., `throw new Exception`, `throw
 
 5. **Save and Report (Audit by Exception)**:
     - **Overwrite** the original files with the refactored, compile-ready code.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
     - Audit: `Audit: 🚩 [CS.01] Refactored legacy exceptions to Result pattern.`
     - Output a list of files completely refactored.
     - Briefly summarize how many exceptions were replaced gracefully.

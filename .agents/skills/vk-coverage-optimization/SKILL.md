@@ -44,8 +44,11 @@ For each gap, evaluate based on the following criteria:
 1. Invoke `/vk-generate-unit-tests` for the target class.
 2. Focus on the specific uncovered lines/branches identified in the report.
 
-## 4. Verification
-Rerun the analysis to confirm the metrics have improved. Repeat until the target is reached.
+## 4. Verification & Loop Exits (`BASE-13`)
+Rerun the analysis to confirm the metrics have improved. Terminate the loop strictly on one of three exits:
+- **DONE**: Target coverage reached and `dotnet build -warnaserror` passes.
+- **BUDGET**: Maximum 3 iterations reached; report current metrics and ask whether to continue.
+- **STUCK**: Same uncovered branch or same build/test failure occurs twice in a row → STOP immediately and report `EXPECTED / SAW / ALREADY TRIED` to the user.
 
 ## 5. Reporting
 Provide a final summary to the user:

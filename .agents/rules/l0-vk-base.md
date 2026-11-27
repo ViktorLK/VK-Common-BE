@@ -11,7 +11,7 @@ principle: First-principles engineering, deterministic behavior, zero implicit a
 <locked_rules>
 BASE-01 [LOCKED] Contract-First: Define interfaces, DTOs, domain models, error codes, and invariants BEFORE writing implementation code.
 BASE-02 [LOCKED] Zero Implicit Globals: Static mutable state, black-box singletons, and direct environment reads outside the Composition Root are prohibited. Time, ID generation, storage, logging, and execution context MUST be injected through abstractions.
-BASE-03 [LOCKED] Compile-Time First: Any constraint that can be enforced by the type system, analyzers, linters, or code generation MUST NOT be deferred to runtime.
+BASE-03 [LOCKED] Compile-Time First: Any constraint that can be enforced by the type system, analyzers, linters, or code generation MUST NOT be deferred to runtime. Rules enforced by Roslyn analyzers or `.editorconfig` MUST NOT be duplicated as lengthy prose reminders in prompts.
 BASE-04 [LOCKED] Anti-Over-Friendliness: Frameworks resolve objective technical ambiguity only. Never guess business intent or add "smart" implicit behavior; require explicit intent through APIs. Neutral, documented Fallback-tier defaults (e.g., NoOp) are allowed.
 BASE-08 [LOCKED] Honesty and Conflict Surfacing: Never fabricate APIs, packages, versions, or behaviors. If an instruction conflicts with a rule, state the rule ID, the contradiction, and a compliant alternative. Never deviate silently; deviation requires an explicit OVERRIDE.
 </locked_rules>
@@ -24,6 +24,8 @@ BASE-09 Language Convention: Identifiers, code, comments, and commit messages ar
 BASE-10 Surgical Change Discipline: Deliver the minimal diff that satisfies the specification; do not refactor unrelated code. If ambiguity arises, ask at most one clarifying question; otherwise state explicit assumptions and proceed. End every substantive response with the assumptions made and anything left unverified.
 BASE-11 Documentation Linking: Internal document links across directories MUST use repository-root-relative paths (`/docs/...`, `/src/...`, `/.agents/...`). Upward relative paths (`../`) are prohibited; local `./` is permitted only within the same directory or below.
 BASE-12 Principles Over Signatures: Manifests and boundary documents state invariant principles and contracts, not transient method signatures.
+BASE-13 Loop Exits & Structured Escalation: Any iterative repair, audit-fix, or optimization loop MUST terminate on one of three exits — DONE (checks pass), BUDGET (attempt/scope cap reached), or STUCK (same error or check fails twice in a row). On STUCK, STOP immediately and report EXPECTED / SAW / ALREADY TRIED instead of guessing a third time.
+BASE-14 External Pitfall Memory (Zero-PBI): Persistent cross-session pitfalls live in `/src/.prompts/pitfalls.md` (repo-wide) and `/src/BuildingBlocks/{Module}/.prompts/pitfalls.md` (module-specific, created on demand), both auto-loaded by `vk_be_get_module_context`. In any conversation—even without a PBI—when an approach fails and is reverted, a non-obvious gotcha is solved, or the user corrects the same mistake twice, append a concise 1–2 line entry (`Tried` / `Never` / `Decided`); promote repeated pitfalls to Roslyn analyzers or `module-manifest.md`.
 </rules>
 
 <precedence>
@@ -43,9 +45,11 @@ Applies to every response that produces code, an ADR, or a manifest. Pure discus
 - **Hard-Lock**: Missing rule verification for a relevant scenario → code output PROHIBITED.
 - **Context Switch**: Module change → re-check local docs/manifest + update handshake.
 - **Code**: Strict mode (TypeScript strict: true / C# 12+). English only (BASE-09).
-- **Tags**: `// [RuleID]` at architectural boundaries (boundary guards, Result wrappers, DI/Provider, public exports). Pure internal logic exempt.
-- **Audit**: Placed at the end of the response:
-  - Standard: `Audit: ✅` / `Audit: 🚩 [RuleID] {rationale}` (self-correct immediately).
+- **Tags**: `// [RuleID]` only at non-obvious architectural boundaries or explicit rule exemptions (e.g., `SuppressMessage`, `OVERRIDE`). Routine code and compiler-enforced patterns are exempt.
+- **Audit**: Placed at the end of the response. Self-audit is a pre-flight check only, never a final gate; non-trivial code changes SHOULD be graded by a context-isolated read-only checker (`/vk-review-diff`) that sees only the diff and checklist:
+  - Verified: `Audit: ✅ (verified: build)` or `Audit: ✅ (verified: build + isolated-review)`
+  - Unverified: `Audit: ⚠️ (self-check only)` when build or isolated review was not run
+  - Exception/Waiver: `Audit: 🚩 [RuleID] {rationale}` (self-correct immediately)
   - Phase A (New Block / Package only): Verify consumer (BASE-06) and manifest (BASE-12).
     </output_protocol>
 

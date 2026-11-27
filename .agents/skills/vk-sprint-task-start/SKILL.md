@@ -1,4 +1,4 @@
-﻿---
+---
 name: vk-sprint-task-start
 description: Transition a backlog item to 'doing', set up branch context, record started date, and review git commit conventions within a Sprint.
 ---
@@ -29,5 +29,5 @@ Use this skill when beginning work on a specific committed backlog task.
      ```
    - (Sprint or milestone PRs will be submitted collectively via the PR branch `ro/study...`).
 4. **Read Task Blueprint & Rules**:
-   - Read the task file in `docs/07-Backlogs/{Module}/pbi-{NNN}-*.md`.
+   - Read the task file in `docs/07-Backlogs/{Module}/pbi-{NNN}-*.md`, including any existing `## 🧭 Working Notes (Tried / Pitfalls)` section to avoid repeating failed approaches across sessions.
    - Check the `Ref` field for rule IDs (e.g. `CS.01`, `BB.01`) and fetch them via `vk_be_get_architectural_rule`.

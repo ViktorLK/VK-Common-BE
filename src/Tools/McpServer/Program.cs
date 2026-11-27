@@ -39,6 +39,33 @@ internal static class Program
             return;
         }
 
+        // CLI --manifest-lint [modules] [mapPath] mode
+        var manifestLintIndex = Array.FindIndex(args, a => string.Equals(a, "--manifest-lint", StringComparison.OrdinalIgnoreCase));
+        if (manifestLintIndex >= 0)
+        {
+            var modules = manifestLintIndex + 1 < args.Length ? args[manifestLintIndex + 1] : null;
+            var mapPath = manifestLintIndex + 2 < args.Length ? args[manifestLintIndex + 2] : null;
+            var report = await McpTools.RunManifestLintAsync(modules, mapPath, CancellationToken.None).ConfigureAwait(false);
+            Console.WriteLine(McpTools.FormatManifestReport(report));
+            if (report.HasErrors)
+            {
+                Environment.Exit(1);
+            }
+            return;
+        }
+
+        // CLI --agents-lint mode
+        if (args.Length > 0 && args.Contains("--agents-lint", StringComparer.OrdinalIgnoreCase))
+        {
+            var report = await McpTools.RunAgentsLintAsync(CancellationToken.None).ConfigureAwait(false);
+            Console.WriteLine(McpTools.FormatAgentsLintReport(report));
+            if (report.HasErrors)
+            {
+                Environment.Exit(1);
+            }
+            return;
+        }
+
         // CLI --dashboard mode
         if (args.Length > 0 && args.Contains("--dashboard", StringComparer.OrdinalIgnoreCase))
         {

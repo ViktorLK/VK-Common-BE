@@ -25,7 +25,7 @@ flowchart LR
 | **04** | **アーキテクチャ意思決定 (ADR)** | [04-AdrBlueprint.md](./04-AdrBlueprint.md) | `docs/04-ArchitectureDecisionRecords/` | `DL.03`, `PS.02` / `/vk-draft-adr` |
 | **Plan** | **契約先行・詳細実装計画 (Contract & Spec)** | [Plan-ContractAndImplementationBlueprint.md](./Plan-ContractAndImplementationBlueprint.md) | Implementation Plan | `BASE-01`, `PS.01`, `BB.01`〜`08`, `CS.01`〜`08` / `/vk-draft-impl-plan` |
 | **05** | **データ辞書・公開契約カタログ (Data Dictionary)** | [05-DataDictionaryBlueprint.md](./05-DataDictionaryBlueprint.md) | `docs/05-DataDictionary/` | `FS-01`, `FS-02`, `BB.04`, `CS.08` |
-| **06** | **深層アーキテクチャ監査 (Audit)** | [06-ArchitectureAuditBlueprint.md](./06-ArchitectureAuditBlueprint.md) | `docs/06-AuditReports/` | `/vk-audit-architecture`, `/vk-audit-fast`, `/vk-audit-semantic` |
+| **06** | **深層アーキテクチャ監査 (Audit)** | [06-ArchitectureAuditBlueprint.md](./06-ArchitectureAuditBlueprint.md) | `docs/06-AuditReports/` | `/vk-audit-architecture`, `/vk-audit-fast`, `/vk-review-diff` |
 | **07** | **技術的負債・タスク管理 (Backlog)** | [07-BacklogItemBlueprint.md](./07-BacklogItemBlueprint.md) | `docs/07-Backlogs/` | `DL.04` / `/vk-add-backlog` |
 | **Gate** | **納品・PR完了条件 (DoD Gate)** | [PULL_REQUEST_TEMPLATE.md](/.github/PULL_REQUEST_TEMPLATE.md) | `.github/` | `BASE-03`, `DL.01`, `DL.02` / `/vk-generate-pr-summary` |
 | **08** | **パッケージ公開・移行ガイド (Release & Upgrade)** | [08-ReleaseNoteBlueprint.md](./08-ReleaseNoteBlueprint.md) | Release Notes / Changelog | `ARCH-04`, `ARCH-07`, `FS-09` |

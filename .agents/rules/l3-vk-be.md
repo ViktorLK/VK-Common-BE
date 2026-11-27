@@ -22,13 +22,13 @@ principle: Vertical Slice Architecture, Contract-First, Result pattern, Zero Imp
 | :-------- | :-: | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **CS.01** | 🔴  | `Result<T>` only. No null returns. Error constants on `Errors` class.                                                                                    |
 | **CS.02** |     | Layer deps: Domain ← App ← Infra. No reverse. No infra libs in App.                                                                                      |
-| **CS.03** | 🔴  | Async + `CancellationToken` everywhere. `.ConfigureAwait(false)` in libs, prohibited in tests.                                                           |
+| **CS.03** | 🔴  | Async + `CancellationToken` everywhere. `.ConfigureAwait(false)` in libs, prohibited in tests. `[CA2007, VK0005]`                                        |
 | **CS.04** |     | `AsNoTracking` default. No loop queries. Pagination mandatory. `Span`/`ArrayPool` for buffers.                                                           |
 | **CS.05** |     | `IAuditable`/`ISoftDelete` via Interceptors + Global Filters. No manual logic.                                                                           |
-| **CS.06** | 🔴  | No `Guid.NewGuid()`/`DateTime.UtcNow`. Use `IVKGuidGenerator`/`TimeProvider`/`IVKJsonSerializer`.                                                        |
+| **CS.06** | 🔴  | No `Guid.NewGuid()`/`DateTime.UtcNow`. Use `IVKGuidGenerator`/`TimeProvider`/`IVKJsonSerializer`. `[VK0002-VK0004]`                                      |
 | **CS.07** | 🔴  | `GetRequiredService` default. `GetService` only with documented fallback (`?? default`).                                                                 |
 | **CS.08** | 🔴  | DB: TenantId NOT NULL, MaxLength mandatory, explicit FK/Index names, Restrict delete, idempotent script.                                                 |
-| **OR.01** | 🔴  | `[LoggerMessage]` SG only. No `logger.LogXxx()`. Structured templates. TraceId mandatory.                                                                |
+| **OR.01** | 🔴  | `[LoggerMessage]` SG only. No `logger.LogXxx()`. Structured templates. TraceId mandatory. `[CA1848, VK1010]`                                             |
 | **OR.02** |     | `TenantId` via EF Global Filter. No bypass. PII masked in logs.                                                                                          |
 | **OR.03** |     | Polly on ALL external calls. Retry(3x) + CircuitBreaker + explicit Timeout.                                                                              |
 | **DL.01** | 🔴  | Testing: `VKUnitTestBase` + `VKTestDataBuilder<T>` + `VKFakeGuidGenerator`. 4 paths (Happy/NotFound/Permission/Infra). `{Method}_{Scenario}_{Expected}`. |
@@ -36,7 +36,7 @@ principle: Vertical Slice Architecture, Contract-First, Result pattern, Zero Imp
 | **DL.03** | 🟡  | Interface/pattern change detected → prompt ADR before continuing.                                                                                        |
 | **DL.04** | 🟡  | `// TODO` or roadmap detected → prompt backlog sync via `vk_be_add_backlog_item`.                                                                        |
 | **DL.05** | 🟡  | Source Generator hooks (partial methods/classes) MUST be tagged with [SG Hook/Marker/etc].                                                               |
-| **AP.01** | 🔴  | `sealed` default. `required` keyword. `VKGuard` at boundaries. No `default!`.                                                                            |
+| **AP.01** | 🔴  | `sealed` default. `required` keyword. `VKGuard` at boundaries. No `default!`. `[VK0001, VK0006, CA1852]`                                                 |
 | **AP.02** |     | `TryAdd` only. Idempotent registration. Marker-based dependency validation.                                                                              |
 | **AP.03** | 🟡  | L1:public+VK prefix. L2+:internal+Deep NS (No VK prefix per BB.01).                                                                                      |
 | **AP.04** |     | `IVKBlockOptions` + zero-reflection. Immutable after init. Dual-registration pattern.                                                                    |
@@ -73,6 +73,19 @@ principle: Vertical Slice Architecture, Contract-First, Result pattern, Zero Imp
 
 </core_prohibitions>
 
+<compile_time_walls>
+
+> Prefer running `dotnet build -warnaserror` over manual prose checking for rules enforced by `VK.Tools.Analyzers` and `.editorconfig`:
+> - **CS.03**: `CA2007` (ConfigureAwait), `VK0005` (no `.Result`/`.Wait()`/`GetResult()`), `xUnit1030` (tests)
+> - **CS.06**: `VK0002` (`TimeProvider`), `VK0003` (`IVKGuidGenerator`), `VK0004` (`IVKJsonSerializer`)
+> - **OR.01**: `CA1848` (`[LoggerMessage]`), `VK1010` (unique EventId)
+> - **AP.01 / AP.03**: `VK0001` / `CA1852` (`sealed`), `VK0006` (no `default!` property initializer), `IDE0130` (`Internal/` namespace)
+> - **Governance Self-Lint**: After modifying `.agents/**`, `src/**/.prompts/pitfalls.md`, or `[McpServerTool]` names in `src/Tools/McpServer/`, run `vk_be_agents_lint` (or `dotnet run --project src/Tools/McpServer/VK.Tools.McpServer.csproj -c Release -- --agents-lint`) before finishing.
+>
+> For semantic rules that the compiler cannot check (`CS.01`, `AP.06/07`, `CS.02`, `VKGuard`, `CancellationToken` flow), use `/vk-review-diff` (context-isolated read-only subagent) instead of same-context self-grading.
+
+</compile_time_walls>
+
 <dynamic_loading_protocol>
 
 > **[MCP Routing Rule]**: Backend (C#) -> MUST call `vk_be_get_architectural_rule(ruleIds: "CS.01,AP.01")` and `vk_be_get_module_context(path: "src/BuildingBlocks/...")` from `vk-blocks-be-manager`.
@@ -99,9 +112,9 @@ principle: Vertical Slice Architecture, Contract-First, Result pattern, Zero Imp
 | **Implementation plan**             | PS.01, PS.03                                                  |
 | **Walkthrough**                     | PS.02                                                         |
 | **Module-specific work**            | PS.04                                                         |
-| **`/vk-audit-fast`**                | BB.01, AP.03, BB.02, BB.03                                    |
-| **`/vk-audit-architecture`**        | BB.01, AP.03, BB.02, BB.03, BB.04, BB.05, AP.02, CS.02, CS.08 |
-| **`/vk-audit-semantic`**            | CS.01, CS.03, AP.01, CS.06, OR.01                             |
+| **`/vk-audit-fast`**                | BB.01, BB.02, BB.03, BB.05, BB.06, BB.07, AP.02, AP.03                    |
+| **`/vk-audit-architecture`**        | BB.01, BB.02, BB.03, BB.04, BB.05, BB.06, BB.07, AP.02, AP.03, AP.05, CS.01, CS.02, CS.04, OR.03 |
+| **`/vk-review-diff`**               | CS.01, CS.03, AP.01, AP.06, AP.07, CS.02, AP.03                           |
 
 > **Note**: PS.04 (`vk_be_get_module_context`) does NOT satisfy L3 triggers. Both MUST execute independently.
 

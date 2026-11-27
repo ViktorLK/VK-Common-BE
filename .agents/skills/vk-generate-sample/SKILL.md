@@ -14,8 +14,8 @@ Generate a production-ready sample project demonstrating how to use a specified 
 1. **Identify Target & Load Context**:
     - Determine which BuildingBlock module to create a sample for.
     - If the target is unclear, ask the user: `"Which BuildingBlock module would you like me to generate a sample for?"`
-    - **Mandatory (PS.04)**: Call `vk_get_module_context(path)`.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - **Mandatory (PS.04)**: Call `vk_be_get_module_context(path)`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
 
 2. **Load Rules**:
     - Read the `references/SampleGeneration.md` (or `.agents/skills/vk-generate-sample/references/SampleGeneration.md`) file to understand the sample code requirements (Result Pattern, DI, IOptions, logging, design pattern annotations).
@@ -40,7 +40,7 @@ Generate a production-ready sample project demonstrating how to use a specified 
 
 5. **Save and Report (Audit by Exception)**:
     - Save all generated files to the output directory.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
     - Audit: `Audit: ✅ Sample project created with Industrial DNA.`
     - Report: ✅ Sample project created at `[path]` with `[N]` files.
     - Verify with `dotnet build`.

@@ -15,7 +15,7 @@ Generate production-ready unit tests for a user-specified C# class, handler, or 
     - Determine the **absolute path of the C# file or class** to generate tests for.
     - If the target is unclear, ask the user: `"Which class or file would you like me to generate unit tests for?"`
     - **Mandatory (PS.04)**: Call `vk_be_get_module_context(path)`.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
 
 2. **Load Rules**:
     - Read the `references/UnitTest.md` (or `.agents/skills/vk-generate-unit-tests/references/UnitTest.md`) file to understand the testing guidelines (xUnit, Moq, FluentAssertions, AAA pattern, naming conventions).
@@ -48,7 +48,7 @@ Generate production-ready unit tests for a user-specified C# class, handler, or 
 5. **Save and Report (Audit by Exception)**:
     - Determine the appropriate test project path (mirror the source structure under `test/`).
     - Save the generated test file.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
     - Audit: `Audit: ✅ All testing DNA constraints satisfied.`
     - Report: ✅ Test file saved to `[path]` with `[N]` test methods covering `[M]` scenarios.
     - Verify with `dotnet build`.

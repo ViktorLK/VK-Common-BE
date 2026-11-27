@@ -15,8 +15,8 @@ Automatically generate a fully compliant Vertical Slice / CQRS features (Command
     - Ask the user for the **Action** and **Entity** (e.g., `Create`, `User`).
     - Ask the user for the **Target Module Path** (e.g., `src/BuildingBlocks/Identity`).
     - If missing, prompt: `"What is the Action (e.g. Create, Get, Update) and Entity? And which module should I place this in?"`
-    - **Mandatory (PS.04)**: Call `vk_get_module_context(path)`.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - **Mandatory (PS.04)**: Call `vk_be_get_module_context(path)`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
 
 2. **Analyze the Context**:
     - Briefly read existing folders in the target module to understand the project structure (e.g., are features grouped by folder like `Features/Users/CreateUser/`?).
@@ -52,7 +52,7 @@ Automatically generate a fully compliant Vertical Slice / CQRS features (Command
 7. **Save and Report (Audit by Exception)**:
     - Save all generated files into the target module directory.
     - Ensure `file-scoped namespaces` and XML documentation are used.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
     - Audit: `Audit: ✅ All DNA constraints satisfied.`
     - Report: ✅ Generated CQRS feature `[Action][Entity]` with 4 components at `[Path]`.
     - Include `// [RuleID]` tags in the code at decision boundaries.

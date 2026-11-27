@@ -1,21 +1,14 @@
-﻿---
+---
 trigger: manual
 ---
 
 <ruleset category="AP" name="Architecture & Design Patterns">
 
 <rule id="AP.01" type="A" name="Modern C# Semantics">
-- **Sealed by Default**: ALL Application and Infrastructure classes (Handlers, Providers, Evaluators, Attributes) MUST be declared as `sealed class` unless polymorphism is explicitly required. `sealed partial class` is permitted when Source Generator integration requires it (e.g., `[VKBlockMarker]`, `[VKFeatureMarker]`, `[VKBlockDiagnostics]`).
-- **Immutable Data**: Use `sealed record` for all DTOs, domain settings, and authorization requirements instead of plain classes to guarantee immutability and value equality. Use `with` expressions for non-destructive mutation instead of manual copy constructors.
-- **Required Properties**: Use `required` keyword for all non-nullable properties in `record` or DTO types to ensure compile-time safety. STRICTLY PROHIBIT the use of `default!` for property initialization.
-- **Modern C# Idioms**: Use C# 12+ features (Collection expressions `[]`, Primary constructors) where appropriate. STRICTLY ADHERE to the project's `.editorconfig` for formatting rules (e.g., preference for explicit types over `var` for built-in types).
-- **Pattern Matching**: Prefer `is` and `switch` expressions over `if`/`else` chains and type casting for concise, readable branching.
-- **Null Handling**: Prefer `??` / `??=` / `?.` over explicit null checks. Use `is null` / `is not null` over `== null` to avoid operator overload side-effects and ensure pattern consistency.
-- **Defensive Programming (VKGuard)**:
-    - **Mandatory Boundary Checks**: ALL method and constructor boundaries MUST use `VKGuard` to enforce preconditions. Manual `if (x == null) throw` patterns are STRICTLY PROHIBITED.
-    - **Guard Selection**: Use appropriate `VKGuard` methods (`NotNull`, `NotNullOrWhiteSpace`, `NotEmpty`, `NotEmptyGuid`, `EnumDefined`).
-    - **Fluent Assignment**: Leverage the return value of `VKGuard` for single-line field initialization (e.g., `_service = VKGuard.NotNull(service);`) or expression-bodied members.
-- **Collection Expressions**: Use `[]` initializer syntax (C# 12+) over `new List<T>()` or `new T[] {}` where applicable.
+- **Sealed by Default**: ALL non-abstract classes without inheritance design markers MUST be `sealed` (or `sealed partial` for SG targets) *(Enforced: `VK0001`, `CA1852`)*.
+- **Immutable Data & Required Properties**: Use `sealed record` with `with` expressions for DTOs/settings/requirements; use `required` for non-nullable properties and PROHIBIT `default!` property initializers *(Enforced: `VK0006`)*.
+- **Modern C# Idioms**: Use C# 12+ features (`[]` collection expressions, primary constructors) and follow `.editorconfig`. Prefer `is` / `switch` expressions, `??` / `??=` / `?.`, and `is null` / `is not null`.
+- **Defensive Programming (VKGuard)**: ALL method and constructor boundaries MUST enforce preconditions via `VKGuard` (`NotNull`, `NotNullOrWhiteSpace`, `NotEmpty`, `NotEmptyGuid`, `EnumDefined`) using fluent assignment where possible; manual `if (x == null) throw` is PROHIBITED.
 </rule>
 
 <rule id="AP.02" type="B" name="Service Registration Policy">

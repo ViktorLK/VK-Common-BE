@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using VK.Tools.SourceGenerators.Authentication.Internal;
+using VK.Tools.SourceGenerators.Diagnostics;
 using VK.Tools.SourceGenerators.Extensions;
 using VK.Tools.SourceGenerators.Utilities;
 
@@ -23,14 +24,6 @@ namespace VK.Tools.SourceGenerators.Authentication;
 public sealed class OAuthProviderMapperGenerator : IIncrementalGenerator
 {
     private const string AttributeFullName = "VK.Blocks.Authentication.VKOAuthProviderAttribute";
-
-    private static readonly DiagnosticDescriptor _duplicateProviderWarning = new(
-        id: "VK0001",
-        title: "Duplicate OAuth Provider Mapper",
-        messageFormat: "Multiple OAuth mappers found for provider '{0}'. Only '{1}' will be registered.",
-        category: $"{VKBlocksConstants.VKBlocksPrefix}.Authentication",
-        defaultSeverity: DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
 
     /// <inheritdoc />
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -138,7 +131,7 @@ public sealed class OAuthProviderMapperGenerator : IIncrementalGenerator
                 foreach (var dup in mappersInGroup.Skip(1))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        _duplicateProviderWarning,
+                        VKDiagnosticDescriptors.DuplicateOAuthProviderMapper,
                         dup.Location,
                         primary.ProviderName,
                         primary.FullClassName));

@@ -14,9 +14,14 @@ internal sealed partial class McpTools
     [McpServerTool]
     [Description("Retrieves the detailed specifications of VK.Blocks L3 architectural rules by their logical IDs (e.g., 'CS.01', 'OR.01'). Excludes globally resident L0-L2 rules (BASE, ARCH, FS). Supports comma-separated IDs for batch retrieval.")]
     public static async Task<string> VKBeGetArchitecturalRule(
-        [Description("The logical ID(s) of the L3 rules to retrieve (e.g., 'CS.01' or 'BB.01,BB.02'). Do not query L0-L2 rules as they are globally resident.")] string ruleIds,
-        CancellationToken ct)
+        [Description("The logical ID(s) of the L3 rules to retrieve (e.g., 'CS.01' or 'BB.01,BB.02'). Do not query L0-L2 rules as they are globally resident.")] string? ruleIds = null,
+        CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(ruleIds))
+        {
+            return "🚩 [Invalid Arguments] Missing required parameter 'ruleIds'. Expected: comma-separated L3 rule IDs (e.g. 'CS.01,AP.01').";
+        }
+
         var ids = ruleIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .ToArray();

@@ -1,147 +1,63 @@
 ---
 name: vk-audit-fast
-description: Perform a fast, grep-based architecture checklist audit on a specified BuildingBlock module. Output is inline (no file saved).
+description: Perform a fast, deterministic-first architecture health check (compiler hard walls, manifest lint, and latest BB.01-BB.07 structure) on a BuildingBlock module. Output is inline.
 ---
 
-# Workflow: Fast Architecture Audit (Checklist Mode)
+# Workflow: Fast Architecture Audit (Deterministic-First)
 
-A lightweight, high-speed audit that uses **only `list_dir` and `grep_search`** to evaluate a BuildingBlock module against the VK.Blocks architectural rules. No file contents are read. Output is returned directly in the conversation.
+A high-speed module health check that delegates all compiler-enforceable rules to `dotnet build` and `vk_be_manifest_lint`, focusing AI checks exclusively on structural and visibility contracts that Roslyn cannot verify. Output is inline (no file saved).
 
-**Reference modules (= "correct" baseline)**: `Authentication`, `Authorization`
+**Reference modules**: `Authentication`, `Authorization`, `AI`
 
-## Step 1: Identify the Target & Bootstrap Context (PS.04)
+## Step 1: Bootstrap Context & Differential Rule Sync (`PS.04`)
 
-1. Determine the **absolute path** of the BuildingBlock module to audit from the user's input.
-2. If not provided, ask: `"Which module would you like me to fast-audit?"`
-3. **Mandatory**: Call `vk_get_module_context(path)` to load localized prompts and rules.
-   - This typically loads core "Type A" rules (CS.01, AP.01, etc.) via `.prompts/industrial-dna.md`.
+1. Determine the **absolute path** of the BuildingBlock module (if missing, ask `"Which module would you like me to fast-audit?"`).
+2. Call `vk_be_get_module_context(path)` to load `/src/.prompts/pitfalls.md`, `industrial-dna.md`, and the module's `.prompts/module-manifest.md` / `pitfalls.md`.
+3. Top-up only missing L3 rules via `vk_be_get_architectural_rule` from:
+   - `BB.01, BB.02, BB.03, BB.05, BB.06, BB.07, AP.02, AP.03`
 
-## Step 2: Rule Differential Loading (L3 Verification)
+## Step 2: Deterministic Gate (Compiler & Manifest)
 
-1. **Scan Context**: Review the rules already provided in the flattened module context from `vk_get_module_context`.
-2. **Top-up**: Identify rules that are MISSING from the context but required for this audit:
-    - **Required**: `BB.01, AP.03, BB.02, BB.03`
-    - **Action**: Call `vk_get_architectural_rule` ONLY for the IDs not already present in the "Active Rule Set" section of the context.
-3. **Output**: `Audit Load: [BB.01:L3, AP.03:L3, BB.02:L3, BB.03:L3] | Status: Verified ✅`
-   - *(Note: Indicate which rules were confirmed from context vs. fetched via top-up)*
+Run deterministic tools first — **do NOT replicate compiler checks with regex grep**:
 
-## Step 3: Structural Checks (list_dir only)
+1. **Compiler Hard Walls**:
+   ```powershell
+   dotnet build <ModuleCsprojPath> --no-restore --no-dependencies -v minimal
+   ```
+   Record all Roslyn diagnostics (`VK0001`–`VK0006`, `VK1001`–`VK2013`, `VKCORE001`, `CA1848`, `CA1852`, `CA2007`, `IDE0130`).
+2. **Manifest & Dependency Lint** (if `.prompts/module-manifest.md` exists):
+   - Call `vk_be_manifest_lint(modules: "{ModuleName}")` and record all `MAN-*` errors/warnings.
 
-Run `list_dir` on the module root and key subdirectories. Check the following:
+## Step 3: Non-Compiler Structural Checks (`S-01`–`S-05`)
 
-| ID | Rule | Tier | Check | Pass Condition |
-|:---|:-----|:-----|:------|:---------------|
-| S-01 | BB.01 | 🟡 | `DependencyInjection/` or Feature Slice DI | Directory present OR Feature Slices (`{Feature}/`) present with `[VKBlockMarker]` SG |
-| S-02 | BB.01 | 🟡 | `DependencyInjection/Internal/` or SG-generated DI | Directory present OR SG pipeline active via `[VKBlockMarker]` |
-| S-03 | BB.04 | 🟡 | `Diagnostics/` or Feature/SG Diagnostics | Directory present OR SG diagnostics active via `[VKBlockDiagnostics]` / Feature Diagnostics |
-| S-04 | BB.04 | 🟡 | `Diagnostics/Internal/` or SG Diagnostics | Directory present OR SG diagnostics active via `[VKBlockDiagnostics]` / Feature Diagnostics |
-| S-05 | BB.01 | 🔴 | Marker file exists at module root | `VK{Module}Block.cs` or similar `*Block.cs` at root level |
-| S-06 | BB.01 | 🟡 | Options Co-location | Options files co-located in Root, `Common/`, or within respective Feature Slices |
+Inspect directory layout (`list_dir`) and targeted files (`*Block.cs`, `*Options.cs`, `Common/DependencyInjection/`) for checks the compiler cannot enforce:
 
-## Step 4: Marker Checks (grep_search on *Block.cs)
+| ID | Rule | Tier | What to Verify |
+| :--- | :--- | :---: | :--- |
+| `S-01` | `BB.01` | 🟡 | Root uses `{FeatureName}/` vertical slices (no `Features/` wrapper), unified `Common/` (`Common/DependencyInjection/`, `Common/Diagnostics/`), root `VK{Module}Block.cs`, and hand-written `partial` `VK{Module}Options.cs` (if present). |
+| `S-02` | `BB.02` | 🔴 | `VK{Module}Block.cs` is `public sealed partial class` with `[VKBlockMarker]` (no manual `IVKBlockMarker`), declaring `Dependencies` for non-Core blocks. |
+| `S-03` | `BB.03` / `AP.02` | 🔴 | Uses Source-Generated DI (`[VKBlockMarker]` / `[VKFeature]`) or follows `IsVKBlockRegistered` → `Options` (`Func<T, T>`) → `AddVKBlockMarker` (before `Enabled` toggle) → `TryAdd` services. |
+| `S-04` | `BB.05` / `BB.07` | 🟡 | Options types are `sealed record` with `init` properties, implement `IVKBlockOptions` / `IVKToggleableBlockOptions`, and reside in dedicated single-class files (no nesting). |
+| `S-05` | `AP.03` | 🟡 | Level-1 Public types (`Common/Models/`, `Common/Protocols/`) carry `VK` / `IVK` prefix in flat `VK.Blocks.{Module}` namespace; `Internal/` types are `internal` without `VK` prefix. |
 
-| ID | Rule | Tier | Check | grep Query | Pass Condition |
-|:---|:-----|:-----|:------|:-----------|:---------------|
-| M-01 | BB.02 | 🔴 | Uses `[VKBlockMarker]` attribute (preferred) | `[VKBlockMarker` in `*Block.cs` | Attribute found |
-| M-02 | BB.02 | 🟡 | Legacy `IVKBlockMarker` manual implementation | `: IVKBlockMarker` in `*Block.cs` | If found → **Warn** (should migrate to attribute) |
-| M-03 | BB.02 | 🔴 | `sealed partial class` declaration | `sealed partial class` in `*Block.cs` | Both `sealed` and `partial` present |
-| M-04 | BB.02 | 🟡 | Dependencies declared (non-Core modules only) | `Dependencies` in `*Block.cs` | Found (skip for Core) |
+## Step 4: Output Inline Report
 
-## Step 5: DI Registration Checks (grep_search in DependencyInjection/)
-
-| ID | Rule | Tier | Check | grep Query | Pass Condition |
-|:---|:-----|:-----|:------|:-----------|:---------------|
-| D-01 | BB.03 | 🔴 | Idempotency check exists | `IsVKBlockRegistered` | Found OR module uses `[VKBlockMarker]` SG |
-| D-02 | BB.03 | 🔴 | Self-marker registration exists | `AddVKBlockMarker` | Found OR module uses `[VKBlockMarker]` SG |
-| D-03 | AP.04 | 🟡 | Options uses standard helper | `AddVKBlockOptions` | Found OR module uses `[VKBlockMarker]` / `[VKFeature]` SG |
-| D-04 | AP.02 | 🔴 | Uses `TryAdd` pattern | `TryAdd` | Found |
-| D-05 | AP.02 | 🔴 | No direct `Add` registration | `services.Add(Singleton\|Scoped\|Transient)` (regex) | **NOT found** = Pass |
-| D-06 | BB.03 | 🟡 | Wrapper → Internal delegation exists | `BlockRegistration.Register` | Found OR emitted by `VKBlockGenerator` SG |
-| D-07 | BB.03 | 🔴 | Wrapper Method Naming Pattern | `AddVK.*Block` | Found OR emitted by `VKBlockGenerator` SG |
-
-## Step 6: Options Checks (grep_search)
-
-| ID | Rule | Tier | Check | grep Query | Pass Condition |
-|:---|:-----|:-----|:------|:-----------|:---------------|
-| O-01 | BB.05 | 🟡 | Options is `sealed record` | `sealed record.*IVKBlockOptions` | Found |
-| O-02 | BB.05 | 🟡 | Options uses `VK` prefix in type name | `VK.*Options.*IVKBlockOptions` | Found |
-| O-03 | AP.04 | 🟡 | `SectionName` is defined | `SectionName` in Options files | Found OR emitted by `VKFeatureGenerator` SG |
-| O-04 | BB.05 | 🔴 | NOT `sealed class` (legacy) | `sealed class.*IVKBlockOptions` | **NOT found** = Pass |
-
-## Step 7: Implementation Pattern Checks (grep_search, module-wide)
-
-| ID | Rule | Tier | Check | grep Query | Pass Condition |
-|:---|:-----|:-----|:------|:-----------|:---------------|
-| I-01 | AP.01 | 🔴 | Sealed usage | Count `public sealed` vs `public class ` (no sealed) | Ratio reported |
-| I-02 | AP.01 | 🔴 | VKGuard usage | `VKGuard.` | Found (if module has constructors/boundaries) |
-| I-03 | CS.03 | 🔴 | ConfigureAwait compliance | Count `ConfigureAwait(false)` vs `await ` | Ratio reported |
-| I-04 | OR.01 | 🟡 | LoggerMessage source gen | `[LoggerMessage` | Found (if module has logging) |
-| I-05 | OR.01 | 🔴 | No direct logger calls | `.Log(Information\|Warning\|Error\|Debug\|Critical)\(` (regex) | **NOT found** = Pass |
-| I-06 | BB.04 | 🟡 | Diagnostics attribute | `[VKBlockDiagnostics` | Found |
-| I-07 | CS.01 | 🔴 | Result pattern usage | `Result<` or `Result.Failure` | Found (if applicable) |
-| I-08 | CS.06 | 🔴 | Core: TimeProvider usage | `DateTime\.(UtcNow\|Now)` | **NOT found** = Pass |
-| I-09 | CS.06 | 🔴 | Core: Guid Generator usage | `Guid\.NewGuid\(\)` | **NOT found** = Pass |
-| I-10 | CS.06 | 🔴 | Core: JSON Serializer usage | `JsonSerializer\.(Serialize\|Deserialize)` | **NOT found** = Pass |
-| I-11 | CS.02 | 🟡 | Dependency Pollution Check | `using Microsoft\.EntityFrameworkCore;` or `StackExchange\.Redis` | **NOT found** in Application logic (e.g. `Features/`, `Internal/` outside of Persistence/Infrastructure boundaries) |
-
-## Step 8: Naming & Visibility Checks (AP.03)
-
-| ID | Rule | Tier | Check | grep Query (regex) | Pass Condition |
-|:---|:-----|:-----|:------|:-----------|:---------------|
-| N-01 | AP.03 | 🟡 | Level 1 public types use `VK` prefix | `public (class\|interface\|record\|struct) (?!VK\|IVK)` | **NOT found** in root/1st-level dirs |
-| N-02 | AP.03 | 🟡 | Level 2+ types are `internal` | `public (class\|interface\|record\|struct)` | **NOT found** in `Internal/` or deep dirs |
-| N-03 | AP.03 | 🟡 | Deep namespaces use matching path | `namespace (?!.*\.Internal)` | **NOT found** in `*/Internal/*` |
-
-## Step 9: Output the Report
-
-Every response MUST start with the **Handshake**:
-`Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`
-
-Then, output the results **directly in the conversation** using this format:
+Start with the Handshake:
+`Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`
 
 ```markdown
 # ⚡ Fast Audit: {ModuleName}
-**Date**: YYYY-MM-DD | **Score**: XX/YY (ZZ%)
+**Date**: YYYY-MM-DD | **Structural Score**: X/5 | **Build Warnings**: N | **Manifest Lint**: PASS / FAIL / N/A
 
-## 📁 Structure (BB.01)
-- ✅/❌ S-01 ~ S-06
+## 🧱 Compiler Hard Walls (`dotnet build`)
+- Summary of `VK*` / `CA*` / `IDE0130` warnings (0 = Pass)
 
-## 🏷️ Marker (BB.02)
-- ✅/⚠️/❌ M-01 ~ M-04
+## 📜 Manifest Lint (`vk_be_manifest_lint`)
+- Summary of `MAN-*` findings (or `N/A — no module-manifest.md`)
 
-## 🔌 DI Registration (BB.03, AP.02/04)
-- ✅/❌ D-01 ~ D-06
-
-## ⚙️ Options (BB.05, AP.04)
-- ✅/⚠️/❌ O-01 ~ O-04
-
-## 🔍 Implementation Patterns (CS.01/03/06, OR.01, AP.01, BB.04)
-- ✅/⚠️/❌ I-01 ~ I-11
-
-## 📛 Naming & Visibility (AP.03)
-- ✅/⚠️/❌ N-01 ~ N-03
-
-## 📊 Summary Table
-| Category | Tier | ✅ | ❌ | ⚠️ |
-| :--- | :--- | :--- | :--- | :--- |
-| Structure | 🟡 | | | |
-| Marker | 🔴 | | | |
-| DI Registration | 🔴 | | | |
-| Options | 🟡 | | | |
-| Implementation | 🔴 | | | |
-| Naming | 🟡 | | | |
-
-## 🚩 Audit Exceptions
-Audit: {✅ All constraints satisfied. | 🚩 [RuleID] {Rationale}}
+## 🏗️ Structural Checks (`S-01`–`S-05`)
+- ✅/⚠️/❌ S-01 ~ S-05 with exact file evidence
 ```
 
-### Scoring Rules
-- ✅ = Pass (1 point)
-- ⚠️ = Warning (0.5 points) — functional but not aligned with latest standard
-- ❌ = Fail (0 points)
-- **N/A** items (e.g., Result pattern in a pure-abstraction module) are excluded from scoring
-- Score = (earned points / applicable items) × 100%
-
-### Tier Classification
-- **🔴 Type A (Zero Tolerance)**: Any ❌ in a 🔴 Tier item requires immediate stopping and correction.
-- **🟡 Type B (Industrial Habit)**: ❌ or ⚠️ are allowed in `src/Labs` but must be flagged.
+End with:
+`Audit: ✅ (verified: build + fast-audit)` or `Audit: 🚩 [RuleID] {Rationale}` (any 🔴 Type A failure requires immediate correction or PBI tracking).
