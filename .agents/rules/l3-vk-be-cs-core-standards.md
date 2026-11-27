@@ -1,4 +1,4 @@
-﻿---
+---
 trigger: manual
 ---
 
@@ -22,11 +22,9 @@ trigger: manual
 
 <rule id="CS.03" type="A" name="Async">
 - Use `async/await` + `CancellationToken` for ALL I/O operations.
-- NO `.Result`, `.Wait()`, or blocking calls.
+- NO `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` blocking calls *(Enforced: `VK0005`)*.
 - Prefer `ValueTask<T>` over `Task<T>` for **internal** hot-path methods where synchronous completion is the common case (cache hits, in-memory checks). **Public API interfaces (`IVK...`) MUST use `Task<T>`** to prevent consumer-side misuse (double-await, premature access). Avoid `ValueTask` when the operation is always async or may be awaited multiple times.
-- ALL `await` calls within BuildingBlock/library code MUST use `.ConfigureAwait(false)` to prevent synchronization-context deadlocks.
-- **Exception**: DO NOT use `.ConfigureAwait(false)` in Test methods (xUnit). Test code should maintain the synchronization context for stable assertion handling and parallelism management.
-- **Enforcement**: Configure `.editorconfig` (e.g., `dotnet_diagnostic.xUnit1030.severity = error`) or use custom analyzers to automatically prevent IDE auto-completion from injecting `.ConfigureAwait(false)` into test projects.
+- ALL `await` calls within BuildingBlock/library code MUST use `.ConfigureAwait(false)` *(Enforced: `CA2007`)*; PROHIBITED in xUnit test methods *(Enforced: `xUnit1030`)*.
 </rule>
 
 <rule id="CS.04" type="B" name="Performance">
@@ -47,10 +45,10 @@ trigger: manual
 </rule>
 
 <rule id="CS.06" type="A" name="Core Abstractions">
-- **Deterministic Logic**: PROHIBIT direct use of non-deterministic system APIs within BuildingBlocks.
-- **GUIDs**: Use `IVKGuidGenerator` (injected) instead of `Guid.NewGuid()`.
-- **Time**: Use `TimeProvider` (injected) instead of `DateTime.UtcNow` or `DateTimeOffset.Now`.
-- **Serialization**: Use `IVKJsonSerializer` (injected) for all JSON operations to ensure consistent behavior and standard options.
+- **Deterministic Logic**: PROHIBIT direct non-deterministic system APIs within BuildingBlocks *(Enforced: `VK0002`–`VK0004`)*:
+  - **Time**: Inject `TimeProvider` instead of `DateTime.UtcNow` / `DateTimeOffset.Now` (`VK0002`).
+  - **GUIDs**: Inject `IVKGuidGenerator` instead of `Guid.NewGuid()` (`VK0003`).
+  - **Serialization**: Inject `IVKJsonSerializer` instead of `JsonSerializer` (`VK0004`).
 </rule>
 
 <rule id="CS.07" type="A" name="Dependency Resolution">

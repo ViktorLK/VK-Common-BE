@@ -13,8 +13,8 @@ Apply the strict coding guidelines defined in `references/CodeNormalization.md` 
 
 1. **Identify Target & Load Context**:
     - Determine the **absolute path** of the directory or file to be normalized.
-    - **Mandatory (PS.04)**: Call `vk_get_module_context(path)`.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - **Mandatory (PS.04)**: Call `vk_be_get_module_context(path)`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
 
 2. **Mechanical Cleanup & Audit (Stage 1)**:
     - Run standard `dotnet format` to handle unambiguous namespaces, usings, and spacing.
@@ -56,7 +56,7 @@ Apply the strict coding guidelines defined in `references/CodeNormalization.md` 
 5. **Save and Report (Audit by Exception)**:
     - Overwrite files with modified code.
     - **Normalization Report**: Create `normalization-report.md` (Artifact) aggregating all `// TODO`, `// FIX`, `// PERF`, and `// SUGGEST` comments.
-    - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+    - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
     - Audit: `Audit: ✅ All DNA constraints applied.`
 
 6. **Verify Build**:

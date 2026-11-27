@@ -28,24 +28,65 @@ public sealed record VKAIModelMetadata
     public required int MaxOutputTokens { get; init; }
 
     /// <summary>
+    /// Gets whether this metadata represents a known catalog entry rather than an unlisted fallback.
+    /// </summary>
+    public bool IsKnown { get; init; } = true;
+
+    /// <summary>
+    /// Gets the three-state streaming support for the model.
+    /// </summary>
+    public VKModelCapabilityState StreamingCapability { get; init; } = VKModelCapabilityState.Unknown;
+
+    /// <summary>
+    /// Gets the three-state structured JSON schema output support for the model.
+    /// </summary>
+    public VKModelCapabilityState StructuredOutputCapability { get; init; } = VKModelCapabilityState.Unknown;
+
+    /// <summary>
+    /// Gets the three-state tool / function calling support for the model.
+    /// </summary>
+    public VKModelCapabilityState ToolsCapability { get; init; } = VKModelCapabilityState.Unknown;
+
+    /// <summary>
+    /// Gets the three-state reasoning / thinking mode support for the model.
+    /// </summary>
+    public VKModelCapabilityState ReasoningCapability { get; init; } = VKModelCapabilityState.Unknown;
+
+    /// <summary>
     /// Gets whether the model supports streaming responses.
     /// </summary>
-    public bool SupportsStreaming { get; init; } = true;
+    public bool SupportsStreaming
+    {
+        get => StreamingCapability == VKModelCapabilityState.Supported;
+        init => StreamingCapability = value ? VKModelCapabilityState.Supported : VKModelCapabilityState.Unsupported;
+    }
 
     /// <summary>
     /// Gets whether the model supports native structured JSON schema output.
     /// </summary>
-    public bool SupportsStructuredOutput { get; init; } = false;
+    public bool SupportsStructuredOutput
+    {
+        get => StructuredOutputCapability == VKModelCapabilityState.Supported;
+        init => StructuredOutputCapability = value ? VKModelCapabilityState.Supported : VKModelCapabilityState.Unsupported;
+    }
 
     /// <summary>
     /// Gets whether the model supports tool / function calling.
     /// </summary>
-    public bool SupportsTools { get; init; } = true;
+    public bool SupportsTools
+    {
+        get => ToolsCapability == VKModelCapabilityState.Supported;
+        init => ToolsCapability = value ? VKModelCapabilityState.Supported : VKModelCapabilityState.Unsupported;
+    }
 
     /// <summary>
     /// Gets whether the model supports reasoning / thinking mode.
     /// </summary>
-    public bool SupportsReasoning { get; init; } = false;
+    public bool SupportsReasoning
+    {
+        get => ReasoningCapability == VKModelCapabilityState.Supported;
+        init => ReasoningCapability = value ? VKModelCapabilityState.Supported : VKModelCapabilityState.Unsupported;
+    }
 
     /// <summary>
     /// Gets the supported reasoning effort levels (e.g., "low", "medium", "high"), if applicable.

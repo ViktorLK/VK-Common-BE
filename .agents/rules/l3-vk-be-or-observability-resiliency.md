@@ -1,4 +1,4 @@
-﻿---
+---
 trigger: manual
 ---
 
@@ -6,13 +6,9 @@ trigger: manual
 
 <rule id="OR.01" type="A" name="Observability">
 #### Logging
-- **Pattern**: USE `[LoggerMessage]` Source Generator (SG) for ALL logging. Define as `internal static partial class` with extension methods taking `this ILogger logger` as the first parameter.
-- **Enforcement**: DIRECT calling of standard logger methods (e.g. `logger.LogInformation()`, `logger.LogWarning()`, `logger.LogError()`) is PROHIBITED in production code. Always invoke generated extension methods on `_logger` (e.g. `_logger.MemoryEntrySaved(id)`).
-- **Single File Consolidation**: All `[LoggerMessage]` methods for a feature MUST be consolidated in a single diagnostics file (e.g., `{FeatureName}Diagnostics.cs` marked with `[VKBlockDiagnostics<TBlock>]`). Creating duplicate or parallel `XxxLog.cs` files alongside `XxxDiagnostics.cs` is PROHIBITED.
-- **Structured Templates**: USE structured log templates with placeholders: `"{Id}"`, `"{TenantId}"`. NO string interpolation.
-- **TraceId**: `TraceId` is MANDATORY in all log entries and error responses.
-- **Exception Context**: Exceptions MUST be logged with full context before mapping to `Result<T>`.
-- **Location**: Feature-specific loggers MUST be placed in `{FeatureName}/Diagnostics/Internal/` (e.g. `Permissions/Diagnostics/Internal/PermissionsDiagnostics.cs`). Only globally shared or infrastructure-level loggers belong in `Common/Diagnostics/Internal/`.
+- **Pattern & Enforcement**: USE `[LoggerMessage]` Source Generator on `internal static partial class` extension methods (`this ILogger logger`). Direct `logger.LogXxx()` calls are PROHIBITED *(Enforced: `CA1848`; duplicate EventId: `VK1010`)*.
+- **Single File Consolidation**: Consolidate all `[LoggerMessage]` methods for a feature in `{FeatureName}Diagnostics.cs` marked with `[VKBlockDiagnostics<TBlock>]` under `{FeatureName}/Diagnostics/Internal/` (or `Common/Diagnostics/Internal/` for shared loggers); do NOT create parallel `XxxLog.cs` files.
+- **Structured Templates & TraceId**: USE structured templates (`"{Id}"`, `"{TenantId}"`), NO string interpolation. `TraceId` is MANDATORY in all log entries and error responses; log exceptions with full context before mapping to `Result<T>`.
 
 #### Metrics & Tracing
 - **Diagnostics Class**: Each BuildingBlock MUST define `[VKBlockDiagnostics]` in a `Diagnostics/` folder to auto-generate `ActivitySource` and `Meter`.

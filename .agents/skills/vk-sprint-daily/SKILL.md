@@ -26,5 +26,6 @@ Use this skill during active development to record progress or surface blockers.
      - `blockers`: Optional blocker message. If provided and not empty/none, it will automatically be highlighted in the `🚧 Active Blockers` section of `Active_Sprint.md`.
 
 4. **Address Blockers & Pace Adjustments**:
+   - If an implementation approach failed and was reverted, record a concise `Tried (Failed)` line in the active PBI's `## 🧭 Working Notes` so future sessions do not repeat it.
    - If architectural ambiguity is identified, prompt an ADR via `vk-draft-adr` or rule consultation via `vk_be_get_architectural_rule`.
    - If behind pace or scope needs adjustment, use `vk_be_sprint_scope` to add or remove tasks with a documented reason.

@@ -6,6 +6,17 @@ namespace VK.Tools.SourceGenerators.Diagnostics;
 /// <summary>
 /// Central registry of all diagnostic descriptors used by VK.Blocks Generators and Analyzers.
 /// </summary>
+/// <remarks>
+/// Global VK Diagnostic ID Allocation:
+/// <list type="bullet">
+/// <item><description><c>VK0001</c>–<c>VK0999</c>: <c>VK.Tools.Analyzers</c> (General architecture &amp; code governance: AP.01, CS.03, CS.06, etc.)</description></item>
+/// <item><description><c>VK1000</c>–<c>VK1099</c>: <c>VK.Tools.SourceGenerators</c> — Observability (OR.01, BB.04)</description></item>
+/// <item><description><c>VK1100</c>–<c>VK1199</c>: <c>VK.Tools.SourceGenerators</c> — Domain / Enum Governance</description></item>
+/// <item><description><c>VK1200</c>–<c>VK1299</c>: <c>VK.Tools.SourceGenerators</c> — Authentication</description></item>
+/// <item><description><c>VK2000</c>–<c>VK2999</c>: <c>VK.Tools.SourceGenerators</c> — Persistence</description></item>
+/// <item><description>Legacy reserved (do not reuse): <c>VK001</c> (<c>VKDiagnostics.TypeMustBePartialRule</c>), <c>VKCORE001</c> (<c>VKValueStringBuilderUsingAnalyzer</c>)</description></item>
+/// </list>
+/// </remarks>
 public static class VKDiagnosticDescriptors
 {
     private const string Category = $"{VKBlocksConstants.VKBlocksPrefix}.Observability";
@@ -73,6 +84,20 @@ public static class VKDiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Enums in VK.Blocks must explicitly declare an underlying type (: byte, : short, : int) to ensure deterministic memory and storage footprint.");
+
+    private const string AuthenticationCategory = $"{VKBlocksConstants.VKBlocksPrefix}.Authentication";
+
+    /// <summary>
+    /// VK1201: Multiple OAuth provider mappers registered for the same provider key.
+    /// </summary>
+    public static readonly DiagnosticDescriptor DuplicateOAuthProviderMapper = new(
+        id: "VK1201",
+        title: "Duplicate OAuth provider mapper",
+        messageFormat: "Multiple OAuth mappers found for provider '{0}'. Only '{1}' will be registered.",
+        category: AuthenticationCategory,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        description: "Each OAuth provider key should map to a single IVKOAuthClaimsMapper implementation within an assembly.");
 
     private const string PersistCategory = $"{VKBlocksConstants.VKBlocksPrefix}.Persistence";
 

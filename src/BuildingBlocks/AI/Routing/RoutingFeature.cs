@@ -14,6 +14,7 @@ internal sealed partial class RoutingFeature
         _ = options;
         services.TryAddSingleton<IVKAIRoutingPolicy, NoOpAIRoutingPolicy>();
         services.TryAddSingleton<IVKAIInvocationObserver, NoOpAIInvocationObserver>();
+        services.TryAddSingleton<IVKAICredentialResolver, NoOpAICredentialResolver>();
     }
 
     // [SG Hook]

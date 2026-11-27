@@ -1,8 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using VK.Blocks.AI.Synapse.Common.Internal;
-using VK.Blocks.AI.Synapse.Resilience.Internal;
-using VK.Blocks.AI.Synapse.Security.Internal;
 using VK.Blocks.Core;
 using VK.Blocks.Resilience;
 
@@ -15,11 +11,17 @@ namespace VK.Blocks.AI.Synapse;
 [VKBlockMarker(Dependencies = [typeof(VKAIBlock), typeof(VKResilienceBlock)], Toggleable = false)]
 public sealed partial class VKAISynapseBlock
 {
+    // [SG Hook]
     static partial void RegisterBlockCustom(IVKAISynapseBuilder builder)
     {
-        builder.Services.TryAddScoped<IVKAISynapseModelFactory, DefaultAISynapseModelFactory>();
-        builder.Services.TryAddSingleton<IVKConnectionValidator, DefaultConnectionValidator>();
-        builder.Services.TryAddSingleton(new VKAIResilienceOptions());
-        builder.Services.TryAddSingleton<IVKAIResilienceProvider, LocalAIResilienceProvider>();
+        // [BB.06]
+        builder.AddVKAISynapseDefaultFeatures();
+    }
+
+    // [SG Hook]
+    static partial void ValidateBlockCustom(VKAISynapseOptions options, System.Collections.Generic.List<string> failures)
+    {
+        _ = options;
+        _ = failures;
     }
 }

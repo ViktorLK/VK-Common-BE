@@ -1,3 +1,5 @@
+using System;
+
 namespace VK.Blocks.AI.Synapse;
 
 /// <summary>
@@ -7,6 +9,9 @@ public sealed record VKModelPricing
 {
     public required string Provider { get; init; }
     public required string ModelId { get; init; }
-    public double CostPer1KPromptTokens { get; init; }
-    public double CostPer1KCompletionTokens { get; init; }
+    public decimal CostPer1KInputTokens { get; init; }
+    public decimal CostPer1KOutputTokens { get; init; }
+    public decimal CostPer1KCachedTokens { get; init; }
+    public decimal CostPer1KReasoningTokens { get; init; }
+    public DateTimeOffset? EffectiveFrom { get; init; }
 }

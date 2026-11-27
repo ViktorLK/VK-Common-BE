@@ -3,25 +3,30 @@ namespace VK.Blocks.AI.Synapse;
 /// <summary>
 /// Strategy used by the AI Router to order and select candidate providers.
 /// </summary>
-public enum VKAIRoutingStrategy
+public enum VKAIRoutingStrategy : byte
 {
     /// <summary>
-    /// Orders candidates strictly by user preferred provider and preferred model.
+    /// Orders candidates by preference and priority.
     /// </summary>
-    Preference = 0,
+    Priority = 0,
 
     /// <summary>
-    /// Distributes candidates using weighted round-robin based on provider weight settings.
+    /// Distributes candidates using weighted ordering based on capacity settings.
     /// </summary>
-    WeightedRoundRobin = 1,
+    Weighted = 1,
 
     /// <summary>
-    /// Prioritizes candidates with lowest estimated token cost.
+    /// Distributes candidates evenly in round-robin order.
     /// </summary>
-    CostOptimized = 2,
+    RoundRobin = 2,
 
     /// <summary>
-    /// Prioritizes candidates with lowest recorded latency.
+    /// Pins requests to a consistent candidate using a deterministic hash of the session affinity key.
     /// </summary>
-    LatencyOptimized = 3
+    SessionAffinity = 3,
+
+    /// <summary>
+    /// Orders candidates by lowest estimated cost using price source data.
+    /// </summary>
+    LowestCost = 4
 }

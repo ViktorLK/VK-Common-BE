@@ -32,7 +32,7 @@ if ($status) {
 Write-Host "✅ Git status clean: ready for mechanical normalization." -ForegroundColor Green
 ```
 
-- Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+- Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
 
 ### 2. Execute Mechanical Normalization
 This script first fixes physical file boundaries (UTF-8 No-BOM, CRLF, trailing newline) and then applies automated .NET formatting (unused usings & whitespace).
@@ -107,7 +107,7 @@ dotnet build <path_to_relevant_csproj_or_sln> --no-restore
 ```
 
 - **Reporting Protocol**:
-  - Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+  - Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
   - Audit: `Audit: ✅ Mechanical normalization complete. Diff verified.`
 
 ## Why this is "Mechanical"

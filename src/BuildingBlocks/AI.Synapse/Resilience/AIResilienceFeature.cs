@@ -11,6 +11,7 @@ internal sealed partial class AIResilienceFeature
     static partial void RegisterFeatureCustom(IServiceCollection services, VKAIResilienceOptions options)
     {
         _ = options;
-        services.TryAddSingleton<IVKAIResilienceProvider, LocalAIResilienceProvider>();
+        // [AP.02] Idempotent registration
+        services.TryAddSingleton<IVKAIFailurePolicy, DefaultAIFailurePolicy>();
     }
 }

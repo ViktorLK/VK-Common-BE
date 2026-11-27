@@ -58,5 +58,5 @@ Initialize the base directory `src/BuildingBlocks/{ModuleName}/`:
 - [ ] Run `/vk-generate-readme`.
 - [ ] Run `dotnet build`.
 - [ ] Run `/vk-audit-fast` to confirm BB.01-05 and AP.01-05 compliance.
-- [ ] Handshake: `Active: [L1+L2:{moduleName}] | Context: {path} | Sync: Ready`.
+- [ ] Handshake: `Active: [L0-L3:{Module}] | Context: {Path} | Sync: [{RuleID},...]`.
 - [ ] Audit: `Audit: ✅ New block bootstrapped with Industrial DNA.`

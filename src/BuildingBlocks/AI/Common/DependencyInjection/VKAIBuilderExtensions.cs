@@ -47,7 +47,7 @@ public static partial class VKAIBuilderExtensions
     }
 
     /// <summary>
-    /// Adds the Tokenics pillar (Counting, Costing, Limiting, Quotas, Budgeting).
+    /// Adds the Tokenics pillar (Counting).
     /// </summary>
     public static IVKAIBuilder AddVKTokenicsPillar(
         this IVKAIBuilder builder,
@@ -57,9 +57,6 @@ public static partial class VKAIBuilderExtensions
         builder = TokenicsFeature.Register(builder, transform);
 
         builder.AddVKCounting();
-        builder.AddVKCosting();
-        builder.AddVKLimiting();
-        builder.AddVKBudgeting();
 
         return builder;
     }

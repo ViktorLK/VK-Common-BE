@@ -92,8 +92,9 @@ Active: [L0-L3:Auth] | Context: src/BuildingBlocks/Auth | Sync: [CS.01, AP.01, B
 > **Hard-Lock**: 該当シナリオに必要な Rule ID が `Sync: [...]` に含まれていない場合、コード生成は禁止されます。
 
 ### 2. 監査タグ (Audit Tag)
-回答の末尾で自己監査ステータスを宣言します：
-- 準拠時: `Audit: ✅`
+回答の末尾で、実際に実施した検証根拠を伴う監査ステータスを宣言します（自己チェックのみで完了扱いにしない）：
+- 検証済み: `Audit: ✅ (verified: build)` または `Audit: ✅ (verified: build + isolated-review)`
+- 未検証（自己確認のみ）: `Audit: ⚠️ (self-check only)`
 - 違反・免除時: `Audit: 🚩 [RuleID] {Rationale}`（Type B 免除の理由を明記。即時自己修正を実施）
 
 ---
@@ -125,7 +126,7 @@ flowchart LR
     S3["<b>03. 決定</b><br/><code>/vk-draft-adr</code><br/>設計決定記録 (ADR)"] -->
     S4["<b>04. 契約</b><br/><code>/vk-draft-impl-plan</code><br/>実装仕様・データ辞書"] -->
     S5["<b>05. 監査</b><br/><code>/vk-audit-*</code><br/>アーキテクチャ・DNA監査"] -->
-    S6["<b>06. 課題</b><br/><code>/vk-add-backlog</code><br/>タスク起票・Sprint連携"]
+    S6["<b>06. 課題</b><br/><code>/vk-sprint-add-task</code><br/>タスク起票・Sprint連携"]
 
     style S1 fill:#1e293b,stroke:#38bdf8,stroke-width:1.5px,color:#f8fafc
     style S2 fill:#1e293b,stroke:#818cf8,stroke-width:1.5px,color:#f8fafc
@@ -143,10 +144,16 @@ flowchart LR
 | [`/vk-draft-architecture`](/.agents/skills/vk-draft-architecture/SKILL.md) | ライフサイクル (03) | システム全景・アーキテクチャ図解の生成 | `/docs/03-Architecture/`<br/>([03-ArchitectureBlueprint.md](/docs/00-Blueprints/03-ArchitectureBlueprint.md)) |
 | [`/vk-draft-adr`](/.agents/skills/vk-draft-adr/SKILL.md) | ライフサイクル (04) | アーキテクチャ決定レコード (ADR) の策定・採番記録 | `/docs/04-ArchitectureDecisionRecords/`<br/>([04-AdrBlueprint.md](/docs/00-Blueprints/04-AdrBlueprint.md)) |
 | [`/vk-draft-impl-plan`](/.agents/skills/vk-draft-impl-plan/SKILL.md) | 実装計画 (Plan) | 実装契約・エラー一覧・詳細設計の策定 | Implementation Plan<br/>([Plan-ContractAndImplementationBlueprint.md](/docs/00-Blueprints/Plan-ContractAndImplementationBlueprint.md)) |
-| [`/vk-audit-architecture`](/.agents/skills/vk-audit-architecture/SKILL.md) | 監査・検証 (05) | モジュールの深層アーキテクチャ監査とレポート出力 | `/docs/06-AuditReports/`<br/>([06-ArchitectureAuditBlueprint.md](/docs/00-Blueprints/06-ArchitectureAuditBlueprint.md)) |
-| [`/vk-audit-fast`](/.agents/skills/vk-audit-fast/SKILL.md) | 監査・検証 (05) | チェックリスト方式による高速インライン監査 | チャット（インライン出力） |
-| [`/vk-audit-semantic`](/.agents/skills/vk-audit-semantic/SKILL.md) | 監査・検証 | Industrial DNA セマンティック整合性検証 | チャット（インライン出力） |
-| [`/vk-add-backlog`](/.agents/skills/vk-add-backlog/SKILL.md) | ライフサイクル (06) | バックログ起票および Active Sprint への自動同期 | `/docs/07-Backlogs/`<br/>([07-BacklogItemBlueprint.md](/docs/00-Blueprints/07-BacklogItemBlueprint.md)) |
+| [`/vk-audit-architecture`](/.agents/skills/vk-audit-architecture/SKILL.md) | 監査・検証 (05) | 隔離読取専用サブエージェントによる深層アーキテクチャ・DNA・状態遷移監査 | `/docs/06-AuditReports/`<br/>([06-ArchitectureAuditBlueprint.md](/docs/00-Blueprints/06-ArchitectureAuditBlueprint.md)) |
+| [`/vk-audit-fast`](/.agents/skills/vk-audit-fast/SKILL.md) | 監査・検証 (05) | コンパイル硬壁・Manifest Lint・最新 BB 構造の高速インライン診断 | チャット（インライン出力） |
+| [`/vk-review-diff`](/.agents/skills/vk-review-diff/SKILL.md) | 監査・検証 | コンテキスト隔離された読取専用サブエージェントによる Diff 独立審査（アーキテクチャ変更時は自動昇格） | チャット（`PASS`/`FAIL` + 行番号根拠） |
+| [`/vk-sprint-add-task`](/.agents/skills/vk-sprint-add-task/SKILL.md) | ライフサイクル (06) | バックログ起票および Active Sprint への自動同期 | `/docs/07-Backlogs/`<br/>([07-BacklogItemBlueprint.md](/docs/00-Blueprints/07-BacklogItemBlueprint.md)) |
+| [`/vk-sprint-refine`](/.agents/skills/vk-sprint-refine/SKILL.md) | スプリント管理 | バックログの Story Points 見積・順位付け・DoR 確認 | `/docs/07-Backlogs/` |
+| [`/vk-sprint-plan`](/.agents/skills/vk-sprint-plan/SKILL.md) | スプリント管理 | 1週間 Sprint の計画・目標設定・Ready タスク確約 | `/docs/07-Backlogs/Active_Sprint.md` |
+| [`/vk-sprint-task-start`](/.agents/skills/vk-sprint-task-start/SKILL.md) | スプリント管理 | タスクの `doing` 遷移・開始日記録・Working Notes 確認 | `/docs/07-Backlogs/Active_Sprint.md` |
+| [`/vk-sprint-daily`](/.agents/skills/vk-sprint-daily/SKILL.md) | スプリント管理 | 日次進捗（Yesterday/Today/Blockers）の記録 | `/docs/07-Backlogs/Active_Sprint.md` |
+| [`/vk-sprint-task-done`](/.agents/skills/vk-sprint-task-done/SKILL.md) | スプリント管理 | DoD 検証・コミット自動紐付け・ビルド確認・完了遷移 | `/docs/07-Backlogs/` |
+| [`/vk-sprint-review`](/.agents/skills/vk-sprint-review/SKILL.md) | スプリント管理 | Sprint 終了・KPT レトロスペクティブ・スコアカード更新 | `/docs/07-Backlogs/Health_Scorecard.md` |
 | [`/vk-init-new-block`](/.agents/skills/vk-init-new-block/SKILL.md) | 生成・構築 | 新規 BuildingBlock の初期化・垂直スライス配置 | `/src/BuildingBlocks/` |
 | [`/vk-generate-endpoint`](/.agents/skills/vk-generate-endpoint/SKILL.md) | 生成・構築 | CQRS エンドポイント垂直スライスの生成 | 各機能ディレクトリ |
 | [`/vk-generate-sample`](/.agents/skills/vk-generate-sample/SKILL.md) | 生成・構築 | 実装サンプル・デモコードの生成 | `/src/Samples/` |
@@ -166,5 +173,20 @@ flowchart LR
 ### AI エージェント向け
 1. **Bootstrap**: モジュール初動時は `vk_be_get_module_context(path)` でローカル指示を取得せよ。
 2. **Dynamic Sync**: 変更内容に応じた Rule ID を `vk_be_get_architectural_rule(ruleIds)` で取得し、Handshake 行を宣言せよ。
-3. **Strict Compliance**: Type A 規約（Result 必須、CancellationToken 伝播、VKGuard 防御、IVKGuidGenerator / TimeProvider 注入）を徹底せよ。
-4. **Audit**: 回答末尾で `Audit: ✅` または違反フラグを出力せよ。
+3. **Compile-Time First**: `dotnet build -warnaserror` によるコンパイル時検証を第一とし、以下のハードウォールを遵守せよ。
+4. **Governance Self-Lint (`vk_be_agents_lint`)**: `.agents/` 変更後は `vk_be_agents_lint`（または `dotnet run --project src/Tools/McpServer/VK.Tools.McpServer.csproj -- --agents-lint`）でリンク・ツール名・Skill 索引・L3 Rule ID の整合性を検証せよ。
+5. **Loop Exits & External Pitfall Memory (`BASE-13`, `BASE-14`)**: 2回連続で同じ失敗・指摘を受けたら即停止し `EXPECTED / SAW / ALREADY TRIED` を報告せよ。失敗アプローチや回避策は PBI を使わない通常会話でも `/src/.prompts/pitfalls.md`（リポジトリ共通）または `/src/BuildingBlocks/{Module}/.prompts/pitfalls.md`（モジュール別）へ 1〜2 行で追記し、`vk_be_get_module_context` 経由で自動継承せよ（PBI の `Working Notes` はタスク単位の補助として併用可）。
+6. **Audit**: 回答末尾で検証根拠付きの `Audit` タグ（`verified: build` / `verified: build + isolated-review` / `self-check only`）または違反フラグを出力せよ。
+
+#### 🧱 コンパイル時ハードウォール（Compile-Time Hard Walls）
+
+| Diagnostic ID | 対応ルール | 検証内容 | 実装場所 |
+| :--- | :--- | :--- | :--- |
+| **`VK0001`**, `CA1852` | `AP.01` | 非抽象・非継承設計クラスの `sealed` 強制 | `VK.Tools.Analyzers` / `.editorconfig` |
+| **`VK0002`** | `CS.06` | `DateTime.Now` / `UtcNow` 等を禁止（`TimeProvider` 強制） | `VK.Tools.Analyzers` |
+| **`VK0003`** | `CS.06` | `Guid.NewGuid()` を禁止（`IVKGuidGenerator` 強制） | `VK.Tools.Analyzers` |
+| **`VK0004`** | `CS.06` | `JsonSerializer` 直呼び出し禁止（`IVKJsonSerializer` 強制） | `VK.Tools.Analyzers` |
+| **`VK0005`**, `CA2007` | `CS.03` | `.Result`/`.Wait()`/`GetResult()` 禁止・`.ConfigureAwait(false)` 強制 | `VK.Tools.Analyzers` / `.editorconfig` |
+| **`VK0006`** | `AP.01` | プロパティ初期化子での `default!` 禁止 | `VK.Tools.Analyzers` |
+| `CA1848`, `VK1010` | `OR.01` | `[LoggerMessage]` 強制・`EventId` 重複禁止 | `.editorconfig` / `SourceGenerators` |
+| `IDE0130` | `AP.03` | `Internal/` 配下の物理パスと名前空間の一致強制 | `.editorconfig` |
